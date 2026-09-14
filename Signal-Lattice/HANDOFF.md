@@ -2,10 +2,10 @@
 
 更新时间：2026-09-14 Australia/Sydney
 
-## 当前状态：0.0.0.3.0 已上生产并通过公网复验
+## 当前状态：0.0.0.3.1 已上生产并通过公网复验
 
 `STAGE_5_DEPLOYED_AND_PUBLICLY_VERIFIED`。生产 `/opt/signal-lattice-v2/current`
-指向 `0.0.0.3.0`，previous 为 `0.0.0.2.3-r6`。采集由
+指向 `0.0.0.3.1`，previous 为 `0.0.0.2.3-r6`。采集由
 `signal-lattice-v2-loop.timer`（`OnUnitInactiveSec=60`）驱动 `Type=oneshot` 的
 `signal-lattice once`；连续观察 4 轮，间隔约 70 秒，全部 `DATA_READY`，0 失败。
 
@@ -449,7 +449,7 @@ S1 显示 `INSUFFICIENT_CONTRIBUTION_SAMPLES: 4/8`，S2 权重保持 0。
 
 ## 2026-09-14 第五轮对抗性审查修复
 
-- `openapi.yaml` 现在是 `0.0.0.3.0` 的 V2 只读契约，只声明 `/`、`/health/live`、
+- `openapi.yaml` 现在是 `0.0.0.3.1` 的 V2 只读契约，只声明 `/`、`/health/live`、
   `/health/ready`、`/api/v1/{metadata,heartbeat,system/status,report/latest}` 与
   `/api/v1/whitebox/{summary,skills,backtest/latest}` 十条真实 GET 路由。
   `v2_get_route_responses()` 是 handler 的实际具名路由表；回归测试从该表取得实际集合，
@@ -493,13 +493,13 @@ S1 显示 `INSUFFICIENT_CONTRIBUTION_SAMPLES: 4/8`，S2 权重保持 0。
   证据，只清理可再生缓存；专用回归为 `1 passed`。本轮曾由旧的泛化 `dist` 规则误删
   该目录，四个 wheel 已从当前 HEAD 完整恢复，未遗留删除。
 - `/Users/linzezhang/.local/bin/python3.12 scripts/verify_version_lock.py --root .` 为
-  `PASS, version=0.0.0.3.0`；重建 `MANIFEST.json` 后，同一 Python 3.12 的
+  `PASS, version=0.0.0.3.1`；重建 `MANIFEST.json` 后，同一 Python 3.12 的
   `scripts/verify_package.py --root . --manifest MANIFEST.json` 为
   `PASS, finding_count=0`。
 
 ## 2026-09-14 第四轮对抗性审查修复
 
-- 发布身份的唯一手写源是 `pyproject.toml [project].version = 0.0.0.3.0`。
+- 发布身份的唯一手写源是 `pyproject.toml [project].version = 0.0.0.3.1`。
   `signal_lattice.version` 在源码树读取该文件，在 wheel 内读取安装包元数据；
   `constants.VERSION`、`__version__` 与 `live_config.APP_VERSION` 全部消费这一个解析结果。
   发布脚本也从同一 `pyproject.toml` 生成 Manifest/Subject Lock/版本锁，避免运行代码、
@@ -524,9 +524,9 @@ S1 显示 `INSUFFICIENT_CONTRIBUTION_SAMPLES: 4/8`，S2 权重保持 0。
   taskpack seal 类别。完整测试随后生成的缓存已可恢复地移至
   `/private/tmp/signal-lattice-pytest-cache-full-20260914`。
 - `/Users/linzezhang/.local/bin/python3.12 scripts/verify_version_lock.py --root .` 输出
-  `PASS, version=0.0.0.3.0`；同一 Python 3.12 下 `scripts/verify_package.py` 为
+  `PASS, version=0.0.0.3.1`；同一 Python 3.12 下 `scripts/verify_package.py` 为
   `PASS, finding_count=0`。`MANIFEST.json`、`SUBJECT_LOCK.json` 和任务执行合同已重建并
-  全部绑定 `0.0.0.3.0`。
+  全部绑定 `0.0.0.3.1`。
 
 ## 2026-09-14 第三轮对抗性审查修复
 

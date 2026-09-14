@@ -23,6 +23,24 @@ function suggestedPosition(report,decision){
   if(!Number.isFinite(scalar))return[pct(base),`top ${selection.top_n} 每只 ${pct(base)}`];
   return[pct(base*scalar),`top ${selection.top_n} 每只 ${pct(base)} × 波动缩放 ${scalar.toFixed(2)}`];
 }
+function degradedSummary(report){
+  const degraded=report.degraded_symbols||{};
+  const symbols=Object.keys(degraded);
+  if(!symbols.length)return null;
+  const names=symbols.map(symbol=>{const item=(report.instruments||{})[symbol]||{};return item.name?`${symbol}（${item.name}）`:symbol});
+  return `本轮有 ${symbols.length} 个标的未通过数据门，已排除：${names.join('、')}。这些标的不参与任何分支计算，结论不受影响。`;
+}
+function renderDegraded(report){
+  const degraded=report.degraded_symbols||{};
+  const section=panel('本轮排除的标的','未通过数据门的标的逐个列出原因；它们的报价不作为当前价格展示。');
+  const rows=Object.entries(degraded).map(([symbol,findings])=>{
+    const item=(report.instruments||{})[symbol]||{};
+    return [symbol,item.name||'—',item.market||'—','对结论零贡献',(findings||[]).join('；')];
+  });
+  if(!rows.length)section.append(node('p','本轮所有标的均通过数据门。'));
+  else section.append(table(['标的','名称','市场','对结论的影响','未通过原因'],rows));
+  return section;
+}
 function renderDecisionHero(report){
   const decision=report.decision||{};
   const symbol=decision.primary_symbol;
@@ -42,6 +60,8 @@ function renderDecisionHero(report){
   // 很久之后才知道那份行情延迟 25 分钟；这里直接挂在结论下方。
   const heroNotice=marketDelayDisclosure(report);
   if(heroNotice)main.append(node('p',`行情时效：${heroNotice}`,{class:'lead hero-delay-notice'}));
+  const degradedNotice=degradedSummary(report);
+  if(degradedNotice)main.append(node('p',`数据覆盖：${degradedNotice}`,{class:'lead hero-delay-notice'}));
   const chips=node('div',undefined,{class:'chips'});
   ['每 60 秒全量运行','Agent 依赖 0','LLM Token 0','禁止自动交易'].forEach(x=>chips.append(node('span',x)));
   main.append(chips);
@@ -75,7 +95,7 @@ function renderCycle(report){
   grid.append(card('本日采集轮次',accounting.daily_round_count??'—',`上限 ${accounting.maximum_provider_requests_per_day??'—'} 次请求/日`));
   return grid;
 }
-function renderBlocked(report={}){app.setAttribute('aria-busy','false');app.replaceChildren();if(statusDot){statusDot.className='dot danger'}if(runtimeMode){runtimeMode.textContent=report.blocked_reason||report.state||'未就绪'}const decision=report.decision||{};const loopUnreachable=report.blocked_reason==='COLLECTION_LOOP_UNREACHABLE';const main=node('main',undefined,{id:'main-content',class:'blocked-page',tabindex:'-1'});main.append(node('p',decision.state||'SYSTEM_BLOCKED',{class:'eyebrow'}));main.append(node('h1',loopUnreachable?'采集循环失联，结论已过期':'数据链路不完整，不出结论'));main.append(node('p',report.message||decision.rationale||(loopUnreachable?'循环心跳或最新报告超过时效窗口，未复用旧结论。':'数据新鲜度门未通过，未执行分支计算或方向协调。'),{class:'lead'}),renderMarketDataDisclosure(report),renderSources(report),renderDataQuality(report),renderQuoteFreshness(report));app.append(main)}
+function renderBlocked(report={}){app.setAttribute('aria-busy','false');app.replaceChildren();if(statusDot){statusDot.className='dot danger'}if(runtimeMode){runtimeMode.textContent=report.blocked_reason||report.state||'未就绪'}const decision=report.decision||{};const loopUnreachable=report.blocked_reason==='COLLECTION_LOOP_UNREACHABLE';const main=node('main',undefined,{id:'main-content',class:'blocked-page',tabindex:'-1'});main.append(node('p',decision.state||'SYSTEM_BLOCKED',{class:'eyebrow'}));main.append(node('h1',loopUnreachable?'采集循环失联，结论已过期':'数据链路不完整，不出结论'));main.append(node('p',report.message||decision.rationale||(loopUnreachable?'循环心跳或最新报告超过时效窗口，未复用旧结论。':'数据新鲜度门未通过，未执行分支计算或方向协调。'),{class:'lead'}),renderMarketDataDisclosure(report),renderDegraded(report),renderSources(report),renderDataQuality(report),renderQuoteFreshness(report));app.append(main)}
 function renderSources(report){const section=panel('行情数据覆盖','每个标的展示实际使用的日线来源、条数与截止。');const rows=Object.entries(report.bar_sources||{}).map(([symbol,source])=>{const instrument=(report.instruments||{})[symbol]||{};return [symbol,instrument.name||'—',source.source||'—',source.bar_count??'—',source.earliest_day||'—',source.latest_day||'—']});section.append(table(['标的','名称','日线来源','条数','最早','数据截止'],rows));return section}
 function renderDataQuality(report){const section=panel('日线质量记账','语义错误 Bar 已从计算序列剔除；近期窗口、数量或比例越界仍会阻断。');const rows=Object.entries(report.bar_quality||{}).map(([symbol,item])=>[symbol,item.status||'—',`${item.dropped_invalid_bar_count??0}/${item.input_bar_count??0}`,pct(item.dropped_invalid_bar_ratio),item.recent_window_start||'—',item.recent_invalid_bar_count??0,(item.blocking_reasons||[]).join('、')||'无',(item.samples||[]).map(sample=>`${sample.day}（${(sample.violations||[]).join('、')}）`).join('；')||'—']);section.append(table(['标的','状态','剔除/输入','比例','近期窗口起点','近期异常数','阻断原因','样例'],rows));return section}
 function marketDelayDisclosure(report){const instruments=Object.values(report.instruments||{});const hasHongKong=instruments.some(item=>item.market==='HK');if(!hasHongKong)return null;const declaredDelay=Math.max(...instruments.filter(item=>item.market==='HK').map(item=>Number(item.declared_feed_delay_minutes)||0));return `港股行情为交易所规定的延迟数据（约 ${declaredDelay} 分钟），非实时。`}
@@ -121,6 +141,7 @@ function renderReady(report){
   const lattice=panel('数据与时效','行情来源、日线质量与报价时间依据——支撑上面结论的原始记账。');
   lattice.setAttribute('id','lattice');
   app.append(lattice);
+  app.append(renderDegraded(report));
   app.append(renderMarketDataDisclosure(report));
   app.append(renderSources(report));
   app.append(renderDataQuality(report));

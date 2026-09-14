@@ -14,7 +14,7 @@ from .aggregate import blocked_aggregate_report
 from .backtest import run_backtest
 from .backtest.pipeline import walk_forward_windows
 from .backtest.runner import MIN_COMPLETE_WINDOWS
-from .branches import build_branch_report
+from .branches import DECISION_INPUT_SYMBOLS, build_branch_report
 from .live_config import APP_VERSION, LiveSettings
 from .marketdata import CollectionBudgetExceeded, DiskCache, EastMoneyFundProvider, HttpClient, MarketDataError, SinaKlineProvider, SinaQuoteProvider, TencentKlineProvider, TencentQuoteProvider
 from .marketdata.models import Bar, BarQualityIssue, Instrument, Quote
@@ -638,7 +638,7 @@ class MarketGateway:
                     selected_provider = self.tencent_bars
                 self.last_bar_quality[item.symbol] = list(getattr(selected_provider, "last_quality_issues", ()))
             except MarketDataError as exc:
-                errors.append("BARS_%s:%s" % (item.symbol, exc))
+                errors.append("BARS_FETCH_FAILED:%s:%s" % (item.symbol, exc))
         return quotes, bars, errors
 
 
@@ -1034,6 +1034,25 @@ class LiveEngine:
             }
         return report
 
+    def _partition_findings(self, findings: Sequence[str]) -> tuple[list[str], list[str]]:
+        """把发现分成「会改变结论的」和「只降低覆盖面的」。
+
+        只有当一条发现能被确定归属到某个「已实现分支根本不读取」的标的时，才归入
+        覆盖面。其余一律算会改变结论——无法归属的系统级错误、归属到结论输入标的的
+        错误，都继续 fail-closed。宁可错杀，绝不放行。
+        """
+        known_symbols = {item.symbol for item in self.settings.universe}
+        blocking: list[str] = []
+        coverage_only: list[str] = []
+        for finding in findings:
+            parts = finding.split(":")
+            symbol = parts[1] if len(parts) > 1 else None
+            if symbol in known_symbols and symbol not in DECISION_INPUT_SYMBOLS:
+                coverage_only.append(finding)
+            else:
+                blocking.append(finding)
+        return blocking, coverage_only
+
     def _validate(
         self,
         now: datetime,
@@ -1110,7 +1129,7 @@ class LiveEngine:
                         )
                     )
                 else:
-                    findings.append("BAR_INVALID_OHLCV_%s:%s" % (reason, symbol))
+                    findings.append("BAR_INVALID_OHLCV:%s:%s" % (symbol, reason))
         return findings
 
     @staticmethod
@@ -1248,8 +1267,17 @@ class LiveEngine:
                 if item.realtime_quote
             }
             findings = self._validate(now, quotes, bars, errors, bar_quality, quote_freshness)
+            blocking_findings, coverage_findings = self._partition_findings(findings)
+            # 结论只在「它自己的输入」出问题时才撤回。一个对结论零贡献的标的
+            # 取不到行情，应该是这个标的降级、并在页面上写明，而不是整站不出结论。
+            state = "SYSTEM_BLOCKED" if blocking_findings else "DATA_READY"
+            degraded_symbols: dict = {}
+            for finding in coverage_findings:
+                degraded_symbols.setdefault(finding.split(":")[1], []).append(finding)
             reportable_quotes = {
-                symbol: quote for symbol, quote in quotes.items() if math.isfinite(quote.price)
+                symbol: quote
+                for symbol, quote in quotes.items()
+                if math.isfinite(quote.price) and symbol not in degraded_symbols
             }
             cutoffs = {symbol: series[-1].day.isoformat() for symbol, series in bars.items() if series}
             bar_sources = {
@@ -1263,7 +1291,6 @@ class LiveEngine:
                 if series
             }
             quote_observed_at = min((quote.observed_at for quote in reportable_quotes.values()), default=None)
-            state = "SYSTEM_BLOCKED" if findings else "DATA_READY"
             if state == "DATA_READY":
                 backtest = run_backtest(self.settings.universe, bars, state_dir=self.settings.state_dir)
                 branch_report = build_branch_report(
@@ -1320,7 +1347,14 @@ class LiveEngine:
                 "quote_freshness": quote_freshness,
                 "market_fingerprint": self._market_fingerprint(reportable_quotes, bars),
                 "freshness_findings": findings,
-                "message": "数据链路不完整，不出结论" if findings else "真实数据已就绪，已完成独立分支计算",
+                "blocking_findings": blocking_findings,
+                "coverage_findings": coverage_findings,
+                "degraded_symbols": degraded_symbols,
+                "message": (
+                    "数据链路不完整，不出结论"
+                    if blocking_findings
+                    else "真实数据已就绪，已完成独立分支计算"
+                ),
                 "backtest": backtest,
                 **branch_report,
             }

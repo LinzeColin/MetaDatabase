@@ -7,7 +7,7 @@
       "command": "RUN_NORTHSTAR_REBUILD_AND_DEPLOY.sh",
       "environment_bound": true,
       "environment_bound_reason": "需要目标仓写权限",
-      "evidence": "/var/tmp/signal-lattice-v0.0.0.3.0",
+      "evidence": "/var/tmp/signal-lattice-v0.0.0.3.1",
       "expected": "Stage 0 reconcile and atomic landing PASS",
       "failure_branch": "生成BLOCKED收据并停止，不改变Scope或版本",
       "id": "ENV-001",
@@ -20,7 +20,7 @@
       "command": "deploy_northstar.sh",
       "environment_bound": true,
       "environment_bound_reason": "需要真实OVH和Moomoo OpenD",
-      "evidence": "/var/tmp/signal-lattice-v0.0.0.3.0",
+      "evidence": "/var/tmp/signal-lattice-v0.0.0.3.1",
       "expected": "full minute cycle PASS",
       "failure_branch": "生成BLOCKED收据并停止，不改变Scope或版本",
       "id": "ENV-002",
@@ -33,7 +33,7 @@
       "command": "public verify and status closure",
       "environment_bound": true,
       "environment_bound_reason": "需要Cloudflare和Status凭证",
-      "evidence": "/var/tmp/signal-lattice-v0.0.0.3.0",
+      "evidence": "/var/tmp/signal-lattice-v0.0.0.3.1",
       "expected": "public_release/status_closure PASS",
       "failure_branch": "生成BLOCKED收据并停止，不改变Scope或版本",
       "id": "ENV-003",
@@ -43,5 +43,5 @@
       "target": "Cloudflare/Status"
     }
   ],
-  "version": "0.0.0.3.0"
+  "version": "0.0.0.3.1"
 }

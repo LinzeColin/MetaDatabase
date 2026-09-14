@@ -383,7 +383,7 @@ class HonestFreshnessGateTests(unittest.TestCase):
 
             findings = engine._validate(now, quotes, bars, [], quality)
 
-            self.assertIn("BAR_INVALID_OHLCV_RECENT_DECISION_WINDOW:usSPY", findings)
+            self.assertIn("BAR_INVALID_OHLCV:usSPY:RECENT_DECISION_WINDOW", findings)
             self.assertEqual(quality["usSPY"]["status"], "BLOCKED")
 
     def test_excessive_invalid_bar_count_blocks_its_symbol(self):
@@ -403,8 +403,8 @@ class HonestFreshnessGateTests(unittest.TestCase):
 
             findings = engine._validate(now, quotes, bars, [], quality)
 
-            self.assertIn("BAR_INVALID_OHLCV_COUNT_THRESHOLD:usSPY", findings)
-            self.assertNotIn("BAR_INVALID_OHLCV_RATIO_THRESHOLD:usSPY", findings)
+            self.assertIn("BAR_INVALID_OHLCV:usSPY:COUNT_THRESHOLD", findings)
+            self.assertNotIn("BAR_INVALID_OHLCV:usSPY:RATIO_THRESHOLD", findings)
 
     def test_structural_rows_count_toward_the_same_quality_thresholds(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -428,8 +428,8 @@ class HonestFreshnessGateTests(unittest.TestCase):
 
             self.assertEqual(quality["usSPY"]["issue_counts_by_type"], {"STRUCTURAL": 4})
             self.assertEqual(quality["usSPY"]["samples"][0]["day"], None)
-            self.assertIn("BAR_INVALID_OHLCV_COUNT_THRESHOLD:usSPY", findings)
-            self.assertIn("BAR_INVALID_OHLCV_RECENT_DECISION_WINDOW:usSPY", findings)
+            self.assertIn("BAR_INVALID_OHLCV:usSPY:COUNT_THRESHOLD", findings)
+            self.assertIn("BAR_INVALID_OHLCV:usSPY:RECENT_DECISION_WINDOW", findings)
 
     def test_only_rejected_structural_rows_remain_auditable_and_blocked(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -453,7 +453,7 @@ class HonestFreshnessGateTests(unittest.TestCase):
                 {"CONVERSION": 1, "STRUCTURAL": 1},
             )
             self.assertIn("BAR_MISSING:usSPY", findings)
-            self.assertIn("BAR_INVALID_OHLCV_NO_ACCEPTED_BARS:usSPY", findings)
+            self.assertIn("BAR_INVALID_OHLCV:usSPY:NO_ACCEPTED_BARS", findings)
 
     def test_spring_festival_six_business_day_gap_is_accepted(self):
         with tempfile.TemporaryDirectory() as temporary:
