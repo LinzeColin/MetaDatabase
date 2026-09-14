@@ -22,6 +22,6 @@
   "status_url": "https://status.linzezhang.com",
   "universe": "config/universe.json",
   "upstream_writeback": false,
-  "version": "0.0.0.2.5",
+  "version": "0.0.0.2.6",
   "worker_concurrency": 4
 }
