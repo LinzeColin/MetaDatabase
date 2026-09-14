@@ -23,6 +23,23 @@ NEUTRAL_WATCH_CONFIDENCE_THRESHOLD = 0.60
 
 _DIRECTIONS = ("看涨", "中性", "看跌")
 
+# 展示层按这个枚举给结论上色（涨绿、跌红、观望琥珀、无结论琥珀）。方向字段本身
+# 是中文文案，改一次文案就会让所有颜色静默失效，所以颜色只绑定这份机器码。
+ACTION_CODES: dict[str | None, str] = {
+    "看涨": "BULLISH",
+    "看跌": "BEARISH",
+    "观望": "NEUTRAL_WATCH",
+    None: "NONE",
+}
+
+
+def resolve_action_code(action: str | None) -> str:
+    """把中文动作文案翻译成展示层使用的稳定机器码。"""
+    try:
+        return ACTION_CODES[action]
+    except KeyError:
+        raise ValueError(f"UNKNOWN_DECISION_ACTION:{action}") from None
+
 
 def _clamp(value: float) -> float:
     return max(0.0, min(1.0, value))
@@ -208,7 +225,7 @@ def _neutral_conviction(contributors: Sequence[BranchVerdict]) -> float:
     )
 
 
-def build_decision(
+def _build_decision(
     symbol_aggregates: Sequence[dict[str, Any]],
     verdicts: Sequence[BranchVerdict],
     *,
@@ -346,7 +363,7 @@ def build_aggregate_report(
     }
 
 
-def blocked_decision() -> dict[str, Any]:
+def _blocked_decision() -> dict[str, Any]:
     """数据新鲜度门阻断时的唯一决策表达。"""
     return {
         "state": "SYSTEM_BLOCKED",
@@ -385,3 +402,22 @@ def blocked_aggregate_report() -> dict[str, Any]:
             "branches": [],
         },
     }
+
+
+def build_decision(
+    symbol_aggregates: Sequence[dict[str, Any]],
+    verdicts: Sequence[BranchVerdict],
+    *,
+    weighting: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """生成唯一建议，并附带展示层上色所需的稳定机器码。"""
+    payload = _build_decision(symbol_aggregates, verdicts, weighting=weighting)
+    payload["action_code"] = resolve_action_code(payload["action"])
+    return payload
+
+
+def blocked_decision() -> dict[str, Any]:
+    """阻断态的唯一决策表达，同样带稳定机器码。"""
+    payload = _blocked_decision()
+    payload["action_code"] = resolve_action_code(payload["action"])
+    return payload
