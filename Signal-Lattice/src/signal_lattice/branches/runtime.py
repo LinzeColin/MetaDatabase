@@ -28,6 +28,10 @@ S1_LIVE_TO_ALPHA = {
 }
 S2_LIVE_TO_ALPHA = {"usSPY": "SPY", "usQQQ": "QQQ"}
 
+# 已实现分支真正读取的标的。不在这一份集合里的标的，数据再脏也改变不了结论——
+# 它们只进覆盖面展示，对方向、置信度、权重的贡献恒为零（OUT_OF_STRATEGY_UNIVERSE）。
+DECISION_INPUT_SYMBOLS: frozenset = frozenset(S1_LIVE_TO_ALPHA) | frozenset(S2_LIVE_TO_ALPHA)
+
 UNIMPLEMENTED_BRANCHES: tuple[dict[str, str], ...] = (
     {
         "branch_id": "stock-commercial-opportunities",

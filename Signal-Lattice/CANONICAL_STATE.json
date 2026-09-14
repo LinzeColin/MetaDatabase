@@ -2,10 +2,10 @@
   "schema_version": "2.0.0",
   "project_id": "signal-lattice",
   "state": "V2_DEPLOYED_TO_PRODUCTION_OWNER_GATE_NOT_RUN",
-  "state_note": "0.0.0.3.0 已上生产并通过公网反向断言复验；v19 的冻结 fixture / 死均分权重 / 从未计算的收益已被取代。current_phase 仍为 REMEDIATION：对抗审查在继续，Owner 闸门未走，因此不得自称已封包或已正式发布。",
-  "application_version": "0.0.0.3.0",
-  "product_version": "0.0.0.3.0",
-  "taskpack_version": "0.0.0.3.0",
+  "state_note": "0.0.0.3.1 已上生产并通过公网反向断言复验；v19 的冻结 fixture / 死均分权重 / 从未计算的收益已被取代。current_phase 仍为 REMEDIATION：对抗审查在继续，Owner 闸门未走，因此不得自称已封包或已正式发布。",
+  "application_version": "0.0.0.3.1",
+  "product_version": "0.0.0.3.1",
+  "taskpack_version": "0.0.0.3.1",
   "decision_contract_version": "v0.0.0.2",
   "current_phase": "REMEDIATION",
   "state_machine": [
@@ -80,7 +80,7 @@
   "last_updated_utc": "2026-09-14T06:03:00Z",
   "deployment": {
     "install_root": "/opt/signal-lattice-v2",
-    "current_version": "0.0.0.3.0",
+    "current_version": "0.0.0.3.1",
     "previous_version": "0.0.0.2.7",
     "collector": "signal-lattice-v2-loop.timer 驱动 Type=oneshot 的 signal-lattice once",
     "verified_at_utc": null
