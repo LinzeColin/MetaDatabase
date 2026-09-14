@@ -31,11 +31,11 @@ function renderDecisionHero(report){
   const section=node('section',undefined,{class:'hero panel',id:'decision','aria-labelledby':'decision-title'});
   const main=node('div',undefined,{class:'hero-main'});
   const kicker=node('div',undefined,{class:'hero-kicker'});
-  kicker.append(node('span','实时运行',{class:'live-pill'}));
+  kicker.append(node('span','实时运行',{class:'live-pill pass'}));
   kicker.append(node('span',`本轮 ${time(report.generated_at)}`));
   main.append(kicker);
   main.append(node('p','最终投资建议',{class:'eyebrow'}));
-  main.append(node('h1',decision.action?`${decision.action} ${symbol||''}`.trim():'本轮未产出方向性结论',{id:'decision-title','data-action':decision.action||'NONE'}));
+  main.append(node('h1',decision.action?`${decision.action} ${symbol||''}`.trim():'本轮未产出方向性结论',{id:'decision-title','data-action':decision.action_code||'NONE'}));
   main.append(node('p',instrument.name?`${symbol}｜${instrument.name}`:(symbol||'—'),{class:'decision-symbol'}));
   main.append(node('p',decision.rationale||'—',{class:'lead'}));
   // 港股延迟声明必须和结论待在一起。把它沉到页面底部等于让人先看到结论、
