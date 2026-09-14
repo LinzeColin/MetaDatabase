@@ -1,12 +1,60 @@
 {
+  "purpose": "v19 遗留观察池，v2 运行时不读取。v2 的标的宇宙由 src/signal_lattice/live_config.py 的 default_universe() 定义，逐个标的已在新浪/腾讯/天天基金接口上实测可取。",
   "schema_version": "1.0.0",
-  "purpose": "已验证可由当前 Moomoo OpenD 提供完整快照与历史数据的默认高流动性观察池；可由 PFI 或 Owner 配置覆盖",
   "universe": [
-    {"market":"US","symbol":"AAPL","priority":10,"source":"DEFAULT_STARTER","metadata":{"currency":"USD"}},
-    {"market":"US","symbol":"MSFT","priority":20,"source":"DEFAULT_STARTER","metadata":{"currency":"USD"}},
-    {"market":"US","symbol":"NVDA","priority":30,"source":"DEFAULT_STARTER","metadata":{"currency":"USD"}},
-    {"market":"US","symbol":"AMZN","priority":40,"source":"DEFAULT_STARTER","metadata":{"currency":"USD"}},
-    {"market":"US","symbol":"META","priority":50,"source":"DEFAULT_STARTER","metadata":{"currency":"USD"}},
-    {"market":"HK","symbol":"00700","priority":60,"source":"DEFAULT_STARTER","metadata":{"currency":"HKD"}}
+    {
+      "market": "US",
+      "metadata": {
+        "currency": "USD"
+      },
+      "priority": 10,
+      "source": "DEFAULT_STARTER",
+      "symbol": "AAPL"
+    },
+    {
+      "market": "US",
+      "metadata": {
+        "currency": "USD"
+      },
+      "priority": 20,
+      "source": "DEFAULT_STARTER",
+      "symbol": "MSFT"
+    },
+    {
+      "market": "US",
+      "metadata": {
+        "currency": "USD"
+      },
+      "priority": 30,
+      "source": "DEFAULT_STARTER",
+      "symbol": "NVDA"
+    },
+    {
+      "market": "US",
+      "metadata": {
+        "currency": "USD"
+      },
+      "priority": 40,
+      "source": "DEFAULT_STARTER",
+      "symbol": "AMZN"
+    },
+    {
+      "market": "US",
+      "metadata": {
+        "currency": "USD"
+      },
+      "priority": 50,
+      "source": "DEFAULT_STARTER",
+      "symbol": "META"
+    },
+    {
+      "market": "HK",
+      "metadata": {
+        "currency": "HKD"
+      },
+      "priority": 60,
+      "source": "DEFAULT_STARTER",
+      "symbol": "00700"
+    }
   ]
 }

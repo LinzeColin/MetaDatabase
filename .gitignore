@@ -5,3 +5,10 @@ __pycache__/
 /.social-archive-migration/
 /.social-archive-candidate-v0.0.0.4/
 /.social-archive-candidate-v0.0.0.6/
+
+# Python 构建产物：pytest 会构建 wheel（test_deployment_northstar），
+# 留下的 build/ 与 *.egg-info 曾被 git add -A 整批提交进来。
+build/
+dist/
+*.egg-info/
+.pytest_cache/

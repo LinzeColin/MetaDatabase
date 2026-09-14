@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 from __future__ import annotations
+import sys
+# 这些脚本会 import signal_lattice，默认会在源码树里留下 __pycache__，
+# 而 verify_package 又把 __pycache__ 判为构建垃圾——建清单这一步会自己制造自己的红灯。
+sys.dont_write_bytecode = True
 import argparse, ast, hashlib, io, json, re, sqlite3, subprocess, tokenize, tomllib
 from html.parser import HTMLParser
 from pathlib import Path, PurePosixPath
@@ -15,10 +19,14 @@ PLACEHOLDER = re.compile(r"(?:TARGET_ENVIRONMENT_BINDING_REQUIRED|按任务包�
 MANIFEST_EXCLUDED = {"MANIFEST.json", "SUBJECT_LOCK.json", "CANONICAL_STATE.json", "evidence/skill_router/pass_c.json"}
 MANIFEST_EXCLUDED_PREFIXES = ("evidence/formal_review/", "evidence/owner_gate/")
 SOURCE_ONLY_PREFIXES = ("Stock_Skill/",)
+# v19 的已跟踪 wheel 是历史发布证据，不属于当前候选包的源码载荷。
+# 它与 build_manifest.py 的 dist 排除口径保持一致。
+HISTORICAL_ARTIFACT_PREFIXES = ("v19_release/dist",)
 ALLOWED_ROOT_FILES = {
     "00_READ_FIRST.md", "CANONICAL_STATE.json", "CODEX_LAST_MILE_PROMPT.txt",
     "MEMORY_RECONCILIATION.md", "PURSUING_GOAL.txt", "README.md", "ROADMAP.md",
     "SUBJECT_LOCK.json", "MANIFEST.json", "events.yaml", "openapi.yaml", "pyproject.toml",
+    "ACTIVE_RELEASE.md", "HANDOFF.md", "V19_CANONICAL_STATE.json",
 }
 
 
@@ -218,6 +226,8 @@ def main() -> int:
     garbage_roots: set[str] = set()
     for path in root.rglob("*"):
         rel = path.relative_to(root).as_posix()
+        if any(rel == prefix or rel.startswith(prefix + "/") for prefix in HISTORICAL_ARTIFACT_PREFIXES):
+            continue
         if any(rel.startswith(prefix) for prefix in SOURCE_ONLY_PREFIXES):
             continue
         reason = unsafe_path_reason(rel)

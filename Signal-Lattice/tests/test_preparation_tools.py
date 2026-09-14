@@ -1,9 +1,19 @@
 import hashlib
 import json
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
+
+# pyproject 声明 requires-python = ">=3.11"；verify_package.py 顶层 import tomllib（3.11 才有）。
+# 低于此版本时这两条用例无法加载被测脚本，明确跳过并写清原因，不伪装成通过，也不伪装成代码缺陷。
+MINIMUM_PYTHON = (3, 11)
+REQUIRES_PROJECT_PYTHON = unittest.skipIf(
+    sys.version_info < MINIMUM_PYTHON,
+    "需要 Python >= %d.%d（pyproject requires-python）；当前 %d.%d 无 tomllib，无法加载 scripts/verify_package.py"
+    % (MINIMUM_PYTHON + sys.version_info[:2]),
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -52,11 +62,30 @@ class PreparationToolsTest(unittest.TestCase):
     def test_prebuild_script_syntax(self):
         compile((ROOT / "scripts/prebuild.py").read_text(), "prebuild.py", "exec")
 
+    def test_clean_transients_preserves_v19_release_evidence(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            historical = root / "v19_release/dist/signal_lattice_v19-0.0.0.1.45-py3-none-any.whl"
+            historical.parent.mkdir(parents=True)
+            historical.write_bytes(b"historical wheel evidence")
+            cache = root / ".pytest_cache/nodeids"
+            cache.parent.mkdir()
+            cache.write_text("[]")
+
+            completed = subprocess.run([
+                "python3", str(ROOT / "scripts/clean_transients.py"), "--root", str(root),
+            ], text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            self.assertTrue(historical.is_file())
+            self.assertFalse(cache.parent.exists())
+
     def test_package_guard_is_source_path_independent(self):
         text = (ROOT / "scripts/verify_package.py").read_text()
         self.assertNotIn("from signal_lattice.constants import VERSION", text)
         self.assertIn("pyproject.toml", text)
 
+    @REQUIRES_PROJECT_PYTHON
     def test_package_guard_rejects_option_like_paths(self):
         import importlib.util
         spec = importlib.util.spec_from_file_location("verify_package", ROOT / "scripts/verify_package.py")
@@ -67,6 +96,7 @@ class PreparationToolsTest(unittest.TestCase):
         self.assertEqual(module.unsafe_path_reason("nested/-output.json"), "LEADING_DASH_COMPONENT")
         self.assertEqual(module.unsafe_path_reason("normal/path.json"), None)
 
+    @REQUIRES_PROJECT_PYTHON
     def test_package_guard_validates_receipt_hashes_and_artifact_refs(self):
         import importlib.util
         spec = importlib.util.spec_from_file_location("verify_package_receipts", ROOT / "scripts/verify_package.py")

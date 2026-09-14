@@ -1,0 +1,35 @@
+[Unit]
+Description=Signal Lattice V2 bounded collection run
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=signal-lattice
+Group=signal-lattice
+EnvironmentFile=/etc/signal-lattice-v2/runtime.env
+ExecStart=/opt/signal-lattice-v2/current/venv/bin/signal-lattice once
+TimeoutStartSec=600
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+LockPersonality=yes
+RestrictSUIDSGID=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+SystemCallArchitectures=native
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+UMask=0077
+ReadWritePaths=/var/lib/signal-lattice-v2
+ReadOnlyPaths=/opt/signal-lattice-v2/current
+MemoryMax=1024M
+CPUQuota=200%
+TasksMax=128
+
+[Install]
+WantedBy=multi-user.target

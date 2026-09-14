@@ -1,0 +1,12 @@
+[Unit]
+Description=Signal Lattice V2 sixty-second collection schedule
+
+[Timer]
+OnBootSec=30
+OnUnitInactiveSec=60
+AccuracySec=1s
+Persistent=true
+Unit=signal-lattice-v2-loop.service
+
+[Install]
+WantedBy=timers.target

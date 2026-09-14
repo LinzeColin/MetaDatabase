@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse,hashlib,json,os
+import sys
+# 这些脚本会 import signal_lattice，默认会在源码树里留下 __pycache__，
+# 而 verify_package 又把 __pycache__ 判为构建垃圾——建清单这一步会自己制造自己的红灯。
+sys.dont_write_bytecode = True
+import argparse,hashlib,json,os,re
 from pathlib import Path
 EXCLUDE={'MANIFEST.json','SUBJECT_LOCK.json','CANONICAL_STATE.json','evidence/skill_router/pass_c.json'}
 EXCLUDED_PREFIXES=('evidence/formal_review/','evidence/owner_gate/','Stock_Skill/')
@@ -8,6 +12,7 @@ FORBIDDEN_PARTS={'.git','.pytest_cache','__pycache__','build','dist','.mypy_cach
 ALLOWED_ROOT_FILES={
  '00_READ_FIRST.md','CANONICAL_STATE.json','CODEX_LAST_MILE_PROMPT.txt','MEMORY_RECONCILIATION.md',
  'PURSUING_GOAL.txt','README.md','ROADMAP.md','SUBJECT_LOCK.json','MANIFEST.json',
+ 'ACTIVE_RELEASE.md','HANDOFF.md','V19_CANONICAL_STATE.json',
  'events.yaml','openapi.yaml','pyproject.toml'
 }
 def sha(p:Path):
@@ -15,6 +20,10 @@ def sha(p:Path):
  with p.open('rb') as f:
   for c in iter(lambda:f.read(1024*1024),b''):h.update(c)
  return h.hexdigest()
+def project_version(root:Path):
+ matched=re.search(r'^version\s*=\s*["\']([^"\']+)["\']\s*$',(root/'pyproject.toml').read_text(encoding='utf-8'),re.MULTILINE)
+ if matched is None:raise SystemExit('PYPROJECT_VERSION_UNAVAILABLE')
+ return matched.group(1)
 def main():
  ap=argparse.ArgumentParser();ap.add_argument('--root',type=Path,required=True);ap.add_argument('--output',type=Path,required=True);a=ap.parse_args()
  rows=[]
@@ -25,7 +34,8 @@ def main():
   if '/' not in rel and rel not in ALLOWED_ROOT_FILES:raise SystemExit(f'UNEXPECTED_ROOT_FILE:{rel}')
   if rel in EXCLUDE or any(rel.startswith(prefix) for prefix in EXCLUDED_PREFIXES) or any(x in p.parts for x in FORBIDDEN_PARTS) or rel.endswith(('.pyc','.zip','.whl','.egg-info')):continue
   rows.append({'path':rel,'size':p.stat().st_size,'sha256':sha(p)})
- payload={'schema_version':'1.0.0','candidate_version':'0.0.0.1.41','manifest_payload_file_count':len(rows),'manifest_payload_bytes':sum(x['size'] for x in rows),'files':rows}
+ version=project_version(a.root)
+ payload={'schema_version':'1.0.0','candidate_version':version,'manifest_payload_file_count':len(rows),'manifest_payload_bytes':sum(x['size'] for x in rows),'files':rows}
  payload['payload_sha256']=hashlib.sha256(json.dumps(rows,sort_keys=True,separators=(',',':')).encode()).hexdigest()
  a.output.write_text(json.dumps(payload,ensure_ascii=False,indent=2,sort_keys=True))
 if __name__=='__main__':main()
