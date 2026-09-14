@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Signal Lattice V2 Read-only API",
-    "version": "0.0.0.2.6",
+    "version": "0.0.0.2.7",
     "description": "V2 只读研究服务。行情只由 marketdata provider 采集；系统不接收外部行情快照、不自动交易。DATA_READY 只在全部新鲜度和时间边界通过时出现。"
   },
   "paths": {
@@ -102,7 +102,7 @@
       "Liveness": {
         "type": "object",
         "required": ["status", "version"],
-        "properties": {"status": {"const": "alive"}, "version": {"const": "0.0.0.2.6"}},
+        "properties": {"status": {"const": "alive"}, "version": {"const": "0.0.0.2.7"}},
         "additionalProperties": false
       },
       "Readiness": {
@@ -120,7 +120,7 @@
         "type": "object",
         "required": ["application_version", "server_time", "state", "quote_observed_at", "data_cutoff", "automatic_trading", "public_url"],
         "properties": {
-          "application_version": {"const": "0.0.0.2.6"},
+          "application_version": {"const": "0.0.0.2.7"},
           "server_time": {"type": "string", "format": "date-time"},
           "state": {"enum": ["DATA_READY", "SYSTEM_BLOCKED"]},
           "quote_observed_at": {"type": ["string", "null"], "format": "date-time"},
@@ -207,7 +207,7 @@
         "type": "object",
         "required": ["application_version", "generated_at", "state", "automatic_trading", "data_cutoff", "data_cutoff_by_symbol", "instruments", "bar_sources", "quote_observed_at", "quote_sources", "quotes", "market_fingerprint", "freshness_findings", "message", "backtest"],
         "properties": {
-          "application_version": {"const": "0.0.0.2.6"},
+          "application_version": {"const": "0.0.0.2.7"},
           "generated_at": {"type": "string", "format": "date-time"},
           "state": {"enum": ["DATA_READY", "SYSTEM_BLOCKED"]},
           "automatic_trading": {"const": false},

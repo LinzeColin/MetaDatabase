@@ -129,5 +129,90 @@ class ReopenFreshnessTests(unittest.TestCase):
         self.assertEqual(result["trading_age_seconds"], 0)
 
 
+class StallDetectionUsesTradingTimeTests(unittest.TestCase):
+    """停滞时长同样必须按交易时间算。
+
+    2026-09-14 05:18 UTC（13:18 HKT）生产实际发生：QUOTE_FEED_STALLED:hk00700/hk02800。
+    午休期间行情合法地不推进，last_advance_at 停在午休前的 11:58；用墙钟算，复盘后
+    每一轮都跨着整个午休判停滞，于是采集连续失败、退避翻倍、公网长时间 SYSTEM_BLOCKED。
+    """
+
+    @staticmethod
+    def _engine(state_dir, item):
+        base = LiveSettings.from_env(Path(".").resolve())
+        return LiveEngine(LiveSettings(**{**base.__dict__, "state_dir": Path(state_dir), "universe": [item]}))
+
+    def test_reopen_window_does_not_report_a_false_stall(self):
+        """复现生产 2026-09-14 05:18 UTC = 13:18 HKT 的实际数值。
+
+        当时 source_time 停在 11:59（午休前最后一条）、trading_age 1151 秒未超 1680 秒，
+        陈旧度判定已通过，却因 last_advance_at 停在 13:00:15、墙钟停滞 17.95 分钟而被判
+        FEED_STALLED，连续失败触发退避、公网 SYSTEM_BLOCKED。
+
+        港股延迟 25 分钟，13:18 时行情"应该"显示的 12:53 落在午休里根本没有成交，
+        最新可得的仍是 12:00 收盘那条——不推进是正常的，不是故障。
+        """
+        hk = _instrument("hk00700")
+        frozen_source = _local(hk, 11, 59).replace(tzinfo=None)
+        with TemporaryDirectory() as temp:
+            engine = self._engine(temp, hk)
+            first = _local(hk, 13, 0)
+            engine._quote_freshness(
+                hk,
+                Quote(hk.symbol, 1.0, "HKD", hk.timezone, "fixture", frozen_source, first.astimezone(timezone.utc)),
+                first.astimezone(timezone.utc),
+            )
+            later = _local(hk, 13, 18)
+            result = engine._quote_freshness(
+                hk,
+                Quote(hk.symbol, 1.0, "HKD", hk.timezone, "fixture", frozen_source, later.astimezone(timezone.utc)),
+                later.astimezone(timezone.utc),
+            )
+        self.assertEqual(result["status"], "FRESH", result)
+        self.assertEqual(result["advance_status"], "NOT_REQUIRED_WITHIN_DECLARED_DELAY_AFTER_SESSION_START")
+        self.assertLess(result["trading_age_seconds"], result["allowed_source_age_seconds"])
+        self.assertEqual(result["stall_basis"], "TRADING_SESSION_MINUTES_EXCLUDING_BREAKS_AND_CLOSURES")
+
+    def test_still_frozen_past_the_declared_delay_is_caught(self):
+        """过了申报延迟窗口仍不推进，必须被抓住——抑制只覆盖窗口内。"""
+        hk = _instrument("hk00700")
+        frozen_source = _local(hk, 11, 59).replace(tzinfo=None)
+        with TemporaryDirectory() as temp:
+            engine = self._engine(temp, hk)
+            first = _local(hk, 13, 0)
+            engine._quote_freshness(
+                hk,
+                Quote(hk.symbol, 1.0, "HKD", hk.timezone, "fixture", frozen_source, first.astimezone(timezone.utc)),
+                first.astimezone(timezone.utc),
+            )
+            later = _local(hk, 13, 40)  # 时段已开 40 分钟 > 申报延迟 25 分钟
+            result = engine._quote_freshness(
+                hk,
+                Quote(hk.symbol, 1.0, "HKD", hk.timezone, "fixture", frozen_source, later.astimezone(timezone.utc)),
+                later.astimezone(timezone.utc),
+            )
+        self.assertIn(result["status"], ("SOURCE_TIME_STALE", "FEED_STALLED"), result)
+
+    def test_genuine_in_session_stall_is_still_caught(self):
+        hk = _instrument("hk00700")
+        with TemporaryDirectory() as temp:
+            engine = self._engine(temp, hk)
+            first = _local(hk, 10, 0)
+            frozen_source = _local(hk, 9, 40).replace(tzinfo=None)
+            engine._quote_freshness(
+                hk,
+                Quote(hk.symbol, 1.0, "HKD", hk.timezone, "fixture", frozen_source, first.astimezone(timezone.utc)),
+                first.astimezone(timezone.utc),
+            )
+            # 同一时段内 20 分钟后来源时间纹丝不动
+            later = _local(hk, 10, 20)
+            result = engine._quote_freshness(
+                hk,
+                Quote(hk.symbol, 1.0, "HKD", hk.timezone, "fixture", frozen_source, later.astimezone(timezone.utc)),
+                later.astimezone(timezone.utc),
+            )
+        self.assertIn(result["status"], ("FEED_STALLED", "SOURCE_TIME_STALE"), result)
+
+
 if __name__ == "__main__":
     unittest.main()

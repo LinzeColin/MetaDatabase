@@ -718,10 +718,10 @@ class LiveEngine:
                 "source_time_same_exchange_day": source_at.date() == exchange_now.date(),
             }
         if market_open:
+            session_elapsed_seconds = _current_session_elapsed_seconds(item, exchange_now)
             # 交易时间口径能抓住「盘中不推进」，但抓不住「行情冻在昨天收盘」——开盘头
             # 几分钟里，昨收时间戳的交易时间差也很小。补一条独立判据：当本时段已经开了
             # 超过申报延迟的时长，行情本应已产出当日数据，来源时间必须落在交易所当日。
-            session_elapsed_seconds = _current_session_elapsed_seconds(item, exchange_now)
             source_must_be_today = (
                 session_elapsed_seconds is not None
                 and session_elapsed_seconds > item.declared_feed_delay_minutes * 60
@@ -738,15 +738,33 @@ class LiveEngine:
                 }
             progress = self.store.record_quote_source_progress(item.symbol, source_at, now)
             last_advance_at = self.store._parse_timestamp(progress["last_advance_at"])
+            # 停滞时长同样按交易时间算。午休期间行情合法地不推进，last_advance_at 停在
+            # 午休前；用墙钟算会让每个复盘时刻都跨着整个午休判停滞——2026-09-14 05:18 UTC
+            # 生产实际发生：QUOTE_FEED_STALLED:hk00700/hk02800，墙钟 80 分钟，
+            # 而交易时间只过了几分钟。
             stalled_minutes = (
-                max(0.0, (now - last_advance_at).total_seconds() / 60)
+                max(0.0, _trading_seconds_between(
+                    item, last_advance_at.astimezone(exchange_now.tzinfo), exchange_now
+                ) / 60)
                 if last_advance_at is not None
                 else None
             )
             source_time_stale = trading_age_seconds > allowed_source_age_seconds
+            # 时段刚开启、尚未超过申报延迟的这段窗口里，行情本来就无法推进：港股延迟
+            # 25 分钟，13:18 复盘后"应该"显示的 12:53 落在午休里，根本没有成交，
+            # 最新可得的仍是 12:00 收盘那条。此时不推进不是故障，不做停滞判定；
+            # 陈旧度仍照判——真冻住的行情会在交易时间累计超限时被抓住。
+            # 2026-09-14 05:18 UTC 生产实际发生：source_time 11:59、trading_age 1151 秒
+            # （未超 1680 秒允许值）却被判 FEED_STALLED，连续失败触发退避。
+            session_elapsed_seconds = _current_session_elapsed_seconds(item, exchange_now)
+            advance_not_yet_expected = (
+                session_elapsed_seconds is not None
+                and session_elapsed_seconds < item.declared_feed_delay_minutes * 60
+            )
             feed_stalled = (
                 stalled_minutes is not None
                 and stalled_minutes >= QUOTE_ADVANCE_STALL_MINUTES
+                and not advance_not_yet_expected
             )
             return {
                 **report,
@@ -760,7 +778,18 @@ class LiveEngine:
                 "source_age_seconds": source_age_seconds,
                 "last_advance_at": progress["last_advance_at"],
                 "stalled_minutes": stalled_minutes,
-                "advance_status": "FEED_STALLED" if feed_stalled else "ADVANCING_OR_WITHIN_GRACE",
+                "stalled_wall_clock_minutes": (
+                    max(0.0, (now - last_advance_at).total_seconds() / 60)
+                    if last_advance_at is not None
+                    else None
+                ),
+                "stall_basis": "TRADING_SESSION_MINUTES_EXCLUDING_BREAKS_AND_CLOSURES",
+                "session_elapsed_seconds": session_elapsed_seconds,
+                "advance_status": (
+                    "FEED_STALLED" if feed_stalled
+                    else "NOT_REQUIRED_WITHIN_DECLARED_DELAY_AFTER_SESSION_START" if advance_not_yet_expected
+                    else "ADVANCING_OR_WITHIN_GRACE"
+                ),
             }
         progress = self.store.quote_progress(item.symbol)
         source_age_days = (exchange_now.date() - source_at.date()).days

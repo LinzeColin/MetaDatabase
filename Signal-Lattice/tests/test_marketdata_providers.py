@@ -1036,7 +1036,10 @@ class HonestFreshnessGateTests(unittest.TestCase):
                 quote = Quote(hk.symbol, 1.0, "HKD", hk.timezone, "fixture", source_time, observed_at)
                 freshness = engine._quote_freshness(hk, quote, observed_at)
                 self.assertEqual(freshness["status"], "FRESH")
-                self.assertEqual(freshness["advance_status"], "ADVANCING_OR_WITHIN_GRACE")
+                # 这些采样落在开盘后 19-30 分钟，部分尚在申报延迟窗口内——那时行情
+                # 本来就无法产出盘中数据，不推进不是故障。要守的不变量是「不得判停滞」，
+                # 而不是某一个具体的 advance_status 措辞。
+                self.assertNotEqual(freshness["advance_status"], "FEED_STALLED")
 
             self.assertTrue((settings.state_dir / "quote_progress.json").is_file())
 
