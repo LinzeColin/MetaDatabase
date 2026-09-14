@@ -71,10 +71,48 @@ def _iso(value: datetime) -> str:
 
 
 def _market_is_open(instrument: Instrument, exchange_now: datetime) -> bool:
-    """按交易所当地时区和常规时段判断；法定假日由休市的有限自然日近似处理。"""
+    """当前是否处在某个交易时段内。只回答「行情此刻该不该推进」。
+
+    不要用它判断当日 K 线是否已定稿：港股 12:00-13:00、A 股 11:30-13:00 的午休
+    同样不在时段内，但交易日远未结束，当日 bar 只含上午半场。
+    """
     if exchange_now.weekday() >= 5:
         return False
     return any(start <= exchange_now.time() < end for start, end in MARKET_OPEN_SESSIONS.get(instrument.market, ()))
+
+
+def _trading_day_is_complete(instrument: Instrument, exchange_now: datetime) -> bool:
+    """交易所当天的最后一个时段是否已经结束——当日日线是否可以当作收盘值使用。"""
+    if exchange_now.weekday() >= 5:
+        return True
+    sessions = MARKET_OPEN_SESSIONS.get(instrument.market, ())
+    if not sessions:
+        return True
+    return exchange_now.time() >= max(end for _start, end in sessions)
+
+
+def _in_intraday_break(instrument: Instrument, exchange_now: datetime) -> bool:
+    """是否处在交易日内的休息时段（已开盘、未收盘，但当前不在任何时段内）。"""
+    if exchange_now.weekday() >= 5:
+        return False
+    sessions = MARKET_OPEN_SESSIONS.get(instrument.market, ())
+    if not sessions:
+        return False
+    first_start = min(start for start, _end in sessions)
+    last_end = max(end for _start, end in sessions)
+    return first_start <= exchange_now.time() < last_end and not _market_is_open(instrument, exchange_now)
+
+
+def _intraday_break_started_at(instrument: Instrument, exchange_now: datetime) -> datetime | None:
+    """当前休息时段的起点（上一个已结束时段的收盘时刻）。"""
+    if not _in_intraday_break(instrument, exchange_now):
+        return None
+    ended = [end for _start, end in MARKET_OPEN_SESSIONS.get(instrument.market, ()) if end <= exchange_now.time()]
+    if not ended:
+        return None
+    return exchange_now.replace(
+        hour=max(ended).hour, minute=max(ended).minute, second=0, microsecond=0
+    )
 
 
 def apply_profitability_disclosure(branch_report: dict, backtest: dict) -> None:
@@ -575,9 +613,19 @@ class LiveEngine:
         exchange_timezone = ZoneInfo(item.timezone)
         exchange_now = now.astimezone(exchange_timezone)
         market_open = _market_is_open(item, exchange_now)
+        in_break = _in_intraday_break(item, exchange_now)
+        if market_open:
+            market_state, basis = "OPEN", "MARKET_OPEN_DECLARED_FEED_DELAY_PLUS_TTL"
+        elif in_break:
+            # 午休期间行情合法地停止推进，所以不做停滞判定；但交易日仍在进行中，
+            # 绝不能退回收市那套「允许 4 个自然日」的宽松口径——那会让一条几天前的
+            # 报价在午休这一小时里通过。
+            market_state, basis = "INTRADAY_BREAK", "INTRADAY_BREAK_DECLARED_DELAY_PLUS_ELAPSED_BREAK"
+        else:
+            market_state, basis = "CLOSED", "MARKET_CLOSED_RECENT_TRADING_DAY_APPROXIMATION"
         report = {
-            "market_state": "OPEN" if market_open else "CLOSED",
-            "basis": "MARKET_OPEN_DECLARED_FEED_DELAY_PLUS_TTL" if market_open else "MARKET_CLOSED_RECENT_TRADING_DAY_APPROXIMATION",
+            "market_state": market_state,
+            "basis": basis,
             "exchange_timezone": item.timezone,
             "exchange_now": exchange_now.isoformat(),
             "declared_feed_delay_minutes": item.declared_feed_delay_minutes,
@@ -610,6 +658,28 @@ class LiveEngine:
         })
         if source_at > exchange_now + timedelta(seconds=MAX_FUTURE_CLOCK_SKEW_SECONDS):
             return {**report, "status": "SOURCE_TIME_CLOCK_AHEAD"}
+        if in_break:
+            break_started_at = _intraday_break_started_at(item, exchange_now)
+            elapsed_break_seconds = (
+                max(0.0, (exchange_now - break_started_at).total_seconds())
+                if break_started_at is not None
+                else 0.0
+            )
+            allowed_source_age_seconds = (
+                item.declared_feed_delay_minutes * 60
+                + self.settings.quote_max_age_seconds
+                + elapsed_break_seconds
+            )
+            source_time_stale = source_age_seconds > allowed_source_age_seconds
+            return {
+                **report,
+                "status": "QUOTE_SOURCE_STALE" if source_time_stale else "FRESH",
+                "allowed_source_age_seconds": allowed_source_age_seconds,
+                "intraday_break_started_at": break_started_at.isoformat() if break_started_at else None,
+                "intraday_break_elapsed_minutes": elapsed_break_seconds / 60,
+                "advance_status": "NOT_REQUIRED_INTRADAY_BREAK",
+                "source_time_same_exchange_day": source_at.date() == exchange_now.date(),
+            }
         if market_open:
             allowed_source_age_seconds = (
                 item.declared_feed_delay_minutes * 60 + self.settings.quote_max_age_seconds
@@ -722,7 +792,12 @@ class LiveEngine:
         bars: Mapping[str, List[Bar]],
         now: datetime,
     ) -> tuple[Dict[str, List[Bar]], dict]:
-        """盘中日线先移除交易所当天的未收盘 bar，再交给指标和回测。"""
+        """当日日线只有在交易日真正结束后才可用，否则一律排除后再交给指标和回测。
+
+        判据是「交易日是否结束」，不是「此刻是否在时段内」：港股 12:00-13:00、
+        A 股 11:30-13:00 的午休不在任何时段内，但当日 bar 只含上午半场，
+        把它当收盘价用会污染全部日线指标与回测。
+        """
         completed: Dict[str, List[Bar]] = {}
         report: dict[str, dict] = {}
         for item in self.settings.universe:
@@ -730,28 +805,36 @@ class LiveEngine:
             exchange_now = now.astimezone(ZoneInfo(item.timezone))
             exchange_today = exchange_now.date()
             market_open = _market_is_open(item, exchange_now)
-            excluded = [bar for bar in series if market_open and bar.day == exchange_today]
-            usable = [bar for bar in series if not (market_open and bar.day == exchange_today)]
+            in_break = _in_intraday_break(item, exchange_now)
+            day_complete = _trading_day_is_complete(item, exchange_now)
+            excluded = [bar for bar in series if not day_complete and bar.day == exchange_today]
+            usable = [bar for bar in series if not (not day_complete and bar.day == exchange_today)]
             completed[item.symbol] = usable
             latest = max((bar.day for bar in usable), default=None)
+            if market_open:
+                market_state = "OPEN"
+            elif in_break:
+                market_state = "INTRADAY_BREAK"
+            else:
+                market_state = "CLOSED"
+            bar_is_closed = bool(
+                latest is not None and (day_complete or latest < exchange_today)
+            )
             report[item.symbol] = {
-                "market_state": "OPEN" if market_open else "CLOSED",
+                "market_state": market_state,
+                "trading_day_complete": day_complete,
                 "exchange_timezone": item.timezone,
                 "exchange_today": exchange_today.isoformat(),
                 "last_used_day": latest.isoformat() if latest else None,
-                "session_complete": bool(
-                    latest is not None and (not market_open or latest < exchange_today)
-                ),
+                "session_complete": bar_is_closed,
                 "excluded_intraday_bar_count": len(excluded),
                 "excluded_current_session_bar_count": len(excluded),
                 "last_used_bar_date": latest.isoformat() if latest else None,
-                "last_used_bar_is_closed": bool(
-                    latest is not None and (not market_open or latest < exchange_today)
-                ),
+                "last_used_bar_is_closed": bar_is_closed,
                 "basis": (
-                    "MARKET_OPEN_EXCLUDE_EXCHANGE_TODAY"
-                    if market_open
-                    else "MARKET_CLOSED_LATEST_AVAILABLE_BAR_COMPLETE"
+                    "TRADING_DAY_COMPLETE_LATEST_BAR_IS_CLOSE"
+                    if day_complete
+                    else "TRADING_DAY_IN_PROGRESS_EXCLUDE_EXCHANGE_TODAY"
                 ),
             }
         return completed, report

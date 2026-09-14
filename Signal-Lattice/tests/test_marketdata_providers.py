@@ -6,7 +6,7 @@ import json
 import tempfile
 import unittest
 from dataclasses import replace
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
 from zoneinfo import ZoneInfo
@@ -844,7 +844,7 @@ class HonestFreshnessGateTests(unittest.TestCase):
             self.assertEqual(report["bar_completion"][hk.symbol]["last_used_bar_date"], previous_close.isoformat())
             self.assertTrue(report["bar_completion"][hk.symbol]["last_used_bar_is_closed"])
             self.assertEqual(report["bar_completion"][hk.symbol]["excluded_current_session_bar_count"], 1)
-            self.assertEqual(report["bar_completion"][hk.symbol]["basis"], "MARKET_OPEN_EXCLUDE_EXCHANGE_TODAY")
+            self.assertEqual(report["bar_completion"][hk.symbol]["basis"], "TRADING_DAY_IN_PROGRESS_EXCLUDE_EXCHANGE_TODAY")
 
     def test_backtest_receives_only_the_effective_contiguous_segment(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -1105,7 +1105,9 @@ class HonestFreshnessGateTests(unittest.TestCase):
                 Quote(hk.symbol, 1.0, "HKD", hk.timezone, "fixture", source_time, open_observed_at),
                 open_observed_at,
             )
-            closed_observed_at = datetime(2026, 9, 14, 4, 15, tzinfo=timezone.utc)
+            # 16:30 HKT，港股最后一个时段（13:00-16:00）已结束，是真正的收市。
+            # 原值 04:15 UTC = 12:15 HKT 落在午休里，午休不是收市。
+            closed_observed_at = datetime(2026, 9, 14, 8, 30, tzinfo=timezone.utc)
             quote = Quote(hk.symbol, 1.0, "HKD", hk.timezone, "fixture", source_time, closed_observed_at)
             freshness = engine._quote_freshness(hk, quote, closed_observed_at)
             bars = {
@@ -1128,7 +1130,12 @@ class HonestFreshnessGateTests(unittest.TestCase):
     def test_semantically_invalid_runtime_bar_is_system_blocked(self):
         with tempfile.TemporaryDirectory() as temporary:
             settings = self._settings(Path(temporary))
+            # run_once() 取的是真实墙钟，所以固定 fixture 的 now 并不能钉住引擎。
+            # 这条测的是 OHLCV 语义校验本身，与当天开休市无关：把 bar 落在一个
+            # 已经结束的交易日（2026-09-11 周五），断言就不再随运行时刻变化。
+            # 原先用 now.date() 的写法在盘中、午休和开盘前会走到不同分支。
             now = datetime.now(timezone.utc)
+            completed_day = date(2026, 9, 11)
 
             class Gateway:
                 def fetch(self, instruments):
@@ -1138,13 +1145,13 @@ class HonestFreshnessGateTests(unittest.TestCase):
                     }
                     bars = {
                         item.symbol: [Bar(
-                            item.symbol, now.date(), 1, 1, 1, 1, 1,
+                            item.symbol, completed_day, 1, 1, 1, 1, 1,
                             item.timezone, "fixture", now,
                         )]
                         for item in instruments
                     }
                     bars["usSPY"] = [Bar(
-                        "usSPY", now.date(), 1, 1, 2, 1, 1,
+                        "usSPY", completed_day, 1, 1, 2, 1, 1,
                         next(item.timezone for item in instruments if item.symbol == "usSPY"), "fixture", now,
                     )]
                     return quotes, bars, []

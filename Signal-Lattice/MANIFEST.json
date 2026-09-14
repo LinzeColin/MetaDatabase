@@ -1263,8 +1263,8 @@
     },
     {
       "path": "src/signal_lattice/live_runtime.py",
-      "sha256": "072e4579df70b2e4442bac690125bd0cde6873621f23dc3374f080d9237fcb44",
-      "size": 59249
+      "sha256": "138db5d2c4b5e4ffc0b750a6693e099dd36889dddaa21c718bd70f734e17dbdd",
+      "size": 63294
     },
     {
       "path": "src/signal_lattice/market_provider.py",
@@ -1402,31 +1402,6 @@
       "size": 610
     },
     {
-      "path": "src/signal_lattice.egg-info/PKG-INFO",
-      "sha256": "037fd64b411591125eb1d36cebf9f3fc7a42fe4cef137aeb4dc855f618bb0292",
-      "size": 171
-    },
-    {
-      "path": "src/signal_lattice.egg-info/SOURCES.txt",
-      "sha256": "b22905d49e770ec9dfbd9039305cf22b20d0ba9352b761314e046fc262262a69",
-      "size": 3234
-    },
-    {
-      "path": "src/signal_lattice.egg-info/dependency_links.txt",
-      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
-      "size": 1
-    },
-    {
-      "path": "src/signal_lattice.egg-info/entry_points.txt",
-      "sha256": "97cedaf7ad5ca107aee5c9f608d484b676574e5e532652f2ec3316965ea579f3",
-      "size": 59
-    },
-    {
-      "path": "src/signal_lattice.egg-info/top_level.txt",
-      "sha256": "9e880a09b18bdc80afd48127f8db88a61a33279354574975edacc2f59202c06a",
-      "size": 15
-    },
-    {
       "path": "tests/test_action.py",
       "sha256": "ca37de0e87c5127576283938940c8d745234f60ea511ff7a97ee9d5b7ee5ec2b",
       "size": 1730
@@ -1492,6 +1467,11 @@
       "size": 16605
     },
     {
+      "path": "tests/test_intraday_break_is_not_market_close.py",
+      "sha256": "1c576ec054e85e5e63bc83dc5cd1a3da19bdd3b9d1a20c71406bdd0de9c6e32f",
+      "size": 5542
+    },
+    {
       "path": "tests/test_last_mile_tools.py",
       "sha256": "d8eb63b348e62a58be768530c6b1ab863350204d7500557b8b6c1f7bc3592428",
       "size": 6808
@@ -1508,8 +1488,8 @@
     },
     {
       "path": "tests/test_marketdata_providers.py",
-      "sha256": "8faabd86fdce231e1bc608c84e6477bd0f3b4b108f9e4cd5b920478ed133ddb6",
-      "size": 65061
+      "sha256": "c89748e8743598779f4f83ad2d5a1985107b29662dbfc754eb5a094d7a0cd16b",
+      "size": 65726
     },
     {
       "path": "tests/test_minute_cycle.py",
@@ -1902,8 +1882,8 @@
       "size": 1003
     }
   ],
-  "manifest_payload_bytes": 2193265,
-  "manifest_payload_file_count": 380,
-  "payload_sha256": "51fef46c1ad0e67585b8e9888a022c896fa2a390dc5441dfe3bc17ff192e0388",
+  "manifest_payload_bytes": 2200037,
+  "manifest_payload_file_count": 376,
+  "payload_sha256": "4d3ed44bccb869526ff9e62388b9ffa558c9292117f72e5b4eaa6d1cd77c0c76",
   "schema_version": "1.0.0"
 }
