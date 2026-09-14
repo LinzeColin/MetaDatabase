@@ -70,7 +70,7 @@ class ReopenFreshnessTests(unittest.TestCase):
         return LiveEngine(LiveSettings(**{**base.__dict__, "state_dir": Path(state_dir), "universe": [item]}))
 
     def _status(self, item, source_hour, source_minute, now_hour, now_minute):
-        source = _local(item, source_hour, source_minute).replace(tzinfo=None)
+        source = _local(item, source_hour, source_minute)
         now = _local(item, now_hour, now_minute)
         with TemporaryDirectory() as temp:
             engine = self._engine(temp, item)
@@ -101,7 +101,7 @@ class ReopenFreshnessTests(unittest.TestCase):
     def test_previous_day_source_is_stale_once_session_outruns_declared_delay(self):
         """交易时间口径抓不住「冻在昨收」时，跨日判据必须接住。"""
         hk = _instrument("hk00700")
-        source = (_local(hk, 16, 0) - timedelta(days=1)).replace(tzinfo=None)
+        source = (_local(hk, 16, 0) - timedelta(days=1))
         now = _local(hk, 10, 0)  # 开盘已 30 分钟 > 申报延迟 25 分钟
         with TemporaryDirectory() as temp:
             engine = self._engine(temp, hk)
@@ -113,7 +113,7 @@ class ReopenFreshnessTests(unittest.TestCase):
     def test_previous_day_source_is_allowed_within_the_declared_delay_window(self):
         """开盘头 25 分钟里行情本就只有盘前数据，昨收时间戳是合法的。"""
         hk = _instrument("hk00700")
-        source = (_local(hk, 16, 0) - timedelta(days=1)).replace(tzinfo=None)
+        source = (_local(hk, 16, 0) - timedelta(days=1))
         now = _local(hk, 9, 40)  # 开盘才 10 分钟 < 申报延迟 25 分钟
         with TemporaryDirectory() as temp:
             engine = self._engine(temp, hk)
@@ -153,7 +153,7 @@ class StallDetectionUsesTradingTimeTests(unittest.TestCase):
         最新可得的仍是 12:00 收盘那条——不推进是正常的，不是故障。
         """
         hk = _instrument("hk00700")
-        frozen_source = _local(hk, 11, 59).replace(tzinfo=None)
+        frozen_source = _local(hk, 11, 59)
         with TemporaryDirectory() as temp:
             engine = self._engine(temp, hk)
             first = _local(hk, 13, 0)
@@ -176,7 +176,7 @@ class StallDetectionUsesTradingTimeTests(unittest.TestCase):
     def test_still_frozen_past_the_declared_delay_is_caught(self):
         """过了申报延迟窗口仍不推进，必须被抓住——抑制只覆盖窗口内。"""
         hk = _instrument("hk00700")
-        frozen_source = _local(hk, 11, 59).replace(tzinfo=None)
+        frozen_source = _local(hk, 11, 59)
         with TemporaryDirectory() as temp:
             engine = self._engine(temp, hk)
             first = _local(hk, 13, 0)
@@ -198,7 +198,7 @@ class StallDetectionUsesTradingTimeTests(unittest.TestCase):
         with TemporaryDirectory() as temp:
             engine = self._engine(temp, hk)
             first = _local(hk, 10, 0)
-            frozen_source = _local(hk, 9, 40).replace(tzinfo=None)
+            frozen_source = _local(hk, 9, 40)
             engine._quote_freshness(
                 hk,
                 Quote(hk.symbol, 1.0, "HKD", hk.timezone, "fixture", frozen_source, first.astimezone(timezone.utc)),

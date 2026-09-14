@@ -49,9 +49,9 @@ class ProviderParsingTests(unittest.TestCase):
         self.assertEqual(quotes["hk00700"].price, 428.400)
         self.assertEqual(quotes["hk02800"].price, 25.420)
         self.assertTrue(all(quote.source_time is not None for quote in quotes.values()))
-        self.assertEqual(quotes["usSPY"].source_time.isoformat(), "2026-09-12T09:45:58")
-        self.assertEqual(quotes["sh600000"].source_time.isoformat(), "2026-09-12T09:45:58")
-        self.assertEqual(quotes["hk00700"].source_time.isoformat(), "2026-09-11T16:09:00")
+        self.assertEqual(quotes["usSPY"].source_time.isoformat(), "2026-09-12T09:45:58+08:00")
+        self.assertEqual(quotes["sh600000"].source_time.isoformat(), "2026-09-12T09:45:58+08:00")
+        self.assertEqual(quotes["hk00700"].source_time.isoformat(), "2026-09-11T16:09:00+08:00")
 
     def test_tencent_quote_without_source_time_remains_unqualified(self):
         raw = 'v_hk00700="100~腾讯控股~00700~428.400~425.600~2.800~0.658~0~0~0.00~0.00";'.encode("gbk")
@@ -578,7 +578,7 @@ class HonestFreshnessGateTests(unittest.TestCase):
 
             class Sina:
                 def fetch(self, instruments):
-                    return {"hk00700": Quote("hk00700", 411.0, "HKD", hk.timezone, "sina_quote", datetime(2026, 9, 11, 16, 9), observed_at)}
+                    return {"hk00700": Quote("hk00700", 411.0, "HKD", hk.timezone, "sina_quote", datetime(2026, 9, 11, 16, 9, tzinfo=ZoneInfo(hk.timezone)), observed_at)}
 
             class Tencent:
                 calls = 0
@@ -689,7 +689,7 @@ class HonestFreshnessGateTests(unittest.TestCase):
             quotes = {
                 "usSPY": Quote(
                     "usSPY", 1.0, "USD", us_spy.timezone, "test",
-                    datetime(2026, 1, 2, 9, 30), now,
+                    datetime(2026, 1, 2, 9, 30, tzinfo=ZoneInfo(us_spy.timezone)), now,
                 )
             }
             bars = {
@@ -816,7 +816,7 @@ class HonestFreshnessGateTests(unittest.TestCase):
                         {
                             hk.symbol: Quote(
                                 hk.symbol, 1.0, "HKD", hk.timezone, "fixture",
-                                datetime(2026, 9, 14, 10, 24), now,
+                                datetime(2026, 9, 14, 10, 24, tzinfo=ZoneInfo(hk.timezone)), now,
                             )
                         },
                         {
@@ -898,7 +898,7 @@ class HonestFreshnessGateTests(unittest.TestCase):
                 )]
             }
             quote = Quote(
-                "usSPY", 1.0, "USD", us_spy.timezone, "fixture", datetime(2026, 9, 11, 9, 30), now,
+                "usSPY", 1.0, "USD", us_spy.timezone, "fixture", datetime(2026, 9, 11, 9, 30, tzinfo=ZoneInfo(us_spy.timezone)), now,
             )
 
             freshness = engine._quote_freshness(us_spy, quote, now)
@@ -957,7 +957,7 @@ class HonestFreshnessGateTests(unittest.TestCase):
                 }
 
             hk_engine = LiveEngine(replace(settings, universe=[hk]))
-            hk_local_now = now.astimezone(ZoneInfo(hk.timezone)).replace(tzinfo=None)
+            hk_local_now = now.astimezone(ZoneInfo(hk.timezone))
             hk_within_delay = Quote(
                 hk.symbol, 1.0, "HKD", hk.timezone, "fixture",
                 hk_local_now - timedelta(minutes=22), now,
@@ -986,7 +986,7 @@ class HonestFreshnessGateTests(unittest.TestCase):
             )
 
             cn_engine = LiveEngine(replace(settings, universe=[cn]))
-            cn_local_now = now.astimezone(ZoneInfo(cn.timezone)).replace(tzinfo=None)
+            cn_local_now = now.astimezone(ZoneInfo(cn.timezone))
             cn_overdue = Quote(
                 cn.symbol, 1.0, "CNY", cn.timezone, "fixture",
                 cn_local_now - timedelta(minutes=5), now,
@@ -1009,14 +1009,14 @@ class HonestFreshnessGateTests(unittest.TestCase):
             hk = next(item for item in settings.universe if item.symbol == "hk00700")
             engine = LiveEngine(replace(settings, universe=[hk]))
             samples = [
-                (datetime(2026, 9, 14, 1, 49, 34, tzinfo=timezone.utc), datetime(2026, 9, 14, 9, 20)),
-                (datetime(2026, 9, 14, 1, 51, 4, tzinfo=timezone.utc), datetime(2026, 9, 14, 9, 31)),
-                (datetime(2026, 9, 14, 1, 52, 35, tzinfo=timezone.utc), datetime(2026, 9, 14, 9, 31)),
-                (datetime(2026, 9, 14, 1, 54, 6, tzinfo=timezone.utc), datetime(2026, 9, 14, 9, 35)),
-                (datetime(2026, 9, 14, 1, 55, 37, tzinfo=timezone.utc), datetime(2026, 9, 14, 9, 35)),
-                (datetime(2026, 9, 14, 1, 57, 8, tzinfo=timezone.utc), datetime(2026, 9, 14, 9, 35)),
-                (datetime(2026, 9, 14, 1, 58, 38, tzinfo=timezone.utc), datetime(2026, 9, 14, 9, 35)),
-                (datetime(2026, 9, 14, 2, 0, 9, tzinfo=timezone.utc), datetime(2026, 9, 14, 9, 39)),
+                (datetime(2026, 9, 14, 1, 49, 34, tzinfo=timezone.utc), datetime(2026, 9, 14, 9, 20, tzinfo=ZoneInfo(hk.timezone))),
+                (datetime(2026, 9, 14, 1, 51, 4, tzinfo=timezone.utc), datetime(2026, 9, 14, 9, 31, tzinfo=ZoneInfo(hk.timezone))),
+                (datetime(2026, 9, 14, 1, 52, 35, tzinfo=timezone.utc), datetime(2026, 9, 14, 9, 31, tzinfo=ZoneInfo(hk.timezone))),
+                (datetime(2026, 9, 14, 1, 54, 6, tzinfo=timezone.utc), datetime(2026, 9, 14, 9, 35, tzinfo=ZoneInfo(hk.timezone))),
+                (datetime(2026, 9, 14, 1, 55, 37, tzinfo=timezone.utc), datetime(2026, 9, 14, 9, 35, tzinfo=ZoneInfo(hk.timezone))),
+                (datetime(2026, 9, 14, 1, 57, 8, tzinfo=timezone.utc), datetime(2026, 9, 14, 9, 35, tzinfo=ZoneInfo(hk.timezone))),
+                (datetime(2026, 9, 14, 1, 58, 38, tzinfo=timezone.utc), datetime(2026, 9, 14, 9, 35, tzinfo=ZoneInfo(hk.timezone))),
+                (datetime(2026, 9, 14, 2, 0, 9, tzinfo=timezone.utc), datetime(2026, 9, 14, 9, 39, tzinfo=ZoneInfo(hk.timezone))),
             ]
 
             # samples[0]：09:49:34 HKT 时来源时间 09:20，落在 09:30 开盘之前。
@@ -1049,7 +1049,7 @@ class HonestFreshnessGateTests(unittest.TestCase):
             hk = next(item for item in settings.universe if item.symbol == "hk00700")
             settings = replace(settings, universe=[hk])
             first_observed_at = datetime(2026, 9, 14, 1, 55, tzinfo=timezone.utc)
-            source_time = datetime(2026, 9, 14, 9, 40)
+            source_time = datetime(2026, 9, 14, 9, 40, tzinfo=ZoneInfo(hk.timezone))
             first_engine = LiveEngine(settings)
             first_quote = Quote(hk.symbol, 1.0, "HKD", hk.timezone, "fixture", source_time, first_observed_at)
             self.assertEqual(first_engine._quote_freshness(hk, first_quote, first_observed_at)["status"], "FRESH")
@@ -1086,7 +1086,7 @@ class HonestFreshnessGateTests(unittest.TestCase):
             observed_at = datetime(2026, 9, 14, 2, 0, tzinfo=timezone.utc)
             quote = Quote(
                 hk.symbol, 1.0, "HKD", hk.timezone, "fixture",
-                datetime(2026, 9, 14, 9, 25), observed_at,
+                datetime(2026, 9, 14, 9, 25, tzinfo=ZoneInfo(hk.timezone)), observed_at,
             )
             freshness = engine._quote_freshness(hk, quote, observed_at)
             bars = {
@@ -1109,7 +1109,7 @@ class HonestFreshnessGateTests(unittest.TestCase):
             hk = next(item for item in settings.universe if item.symbol == "hk00700")
             settings = replace(settings, universe=[hk])
             engine = LiveEngine(settings)
-            source_time = datetime(2026, 9, 14, 9, 40)
+            source_time = datetime(2026, 9, 14, 9, 40, tzinfo=ZoneInfo(hk.timezone))
             open_observed_at = datetime(2026, 9, 14, 1, 55, tzinfo=timezone.utc)
             engine._quote_freshness(
                 hk,
