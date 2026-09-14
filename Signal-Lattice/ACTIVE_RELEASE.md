@@ -1,6 +1,6 @@
 # Active release candidate
 
-- Application: `0.0.0.2.7`
+- Application: `0.0.0.2.8`
 - Decision contract: `v0.0.0.2`
 - Runtime: `/opt/signal-lattice-v2/current`（systemd `signal-lattice-v2-api` + `signal-lattice-v2-loop.timer`）
 - Collection interval: `60 seconds`（`OnUnitInactiveSec=60`）

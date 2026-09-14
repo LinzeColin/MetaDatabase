@@ -18,7 +18,7 @@ class T(unittest.TestCase):
  def test_ui_accessibility_contract(self):
   h=(self.root/'web/index.html').read_text();c=(self.root/'web/styles.css').read_text();self.assertIn('skip-link',h);self.assertIn('prefers-reduced-motion',c);self.assertRegex(c,r'min-height:44px')
  def test_market_delay_disclosure_is_visible_with_the_decision(self):
-  app=(self.root/'web/app.js').read_text();self.assertIn('港股行情为交易所规定的延迟数据（约 ${declaredDelay} 分钟），非实时。',app);self.assertIn('renderMarketDataDisclosure(report),renderDecision(report)',app);self.assertIn('observed_lag_minutes',app)
+  app=(self.root/'web/app.js').read_text();self.assertIn('港股行情为交易所规定的延迟数据（约 ${declaredDelay} 分钟），非实时。',app);self.assertIn('const heroNotice=marketDelayDisclosure(report);',app);self.assertIn('hero-delay-notice',app);self.assertIn('observed_lag_minutes',app)
  def test_systemd_units(self):
   units=list((self.root/'deploy/systemd').iterdir());self.assertEqual(len(units),12);self.assertFalse(any('launchd' in p.name for p in units))
 

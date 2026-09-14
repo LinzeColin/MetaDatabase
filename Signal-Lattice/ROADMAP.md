@@ -1,4 +1,4 @@
-# Signal Lattice v0.0.0.2.7 Roadmap
+# Signal Lattice v0.0.0.2.8 Roadmap
 
 ## 当前版本必须完成
 
