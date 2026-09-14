@@ -18,8 +18,8 @@
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "06a8b21073e5d3e7b05b0ea030125b5499d86a522ec3a965d03571f24439901a",
-      "size": 47488
+      "sha256": "9a0ab0fb4bea4243f67f2a178fe06ca7f623005a1dc24b9df0f83171833ed9a0",
+      "size": 51015
     },
     {
       "path": "MEMORY_RECONCILIATION.md",
@@ -113,8 +113,8 @@
     },
     {
       "path": "deploy/ROLLBACK_V2.md",
-      "sha256": "5f1089f6e257cad1e16b56cb914fee34f1f7f01ec26dd91a5045ed81e14f5200",
-      "size": 1985
+      "sha256": "b47c512dd85d2e194f3bd114742569337a4614b41a4bc3d94b2da07a9a7d5fac",
+      "size": 3529
     },
     {
       "path": "deploy/V2_RELEASE_CONTRACT.json",
@@ -1093,8 +1093,8 @@
     },
     {
       "path": "scripts/verify_version_lock.py",
-      "sha256": "299288a1b74a2de99dfcf1ef0ef01069b978c24db73aadd6b52c46118dc1448f",
-      "size": 5130
+      "sha256": "393d2030e0d49798384a816f63a1a4fec79f0e7fedf69760640fb9b9126675ec",
+      "size": 5333
     },
     {
       "path": "scripts/verify_zero_runtime.py",
@@ -1882,8 +1882,8 @@
       "size": 1003
     }
   ],
-  "manifest_payload_bytes": 2200037,
+  "manifest_payload_bytes": 2205311,
   "manifest_payload_file_count": 376,
-  "payload_sha256": "4d3ed44bccb869526ff9e62388b9ffa558c9292117f72e5b4eaa6d1cd77c0c76",
+  "payload_sha256": "e13949997a74b9d7afe897ecb8c56b2ca5ef0a81e533b66ed36df8eea88edf97",
   "schema_version": "1.0.0"
 }

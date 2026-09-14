@@ -24,7 +24,6 @@ SCAN_SUFFIXES={'.py','.json','.md','.yaml','.yml','.txt','.html','.sh','.toml','
 # 历史引用豁免：文件正当地提到某个旧版本（回滚目标、v19 封包版本、合成的上一版发布）。
 # 默认全树扫描，任何未在此登记的旧版本串一律判为漂移——例外必须写明理由，不允许静默通过。
 HISTORICAL_VERSION_EXEMPTIONS={
- 'deploy/ROLLBACK_V2.md':({'0.0.0.1.43'},'回滚目标：v19 发布目录名，指向回滚时要恢复的那一版'),
  'MEMORY_RECONCILIATION.md':({'0.0.0.1.38','0.0.0.1.40'},'历史记录：过去两条交付路线的版本'),
  'docs/DEPLOYMENT_RESULT_CONTRACT.md':({'0.0.0.1.41'},'v19 封包契约存档'),
  'docs/PRODUCT_RESULT.md':({'0.0.0.1.41'},'v19 成果存档'),
@@ -40,6 +39,9 @@ HISTORICAL_VERSION_EXEMPTIONS={
  'tests/test_repair_security.py':({'0.0.0.1.41'},'v19 修复授权回归'),
  'tests/test_taskpack_seal.py':({'0.0.0.1.41'},'v19 封包回归'),
  'tests/test_deployment_northstar.py':({'0.0.0.2.2'},'合成的上一版发布，用于验证回滚路径'),
+ 'CANONICAL_STATE.json':({'0.0.0.2.3'},'previous_version：生产上一版发布目录 0.0.0.2.3-r6，回滚目标'),
+ 'HANDOFF.md':({'0.0.0.2.3'},'同上，交接文档记录 previous 指向'),
+ 'deploy/ROLLBACK_V2.md':({'0.0.0.1.43','0.0.0.2.3'},'回滚目标：v19 发布目录名，以及 v2 上一版 0.0.0.2.3-r6'),
 }
 
 

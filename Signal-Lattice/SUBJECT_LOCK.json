@@ -1,7 +1,7 @@
 {
   "bindings": {
     "acceptance": "263c6b5660e936c5335c60594b1ff9b27f90b91ec134381b88a6bc69c2cf0fc6",
-    "canonical_state_prepared": "79a4c2b9a68f94056b05396ce72465e2486af31ea9bcbbf292c773bb1ea99abc",
+    "canonical_state_prepared": "2d3321c2b1814a36b7959fbed206243d09cc416c347e8a18c7521b11b7adc2bd",
     "definition_of_done": "49fbcc84fc96051b0a266ebf5692e07cb47a4a6701cf44142ac8bcf517a834e0",
     "quant": "10972cd20552d85d05bf762fa21f8cc39685a1b48d45c3afc642077cd2a2b529",
     "release_boundary": "29006ddeb70f5763d6057ebf273ee6c3dbc52f8f0c4dfc2557d4ab41f3560f8a",
@@ -28,8 +28,8 @@
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "06a8b21073e5d3e7b05b0ea030125b5499d86a522ec3a965d03571f24439901a",
-      "size": 47488
+      "sha256": "9a0ab0fb4bea4243f67f2a178fe06ca7f623005a1dc24b9df0f83171833ed9a0",
+      "size": 51015
     },
     {
       "path": "MEMORY_RECONCILIATION.md",
@@ -123,8 +123,8 @@
     },
     {
       "path": "deploy/ROLLBACK_V2.md",
-      "sha256": "5f1089f6e257cad1e16b56cb914fee34f1f7f01ec26dd91a5045ed81e14f5200",
-      "size": 1985
+      "sha256": "b47c512dd85d2e194f3bd114742569337a4614b41a4bc3d94b2da07a9a7d5fac",
+      "size": 3529
     },
     {
       "path": "deploy/V2_RELEASE_CONTRACT.json",
@@ -998,8 +998,8 @@
     },
     {
       "path": "scripts/verify_version_lock.py",
-      "sha256": "299288a1b74a2de99dfcf1ef0ef01069b978c24db73aadd6b52c46118dc1448f",
-      "size": 5130
+      "sha256": "393d2030e0d49798384a816f63a1a4fec79f0e7fedf69760640fb9b9126675ec",
+      "size": 5333
     },
     {
       "path": "scripts/verify_zero_runtime.py",
@@ -1789,7 +1789,7 @@
   ],
   "schema_version": "1.1.0",
   "state": "PREPARED",
-  "subject_sha256": "898d1fe90af36811e916b3210b2ed2e899af7eb2a084106940201aea52dc0433",
+  "subject_sha256": "cab32cf70881df97c7ec03db25750fccc4b151b6cdee67dedade97f0a4c6b0d4",
   "upstream_binding_kind": "blocked_precheck",
   "version": "0.0.0.2.4"
 }

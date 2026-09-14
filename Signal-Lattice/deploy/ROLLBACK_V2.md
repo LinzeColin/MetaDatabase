@@ -38,3 +38,35 @@ curl -s -o /dev/null -w '%{http_code}\n' https://signal-lattice.linzezhang.com/
 - `8787`：Signal Lattice（隧道固定指向，ingress 由 Cloudflare 面板托管，本地改配置无效）
 - `8788`：**weread-port 占用，不要碰**
 - `8790/8791/8792`：空闲，灰度用
+
+## 回滚到上一个 v2 版本（优先于回滚到 v19）
+
+`install_release.sh` 会把上一版留在 `/opt/signal-lattice-v2/previous`。
+2026-09-14 切到 `0.0.0.2.4` 时，previous 指向 `0.0.0.2.3-r6`。
+
+```bash
+sudo ln -sfn "$(readlink -f /opt/signal-lattice-v2/previous)" /opt/signal-lattice-v2/current.new
+sudo mv -T /opt/signal-lattice-v2/current.new /opt/signal-lattice-v2/current
+sudo systemctl restart signal-lattice-v2-api
+curl -s -o /dev/null -w '%{http_code}\n' https://signal-lattice.linzezhang.com/health/ready
+```
+
+## 采集单元形态（2026-09-14 改过）
+
+切换前生产跑的是 `ExecStart=… signal-lattice loop`，靠 systemd 自动重启制造节拍，
+`signal-lattice-v2-loop.timer` 从未安装——而 `deploy/V2_RELEASE_CONTRACT.json`
+一直声明着这个 timer。已改为仓库设计的形态：`Type=oneshot` + `ExecStart=… once`，
+由 timer 以 `OnUnitInactiveSec=60` 调度。
+
+原单元备份在目标机 `/etc/systemd/system/signal-lattice-v2-loop.service.bak-restart-driven`。
+要退回重启驱动形态：
+
+```bash
+sudo systemctl disable --now signal-lattice-v2-loop.timer
+sudo cp /etc/systemd/system/signal-lattice-v2-loop.service.bak-restart-driven \
+        /etc/systemd/system/signal-lattice-v2-loop.service
+sudo systemctl daemon-reload && sudo systemctl enable --now signal-lattice-v2-loop.service
+```
+
+注意 `signal-lattice loop --max-runs` 默认为 1，两种形态都只跑一轮就退出，
+不存在无终点后台循环；差别只在节拍由 timer 还是由 Restart 提供。
