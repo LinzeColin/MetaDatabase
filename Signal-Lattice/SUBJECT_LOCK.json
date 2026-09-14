@@ -1796,5 +1796,5 @@
   "state": "PREPARED",
   "subject_sha256": "a72eb7fc2b8e9fbdae8124ee8401b5cb17f2439ae69f04ccb99ae1c91276f636",
   "upstream_binding_kind": "blocked_precheck",
-  "version": "0.0.0.2.9"
+  "version": "0.0.0.3.0"
 }
