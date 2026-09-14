@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 from __future__ import annotations
+import sys
+# 这些脚本会 import signal_lattice，默认会在源码树里留下 __pycache__，
+# 而 verify_package 又把 __pycache__ 判为构建垃圾——建清单这一步会自己制造自己的红灯。
+sys.dont_write_bytecode = True
 import argparse,hashlib,json,os,re
 from pathlib import Path
 EXCLUDE={'MANIFEST.json','SUBJECT_LOCK.json','CANONICAL_STATE.json','evidence/skill_router/pass_c.json'}

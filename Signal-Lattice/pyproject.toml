@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "signal-lattice"
-version = "0.0.0.2.3"
+version = "0.0.0.2.4"
 description = "基于免费免密钥真实市场数据的只读多分支投资研究系统"
 requires-python = ">=3.11"
 dependencies = []

@@ -44,18 +44,32 @@ class EastMoneyFundProvider:
         bars: List[Bar] = []
         for row in rows:
             if not isinstance(row, dict):
+                if quality_issues is not None:
+                    quality_issues.append(BarQualityIssue(
+                        instrument.symbol, None, "eastmoney_fund_nav", ("ROW_NOT_OBJECT",), "STRUCTURAL",
+                    ))
                 continue
             try:
                 close = float(row["y"])
                 day = datetime.fromtimestamp(float(row["x"]) / 1000.0, tz=timezone.utc).date()
-            except (KeyError, TypeError, ValueError, OSError, OverflowError):
+            except KeyError:
+                if quality_issues is not None:
+                    quality_issues.append(BarQualityIssue(
+                        instrument.symbol, None, "eastmoney_fund_nav", ("REQUIRED_FIELD_MISSING",), "STRUCTURAL",
+                    ))
+                continue
+            except (TypeError, ValueError, OSError, OverflowError):
+                if quality_issues is not None:
+                    quality_issues.append(BarQualityIssue(
+                        instrument.symbol, None, "eastmoney_fund_nav", ("FIELD_CONVERSION_FAILED",), "CONVERSION",
+                    ))
                 continue
             bar = Bar(instrument.symbol, day, close, close, close, close, None,
                       instrument.timezone, "eastmoney_fund_nav", observed_at)
             if not bar.has_valid_ohlcv():
                 if quality_issues is not None:
                     quality_issues.append(BarQualityIssue(
-                        instrument.symbol, bar.day, "eastmoney_fund_nav", bar.ohlcv_violations(),
+                        instrument.symbol, bar.day, "eastmoney_fund_nav", bar.ohlcv_violations(), "OHLCV_VIOLATION",
                     ))
                 continue
             bars.append(bar)
@@ -74,6 +88,9 @@ class EastMoneyFundProvider:
             self.cache,
             key,
             12 * 60 * 60,
-            lambda: self.client.get(self.endpoint.format(code=instrument.eastmoney_fund_code)),
+            lambda: self.client.get(
+                self.endpoint.format(code=instrument.eastmoney_fund_code),
+                provider=self.source,
+            ),
             lambda payload: self.parse(payload, instrument, quality_issues=self.last_quality_issues),
         )

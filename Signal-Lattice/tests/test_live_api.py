@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 from io import BytesIO
 from pathlib import Path
 
+from signal_lattice.constants import VERSION
 from signal_lattice.live_api import HEADERS, blocked_report, handler, latest_for_api, public_report_view, v2_get_route_responses
 from signal_lattice.live_config import LiveSettings, default_universe
 from signal_lattice.live_runtime import LiveEngine, LiveStore
@@ -81,7 +82,7 @@ class LiveApiTests(unittest.TestCase):
 
         self.assertEqual(declared_routes, live_routes)
         self.assertTrue(all(set(item) == {"get"} for item in contract["paths"].values()))
-        self.assertEqual(contract["info"]["version"], "0.0.0.2.3")
+        self.assertEqual(contract["info"]["version"], VERSION)
         self.assertEqual(
             {
                 (entry["path"], tuple(entry["methods"]))
@@ -266,7 +267,7 @@ class LiveApiTests(unittest.TestCase):
                     raise MarketDataError("SINA_UPSTREAM_UNAVAILABLE")
 
             class NonGbkClient:
-                def get(self, url, headers=None):
+                def get(self, url, headers=None, *, provider=None):
                     return b"\xff\xfe"
 
             class FreshBars:
@@ -293,6 +294,64 @@ class LiveApiTests(unittest.TestCase):
             self.assertIn("TENCENT_QUOTE:TENCENT_QUOTE_DECODE_FAILED", report["freshness_findings"])
             self.assertEqual(ready_status, 503)
             self.assertEqual(ready["state"], "SYSTEM_BLOCKED")
+
+
+class ProfitabilityDisclosureIsPerBranchTests(unittest.TestCase):
+    """系统级样本不足不得连带掩盖一个已达标分支的负收益。
+
+    这个门的目的是拦住"样本不够就报收益数字"。曾经它按系统级统一扣住所有分支，
+    于是一个 6/6 样本、样本外 -49.68% 的分支在公开面上完全看不见——防夸大的门
+    反过来掩盖了亏损。这里两个方向都锁死。
+    """
+
+    @staticmethod
+    def _report():
+        return {
+            "state": "DATA_READY",
+            "profitability_status": "OOS_HISTORY_INSUFFICIENT: 4/6",
+            "backtest": {
+                "status": "OOS_READY",
+                "sample_sufficiency": "OOS_HISTORY_INSUFFICIENT: 4/6",
+                "sample_sufficiency_message": "样本外历史不足，仅供研究参考，不构成收益证据。",
+                "method": {"minimum_oos_windows_for_profitability": 6},
+                "branches": {
+                    "thin": {
+                        "branch_id": "thin",
+                        "status": "OOS_READY",
+                        "profitability_evidence": "INSUFFICIENT",
+                        "sample_sufficiency": "OOS_HISTORY_INSUFFICIENT: 4/6",
+                        "stitched": {"excess_return_pct": 4.7096, "information_ratio": 0.1084},
+                        "walk_forward": {"windows": 4},
+                    },
+                    "evidenced_loser": {
+                        "branch_id": "evidenced_loser",
+                        "status": "OOS_READY",
+                        "profitability_evidence": "SUFFICIENT",
+                        "sample_sufficiency": "OOS_HISTORY_SUFFICIENT: 6/6",
+                        "stitched": {"excess_return_pct": -49.6752, "information_ratio": -1.0487},
+                        "walk_forward": {"windows": 6},
+                    },
+                },
+            },
+        }
+
+    def test_insufficient_branch_numbers_are_withheld(self):
+        public = public_report_view(self._report())
+        thin = next(b for b in public["backtest"]["branches"] if b["branch_id"] == "thin")
+        self.assertNotIn("stitched", thin)
+        self.assertEqual(thin["profitability_evidence"], "INSUFFICIENT")
+        self.assertNotIn("4.7096", json.dumps(public, ensure_ascii=False))
+
+    def test_sufficient_branch_publishes_its_loss(self):
+        public = public_report_view(self._report())
+        loser = next(b for b in public["backtest"]["branches"] if b["branch_id"] == "evidenced_loser")
+        self.assertEqual(loser["stitched"]["excess_return_pct"], -49.6752)
+        self.assertIn("-49.6752", json.dumps(public, ensure_ascii=False))
+
+    def test_system_level_claim_stays_conservative(self):
+        public = public_report_view(self._report())
+        self.assertEqual(public["profitability_status"], "OOS_HISTORY_INSUFFICIENT: 4/6")
+        self.assertEqual(public["profitability_disclosure"]["status"], "INSUFFICIENT")
 
 
 if __name__ == "__main__":

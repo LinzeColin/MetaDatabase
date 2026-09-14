@@ -1,16 +1,15 @@
 [Unit]
-Description=Signal Lattice V2 sixty-second refresh loop
+Description=Signal Lattice V2 bounded collection run
 After=network-online.target
 Wants=network-online.target
 
 [Service]
-Type=simple
+Type=oneshot
 User=signal-lattice
 Group=signal-lattice
 EnvironmentFile=/etc/signal-lattice-v2/runtime.env
-ExecStart=/opt/signal-lattice-v2/current/venv/bin/signal-lattice loop
-Restart=always
-RestartSec=2
+ExecStart=/opt/signal-lattice-v2/current/venv/bin/signal-lattice once
+TimeoutStartSec=600
 NoNewPrivileges=yes
 PrivateTmp=yes
 PrivateDevices=yes

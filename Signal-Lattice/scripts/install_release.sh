@@ -2,26 +2,58 @@
 set -euo pipefail
 umask 027
 
-VERSION="0.0.0.1.41"
+PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+RELEASE_CONTRACT="$PROJECT_ROOT/deploy/V2_RELEASE_CONTRACT.json"
+PYTHON="${SIGNAL_LATTICE_PYTHON:-python3}"
+"$PYTHON" - <<'PY'
+import sys
+raise SystemExit(0 if sys.version_info >= (3, 11) else "PYTHON_3_11_OR_NEWER_REQUIRED")
+PY
+VERSION="$("$PYTHON" - "$PROJECT_ROOT/pyproject.toml" <<'PY'
+import sys
+import tomllib
+with open(sys.argv[1], "rb") as handle:
+    print(tomllib.load(handle)["project"]["version"])
+PY
+)"
+ROOT="${SIGNAL_LATTICE_INSTALL_ROOT:-$("$PYTHON" - "$RELEASE_CONTRACT" <<'PY'
+import json
+import sys
+print(json.load(open(sys.argv[1], encoding="utf-8"))["install_root"])
+PY
+)}"
+ROOT="$("$PYTHON" - "$ROOT" <<'PY'
+import sys
+from pathlib import Path
+print(Path(sys.argv[1]).resolve())
+PY
+)"
 WHEEL="${1:?wheel path required}"
-ROOT="${SIGNAL_LATTICE_INSTALL_ROOT:-/opt/signal-lattice}"
 RELEASE="$ROOT/releases/$VERSION"
 WHEEL_ABS="$(cd "$(dirname "$WHEEL")" && pwd)/$(basename "$WHEEL")"
 [[ -f "$WHEEL_ABS" ]] || { echo WHEEL_NOT_FOUND >&2; exit 2; }
 WHEEL_SHA="$(sha256sum "$WHEEL_ABS" | awk '{print $1}')"
 RECEIPT="$RELEASE/release.json"
-PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 activate_current() {
-  python3 - "$ROOT/current.new" "$ROOT/current" <<'PY'
+  "$PYTHON" - "$ROOT/current.new" "$ROOT/current" "$ROOT/previous" "$ROOT/releases" <<'PY'
 import os, sys
 from pathlib import Path
 
-staged, active = (Path(value) for value in sys.argv[1:])
+staged, active, previous, releases = (Path(value) for value in sys.argv[1:])
 if not staged.is_symlink():
     raise SystemExit("CURRENT_STAGING_LINK_INVALID")
 if active.exists() and not active.is_symlink():
     raise SystemExit("CURRENT_TARGET_NOT_SYMLINK")
+if active.is_symlink():
+    old_release = active.resolve()
+    if old_release.parent != releases or not old_release.is_dir():
+        raise SystemExit("CURRENT_RELEASE_OUTSIDE_ALLOWED_ROOT")
+    previous_new = previous.with_name("previous.new")
+    if previous_new.exists() or previous_new.is_symlink():
+        previous_new.unlink()
+    os.symlink(old_release, previous_new)
+    os.replace(previous_new, previous)
 os.replace(staged, active)
 PY
 }
@@ -31,7 +63,7 @@ PY
 # release directory, keep the active `current` symlink untouched until all smoke
 # checks pass, and delete the incomplete release on any failure.
 if [[ -d "$RELEASE" ]]; then
-  if [[ -f "$RECEIPT" ]] && python3 - "$RECEIPT" "$WHEEL_SHA" "$VERSION" <<'PY'
+  if [[ -f "$RECEIPT" ]] && "$PYTHON" - "$RECEIPT" "$WHEEL_SHA" "$VERSION" <<'PY'
 import json,sys
 p,expected,version=sys.argv[1:]
 d=json.load(open(p))
@@ -62,7 +94,7 @@ cleanup_failed_release() {
 }
 trap cleanup_failed_release EXIT
 
-python3 -m venv "$RELEASE/venv"
+"$PYTHON" -m venv "$RELEASE/venv"
 env -u PYTHONPATH -u PYTHONHOME PIP_NO_INDEX=1 PIP_DISABLE_PIP_VERSION_CHECK=1 PIP_NO_CACHE_DIR=1 \
   "$RELEASE/venv/bin/python" -m pip install --no-index --no-deps --force-reinstall "$WHEEL_ABS"
 cp -a "$PROJECT_ROOT/web" "$RELEASE/web"
@@ -80,9 +112,13 @@ chmod -R a+rX "$RELEASE"
 # detects broken console-script shebangs and source-tree PYTHONPATH leakage.
 env -u PYTHONPATH -u PYTHONHOME SIGNAL_LATTICE_STATE_DIR="$SMOKE_STATE" \
   SIGNAL_LATTICE_WEB_DIR="$RELEASE/web" "$RELEASE/venv/bin/signal-lattice" verify-runtime
+[[ "$(env -u PYTHONPATH -u PYTHONHOME "$RELEASE/venv/bin/signal-lattice" --version)" == "$VERSION" ]] || {
+  echo RELEASE_VERSION_MISMATCH >&2
+  exit 5
+}
 env -u PYTHONPATH -u PYTHONHOME "$RELEASE/venv/bin/signal-lattice" --help >/dev/null
 
-python3 - "$RECEIPT" "$VERSION" "$WHEEL_SHA" "$(basename "$WHEEL_ABS")" <<'PY'
+"$PYTHON" - "$RECEIPT" "$VERSION" "$WHEEL_SHA" "$(basename "$WHEEL_ABS")" <<'PY'
 import json,os,sys,tempfile
 from pathlib import Path
 out=Path(sys.argv[1])

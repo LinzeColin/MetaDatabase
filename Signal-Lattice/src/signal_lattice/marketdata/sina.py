@@ -69,7 +69,11 @@ class SinaQuoteProvider:
         identifiers = [item.sina_symbol for item in instruments if item.sina_symbol]
         if not identifiers:
             return {}
-        payload = self.client.get(self.endpoint + ",".join(identifiers), {"Referer": SINA_REFERER})
+        payload = self.client.get(
+            self.endpoint + ",".join(identifiers),
+            {"Referer": SINA_REFERER},
+            provider=self.source,
+        )
         return self.parse(payload, instruments)
 
 
@@ -125,6 +129,10 @@ class SinaKlineProvider:
         bars: List[Bar] = []
         for row in rows:
             if not isinstance(row, dict):
+                if quality_issues is not None:
+                    quality_issues.append(BarQualityIssue(
+                        instrument.symbol, None, source, ("ROW_NOT_OBJECT",), "STRUCTURAL",
+                    ))
                 continue
             try:
                 bar = Bar(
@@ -139,12 +147,22 @@ class SinaKlineProvider:
                     source=source,
                     observed_at=observed_at,
                 )
-            except (KeyError, TypeError, ValueError):
+            except KeyError:
+                if quality_issues is not None:
+                    quality_issues.append(BarQualityIssue(
+                        instrument.symbol, None, source, ("REQUIRED_FIELD_MISSING",), "STRUCTURAL",
+                    ))
+                continue
+            except (TypeError, ValueError, OverflowError):
+                if quality_issues is not None:
+                    quality_issues.append(BarQualityIssue(
+                        instrument.symbol, None, source, ("FIELD_CONVERSION_FAILED",), "CONVERSION",
+                    ))
                 continue
             if not bar.has_valid_ohlcv():
                 if quality_issues is not None:
                     quality_issues.append(BarQualityIssue(
-                        instrument.symbol, bar.day, source, bar.ohlcv_violations(),
+                        instrument.symbol, bar.day, source, bar.ohlcv_violations(), "OHLCV_VIOLATION",
                     ))
                 continue
             bars.append(bar)
@@ -165,7 +183,11 @@ class SinaKlineProvider:
             self.cache,
             key,
             6 * 60 * 60,
-            lambda: self.client.get(endpoint.format(symbol=kline_symbol), {"Referer": SINA_REFERER}),
+            lambda: self.client.get(
+                endpoint.format(symbol=kline_symbol),
+                {"Referer": SINA_REFERER},
+                provider=self.source,
+            ),
             lambda payload: self.parse(payload, instrument, quality_issues=self.last_quality_issues),
         )
 

@@ -9,9 +9,20 @@ class T(unittest.TestCase):
         cls.root = Path(__file__).resolve().parents[1]
 
     def test_canonical_state_passes(self):
-        result = validate_state(load_state(self.root / "CANONICAL_STATE.json"), VERSION)
+        """CANONICAL_STATE.json 必须在当前版本下通过状态机校验，且阶段与 Owner 闸门一致。
+
+        这里不锁定某一个具体阶段：阶段是项目进度，会随重建推进而变。要守的不变量是
+        「文件描述的阶段合法」与「未取得 Owner 闸门就不得自称已封包或更后」。
+        """
+        state = load_state(self.root / "CANONICAL_STATE.json")
+        result = validate_state(state, VERSION)
         self.assertEqual(result.state, "PASS", result.findings)
-        self.assertEqual(result.current_phase, "SEALED_TASKPACK")
+        self.assertIn(result.current_phase, PHASES)
+        gate = state["owner_gate"]
+        earned = bool(gate.get("qualifying_no_change_rounds", 0) >= 2) or gate.get("owner_override_authorized") is True
+        if PHASES.index(result.current_phase) >= PHASES.index("SEALED_TASKPACK"):
+            self.assertTrue(earned, "已到 SEALED_TASKPACK 或更后阶段，但 Owner 闸门未取得")
+        self.assertEqual(bool(gate["eligible"]), earned)
 
     def test_transition_is_strictly_sequential(self):
         self.assertTrue(can_transition("REMEDIATION", "BUILDER_READINESS"))

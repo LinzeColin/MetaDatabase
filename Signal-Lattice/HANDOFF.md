@@ -2,6 +2,121 @@
 
 更新时间：2026-09-14 Australia/Sydney
 
+## 2026-09-14 日线可用段裁剪根因修复
+
+### 当前状态
+
+`STAGE_4_DAILY_BAR_USABLE_SEGMENT_IMPLEMENTED_LOCAL_VALIDATION_COMPLETE`。日线从最新端向早期
+扫描，遇到长缺口即形成缺口之后的连续可用段；Claude Code 仍需在目标机用真实行情复跑，
+因此真实 `DATA_READY`、S1 指标和 `bar_completion` 实例值保持 `UNKNOWN`。
+
+### 关键决策与改动
+
+- 真机全量证据：`usQQQ` 有 4,868 条（2001-01-02 至 2026-09-11），在
+  2004-12-31 至 2011-04-26 有 2,307 个自然日、1,646 个工作日的真实历史空洞；`usAAPL`
+  有 10,030 条（1984-09-07 至 2026-09-11），在 2004-12-31 至 2007-03-19 有 808 个
+  自然日、575 个工作日的真实历史空洞。两者 2016 年后均有 2,688 条，最大缺口 4 个工作日；
+  当前 walk-forward 的 WF-01 训练期从 2016-02-01 开始。
+- `usSPY` 的 2001-09-10 至 2001-09-17 空洞对应 911 停市，只有 4 个工作日；
+  `sh600000` 的 18 个工作日空洞对应个股停牌。缺口本身无法可靠区分节假日、停市与数据
+  空洞，系统因此按可用段处理这些事实。
+- `MAX_USABLE_GAP_BUSINESS_DAYS = 10` 覆盖春节 6 天、短期停牌和 911 的 4 个工作日。
+  长缺口触发 `HISTORICAL_GAP_<previous>_TO_<following>`，可用段从 `following` 开始；报告
+  公开 `effective_start_day`、`effective_end_day`、`effective_bar_count`、
+  `trimmed_bar_count`、`trim_reason`、`trim_gap_business_days` 和完整 walk-forward 窗口数。
+  指标、分支计算、市场指纹和回测都消费同一裁剪段。
+- 裁剪段不足两组完整 walk-forward 窗口时，标的生成
+  `BAR_USABLE_SEGMENT_WALK_FORWARD_INSUFFICIENT`，finding 同时写入可用段条数与
+  当前/所需完整窗口数。`STRUCTURAL`、`CONVERSION`、`OHLCV_VIOLATION` 的条数、比例和
+  近期质量门，以及 `bar_completion` 的未收盘 Bar 排除口径保持原值。
+
+### 本机验证
+
+- 定向集：`tests/test_marketdata_providers.py tests/test_backtest.py tests/test_live_runtime.py
+  tests/test_live_api.py` 为 `63 passed in 2.84s`。回归覆盖 1,646 工作日远古缺口裁剪放行、
+  裁剪段不足两组窗口阻断、4 个工作日 911 口径不裁剪、18 个工作日停牌口径裁剪可见，及
+  `run_backtest()` 的输入首日与 `effective_start_day` 一致。
+- 完整命令 `PYTHONPATH=src python3 -m pytest tests/ -q`：`14 failed, 187 passed, 1 skipped
+  in 34.42s`。7 项为 sandbox 禁止本地 TCP bind 的 `PermissionError`；其余 7 项是既有
+  Python 3.9 `tomllib`、formal lifecycle、根目录 allowlist、state-machine/taskpack-seal
+  基线。本轮没有新增非 sandbox 红灯。
+- Python 3.12：已清理测试生成的 `.pytest_cache`、`build/` 与
+  `src/signal_lattice.egg-info/`，重建 `MANIFEST.json` 后
+  `scripts/verify_package.py --root . --manifest MANIFEST.json` 为
+  `{"finding_count": 0, "findings": [], "state": "PASS"}`。真实行情与 S1
+  `+4.7096% / IR 0.1084` 的新值由 Claude Code 目标机复跑确认。
+
+## 2026-09-14 第十轮对抗性审查：发布、预算、日线质量与收盘门
+
+### 当前目标与状态
+
+第七轮确认的 3 条 high 与 1 条 medium 已在本 worktree 修复，当前状态为
+`STAGE_4_TENTH_ADVERSARIAL_REMEDIATION_IMPLEMENTED_LOCAL_VALIDATION_COMPLETE`。
+本机没有生产行情 `state_dir`，因此没有声称新的 `DATA_READY` 或更新 S1 的收益数字；需要
+Claude Code 在目标机以真实行情重跑后确认。
+
+### 安装与回滚迁移
+
+- `deploy/V2_RELEASE_CONTRACT.json` 是 V2 的安装根目录 `/opt/signal-lattice-v2`、运行时目录
+  `/var/lib/signal-lattice-v2` 与 unit 名称的单一发布契约；`pyproject.toml [project].version` 是唯一
+  版本源。安装和回滚脚本都从这两处读取，不再使用 v19 的根目录或版本常量。
+- CLI 新增 `verify-runtime`：它只核验已安装版本、state_dir 存在和 web/index.html 存在，不请求行情
+  也不写 state_dir。安装和回滚在切换 `current` 前执行它，避免调用不存在的命令。
+- 安装切换会把原 `current` 的已验证 release 原子写入 `previous`，默认 `rollback.sh` 因而总是回到
+  实际上一版 V2，而不依赖运维人员手工创建链接。
+- `tests/test_deployment_northstar.py` 已覆盖 V2 wheel 构建、隔离安装、已安装 CLI 自检、构造的独立
+  上一 V2 release 与回滚切换；回滚收据写入 state_dir。macOS 路径由 Python `Path.resolve()` 与
+  `os.replace()` 处理，避免 `/var` 到 `/private/var` 和 GNU `mv -T` 差异。
+
+### 采集预算、停止与月操作量
+
+- `signal-lattice-v2-loop.service` 改为有界 `once`，由
+  `signal-lattice-v2-loop.timer` 每 60 秒调度；采集 service 没有 `Restart=always`。因此每次采集
+  进程自行结束，timer 只在下一调度点发起新的有限运行。API service 的 `Restart=always` 只服务已落盘
+  报告，不调用 provider。
+- `state_dir/collection_accounting.json` 持久化 total/daily/active-round 请求数、每 provider 的
+  total/daily 数、轮数、连续失败数、下一允许时间和停止原因。每一个物理 HTTP 请求（包含重试）在发出
+  前先记账；预算或账本状态不允许时请求不会离开本机，报告公开同一份
+  `collection_request_accounting`。
+- 正常预算推导：报价每 60 秒 1 个合并请求，`1 × 1,440 = 1,440` 次/日；15 个日线在 6 小时缓存
+  下为 `15 × 4 = 60` 次/日；合计 `1,500 × 31 = 46,500` 次/月。硬上限是 48 次/轮
+  （16 个正常逻辑请求各最多 3 次 HTTP 尝试），1,600 次/日，即 `49,600` 次/月；正常值与硬上限均已
+  明确，超过预算写 `COLLECTION_*_BUDGET_EXHAUSTED` 并停止向上游请求。
+- 连续 3 次未得到 `DATA_READY` 后，下一请求按 60 秒、120 秒、240 秒指数退避，最高 3,600 秒；timer
+  在退避窗口仅写清楚的阻断报告，不向 provider 重试。每日 UTC 边界重置每日预算与失败计数，累计计数保留。
+
+### 日线质量、连续性与未收盘日线
+
+- Sina、Tencent 与 EastMoney 的每条拒绝都以 `STRUCTURAL`、`CONVERSION` 或
+  `OHLCV_VIOLATION` 记录；未知日期的结构/转换拒绝按最近决策窗口处理，不能被当作可证明的远期孤点。
+  三类都进入条数、比例、样例和公开 `data_quality_findings`；即使一个标的没有任何可接受行，
+  也保留 `accepted_bar_count=0`、拒绝分类和 100% 拒绝比例，不会因空序列失去审计记录。
+- 日线连续性以最新连续可用段消费。`sh000300` 最近 252 个工作日为 233/252（92.5%）、
+  最大连续缺口 6 个工作日，`hk00700` 为 236/252（93.7%）、最大连续缺口 3 个工作日；
+  法定假日进入工作日覆盖率分母，覆盖率不承担数据完整性判定。
+- `MAX_USABLE_GAP_BUSINESS_DAYS = 10` 定义可用段边界。报告和门的当前语义以上方
+  “日线可用段裁剪根因修复”为准：长缺口公开裁剪原因与有效开始日，只有裁剪段无法形成两组
+  完整 walk-forward 窗口时阻断标的。
+- `bar_completion` 在正常 `DATA_READY` 路径填写 `last_used_day`、`session_complete` 与
+  `excluded_intraday_bar_count`；兼容字段同步保留。盘中交易所当天的日线继续排除在
+  `data_cutoff`、market fingerprint、回测和分支裁决之外。
+- 开市期间按每个 Instrument 的交易所时区剔除 `exchange_today` 的日线 bar；仅最近已收盘 bar 进入
+  `data_cutoff`、`bar_sources`、market fingerprint、回测和分支裁决。报告新增 `bar_completion`，公开
+  `last_used_bar_date`、`last_used_bar_is_closed`、被剔除数量和判定依据。
+
+### 本机验证
+
+- 定向回归：`tests/test_marketdata_providers.py`、`tests/test_collection_control.py`、
+  `tests/test_deployment_northstar.py`、`tests/test_live_runtime.py`、`tests/test_live_api.py` 为
+  `56 passed in 16.82s`。覆盖所有四条审查场景和 V2 timer 契约。
+- 用户指定完整命令 `PYTHONPATH=src python3 -m pytest tests/ -q` 为
+  `14 failed, 182 passed, 1 skipped in 28.91s`：7 条是本 sandbox 禁止 TCP bind 的
+  `PermissionError`；其余 7 条为既有 formal lifecycle、Python 3.9 缺少 `tomllib`、根目录
+  allowlist 与 state-machine/taskpack seal 基线。本轮没有增加失败，且安装/回滚 wheel 路径已由
+  定向集成测试通过。
+- 尚未运行目标机真实行情，因此当前 S1 `+4.7096% / IR 0.1084` 是否因已收盘日线口径变动而变化为
+  `UNKNOWN`；不得以本机夹具编造复跑数字。
+
 ## 2026-09-14 第九轮报价新鲜度双重判定
 
 ### 当前目标与状态
@@ -240,7 +355,7 @@ S1 显示 `INSUFFICIENT_CONTRIBUTION_SAMPLES: 4/8`，S2 权重保持 0。
 
 ## 2026-09-14 第五轮对抗性审查修复
 
-- `openapi.yaml` 现在是 `0.0.0.2.3` 的 V2 只读契约，只声明 `/`、`/health/live`、
+- `openapi.yaml` 现在是 `0.0.0.2.4` 的 V2 只读契约，只声明 `/`、`/health/live`、
   `/health/ready`、`/api/v1/{metadata,heartbeat,system/status,report/latest}` 与
   `/api/v1/whitebox/{summary,skills,backtest/latest}` 十条真实 GET 路由。
   `v2_get_route_responses()` 是 handler 的实际具名路由表；回归测试从该表取得实际集合，
@@ -284,13 +399,13 @@ S1 显示 `INSUFFICIENT_CONTRIBUTION_SAMPLES: 4/8`，S2 权重保持 0。
   证据，只清理可再生缓存；专用回归为 `1 passed`。本轮曾由旧的泛化 `dist` 规则误删
   该目录，四个 wheel 已从当前 HEAD 完整恢复，未遗留删除。
 - `/Users/linzezhang/.local/bin/python3.12 scripts/verify_version_lock.py --root .` 为
-  `PASS, version=0.0.0.2.3`；重建 `MANIFEST.json` 后，同一 Python 3.12 的
+  `PASS, version=0.0.0.2.4`；重建 `MANIFEST.json` 后，同一 Python 3.12 的
   `scripts/verify_package.py --root . --manifest MANIFEST.json` 为
   `PASS, finding_count=0`。
 
 ## 2026-09-14 第四轮对抗性审查修复
 
-- 发布身份的唯一手写源是 `pyproject.toml [project].version = 0.0.0.2.3`。
+- 发布身份的唯一手写源是 `pyproject.toml [project].version = 0.0.0.2.4`。
   `signal_lattice.version` 在源码树读取该文件，在 wheel 内读取安装包元数据；
   `constants.VERSION`、`__version__` 与 `live_config.APP_VERSION` 全部消费这一个解析结果。
   发布脚本也从同一 `pyproject.toml` 生成 Manifest/Subject Lock/版本锁，避免运行代码、
@@ -315,9 +430,9 @@ S1 显示 `INSUFFICIENT_CONTRIBUTION_SAMPLES: 4/8`，S2 权重保持 0。
   taskpack seal 类别。完整测试随后生成的缓存已可恢复地移至
   `/private/tmp/signal-lattice-pytest-cache-full-20260914`。
 - `/Users/linzezhang/.local/bin/python3.12 scripts/verify_version_lock.py --root .` 输出
-  `PASS, version=0.0.0.2.3`；同一 Python 3.12 下 `scripts/verify_package.py` 为
+  `PASS, version=0.0.0.2.4`；同一 Python 3.12 下 `scripts/verify_package.py` 为
   `PASS, finding_count=0`。`MANIFEST.json`、`SUBJECT_LOCK.json` 和任务执行合同已重建并
-  全部绑定 `0.0.0.2.3`。
+  全部绑定 `0.0.0.2.4`。
 
 ## 2026-09-14 第三轮对抗性审查修复
 

@@ -3,6 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from signal_lattice.constants import VERSION
 from signal_lattice.receipts import add_self_hash, verify_self_hash
 from signal_lattice.state_machine import validate_state
 
@@ -13,14 +14,42 @@ class TaskpackSealTests(unittest.TestCase):
         cls.root = Path(__file__).resolve().parents[1]
 
     def test_owner_override_is_valid_only_when_explicitly_bound(self):
-        state = json.loads((self.root / "CANONICAL_STATE.json").read_text(encoding="utf-8"))
-        result = validate_state(state, "0.0.0.1.41")
-        self.assertEqual(result.state, "PASS", result.findings)
-        self.assertEqual(result.current_phase, "SEALED_TASKPACK")
-        gate = state["owner_gate"]
-        self.assertTrue(gate["eligible"])
-        self.assertTrue(gate["owner_override_authorized"])
-        self.assertEqual(gate["owner_override_scope"], "TASKPACK_SEAL_ONLY_NOT_RELEASE_PASS")
+        """Owner override 只有在同时绑定正确 scope 与回执时才成立——双向验证。
+
+        旧版本断言的是「override 已被授权」，那是在锁定某次项目进度，而不是在测同名的
+        不变量；版本号也硬编码成 0.0.0.1.41，随发布线前进必然失效。现在测的是条件本身：
+        声称 override 却没绑对 scope / 回执 → 必须报错；绑对了 → 不得报 override 类错。
+        """
+        version = VERSION
+        base = json.loads((self.root / "CANONICAL_STATE.json").read_text(encoding="utf-8"))
+        self.assertEqual(validate_state(base, version).state, "PASS", validate_state(base, version).findings)
+
+        bound = json.loads(json.dumps(base))
+        bound["owner_gate"].update({
+            "owner_override_authorized": True,
+            "owner_override_scope": "TASKPACK_SEAL_ONLY_NOT_RELEASE_PASS",
+            "owner_approval_receipt": "evidence/owner_gate/taskpack_owner_approval.json",
+            "eligible": True,
+        })
+        findings = validate_state(bound, version).findings
+        self.assertNotIn("OWNER_GATE_OVERRIDE_SCOPE_INVALID", findings)
+        self.assertNotIn("OWNER_GATE_OVERRIDE_RECEIPT_INVALID", findings)
+        self.assertNotIn("OWNER_GATE_ELIGIBILITY_MISMATCH", findings)
+
+        for field, value, expected in (
+            ("owner_override_scope", "ANY_SCOPE_I_LIKE", "OWNER_GATE_OVERRIDE_SCOPE_INVALID"),
+            ("owner_approval_receipt", "evidence/owner_gate/some_other_file.json", "OWNER_GATE_OVERRIDE_RECEIPT_INVALID"),
+        ):
+            unbound = json.loads(json.dumps(bound))
+            unbound["owner_gate"][field] = value
+            self.assertIn(expected, validate_state(unbound, version).findings, field)
+
+    def test_shipped_state_does_not_claim_an_unearned_owner_gate(self):
+        """仓库里这份状态文件不得声称拿到了实际不存在的 Owner 批准。"""
+        gate = json.loads((self.root / "CANONICAL_STATE.json").read_text(encoding="utf-8"))["owner_gate"]
+        rounds = gate.get("qualifying_no_change_rounds", 0)
+        earned = bool(rounds >= 2) or gate.get("owner_override_authorized") is True
+        self.assertEqual(bool(gate["eligible"]), earned)
 
     def test_owner_receipt_and_taskpack_seal_are_self_hashed(self):
         for rel in (

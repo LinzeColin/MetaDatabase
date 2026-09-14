@@ -140,9 +140,10 @@ class Bar:
 
 @dataclass(frozen=True)
 class BarQualityIssue:
-    """一根被日线 provider 剔除的语义错误 Bar。"""
+    """日线 provider 拒绝的单行及其可审计分类。"""
 
     symbol: str
-    day: date
+    day: Optional[date]
     source: str
     violations: tuple[str, ...]
+    issue_type: str = "OHLCV_VIOLATION"

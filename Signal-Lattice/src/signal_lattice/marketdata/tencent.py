@@ -61,7 +61,10 @@ class TencentQuoteProvider:
         items = [item for item in instruments if item.tencent_symbol]
         if not items:
             return {}
-        payload = self.client.get(self.endpoint + ",".join(item.tencent_symbol for item in items))
+        payload = self.client.get(
+            self.endpoint + ",".join(item.tencent_symbol for item in items),
+            provider=self.source,
+        )
         return self.parse(payload, items)
 
 
@@ -101,6 +104,10 @@ class TencentKlineProvider:
         bars: List[Bar] = []
         for row in rows:
             if not isinstance(row, list) or len(row) < 6:
+                if quality_issues is not None:
+                    quality_issues.append(BarQualityIssue(
+                        instrument.symbol, None, "tencent_daily", ("ROW_SHAPE_INVALID",), "STRUCTURAL",
+                    ))
                 continue
             try:
                 bar = Bar(
@@ -115,12 +122,16 @@ class TencentKlineProvider:
                     source="tencent_daily",
                     observed_at=observed_at,
                 )
-            except (TypeError, ValueError):
+            except (TypeError, ValueError, OverflowError):
+                if quality_issues is not None:
+                    quality_issues.append(BarQualityIssue(
+                        instrument.symbol, None, "tencent_daily", ("FIELD_CONVERSION_FAILED",), "CONVERSION",
+                    ))
                 continue
             if not bar.has_valid_ohlcv():
                 if quality_issues is not None:
                     quality_issues.append(BarQualityIssue(
-                        instrument.symbol, bar.day, "tencent_daily", bar.ohlcv_violations(),
+                        instrument.symbol, bar.day, "tencent_daily", bar.ohlcv_violations(), "OHLCV_VIOLATION",
                     ))
                 continue
             bars.append(bar)
@@ -140,7 +151,10 @@ class TencentKlineProvider:
             self.cache,
             key,
             6 * 60 * 60,
-            lambda: self.client.get(self.endpoint.format(kind=kind, symbol=instrument.tencent_kline_symbol)),
+            lambda: self.client.get(
+                self.endpoint.format(kind=kind, symbol=instrument.tencent_kline_symbol),
+                provider=self.source,
+            ),
             lambda payload: self.parse(payload, instrument, quality_issues=self.last_quality_issues),
         )
 

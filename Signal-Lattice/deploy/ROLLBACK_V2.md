@@ -8,7 +8,8 @@
 | 单元 | 状态 | 说明 |
 |---|---|---|
 | `signal-lattice-v2-api` | active | 监听 `127.0.0.1:8787`，Cloudflare 隧道指向它 |
-| `signal-lattice-v2-loop` | active | 60 秒刷新循环 |
+| `signal-lattice-v2-loop.timer` | active | 每 60 秒调度一次有界 `once` 采集 |
+| `signal-lattice-v2-loop` | inactive between runs | 由 timer 启动；每次完成或触发预算/退避门后退出 |
 | `signal-lattice-tunnel` | active | cloudflared，**不再绑定任何 v19 单元** |
 | `signal-lattice-v19-*` | inactive/disabled | 安装保留在 `/opt/signal-lattice-v19/`，仅作回滚 |
 
@@ -22,8 +23,8 @@
 ## 回滚到 v19
 
 ```bash
-sudo systemctl stop signal-lattice-v2-api signal-lattice-v2-loop
-sudo systemctl disable signal-lattice-v2-api signal-lattice-v2-loop
+sudo systemctl stop signal-lattice-v2-api signal-lattice-v2-loop.timer signal-lattice-v2-loop
+sudo systemctl disable signal-lattice-v2-api signal-lattice-v2-loop.timer
 sudo systemctl enable --now signal-lattice-v19-api signal-lattice-v19-loop
 # 隧道不用动：signal-lattice-tunnel 仍指向 8787，v19 也监听 8787
 curl -s -o /dev/null -w '%{http_code}\n' https://signal-lattice.linzezhang.com/

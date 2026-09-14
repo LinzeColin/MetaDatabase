@@ -8,6 +8,7 @@ import unittest
 from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 from signal_lattice.live_config import LiveSettings, default_universe
@@ -26,8 +27,8 @@ class SequenceClient:
         self.payloads = list(payloads)
         self.calls: list[tuple[str, object]] = []
 
-    def get(self, url: str, headers=None) -> bytes:
-        self.calls.append((url, headers))
+    def get(self, url: str, headers=None, *, provider=None) -> bytes:
+        self.calls.append((url, headers, provider))
         return self.payloads.pop(0)
 
 
@@ -157,6 +158,41 @@ class ProviderParsingTests(unittest.TestCase):
                 self.assertEqual(len(bars), 2)
                 self.assertEqual(len(issues), expected_drops)
                 self.assertTrue(all(issue.violations for issue in issues))
+
+    def test_daily_parsers_classify_structural_conversion_and_ohlcv_issues(self):
+        sina = (
+            'var _=(["row",{"d":"2026-09-01"},'
+            '{"d":"2026-09-02","o":"bad","h":"2","l":"1","c":"1","v":"1"},'
+            '{"d":"2026-09-03","o":"1","h":"2","l":"3","c":"1","v":"1"},'
+            '{"d":"2026-09-04","o":"1","h":"2","l":"1","c":"1","v":"1"},'
+            '{"d":"2026-09-05","o":"2","h":"3","l":"1","c":"2","v":"1"}]);'
+        ).encode("utf-8")
+        tencent = json.dumps({"code": 0, "data": {"sh000300": {"day": [
+            ["too-short"],
+            ["2026-09-02", "bad", "1", "2", "1", "1"],
+            ["2026-09-03", "1", "3", "2", "1", "1"],
+            ["2026-09-04", "1", "1", "2", "1", "1"],
+            ["2026-09-05", "2", "2", "3", "1", "1"],
+        ]}}}).encode("utf-8")
+        eastmoney = (
+            'var Data_netWorthTrend = ["row",{"x":"bad","y":1.2},'
+            '{"x":1726099200000,"y":-1.2},{"x":1726185600000,"y":1.23},'
+            '{"x":1726272000000,"y":1.25}];'
+        ).encode("utf-8")
+        cases = [
+            (SinaKlineProvider.parse, sina, next(item for item in self.items if item.symbol == "usSPY")),
+            (TencentKlineProvider.parse, tencent, next(item for item in self.items if item.symbol == "sh000300")),
+            (EastMoneyFundProvider.parse, eastmoney, next(item for item in self.items if item.symbol == "fund110022")),
+        ]
+        for parser, payload, instrument in cases:
+            with self.subTest(provider=parser.__qualname__):
+                issues: list[BarQualityIssue] = []
+                bars = parser(payload, instrument, quality_issues=issues)
+                self.assertEqual(len(bars), 2)
+                self.assertEqual(
+                    {issue.issue_type for issue in issues},
+                    {"STRUCTURAL", "CONVERSION", "OHLCV_VIOLATION"},
+                )
 
     def test_bar_semantic_validator_rejects_incoherent_ohlcv(self):
         observed_at = datetime(2026, 9, 12, tzinfo=timezone.utc)
@@ -297,12 +333,15 @@ class HonestFreshnessGateTests(unittest.TestCase):
 
     @staticmethod
     def _valid_bars(item, end_day, count: int, observed_at: datetime):
+        days = []
+        cursor = end_day
+        while len(days) < count:
+            if cursor.weekday() < 5:
+                days.append(cursor)
+            cursor -= timedelta(days=1)
         return [
-            Bar(
-                item.symbol, end_day - timedelta(days=count - offset - 1), 1, 1, 1, 1, 1,
-                item.timezone, "fixture", observed_at,
-            )
-            for offset in range(count)
+            Bar(item.symbol, day, 1, 1, 1, 1, 1, item.timezone, "fixture", observed_at)
+            for day in reversed(days)
         ]
 
     def test_distant_single_invalid_bar_is_dropped_reported_and_does_not_block(self):
@@ -366,6 +405,169 @@ class HonestFreshnessGateTests(unittest.TestCase):
 
             self.assertIn("BAR_INVALID_OHLCV_COUNT_THRESHOLD:usSPY", findings)
             self.assertNotIn("BAR_INVALID_OHLCV_RATIO_THRESHOLD:usSPY", findings)
+
+    def test_structural_rows_count_toward_the_same_quality_thresholds(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            us_spy = next(item for item in settings.universe if item.symbol == "usSPY")
+            settings = replace(settings, universe=[us_spy])
+            engine = LiveEngine(settings)
+            now = datetime(2026, 9, 15, 14, tzinfo=timezone.utc)
+            exchange_day = now.astimezone(ZoneInfo(us_spy.timezone)).date()
+            bars = {"usSPY": self._valid_bars(us_spy, exchange_day, 1_000, now)}
+            issues = [
+                BarQualityIssue(
+                    "usSPY", None, "sina_us_daily", ("ROW_NOT_OBJECT",), "STRUCTURAL",
+                )
+                for _ in range(4)
+            ]
+            quality = engine._bar_quality_report(bars, {"usSPY": issues})
+            quotes = {"usSPY": Quote("usSPY", 1.0, "USD", us_spy.timezone, "fixture", now, now)}
+
+            findings = engine._validate(now, quotes, bars, [], quality)
+
+            self.assertEqual(quality["usSPY"]["issue_counts_by_type"], {"STRUCTURAL": 4})
+            self.assertEqual(quality["usSPY"]["samples"][0]["day"], None)
+            self.assertIn("BAR_INVALID_OHLCV_COUNT_THRESHOLD:usSPY", findings)
+            self.assertIn("BAR_INVALID_OHLCV_RECENT_DECISION_WINDOW:usSPY", findings)
+
+    def test_only_rejected_structural_rows_remain_auditable_and_blocked(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            us_spy = next(item for item in settings.universe if item.symbol == "usSPY")
+            settings = replace(settings, universe=[us_spy])
+            engine = LiveEngine(settings)
+            now = datetime(2026, 9, 15, 14, tzinfo=timezone.utc)
+            issues = [
+                BarQualityIssue("usSPY", None, "sina_us_daily", ("ROW_NOT_OBJECT",), "STRUCTURAL"),
+                BarQualityIssue("usSPY", None, "sina_us_daily", ("FIELD_CONVERSION_FAILED",), "CONVERSION"),
+            ]
+
+            quality = engine._bar_quality_report({}, {"usSPY": issues})
+            findings = engine._validate(now, {}, {}, [], quality)
+
+            self.assertEqual(quality["usSPY"]["accepted_bar_count"], 0)
+            self.assertEqual(quality["usSPY"]["dropped_invalid_bar_ratio"], 1.0)
+            self.assertEqual(
+                quality["usSPY"]["issue_counts_by_type"],
+                {"CONVERSION": 1, "STRUCTURAL": 1},
+            )
+            self.assertIn("BAR_MISSING:usSPY", findings)
+            self.assertIn("BAR_INVALID_OHLCV_NO_ACCEPTED_BARS:usSPY", findings)
+
+    def test_spring_festival_six_business_day_gap_is_accepted(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            csi_300 = next(item for item in settings.universe if item.symbol == "sh000300")
+            settings = replace(settings, universe=[csi_300])
+            engine = LiveEngine(settings)
+            now = datetime(2026, 9, 15, 14, tzinfo=timezone.utc)
+            complete = self._valid_bars(csi_300, now.astimezone(ZoneInfo(csi_300.timezone)).date(), 1_000, now)
+            spring_festival_gap = {
+                datetime(2026, 2, day).date()
+                for day in (16, 17, 18, 19, 20, 23)
+            }
+            bars = {csi_300.symbol: [bar for bar in complete if bar.day not in spring_festival_gap]}
+            quality = engine._bar_quality_report(bars, {})
+            quotes = {csi_300.symbol: Quote(csi_300.symbol, 1.0, "CNY", csi_300.timezone, "fixture", now, now)}
+
+            findings = engine._validate(now, quotes, bars, [], quality)
+
+            self.assertEqual(quality[csi_300.symbol]["status"], "ACCEPTED")
+            self.assertEqual(quality[csi_300.symbol]["effective_start_day"], complete[0].day.isoformat())
+            self.assertEqual(quality[csi_300.symbol]["trimmed_bar_count"], 0)
+            self.assertIsNone(quality[csi_300.symbol]["trim_reason"])
+            self.assertEqual(findings, [])
+
+    def test_distant_1646_business_day_gap_trims_without_blocking(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            us_spy = next(item for item in settings.universe if item.symbol == "usSPY")
+            settings = replace(settings, universe=[us_spy])
+            engine = LiveEngine(settings)
+            now = datetime(2026, 9, 15, 14, tzinfo=timezone.utc)
+            end_day = now.astimezone(ZoneInfo(us_spy.timezone)).date()
+            complete = self._valid_bars(us_spy, end_day, 4_000, now)
+            bars = {"usSPY": complete[:500] + complete[2_146:]}
+            quality = engine._bar_quality_report(bars, {})
+            quotes = {"usSPY": Quote("usSPY", 1.0, "USD", us_spy.timezone, "fixture", now, now)}
+
+            findings = engine._validate(now, quotes, bars, [], quality)
+
+            self.assertEqual(quality["usSPY"]["status"], "TRIMMED_HISTORICAL_SEGMENT")
+            self.assertEqual(quality["usSPY"]["effective_start_day"], complete[2_146].day.isoformat())
+            self.assertEqual(quality["usSPY"]["trimmed_bar_count"], 500)
+            self.assertEqual(
+                quality["usSPY"]["trim_reason"],
+                "HISTORICAL_GAP_%s_TO_%s" % (complete[499].day.isoformat(), complete[2_146].day.isoformat()),
+            )
+            self.assertEqual(quality["usSPY"]["trim_gap_business_days"], 1_646)
+            self.assertEqual(findings, [])
+
+    def test_trimmed_segment_without_required_walk_forward_windows_blocks_with_counts(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            us_spy = next(item for item in settings.universe if item.symbol == "usSPY")
+            settings = replace(settings, universe=[us_spy])
+            engine = LiveEngine(settings)
+            now = datetime(2026, 9, 15, 14, tzinfo=timezone.utc)
+            complete = self._valid_bars(us_spy, now.astimezone(ZoneInfo(us_spy.timezone)).date(), 500, now)
+            bars = {"usSPY": complete[:50] + complete[68:]}
+            quality = engine._bar_quality_report(bars, {})
+            quotes = {"usSPY": Quote("usSPY", 1.0, "USD", us_spy.timezone, "fixture", now, now)}
+
+            findings = engine._validate(now, quotes, bars, [], quality)
+
+            self.assertEqual(quality["usSPY"]["effective_bar_count"], 432)
+            self.assertEqual(quality["usSPY"]["status"], "BLOCKED")
+            self.assertEqual(quality["usSPY"]["available_complete_walk_forward_windows"], 0)
+            self.assertEqual(quality["usSPY"]["required_complete_walk_forward_windows"], 2)
+            self.assertEqual(len(findings), 1)
+            self.assertIn("可用段 432 条 / 需要 2 个完整 walk-forward 窗口（当前 0）", findings[0])
+
+    def test_four_business_day_gap_keeps_full_history_usable(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            us_spy = next(item for item in settings.universe if item.symbol == "usSPY")
+            settings = replace(settings, universe=[us_spy])
+            engine = LiveEngine(settings)
+            now = datetime(2026, 9, 15, 14, tzinfo=timezone.utc)
+            complete = self._valid_bars(us_spy, now.astimezone(ZoneInfo(us_spy.timezone)).date(), 1_000, now)
+            bars = {"usSPY": complete[:200] + complete[204:]}
+            quality = engine._bar_quality_report(bars, {})
+            quotes = {"usSPY": Quote("usSPY", 1.0, "USD", us_spy.timezone, "fixture", now, now)}
+
+            findings = engine._validate(now, quotes, bars, [], quality)
+
+            self.assertEqual(quality["usSPY"]["status"], "ACCEPTED")
+            self.assertEqual(quality["usSPY"]["effective_start_day"], complete[0].day.isoformat())
+            self.assertEqual(quality["usSPY"]["trimmed_bar_count"], 0)
+            self.assertIsNone(quality["usSPY"]["trim_reason"])
+            self.assertEqual(findings, [])
+
+    def test_eighteen_business_day_gap_trims_and_reports_reason(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            us_spy = next(item for item in settings.universe if item.symbol == "usSPY")
+            settings = replace(settings, universe=[us_spy])
+            engine = LiveEngine(settings)
+            now = datetime(2026, 9, 15, 14, tzinfo=timezone.utc)
+            complete = self._valid_bars(us_spy, now.astimezone(ZoneInfo(us_spy.timezone)).date(), 1_800, now)
+            bars = {"usSPY": complete[:150] + complete[168:]}
+            quality = engine._bar_quality_report(bars, {})
+            quotes = {"usSPY": Quote("usSPY", 1.0, "USD", us_spy.timezone, "fixture", now, now)}
+
+            findings = engine._validate(now, quotes, bars, [], quality)
+
+            self.assertEqual(quality["usSPY"]["status"], "TRIMMED_HISTORICAL_SEGMENT")
+            self.assertEqual(quality["usSPY"]["effective_start_day"], complete[168].day.isoformat())
+            self.assertEqual(quality["usSPY"]["trimmed_bar_count"], 150)
+            self.assertEqual(quality["usSPY"]["trim_gap_business_days"], 18)
+            self.assertEqual(
+                quality["usSPY"]["trim_reason"],
+                "HISTORICAL_GAP_%s_TO_%s" % (complete[149].day.isoformat(), complete[168].day.isoformat()),
+            )
+            self.assertEqual(findings, [])
 
     def test_gateway_keeps_timestamped_sina_primary_over_tencent_backup(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -581,7 +783,7 @@ class HonestFreshnessGateTests(unittest.TestCase):
                 def fetch(self, instruments):
                     quotes = {item.symbol: Quote(item.symbol, 1.0, "USD", item.timezone, "test", now, now)
                               for item in instruments if item.realtime_quote}
-                    bars = {item.symbol: [Bar(item.symbol, now.astimezone(ZoneInfo(item.timezone)).date(), 1, 1, 1, 1, 1, item.timezone, "test", now)]
+                    bars = {item.symbol: [Bar(item.symbol, now.astimezone(ZoneInfo(item.timezone)).date() - timedelta(days=1), 1, 1, 1, 1, 1, item.timezone, "test", now)]
                             for item in instruments}
                     return quotes, bars, []
             engine = LiveEngine(settings)
@@ -596,6 +798,91 @@ class HonestFreshnessGateTests(unittest.TestCase):
             self.assertIn("observed_lag_minutes", report["quote_freshness"]["hk00700"])
             self.assertIn("last_advance_at", report["quote_freshness"]["hk00700"])
             self.assertIn("stalled_minutes", report["quote_freshness"]["hk00700"])
+
+    def test_open_market_excludes_current_daily_bar_before_backtest(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            hk = next(item for item in settings.universe if item.symbol == "hk00700")
+            settings = replace(settings, universe=[hk])
+            now = datetime(2026, 9, 14, 2, 25, tzinfo=timezone.utc)
+            previous_close = datetime(2026, 9, 11).date()
+            current_session = now.astimezone(ZoneInfo(hk.timezone)).date()
+
+            class Gateway:
+                last_bar_quality: dict[str, list[BarQualityIssue]] = {}
+
+                def fetch(self, instruments):
+                    return (
+                        {
+                            hk.symbol: Quote(
+                                hk.symbol, 1.0, "HKD", hk.timezone, "fixture",
+                                datetime(2026, 9, 14, 10, 24), now,
+                            )
+                        },
+                        {
+                            hk.symbol: [
+                                Bar(hk.symbol, previous_close, 1, 1, 1, 1, 1, hk.timezone, "fixture", now),
+                                Bar(hk.symbol, current_session, 2, 2, 2, 2, 2, hk.timezone, "fixture", now),
+                            ]
+                        },
+                        [],
+                    )
+
+            engine = LiveEngine(settings)
+            engine.gateway = Gateway()
+            with patch("signal_lattice.live_runtime.run_backtest", return_value={"status": "PASS"}) as backtest:
+                with patch("signal_lattice.live_runtime.build_branch_report", return_value={"branches": []}):
+                    report = engine.run_once(now)
+
+            used_bars = backtest.call_args.args[1][hk.symbol]
+            self.assertEqual(report["state"], "DATA_READY")
+            self.assertEqual([bar.day for bar in used_bars], [previous_close])
+            self.assertEqual(report["bar_sources"][hk.symbol]["latest_day"], previous_close.isoformat())
+            self.assertEqual(report["bar_completion"][hk.symbol]["last_used_day"], previous_close.isoformat())
+            self.assertTrue(report["bar_completion"][hk.symbol]["session_complete"])
+            self.assertEqual(report["bar_completion"][hk.symbol]["excluded_intraday_bar_count"], 1)
+            self.assertEqual(report["bar_completion"][hk.symbol]["last_used_bar_date"], previous_close.isoformat())
+            self.assertTrue(report["bar_completion"][hk.symbol]["last_used_bar_is_closed"])
+            self.assertEqual(report["bar_completion"][hk.symbol]["excluded_current_session_bar_count"], 1)
+            self.assertEqual(report["bar_completion"][hk.symbol]["basis"], "MARKET_OPEN_EXCLUDE_EXCHANGE_TODAY")
+
+    def test_backtest_receives_only_the_effective_contiguous_segment(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            settings = self._settings(Path(temporary))
+            us_spy = next(item for item in settings.universe if item.symbol == "usSPY")
+            settings = replace(settings, universe=[us_spy])
+            now = datetime(2026, 9, 13, 14, tzinfo=timezone.utc)
+            complete = self._valid_bars(
+                us_spy,
+                now.astimezone(ZoneInfo(us_spy.timezone)).date(),
+                1_800,
+                now,
+            )
+            source_bars = complete[:150] + complete[168:]
+
+            class Gateway:
+                last_bar_quality: dict[str, list[BarQualityIssue]] = {}
+
+                def fetch(self, instruments):
+                    return (
+                        {"usSPY": Quote("usSPY", 1.0, "USD", us_spy.timezone, "fixture", now, now)},
+                        {"usSPY": source_bars},
+                        [],
+                    )
+
+            engine = LiveEngine(settings)
+            engine.gateway = Gateway()
+            with patch("signal_lattice.live_runtime.run_backtest", return_value={"status": "PASS"}) as backtest:
+                with patch("signal_lattice.live_runtime.build_branch_report", return_value={"branches": []}):
+                    report = engine.run_once(now)
+
+            used_bars = backtest.call_args.args[1]["usSPY"]
+            effective_start = complete[168].day
+            self.assertEqual(report["state"], "DATA_READY")
+            self.assertEqual(report["bar_quality"]["usSPY"]["effective_start_day"], effective_start.isoformat())
+            self.assertEqual(min(bar.day for bar in used_bars), effective_start)
+            self.assertTrue(all(bar.day >= effective_start for bar in used_bars))
+            self.assertEqual(report["bar_sources"]["usSPY"]["earliest_day"], effective_start.isoformat())
 
     def test_weekend_friday_source_time_is_fresh_under_closed_market_rule(self):
         with tempfile.TemporaryDirectory() as temporary:

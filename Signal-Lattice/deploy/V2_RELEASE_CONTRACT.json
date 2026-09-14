@@ -1,0 +1,9 @@
+{
+  "schema_version": "1.0.0",
+  "install_root": "/opt/signal-lattice-v2",
+  "state_dir": "/var/lib/signal-lattice-v2",
+  "version_source": "pyproject.toml:[project].version",
+  "collector_unit": "signal-lattice-v2-loop.service",
+  "collector_timer": "signal-lattice-v2-loop.timer",
+  "api_unit": "signal-lattice-v2-api.service"
+}

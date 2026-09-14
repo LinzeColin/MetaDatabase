@@ -12,9 +12,11 @@ from zoneinfo import ZoneInfo
 
 from .aggregate import blocked_aggregate_report
 from .backtest import run_backtest
+from .backtest.pipeline import walk_forward_windows
+from .backtest.runner import MIN_COMPLETE_WINDOWS
 from .branches import build_branch_report
 from .live_config import APP_VERSION, LiveSettings
-from .marketdata import DiskCache, EastMoneyFundProvider, HttpClient, MarketDataError, SinaKlineProvider, SinaQuoteProvider, TencentKlineProvider, TencentQuoteProvider
+from .marketdata import CollectionBudgetExceeded, DiskCache, EastMoneyFundProvider, HttpClient, MarketDataError, SinaKlineProvider, SinaQuoteProvider, TencentKlineProvider, TencentQuoteProvider
 from .marketdata.models import Bar, BarQualityIssue, Instrument, Quote
 from .serialization import JsonSerializationConstraintError, strict_json_dumps
 
@@ -35,12 +37,28 @@ RECENT_DECISION_BAR_LOOKBACK_TRADING_DAYS = 252
 MAX_DROPPED_INVALID_BARS_PER_SYMBOL = 3
 MAX_DROPPED_INVALID_BAR_RATIO = 0.005
 MAX_REPORTED_INVALID_BAR_SAMPLES = 5
+# 质量拒绝行沿用既有最近一个决策交易月的审计窗口；该窗口与历史可用段裁剪分开。
+RECENT_QUALITY_ISSUE_WINDOW_TRADING_DAYS = RECENT_DECISION_BAR_LOOKBACK_TRADING_DAYS // 12
+# 连续性决定可用历史段，而不是整段历史的通过资格。2026-09-14 实测：QQQ 在
+# 2004-12-31 至 2011-04-26 之间缺 1,646 个工作日，AAPL 在 2004-12-31 至
+# 2007-03-19 之间缺 575 个工作日；两者 2016 年后均为 2,688 条、最大缺口 4 天。
+# SPY 的 2001-09-10 至 2001-09-17 缺口是 911 停市，缺 4 个工作日；sh600000 的
+# 18 个工作日缺口是个股停牌。阈值 10 覆盖春节 6 天、短期停牌和 911 停市，遇到更长
+# 缺口时从最新端裁剪到该缺口之后的连续可用段，保证回测与指标不会跨越断档。
+MAX_USABLE_GAP_BUSINESS_DAYS = 10
 # 不接入交易日历时，4 个自然日覆盖周五收盘至周二开市前的周末/单日假期；更长停市
 # 必须等待可验证的新来源时间，不能把停市近似无限延长。
 CLOSED_MARKET_SOURCE_MAX_AGE_DAYS = 4
 # 2026-09-14 港股开市后 8 个每 90 秒采样里，来源时间最长连续约 6 分钟未变，随后继续
 # 推进。取其两倍为 12 分钟：覆盖正常分块更新，又在绝对时延仍合格时识别真正卡住的源。
 QUOTE_ADVANCE_STALL_MINUTES = 12
+# 预算按实际发起的 HTTP 请求计数，重试也会逐次计入。正常上限是每分钟 1 次报价批量请求
+# 加每 6 小时 15 次日线刷新，即 1,500 次/日；1,600 次/日只为来源切换和有限重试留余量。
+MAX_PROVIDER_REQUESTS_PER_ROUND = 48
+MAX_PROVIDER_REQUESTS_PER_DAY = 1_600
+COLLECTION_FAILURES_BEFORE_BACKOFF = 3
+COLLECTION_BACKOFF_INITIAL_SECONDS = 60
+COLLECTION_BACKOFF_MAX_SECONDS = 60 * 60
 MARKET_OPEN_SESSIONS = {
     "US": ((time(9, 30), time(16, 0)),),
     "CN": ((time(9, 30), time(11, 30)), (time(13, 0), time(15, 0))),
@@ -92,6 +110,182 @@ class LiveStore:
     def quote_progress_path(self) -> Path:
         """每个标的最后一次来源时间推进的私有运行时状态。"""
         return self.root / "quote_progress.json"
+
+    @property
+    def collection_accounting_path(self) -> Path:
+        """采集请求的逐 provider、逐日与累计账本。"""
+        return self.root / "collection_accounting.json"
+
+    @staticmethod
+    def _new_collection_accounting(now: datetime) -> dict:
+        return {
+            "schema_version": "1.0.0",
+            "accounting_day": now.astimezone(timezone.utc).date().isoformat(),
+            "total_round_count": 0,
+            "daily_round_count": 0,
+            "total_provider_request_count": 0,
+            "daily_provider_request_count": 0,
+            "active_round_request_count": 0,
+            "provider_request_counts": {},
+            "consecutive_failure_count": 0,
+            "next_attempt_at": None,
+            "status": "READY",
+            "stop_reason": None,
+        }
+
+    def _load_collection_accounting(self, now: datetime) -> dict:
+        if not self.collection_accounting_path.is_file():
+            return self._new_collection_accounting(now)
+        try:
+            control = json.loads(self.collection_accounting_path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise CollectionBudgetExceeded("COLLECTION_ACCOUNTING_STATE_INVALID") from exc
+        required_counts = (
+            "total_round_count",
+            "daily_round_count",
+            "total_provider_request_count",
+            "daily_provider_request_count",
+            "active_round_request_count",
+            "consecutive_failure_count",
+        )
+        if (
+            not isinstance(control, dict)
+            or control.get("schema_version") != "1.0.0"
+            or not isinstance(control.get("provider_request_counts"), dict)
+            or any(not isinstance(control.get(key), int) or control[key] < 0 for key in required_counts)
+        ):
+            raise CollectionBudgetExceeded("COLLECTION_ACCOUNTING_STATE_INVALID")
+        today = now.astimezone(timezone.utc).date().isoformat()
+        if control.get("accounting_day") != today:
+            control["accounting_day"] = today
+            control["daily_round_count"] = 0
+            control["daily_provider_request_count"] = 0
+            control["active_round_request_count"] = 0
+            control["consecutive_failure_count"] = 0
+            control["next_attempt_at"] = None
+            control["status"] = "READY"
+            control["stop_reason"] = None
+            for counts in control["provider_request_counts"].values():
+                if not isinstance(counts, dict) or not isinstance(counts.get("total"), int) or counts["total"] < 0:
+                    raise CollectionBudgetExceeded("COLLECTION_ACCOUNTING_STATE_INVALID")
+                counts["daily"] = 0
+        return control
+
+    def _save_collection_accounting(self, control: dict, now: datetime) -> None:
+        control["updated_at"] = _iso(now)
+        self._write_json(self.collection_accounting_path, control)
+
+    def begin_collection_round(self, now: datetime) -> dict:
+        """在任何 provider 请求前检查每日预算与失败退避，并落盘本轮起点。"""
+        control = self._load_collection_accounting(now)
+        next_attempt_at = self._parse_timestamp(control.get("next_attempt_at"))
+        if next_attempt_at is not None and now < next_attempt_at:
+            control["status"] = "BACKING_OFF"
+            control["stop_reason"] = "CONSECUTIVE_COLLECTION_FAILURES"
+            self._save_collection_accounting(control, now)
+            return {"allowed": False, "reason": "COLLECTION_BACKING_OFF", "accounting": control}
+        if control["daily_provider_request_count"] >= MAX_PROVIDER_REQUESTS_PER_DAY:
+            next_day = datetime.combine(
+                now.astimezone(timezone.utc).date() + timedelta(days=1),
+                time.min,
+                tzinfo=timezone.utc,
+            )
+            control["status"] = "DAILY_REQUEST_BUDGET_EXHAUSTED"
+            control["stop_reason"] = "DAILY_PROVIDER_REQUEST_BUDGET"
+            control["next_attempt_at"] = _iso(next_day)
+            self._save_collection_accounting(control, now)
+            return {"allowed": False, "reason": "COLLECTION_DAILY_BUDGET_EXHAUSTED", "accounting": control}
+        control["total_round_count"] += 1
+        control["daily_round_count"] += 1
+        control["active_round_request_count"] = 0
+        control["status"] = "COLLECTING"
+        control["stop_reason"] = None
+        self._save_collection_accounting(control, now)
+        return {"allowed": True, "reason": None, "accounting": control}
+
+    def record_provider_request(self, provider: str, now: datetime | None = None) -> None:
+        """在每一次真实 HTTP 请求发出前计数；超限请求不会离开本机。"""
+        now = now or datetime.now(timezone.utc)
+        control = self._load_collection_accounting(now)
+        if control.get("status") != "COLLECTING":
+            raise CollectionBudgetExceeded("COLLECTION_ROUND_NOT_ACTIVE")
+        if control["active_round_request_count"] >= MAX_PROVIDER_REQUESTS_PER_ROUND:
+            control["status"] = "ROUND_REQUEST_BUDGET_EXHAUSTED"
+            control["stop_reason"] = "ROUND_PROVIDER_REQUEST_BUDGET"
+            self._save_collection_accounting(control, now)
+            raise CollectionBudgetExceeded("COLLECTION_ROUND_REQUEST_BUDGET_EXHAUSTED")
+        if control["daily_provider_request_count"] >= MAX_PROVIDER_REQUESTS_PER_DAY:
+            control["status"] = "DAILY_REQUEST_BUDGET_EXHAUSTED"
+            control["stop_reason"] = "DAILY_PROVIDER_REQUEST_BUDGET"
+            self._save_collection_accounting(control, now)
+            raise CollectionBudgetExceeded("COLLECTION_DAILY_REQUEST_BUDGET_EXHAUSTED")
+        counts = control["provider_request_counts"].setdefault(provider, {"total": 0, "daily": 0})
+        if (
+            not isinstance(counts, dict)
+            or not isinstance(counts.get("total"), int)
+            or not isinstance(counts.get("daily"), int)
+            or counts["total"] < 0
+            or counts["daily"] < 0
+        ):
+            raise CollectionBudgetExceeded("COLLECTION_ACCOUNTING_STATE_INVALID")
+        control["active_round_request_count"] += 1
+        control["total_provider_request_count"] += 1
+        control["daily_provider_request_count"] += 1
+        counts["total"] += 1
+        counts["daily"] += 1
+        self._save_collection_accounting(control, now)
+
+    def finish_collection_round(self, now: datetime, *, succeeded: bool) -> dict:
+        """记录本轮结果；连续失败从第三次起按指数退避，成功立即清零。"""
+        control = self._load_collection_accounting(now)
+        control["active_round_request_count"] = 0
+        if control.get("status") in {"ROUND_REQUEST_BUDGET_EXHAUSTED", "DAILY_REQUEST_BUDGET_EXHAUSTED"}:
+            self._save_collection_accounting(control, now)
+            return control
+        if succeeded:
+            control["consecutive_failure_count"] = 0
+            control["next_attempt_at"] = None
+            control["status"] = "READY"
+            control["stop_reason"] = None
+        else:
+            control["consecutive_failure_count"] += 1
+            failures = control["consecutive_failure_count"]
+            if failures >= COLLECTION_FAILURES_BEFORE_BACKOFF:
+                delay_seconds = min(
+                    COLLECTION_BACKOFF_INITIAL_SECONDS * 2 ** (failures - COLLECTION_FAILURES_BEFORE_BACKOFF),
+                    COLLECTION_BACKOFF_MAX_SECONDS,
+                )
+                control["next_attempt_at"] = _iso(now + timedelta(seconds=delay_seconds))
+                control["status"] = "BACKING_OFF"
+                control["stop_reason"] = "CONSECUTIVE_COLLECTION_FAILURES"
+            else:
+                control["next_attempt_at"] = None
+                control["status"] = "READY"
+                control["stop_reason"] = None
+        self._save_collection_accounting(control, now)
+        return control
+
+    def collection_accounting(self, now: datetime) -> dict:
+        """向报告暴露预算、退避和逐 provider 的实际请求账本。"""
+        control = self._load_collection_accounting(now)
+        return {
+            "accounting_day": control["accounting_day"],
+            "status": control["status"],
+            "stop_reason": control["stop_reason"],
+            "next_attempt_at": control["next_attempt_at"],
+            "total_round_count": control["total_round_count"],
+            "daily_round_count": control["daily_round_count"],
+            "active_round_request_count": control["active_round_request_count"],
+            "total_provider_request_count": control["total_provider_request_count"],
+            "daily_provider_request_count": control["daily_provider_request_count"],
+            "provider_request_counts": control["provider_request_counts"],
+            "consecutive_failure_count": control["consecutive_failure_count"],
+            "maximum_provider_requests_per_round": MAX_PROVIDER_REQUESTS_PER_ROUND,
+            "maximum_provider_requests_per_day": MAX_PROVIDER_REQUESTS_PER_DAY,
+            "failure_backoff_threshold": COLLECTION_FAILURES_BEFORE_BACKOFF,
+            "backoff_initial_seconds": COLLECTION_BACKOFF_INITIAL_SECONDS,
+            "backoff_max_seconds": COLLECTION_BACKOFF_MAX_SECONDS,
+        }
 
     def latest(self) -> dict:
         if not self.latest_path.is_file():
@@ -301,8 +495,10 @@ class LiveStore:
 
 
 class MarketGateway:
-    def __init__(self, settings: LiveSettings) -> None:
-        client = HttpClient()
+    def __init__(self, settings: LiveSettings, store: LiveStore | None = None) -> None:
+        client = HttpClient(
+            on_request=store.record_provider_request if store is not None else None,
+        )
         cache = DiskCache(settings.state_dir / "cache")
         self.sina = SinaQuoteProvider(client, settings.sina_quote_url)
         self.tencent_quote = TencentQuoteProvider(client, settings.tencent_quote_url)
@@ -372,7 +568,7 @@ class LiveEngine:
     def __init__(self, settings: LiveSettings) -> None:
         self.settings = settings
         self.store = LiveStore(settings.state_dir)
-        self.gateway = MarketGateway(settings)
+        self.gateway = MarketGateway(settings, self.store)
 
     def _quote_freshness(self, item: Instrument, quote: Quote | None, now: datetime) -> dict:
         """按交易所当地开休市口径验证来源时间，返回可公开的判定依据。"""
@@ -457,26 +653,170 @@ class LiveEngine:
             "advance_status": "NOT_APPLICABLE_MARKET_CLOSED",
         }
 
+    @staticmethod
+    def _weekday_range(start, end) -> list:
+        days = []
+        cursor = start
+        while cursor <= end:
+            if cursor.weekday() < 5:
+                days.append(cursor)
+            cursor += timedelta(days=1)
+        return days
+
+    @staticmethod
+    def _latest_weekdays(end, count: int) -> list:
+        days = []
+        cursor = end
+        while len(days) < count:
+            if cursor.weekday() < 5:
+                days.append(cursor)
+            cursor -= timedelta(days=1)
+        return list(reversed(days))
+
+    @classmethod
+    def _latest_usable_segment(cls, series: List[Bar]) -> tuple[List[Bar], dict]:
+        """从最新 Bar 向早期扫描，在长缺口后保留最近的连续可用段。"""
+        ordered = sorted(series, key=lambda bar: bar.day)
+        for index in range(len(ordered) - 1, 0, -1):
+            previous_day = ordered[index - 1].day
+            following_day = ordered[index].day
+            gap_business_day_count = len(cls._weekday_range(
+                previous_day + timedelta(days=1),
+                following_day - timedelta(days=1),
+            ))
+            if gap_business_day_count > MAX_USABLE_GAP_BUSINESS_DAYS:
+                usable = ordered[index:]
+                return usable, {
+                    "previous_day": previous_day.isoformat(),
+                    "following_day": following_day.isoformat(),
+                    "business_day_count": gap_business_day_count,
+                    "reason": "HISTORICAL_GAP_%s_TO_%s" % (
+                        previous_day.isoformat(),
+                        following_day.isoformat(),
+                    ),
+                }
+        return ordered, {
+            "previous_day": None,
+            "following_day": None,
+            "business_day_count": 0,
+            "reason": None,
+        }
+
+    @staticmethod
+    def _usable_bars(
+        bars: Mapping[str, List[Bar]],
+        bar_quality: Mapping[str, dict],
+    ) -> Dict[str, List[Bar]]:
+        """按已公开的 effective_start_day 裁剪，供所有后续指标和回测共用。"""
+        usable: Dict[str, List[Bar]] = {}
+        for symbol, series in bars.items():
+            effective_start = bar_quality.get(symbol, {}).get("effective_start_day")
+            usable[symbol] = [
+                bar for bar in sorted(series, key=lambda item: item.day)
+                if effective_start is None or bar.day >= datetime.fromisoformat(effective_start).date()
+            ]
+        return usable
+
+    def _completed_daily_bars(
+        self,
+        bars: Mapping[str, List[Bar]],
+        now: datetime,
+    ) -> tuple[Dict[str, List[Bar]], dict]:
+        """盘中日线先移除交易所当天的未收盘 bar，再交给指标和回测。"""
+        completed: Dict[str, List[Bar]] = {}
+        report: dict[str, dict] = {}
+        for item in self.settings.universe:
+            series = list(bars.get(item.symbol, ()))
+            exchange_now = now.astimezone(ZoneInfo(item.timezone))
+            exchange_today = exchange_now.date()
+            market_open = _market_is_open(item, exchange_now)
+            excluded = [bar for bar in series if market_open and bar.day == exchange_today]
+            usable = [bar for bar in series if not (market_open and bar.day == exchange_today)]
+            completed[item.symbol] = usable
+            latest = max((bar.day for bar in usable), default=None)
+            report[item.symbol] = {
+                "market_state": "OPEN" if market_open else "CLOSED",
+                "exchange_timezone": item.timezone,
+                "exchange_today": exchange_today.isoformat(),
+                "last_used_day": latest.isoformat() if latest else None,
+                "session_complete": bool(
+                    latest is not None and (not market_open or latest < exchange_today)
+                ),
+                "excluded_intraday_bar_count": len(excluded),
+                "excluded_current_session_bar_count": len(excluded),
+                "last_used_bar_date": latest.isoformat() if latest else None,
+                "last_used_bar_is_closed": bool(
+                    latest is not None and (not market_open or latest < exchange_today)
+                ),
+                "basis": (
+                    "MARKET_OPEN_EXCLUDE_EXCHANGE_TODAY"
+                    if market_open
+                    else "MARKET_CLOSED_LATEST_AVAILABLE_BAR_COMPLETE"
+                ),
+            }
+        return completed, report
+
     def _bar_quality_report(
         self,
         bars: Mapping[str, List[Bar]],
         issues_by_symbol: Mapping[str, list[BarQualityIssue]],
     ) -> dict:
-        """把剔除事实、比例和阻断口径写入报告，避免历史坏点被无声丢弃。"""
+        """把拒绝分类、历史裁剪和可用段长度写入报告。"""
         report: dict[str, dict] = {}
         for item in self.settings.universe:
             issues = list(issues_by_symbol.get(item.symbol, ()))
-            if not issues:
-                continue
             series = list(bars.get(item.symbol, ()))
+            if not series:
+                if issues:
+                    report[item.symbol] = {
+                        "status": "BLOCKED",
+                        "source": issues[0].source,
+                        "input_bar_count": len(issues),
+                        "accepted_bar_count": 0,
+                        "dropped_invalid_bar_count": len(issues),
+                        "dropped_invalid_bar_ratio": 1.0,
+                        "recent_decision_window_trading_days": RECENT_DECISION_BAR_LOOKBACK_TRADING_DAYS,
+                        "recent_window_start": None,
+                        "recent_invalid_bar_count": len(issues),
+                        "maximum_dropped_invalid_bars": MAX_DROPPED_INVALID_BARS_PER_SYMBOL,
+                        "maximum_dropped_invalid_bar_ratio": MAX_DROPPED_INVALID_BAR_RATIO,
+                        "maximum_usable_gap_business_days": MAX_USABLE_GAP_BUSINESS_DAYS,
+                        "effective_start_day": None,
+                        "effective_end_day": None,
+                        "effective_bar_count": 0,
+                        "trimmed_bar_count": 0,
+                        "trim_reason": None,
+                        "trim_gap_business_days": None,
+                        "available_complete_walk_forward_windows": 0,
+                        "required_complete_walk_forward_windows": MIN_COMPLETE_WINDOWS,
+                        "blocking_reasons": ["NO_ACCEPTED_BARS", "RATIO_THRESHOLD"],
+                        "issue_counts_by_type": {
+                            issue_type: sum(1 for issue in issues if issue.issue_type == issue_type)
+                            for issue_type in sorted({issue.issue_type for issue in issues})
+                        },
+                        "samples": [
+                            {
+                                "day": issue.day.isoformat() if issue.day else None,
+                                "source": issue.source,
+                                "issue_type": issue.issue_type,
+                                "violations": list(issue.violations),
+                            }
+                            for issue in issues[:MAX_REPORTED_INVALID_BAR_SAMPLES]
+                        ],
+                    }
+                continue
             accepted_count = len(series)
             input_count = accepted_count + len(issues)
             invalid_ratio = len(issues) / input_count if input_count else 1.0
-            window_start = (
-                series[max(0, accepted_count - RECENT_DECISION_BAR_LOOKBACK_TRADING_DAYS)].day
-                if series else None
-            )
-            recent_issues = [issue for issue in issues if window_start is None or issue.day >= window_start]
+            ordered_series = sorted(series, key=lambda bar: bar.day)
+            usable_series, trim = self._latest_usable_segment(ordered_series)
+            latest_day = ordered_series[-1].day
+            history_start = ordered_series[0].day
+            recent_days = self._latest_weekdays(latest_day, RECENT_QUALITY_ISSUE_WINDOW_TRADING_DAYS)
+            recent_window_start = max(recent_days[0], history_start)
+            window_start = recent_window_start
+            recent_issues = [issue for issue in issues if issue.day is None or issue.day >= window_start]
+            available_windows = len(walk_forward_windows([bar.day for bar in usable_series]))
             blocking_reasons: list[str] = []
             if recent_issues:
                 blocking_reasons.append("RECENT_DECISION_WINDOW")
@@ -484,23 +824,46 @@ class LiveEngine:
                 blocking_reasons.append("COUNT_THRESHOLD")
             if invalid_ratio > MAX_DROPPED_INVALID_BAR_RATIO:
                 blocking_reasons.append("RATIO_THRESHOLD")
+            if trim["reason"] and available_windows < MIN_COMPLETE_WINDOWS:
+                blocking_reasons.append("USABLE_SEGMENT_WALK_FORWARD_INSUFFICIENT")
             report[item.symbol] = {
-                "status": "BLOCKED" if blocking_reasons else "DROPPED_INVALID_BARS",
-                "source": series[-1].source if series else issues[0].source,
+                "status": (
+                    "BLOCKED" if blocking_reasons
+                    else "TRIMMED_HISTORICAL_SEGMENT" if trim["reason"]
+                    else "DROPPED_INVALID_BARS" if issues
+                    else "ACCEPTED"
+                ),
+                "source": ordered_series[-1].source,
                 "input_bar_count": input_count,
                 "accepted_bar_count": accepted_count,
                 "dropped_invalid_bar_count": len(issues),
                 "dropped_invalid_bar_ratio": invalid_ratio,
                 "recent_decision_window_trading_days": RECENT_DECISION_BAR_LOOKBACK_TRADING_DAYS,
-                "recent_window_start": window_start.isoformat() if window_start else None,
+                "recent_window_start": window_start.isoformat(),
                 "recent_invalid_bar_count": len(recent_issues),
                 "maximum_dropped_invalid_bars": MAX_DROPPED_INVALID_BARS_PER_SYMBOL,
                 "maximum_dropped_invalid_bar_ratio": MAX_DROPPED_INVALID_BAR_RATIO,
+                "gap_scan_start": history_start.isoformat(),
+                "gap_scan_end": latest_day.isoformat(),
+                "maximum_usable_gap_business_days": MAX_USABLE_GAP_BUSINESS_DAYS,
+                "effective_start_day": usable_series[0].day.isoformat(),
+                "effective_end_day": usable_series[-1].day.isoformat(),
+                "effective_bar_count": len(usable_series),
+                "trimmed_bar_count": accepted_count - len(usable_series),
+                "trim_reason": trim["reason"],
+                "trim_gap_business_days": trim["business_day_count"] if trim["reason"] else None,
+                "available_complete_walk_forward_windows": available_windows,
+                "required_complete_walk_forward_windows": MIN_COMPLETE_WINDOWS,
                 "blocking_reasons": blocking_reasons,
+                "issue_counts_by_type": {
+                    issue_type: sum(1 for issue in issues if issue.issue_type == issue_type)
+                    for issue_type in sorted({issue.issue_type for issue in issues})
+                },
                 "samples": [
                     {
-                        "day": issue.day.isoformat(),
+                        "day": issue.day.isoformat() if issue.day else None,
                         "source": issue.source,
+                        "issue_type": issue.issue_type,
                         "violations": list(issue.violations),
                     }
                     for issue in issues[:MAX_REPORTED_INVALID_BAR_SAMPLES]
@@ -573,7 +936,18 @@ class LiveEngine:
                 findings.append("BAR_STALE:%s:%s" % (item.symbol, latest.isoformat()))
         for symbol, quality in (bar_quality or {}).items():
             for reason in quality.get("blocking_reasons", []):
-                findings.append("BAR_INVALID_OHLCV_%s:%s" % (reason, symbol))
+                if reason == "USABLE_SEGMENT_WALK_FORWARD_INSUFFICIENT":
+                    findings.append(
+                        "BAR_USABLE_SEGMENT_WALK_FORWARD_INSUFFICIENT:%s:可用段 %s 条 / 需要 %s 个完整 walk-forward 窗口（当前 %s）"
+                        % (
+                            symbol,
+                            quality["effective_bar_count"],
+                            quality["required_complete_walk_forward_windows"],
+                            quality["available_complete_walk_forward_windows"],
+                        )
+                    )
+                else:
+                    findings.append("BAR_INVALID_OHLCV_%s:%s" % (reason, symbol))
         return findings
 
     @staticmethod
@@ -642,16 +1016,69 @@ class LiveEngine:
             **blocked_aggregate_report(),
         }
 
-    def run_once(self) -> dict:
-        now = datetime.now(timezone.utc)
+    def _collection_control_blocked_report(
+        self,
+        now: datetime,
+        reason: str,
+        accounting: dict,
+    ) -> dict:
+        return {
+            "application_version": APP_VERSION,
+            "generated_at": _iso(now),
+            "state": "SYSTEM_BLOCKED",
+            "blocked_reason": reason,
+            "automatic_trading": False,
+            "data_cutoff": None,
+            "data_cutoff_by_symbol": {},
+            "instruments": {
+                item.symbol: {"name": item.name, "market": item.market, "asset_type": item.asset_type}
+                for item in self.settings.universe
+            },
+            "bar_sources": {},
+            "bar_completion": {},
+            "bar_quality": {},
+            "data_quality_findings": [],
+            "quote_observed_at": None,
+            "quote_sources": {},
+            "quotes": {},
+            "market_fingerprint": {"quotes": {}, "bars": {}},
+            "collection_request_accounting": accounting,
+            "freshness_findings": [reason],
+            "message": "采集请求预算或退避门处于阻断状态，未向上游发起新请求。",
+            "backtest": {
+                "status": "SYSTEM_BLOCKED",
+                "message": "采集请求未执行，未运行回测结论。",
+                "profitability_status": "SYSTEM_BLOCKED",
+            },
+            **blocked_aggregate_report(),
+        }
+
+    def run_once(self, now: datetime | None = None) -> dict:
+        now = now or datetime.now(timezone.utc)
+        findings: List[str] = []
         try:
+            control = self.store.begin_collection_round(now)
             self.store.write_heartbeat(now)
-            quotes, bars, errors = self.gateway.fetch(self.settings.universe)
+            if not control["allowed"]:
+                report = self._collection_control_blocked_report(
+                    now,
+                    control["reason"],
+                    self.store.collection_accounting(now),
+                )
+                self.store.save(report)
+                return report
+            quotes, fetched_bars, errors = self.gateway.fetch(self.settings.universe)
+            bars, bar_completion = self._completed_daily_bars(fetched_bars, now)
+            errors.extend(
+                "BAR_NO_COMPLETED_SESSION:%s" % symbol
+                for symbol, completion in bar_completion.items()
+                if completion["excluded_current_session_bar_count"] and completion["last_used_bar_date"] is None
+            )
             bar_quality = self._bar_quality_report(
                 bars,
                 getattr(self.gateway, "last_bar_quality", {}),
             )
-            instruments_by_symbol = {item.symbol: item for item in self.settings.universe}
+            bars = self._usable_bars(bars, bar_quality)
             quote_freshness = {
                 item.symbol: self._quote_freshness(item, quotes.get(item.symbol), now)
                 for item in self.settings.universe
@@ -711,10 +1138,16 @@ class LiveEngine:
                     for item in self.settings.universe
                 },
                 "bar_sources": bar_sources,
+                "bar_completion": bar_completion,
                 "bar_quality": bar_quality,
                 "data_quality_findings": [
-                    "BAR_INVALID_OHLCV_DROPPED:%s:%s:%s"
-                    % (symbol, sample["day"], ",".join(sample["violations"]))
+                    "BAR_QUALITY_%s:%s:%s:%s"
+                    % (
+                        sample["issue_type"],
+                        symbol,
+                        sample["day"] or "UNKNOWN_DATE",
+                        ",".join(sample["violations"]),
+                    )
                     for symbol, quality in sorted(bar_quality.items())
                     for sample in quality["samples"]
                 ],
@@ -728,11 +1161,28 @@ class LiveEngine:
                 "backtest": backtest,
                 **branch_report,
             }
+            self.store.finish_collection_round(now, succeeded=state == "DATA_READY")
+            report["collection_request_accounting"] = self.store.collection_accounting(now)
+            self.store.save(report)
+        except CollectionBudgetExceeded as exc:
+            try:
+                self.store.finish_collection_round(now, succeeded=False)
+                accounting = self.store.collection_accounting(now)
+            except CollectionBudgetExceeded:
+                accounting = {
+                    "status": "ACCOUNTING_STATE_INVALID",
+                    "stop_reason": "COLLECTION_ACCOUNTING_STATE_INVALID",
+                }
+            report = self._collection_control_blocked_report(now, str(exc), accounting)
             self.store.save(report)
         except JsonSerializationConstraintError:
+            self.store.finish_collection_round(now, succeeded=False)
             report = self._serialization_blocked_report(now, findings)
+            report["collection_request_accounting"] = self.store.collection_accounting(now)
             self.store.save(report)
         except Exception as exc:
+            self.store.finish_collection_round(now, succeeded=False)
             report = self._runtime_failure_blocked_report(now, exc)
+            report["collection_request_accounting"] = self.store.collection_accounting(now)
             self.store.save(report)
         return report

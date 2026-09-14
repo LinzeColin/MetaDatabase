@@ -89,8 +89,38 @@ def _profitability_sufficiency(report: Mapping[str, object]) -> str | None:
     return None
 
 
+PUBLIC_BRANCH_ALWAYS_KEYS = (
+    "branch_id",
+    "status",
+    "sample_sufficiency",
+    "sample_sufficiency_message",
+    "profitability_evidence",
+    "profitability_evidence_note",
+    "active_config",
+    "config_as_of",
+    "config_source_window",
+    "config_status",
+)
+# 样本外证据足够的分支要公开的业绩字段。收益为负时同样公开——这个门只拦"样本不够就报数字"，
+# 不拦"样本够但数字难看"。用系统级不足去连带扣住一个已达标分支的负收益，等于用防夸大的门去掩盖亏损。
+PUBLIC_BRANCH_EVIDENCED_KEYS = (
+    "stitched",
+    "promotion",
+    "benchmark_symbol",
+    "symbol",
+    "walk_forward",
+)
+
+
+def _branch_evidence_is_sufficient(branch: Mapping[str, object]) -> bool:
+    if branch.get("profitability_evidence") == "SUFFICIENT":
+        return True
+    sufficiency = branch.get("sample_sufficiency")
+    return isinstance(sufficiency, str) and not sufficiency.startswith(OOS_HISTORY_INSUFFICIENT_PREFIX)
+
+
 def _public_backtest_view(backtest: Mapping[str, object], sufficiency: str) -> dict:
-    """样本外历史不足时只公开门槛事实，不公开任何业绩样本或指标。"""
+    """系统级收益主张被扣住时，逐分支判定：证据达标的分支照常公开业绩，未达标的只公开门槛事实。"""
     method = backtest.get("method")
     minimum_windows = (
         method.get("minimum_oos_windows_for_profitability")
@@ -103,22 +133,10 @@ def _public_backtest_view(backtest: Mapping[str, object], sufficiency: str) -> d
         for branch in branches.values():
             if not isinstance(branch, Mapping):
                 continue
-            public_branch = {
-                key: branch[key]
-                for key in (
-                    "branch_id",
-                    "status",
-                    "sample_sufficiency",
-                    "sample_sufficiency_message",
-                    "profitability_evidence",
-                    "profitability_evidence_note",
-                    "active_config",
-                    "config_as_of",
-                    "config_source_window",
-                    "config_status",
-                )
-                if key in branch
-            }
+            keys = PUBLIC_BRANCH_ALWAYS_KEYS
+            if _branch_evidence_is_sufficient(branch):
+                keys = keys + PUBLIC_BRANCH_EVIDENCED_KEYS
+            public_branch = {key: branch[key] for key in keys if key in branch}
             public_branches.append(public_branch)
     return {
         "status": backtest.get("status", "SAMPLE_INSUFFICIENT"),

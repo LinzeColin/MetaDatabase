@@ -20,6 +20,10 @@ class MarketDataError(RuntimeError):
     """调用端收到这个异常时必须阻断结论，不能回退到旧市场快照。"""
 
 
+class CollectionBudgetExceeded(RuntimeError):
+    """本轮或当日请求预算已用尽，当前请求没有发往上游。"""
+
+
 def decode_text(payload: bytes, encoding: str, source: str) -> str:
     """把上游字节解码边界统一收敛为可阻断的市场数据错误。"""
     try:
@@ -29,16 +33,30 @@ def decode_text(payload: bytes, encoding: str, source: str) -> str:
 
 
 class HttpClient:
-    def __init__(self, timeout_seconds: float = 10.0, attempts: int = 3) -> None:
+    def __init__(
+        self,
+        timeout_seconds: float = 10.0,
+        attempts: int = 3,
+        on_request: Callable[[str], None] | None = None,
+    ) -> None:
         self.timeout_seconds = timeout_seconds
         self.attempts = attempts
+        self.on_request = on_request
 
-    def get(self, url: str, headers: Optional[Dict[str, str]] = None) -> bytes:
+    def get(
+        self,
+        url: str,
+        headers: Optional[Dict[str, str]] = None,
+        *,
+        provider: str,
+    ) -> bytes:
         merged = {"User-Agent": USER_AGENT, "Accept": "*/*"}
         if headers:
             merged.update(headers)
         last_error: Optional[BaseException] = None
         for attempt in range(self.attempts):
+            if self.on_request is not None:
+                self.on_request(provider)
             request = urllib.request.Request(url, headers=merged)
             try:
                 with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
