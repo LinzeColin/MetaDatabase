@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+from zoneinfo import ZoneInfo
 import math
 import re
 from typing import Dict, Iterable, List, Optional
@@ -52,7 +53,7 @@ class TencentQuoteProvider:
                 currency=currency,
                 exchange_timezone=instrument.timezone,
                 source="tencent_quote",
-                source_time=_parse_source_time(fields),
+                source_time=_parse_source_time(fields, instrument.timezone),
                 observed_at=observed_at,
             )
         return result
@@ -159,14 +160,20 @@ class TencentKlineProvider:
         )
 
 
-def _parse_source_time(fields: list[str]) -> datetime | None:
-    """仅在 qt.gtimg.cn 实际返回 YYYYMMDDhhmmss 时解析；观察时间绝不替代来源时间。"""
+def _parse_source_time(fields: list[str], exchange_timezone: str) -> datetime | None:
+    """仅在 qt.gtimg.cn 实际返回 YYYYMMDDhhmmss 时解析；观察时间绝不替代来源时间。
+
+    腾讯与新浪的约定不同：腾讯写的是交易所本地时间（美股 16:00:01 正是收盘），
+    所以这里按标的自己的交易所时区盖章，不套用新浪那一套。
+    """
     for field in reversed(fields):
         candidate = field.strip()
         if not _QUOTE_TIMESTAMP.fullmatch(candidate):
             continue
         try:
-            return datetime.strptime(candidate, "%Y%m%d%H%M%S")
+            return datetime.strptime(candidate, "%Y%m%d%H%M%S").replace(
+                tzinfo=ZoneInfo(exchange_timezone)
+            )
         except ValueError:
             return None
     return None

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.1.0",
-  "version": "0.0.0.3.1",
+  "version": "0.0.0.3.3",
   "runtime_agent_allowed": false,
   "runtime_llm_allowed": false,
   "allowed": [

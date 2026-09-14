@@ -6,6 +6,7 @@ import json
 import math
 import re
 from datetime import date, datetime
+from zoneinfo import ZoneInfo
 from typing import Dict, Iterable, List, Optional
 
 from .base import DiskCache, HttpClient, MarketDataError, decode_text, fetch_validated_cached, utc_now
@@ -18,6 +19,10 @@ SINA_US_KLINE_URL = "https://stock.finance.sina.com.cn/usstock/api/jsonp.php/var
 SINA_CN_KLINE_URL = "https://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData?symbol={symbol}&scale=240&ma=no&datalen=3000"
 _ASSIGNMENT = re.compile(r'(?:var\s+)?hq_str_([^=]+)="([^"]*)";?')
 _TIMESTAMP = re.compile(r"(20\d{2})[-/](\d{2})[-/](\d{2})[T\s,]+(\d{2}:\d{2}(?::\d{2})?)")
+# 新浪把所有市场的报价时间都写成北京时间，美股也不例外：同一行里
+# "2026-09-14 18:53:42" 和 "Sep 14 06:53AM EDT" 指的是同一瞬间。
+# 按标的所在交易所的时区去理解这个字段，美股会整整差 12 小时（冬令时 13 小时）。
+SINA_PUBLISHING_TIMEZONE = ZoneInfo("Asia/Shanghai")
 _QUOTE_PRICE_INDEX = {"US": 1, "CN": 3, "HK": 6}
 
 
@@ -198,6 +203,7 @@ def _parse_source_time(raw: str) -> datetime | None:
     if not match:
         return None
     try:
-        return datetime.fromisoformat("%s-%s-%sT%s" % match.groups())
+        naive = datetime.fromisoformat("%s-%s-%sT%s" % match.groups())
     except ValueError:
         return None
+    return naive.replace(tzinfo=SINA_PUBLISHING_TIMEZONE)

@@ -58,7 +58,10 @@ MAX_PROVIDER_REQUESTS_PER_ROUND = 48
 MAX_PROVIDER_REQUESTS_PER_DAY = 1_600
 COLLECTION_FAILURES_BEFORE_BACKOFF = 3
 COLLECTION_BACKOFF_INITIAL_SECONDS = 60
-COLLECTION_BACKOFF_MAX_SECONDS = 60 * 60
+# 退避是为了不把一个正在故障的免费源打爆，不是为了惩罚读者。循环本来就 60 秒
+# 一轮、每日预算 1600 次请求，停满一小时买不到任何额外保护，却让页面一小时不
+# 出结论——2026-09-14 就是这样把一次上游时区故障放大成「十遍都没解决」。
+COLLECTION_BACKOFF_MAX_SECONDS = 5 * 60
 MARKET_OPEN_SESSIONS = {
     "US": ((time(9, 30), time(16, 0)),),
     "CN": ((time(9, 30), time(11, 30)), (time(13, 0), time(15, 0))),
@@ -679,6 +682,19 @@ class LiveEngine:
                 "source_time": None,
                 "observed_lag_minutes": None,
             }
+        if quote.source_time is not None and quote.source_time.tzinfo is None:
+            return {
+                "market_state": "UNKNOWN",
+                "basis": "SOURCE_TIME_WITHOUT_TIMEZONE",
+                "status": "SOURCE_TIME_NAIVE",
+                "source_time": quote.source_time.isoformat(),
+                "declared_feed_delay_minutes": item.declared_feed_delay_minutes,
+                "observed_lag_minutes": None,
+                "last_advance_at": None,
+                "stalled_minutes": None,
+                "exchange_timezone": item.timezone,
+                "exchange_now": exchange_now.isoformat(),
+            }
         if quote.source_time is None:
             return {
                 **report,
@@ -686,11 +702,11 @@ class LiveEngine:
                 "source_time": None,
                 "observed_lag_minutes": None,
             }
-        source_at = (
-            quote.source_time.astimezone(exchange_timezone)
-            if quote.source_time.tzinfo is not None
-            else quote.source_time.replace(tzinfo=exchange_timezone)
-        )
+        # 到这里 source_time 必定带时区：上面已经把 naive 的情况当作发现返回了。
+        # provider 才知道自己那份行情用哪个时区发布——新浪全市场写北京时间，腾讯写
+        # 交易所本地时间。曾经在这里替它盖章，美股整整偏 12 小时，而且偏差方向随
+        # 北京当天时刻翻转，所以白天看着正常、傍晚才整站阻断。
+        source_at = quote.source_time.astimezone(exchange_timezone)
         source_age_seconds = (exchange_now - source_at).total_seconds()
         # 陈旧度按交易时间衡量，不按墙钟：休市与午休期间行情本就不推进，把这些时间
         # 计进去会在每个交易日复盘的瞬间误判过期（港股 13:00 复盘时最新来源时间必然
@@ -1084,6 +1100,8 @@ class LiveEngine:
                         if quote_freshness is not None
                         else self._quote_freshness(item, quote, now)
                     )
+                    if freshness["status"] == "SOURCE_TIME_NAIVE":
+                        findings.append("QUOTE_SOURCE_TIME_NAIVE:%s:%s" % (item.symbol, quote.source))
                     if freshness["status"] == "SOURCE_TIME_MISSING":
                         findings.append("QUOTE_SOURCE_TIME_MISSING:%s:%s" % (item.symbol, quote.source))
                     elif freshness["status"] == "SOURCE_TIME_CLOCK_AHEAD":
