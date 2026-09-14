@@ -77,12 +77,12 @@
     "profitability_claim": "NOT_ISSUED",
     "profitability_gate": "样本外窗口 >= 6 才输出收益数字；不足时只保留方向性结论并打标。"
   },
-  "last_updated_utc": "2026-09-14T05:34:04Z",
+  "last_updated_utc": "2026-09-14T05:41:57Z",
   "deployment": {
     "install_root": "/opt/signal-lattice-v2",
     "current_version": "0.0.0.2.7",
     "previous_version": "0.0.0.2.6",
     "collector": "signal-lattice-v2-loop.timer 驱动 Type=oneshot 的 signal-lattice once",
-    "verified_at_utc": null
+    "verified_at_utc": "2026-09-14T05:40:49Z"
   }
 }

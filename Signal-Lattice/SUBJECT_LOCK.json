@@ -1,7 +1,7 @@
 {
   "bindings": {
     "acceptance": "ad1dcd5daf2e8482c20c2c4799dd74e6df5bad1cd4e9069eca637fac50200736",
-    "canonical_state_prepared": "5e1588cd938faecfc1bcb0f61a0175c4edd2877f16c4373d374b7b5a003d04b5",
+    "canonical_state_prepared": "9661630f135b8a2ccf95ae401e9f2fce23cc7235681b122b5264d7dc15deda61",
     "definition_of_done": "8ca05329c64b1b808e73c4d00cc2a99fb7568e926a3fc6c8024444567849f7b8",
     "quant": "10972cd20552d85d05bf762fa21f8cc39685a1b48d45c3afc642077cd2a2b529",
     "release_boundary": "e1c3f837550aae6a84d4f8a17e21366ddb7252bb65ecb09310e5c0df5226afc0",
@@ -28,8 +28,8 @@
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "03a6d4f61b0f2c5203a2284a733969a0170592607ca73cb84103cad3f103cb39",
-      "size": 51015
+      "sha256": "b1e1f7bb9ab6480f385a8138d8df47f824a450d06f3026594ae92b5012ae59ae",
+      "size": 53051
     },
     {
       "path": "MEMORY_RECONCILIATION.md",
@@ -1794,7 +1794,7 @@
   ],
   "schema_version": "1.1.0",
   "state": "PREPARED",
-  "subject_sha256": "ef14843c1bac0c05a35392b410fb8c200c2d94f5a1f7381d7feb1e422c65c49f",
+  "subject_sha256": "a25fa57abaefa611bdbb62364ab96f70b46f5fc5e0ad1af0ebaf9490e1a0f528",
   "upstream_binding_kind": "blocked_precheck",
   "version": "0.0.0.2.7"
 }

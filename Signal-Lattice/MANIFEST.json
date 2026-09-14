@@ -18,8 +18,8 @@
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "03a6d4f61b0f2c5203a2284a733969a0170592607ca73cb84103cad3f103cb39",
-      "size": 51015
+      "sha256": "b1e1f7bb9ab6480f385a8138d8df47f824a450d06f3026594ae92b5012ae59ae",
+      "size": 53051
     },
     {
       "path": "MEMORY_RECONCILIATION.md",
@@ -1887,8 +1887,8 @@
       "size": 1003
     }
   ],
-  "manifest_payload_bytes": 2225947,
+  "manifest_payload_bytes": 2227983,
   "manifest_payload_file_count": 377,
-  "payload_sha256": "11c9539dd96bfcc51bd603bfc934ebabd776d78ae2fea735ed43b956412564f2",
+  "payload_sha256": "ed742c806921d0f9fc7a5487c3dc9806d41f7fc0ce41de9379725647877ba757",
   "schema_version": "1.0.0"
 }
