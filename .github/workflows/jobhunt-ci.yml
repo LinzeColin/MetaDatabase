@@ -1,0 +1,90 @@
+name: JobHunt CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "JobHuntBotOnline/**"
+      - ".github/workflows/jobhunt-ci.yml"
+  pull_request:
+    paths:
+      - "JobHuntBotOnline/**"
+      - ".github/workflows/jobhunt-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: JobHuntBotOnline
+    env:
+      # 发布前检查会拒绝项目目录里的 __pycache__，所以全程不写字节码。
+      PYTHONDONTWRITEBYTECODE: "1"
+    services:
+      postgres:
+        image: postgres:17.6
+        env:
+          POSTGRES_DB: jobhunt
+          POSTGRES_USER: jobhunt
+          POSTGRES_PASSWORD: ci-only-password
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U jobhunt -d jobhunt"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: JobHuntBotOnline/requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Repository has no committed secrets or caches
+        run: |
+          if git ls-files . | grep -P '(^|/)(__pycache__|\.venv|\.pytest_cache)/|\.py[co]$|(^|/)\.env$|(^|/)OWNER_LOGIN\.txt$|^secrets/(?!README\.md$)'; then
+            echo "上面这些文件不应进入 Git（缓存、虚拟环境或密钥）。" >&2
+            exit 1
+          fi
+
+      - name: Full test suite (includes business end-to-end)
+        run: python -m pytest -q -p no:cacheprovider
+
+      - name: Release directory pre-deploy check
+        run: python tools/verify_taskpack.py
+
+      - name: Production-mode boot on PostgreSQL (alembic + uvicorn /readyz + scheduler + worker)
+        env:
+          APP_ENV: production
+          DATABASE_URL: postgresql+psycopg://jobhunt:ci-only-password@127.0.0.1:5432/jobhunt
+          BASE_URL: http://127.0.0.1:8000
+          SESSION_SECRET: ci-session-secret
+          DATA_ENCRYPTION_KEY: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+          EMAIL_LOOKUP_SECRET: ci-email-secret
+          ADMIN_EMAIL: owner@example.test
+          ADMIN_PASSWORD: CiAdminPass123
+          COOKIE_SECURE: "true"
+          ALLOW_REGISTRATION: "false"
+          UPLOAD_ROOT: ${{ runner.temp }}/uploads
+          BACKUP_ROOT: ${{ runner.temp }}/backups
+          ENABLE_REMOTIVE: "false"
+          ENABLE_ARBEITNOW: "false"
+          ENABLE_JOBICY: "false"
+        run: |
+          alembic upgrade head
+          uvicorn app.main:app --host 127.0.0.1 --port 8000 > "$RUNNER_TEMP/uvicorn.log" 2>&1 &
+          for _ in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8000/readyz; then echo; break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8000/readyz | grep -q '"refresh_hours":6' || { cat "$RUNNER_TEMP/uvicorn.log"; exit 1; }
+          # 调度器与 Worker 是常驻循环：10 秒后仍在运行（timeout 退出码 124）才算启动成功。
+          for proc in app.scheduler app.worker; do
+            set +e; timeout 10 python -m "$proc"; code=$?; set -e
+            [ "$code" = 124 ] || { echo "$proc 启动后提前退出（退出码 $code）" >&2; exit 1; }
+          done

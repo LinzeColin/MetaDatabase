@@ -468,6 +468,14 @@ def claim_run(db: Session) -> DiscoveryRun | None:
     return run
 
 
+def _defer_next_refresh(db: Session, user_id: int, completed: datetime) -> None:
+    """A failed run still consumes its slot; otherwise the one-minute Scheduler
+    would re-enqueue the same failing profile every minute and hammer every source."""
+    profile = db.scalar(select(CandidateProfile).where(CandidateProfile.user_id == user_id))
+    if profile:
+        profile.next_discovery_at = completed + timedelta(hours=6)
+
+
 def fail_run(db: Session, run_id: int, reason: str) -> bool:
     """Close a claimed run after an unexpected Worker exception."""
     db.rollback()
@@ -477,6 +485,7 @@ def fail_run(db: Session, run_id: int, reason: str) -> bool:
     run.status = "failed"
     run.completed_at = utcnow()
     run.error_summary = (reason or "worker error")[:4000]
+    _defer_next_refresh(db, run.user_id, run.completed_at)
     db.commit()
     return True
 
@@ -496,6 +505,7 @@ def recover_stale_runs(db: Session, max_age_seconds: int) -> int:
         run.completed_at = utcnow()
         suffix = "Worker lease expired before the source run completed"
         run.error_summary = f"{run.error_summary or ''}\n{suffix}".strip()[:4000]
+        _defer_next_refresh(db, run.user_id, run.completed_at)
     if rows:
         db.commit()
     return len(rows)

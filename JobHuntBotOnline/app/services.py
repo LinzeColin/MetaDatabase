@@ -147,7 +147,12 @@ def store_resume(
     for key, value in draft.items():
         if value and not current.get(key):
             current[key] = value
-    save_profile(db, crypto, user_id, current, onboarding_state="needs_confirmation", discovery_enabled=False)
+    existing = get_profile_row(db, user_id)
+    if existing and existing.onboarding_state == "complete":
+        # 已确认过资料的候选人追加第 2、3 份简历时，不得把六小时自动发现关掉。
+        save_profile(db, crypto, user_id, current)
+    else:
+        save_profile(db, crypto, user_id, current, onboarding_state="needs_confirmation", discovery_enabled=False)
     db.commit()
     db.refresh(resume)
     return resume, parsed

@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Validate the deployable taskpack without claiming production readiness."""
+"""Pre-deploy check of the release directory: no secrets or caches, config invariants hold,
+sources compile, and the file inventory matches deploy/MANIFEST.json.
+
+After adding or removing tracked files, refresh the inventory with `--write-manifest`.
+"""
 from __future__ import annotations
 
 import argparse
@@ -12,17 +16,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 REQUIRED = [
-    "START_HERE.md", "OWNER_WALKTHROUGH_20260811.md", "PURSUING_GOAL.txt", "PURSING_GOAL.txt", "AGENTS.md",
-    "README.md", "LICENSE", "NOTICE", "Dockerfile", "Dockerfile.acceptance", "docker-compose.yml",
-    "taskpack/CANONICAL_CONTRACT.md", "taskpack/task_dag.json",
-    "taskpack/acceptance_contract.json", "taskpack/TRACEABILITY.md",
-    "taskpack/ARCHITECTURE.md", "taskpack/DELIVERY_AND_ACCEPTANCE.md", "taskpack/DEPENDENCIES.md",
-    "taskpack/ROADMAP.md", "taskpack/MANIFEST.json",
+    "AGENTS.md", "README.md", "LICENSE", "NOTICE", "Dockerfile", "Dockerfile.acceptance", "docker-compose.yml",
     "deploy/deploy.sh", "deploy/acceptance.sh", "deploy/backup.sh",
     "deploy/restore.sh", "deploy/rollback.sh", "deploy/diagnose.sh",
-    "deploy/generate_env.py", "deploy/verify_taskpack.py",
-    "tools/verify_taskpack.py", "tools/e2e_local.py", "tools/e2e_http_v04.py", "tools/ui_contract.py",
-    "tools/restart_readback.py", "tools/online_source_probe.py",
+    "deploy/generate_env.py", "deploy/verify_taskpack.py", "deploy/MANIFEST.json",
+    "tools/verify_taskpack.py", "tools/online_source_probe.py",
     "tools/deepseek_probe.py", "tools/e2e_production.py", "tools/mail_transport_probe.py",
     "tools/migrate_v02_sqlite.py", "tools/production_state_probe.py",
     "tools/finalize_acceptance.py", "tools/ops_probe.py", "alembic.ini",
@@ -69,49 +67,36 @@ def read_json(path: Path):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def dag_errors(payload: dict) -> list[str]:
-    errors: list[str] = []
-    tasks = payload.get("tasks") or []
-    ids = [item.get("id") for item in tasks]
-    if len(ids) != len(set(ids)) or any(not item for item in ids):
-        errors.append("task ids are missing or duplicated")
-    known = set(ids)
-    graph = {item["id"]: list(item.get("depends_on") or []) for item in tasks if item.get("id")}
-    for task_id, deps in graph.items():
-        unknown = sorted(set(deps) - known)
-        if unknown:
-            errors.append(f"{task_id} has unknown dependencies: {unknown}")
-    state: dict[str, int] = {}
+MANIFEST_PATH = ROOT / "deploy/MANIFEST.json"
 
-    def visit(node: str, stack: list[str]) -> None:
-        mark = state.get(node, 0)
-        if mark == 1:
-            errors.append("DAG cycle: " + " -> ".join(stack + [node]))
-            return
-        if mark == 2:
-            return
-        state[node] = 1
-        for dep in graph.get(node, []):
-            visit(dep, stack + [node])
-        state[node] = 2
 
-    for node in graph:
-        visit(node, [])
-    return errors
+def release_inventory(*, deployment_runtime: bool) -> set[str]:
+    return {
+        str(path.relative_to(ROOT))
+        for path in ROOT.rglob("*")
+        if path.is_file()
+        and path != MANIFEST_PATH
+        and not any(part in FORBIDDEN_PARTS for part in path.relative_to(ROOT).parts)
+        and not runtime_artifact(path.relative_to(ROOT), deployment_runtime=deployment_runtime)
+    }
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", default="")
-    parser.add_argument("--allow-missing-local-evidence", action="store_true")
+    parser.add_argument("--write-manifest", action="store_true", help="Rewrite deploy/MANIFEST.json from the current tree and exit.")
     parser.add_argument(
         "--deployment-runtime",
         action="store_true",
         help="Allow only documented runtime secrets and generated evidence after deployment configuration exists.",
     )
     args = parser.parse_args()
+    if args.write_manifest:
+        files = sorted(release_inventory(deployment_runtime=False))
+        MANIFEST_PATH.write_text(json.dumps({"files": files}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        print(f"wrote {MANIFEST_PATH.relative_to(ROOT)} with {len(files)} files")
+        return 0
     errors: list[str] = []
-    warnings: list[str] = []
 
     for rel in REQUIRED:
         if not (ROOT / rel).is_file():
@@ -137,20 +122,6 @@ def main() -> int:
                     errors.append(f"non-zero historical exit marker is present: {rel}")
             except UnicodeDecodeError:
                 errors.append(f"invalid exit marker: {rel}")
-
-    if (ROOT / "taskpack/task_dag.json").is_file() and (ROOT / "taskpack/acceptance_contract.json").is_file():
-        try:
-            dag = read_json(ROOT / "taskpack/task_dag.json")
-            errors.extend(dag_errors(dag))
-            acceptance = read_json(ROOT / "taskpack/acceptance_contract.json")
-            acceptance_rows = acceptance.get("acceptance") or acceptance.get("items") or []
-            acceptance_ids = {item.get("id") for item in acceptance_rows if isinstance(item, dict)}
-            for task in dag.get("tasks", []):
-                for ac in task.get("acceptance", []):
-                    if ac not in acceptance_ids:
-                        errors.append(f"{task.get('id')} references unknown acceptance {ac}")
-        except Exception as exc:
-            errors.append(f"taskpack JSON is invalid: {exc}")
 
     env_example = (ROOT / ".env.example").read_text(encoding="utf-8") if (ROOT / ".env.example").exists() else ""
     if not re.search(r"(?m)^DISCOVERY_REFRESH_HOURS=6$", env_example):
@@ -211,68 +182,23 @@ def main() -> int:
             if pattern.search(text):
                 errors.append(f"possible real {name} in {path.relative_to(ROOT)}")
 
-    local_evidence = {
-        "pytest": ROOT / "evidence/local/pytest_result.json",
-        "ui_contract": ROOT / "evidence/local/ui_contract.json",
-        "restart": ROOT / "evidence/local/restart_readback.json",
-        "migration": ROOT / "evidence/local/migration_test.json",
-        "mail_transport": ROOT / "evidence/local/mail_transport_result.json",
-    }
-    if not args.allow_missing_local_evidence:
-        for name, path in local_evidence.items():
-            if not path.is_file():
-                errors.append(f"missing local evidence: {path.relative_to(ROOT)}")
-                continue
-            try:
-                result = read_json(path)
-            except Exception as exc:
-                errors.append(f"invalid local evidence {name}: {exc}")
-                continue
-            if result.get("verdict") != "PASS":
-                errors.append(f"local evidence is not PASS: {name}")
-
-        browser_path = ROOT / "evidence/local/browser-local/result.json"
-        if not browser_path.is_file():
-            errors.append(f"missing local evidence: {browser_path.relative_to(ROOT)}")
-        else:
-            try:
-                browser_result = read_json(browser_path)
-                if browser_result.get("verdict") == "PASS":
-                    pass
-                elif browser_result.get("verdict") == "BLOCKED" and browser_result.get("blocker") == "chromium_managed_url_blocklist":
-                    warnings.append("local Chromium is blocked by a managed URLBlocklist; no browser PASS is claimed; production Playwright remains mandatory")
-                else:
-                    errors.append("local browser evidence is neither PASS nor an accepted environment block")
-            except Exception as exc:
-                errors.append(f"invalid local evidence browser: {exc}")
-
-    manifest_path = ROOT / "taskpack/MANIFEST.json"
-    if manifest_path.is_file():
+    if MANIFEST_PATH.is_file():
         try:
-            manifest = read_json(manifest_path)
-            listed = set(manifest.get("files", []))
-            actual = {
-                str(path.relative_to(ROOT))
-                for path in ROOT.rglob("*")
-                if path.is_file()
-                and path != manifest_path
-                and not any(part in FORBIDDEN_PARTS for part in path.relative_to(ROOT).parts)
-                and not runtime_artifact(path.relative_to(ROOT), deployment_runtime=args.deployment_runtime)
-            }
+            listed = set(read_json(MANIFEST_PATH).get("files", []))
+            actual = release_inventory(deployment_runtime=args.deployment_runtime)
             if listed != actual:
                 missing = sorted(actual - listed)[:20]
                 stale = sorted(listed - actual)[:20]
                 errors.append(f"manifest inventory drift; missing={missing}, stale={stale}")
         except Exception as exc:
-            errors.append(f"invalid taskpack manifest: {exc}")
+            errors.append(f"invalid deploy manifest: {exc}")
 
     result = {
         "verdict": "PASS" if not errors else "FAIL",
-        "scope": "taskpack structure, DAG, source/config syntax, script executability, secret boundary and local evidence",
+        "scope": "release inventory, source/config syntax, script executability and secret boundary",
         "deployment_runtime": args.deployment_runtime,
         "production_claimed": False,
         "errors": errors,
-        "warnings": warnings,
     }
     text = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
     if args.output:
