@@ -1,5 +1,17 @@
 # Signal Lattice V2 重建交接
 
+## 2026-09-26 恢复轮（最新）
+
+- 修复：`tests/test_deployment_northstar.py` 不再写死 Mac 的 uv Python 路径，改用 `sys.executable`（可用 `SIGNAL_LATTICE_TEST_PYTHON` 覆盖）。Linux 全量 269 过 / 0 败 / 1 跳过。
+- 新分支：`global-equity-lead-lag-atlas`（`src/signal_lattice/branches/lead_lag.py`）：SPY 收盘 → 次日沪深300/盈富基金，GELA 全部证据门通过才给方向；`sh000300`、`hk02800` 因此成为决策输入，这两只的数据故障现在会阻断结论。
+- 其余 5 个分支定义不清或需要免费行情之外的输入，如实保持 `UNIMPLEMENTED`（理由见 `文档/01_产品需求.md`）。
+- 新增 `scripts/deploy_v2.sh`（v2 真正的部署入口）与 CI `.github/workflows/signal-lattice-ci.yml`。
+- 减法未完成：删除 v1/v19 遗留被权限拒绝，待 Owner 批准（命令在 `文档/06_运维手册.md` 第 5 节）。
+- 线上状态本轮无法核实；重上线与业务判据命令见 `文档/06_运维手册.md`。
+
+---
+
+
 更新时间：2026-09-14 Australia/Sydney
 
 ## 当前状态：0.0.0.3.3 已上生产并通过公网复验
