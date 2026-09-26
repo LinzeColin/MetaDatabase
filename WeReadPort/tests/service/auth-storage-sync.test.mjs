@@ -185,6 +185,39 @@ test("个人笔记按账户加密存储、跨租户不可读、版本冲突不�
   assert.equal(otherPull.events.length, 0);
 });
 
+test("每条笔记只保留最新 3 个版本对象，裁剪只按已知 key 删除且不影响其他笔记", async t => {
+  const platform = testPlatform();
+  t.after(platform.close);
+  const user = await platform.service.registerPassword({ email: "retain@example.com", password: PASSWORD });
+  const accountId = user.account.id;
+  const other = await platform.service.saveDocument(accountId, { source: "manual", externalId: "other", title: "旁邻笔记", content: "不应被裁剪" });
+  const deleted = [];
+  const originalDelete = platform.objectStore.delete.bind(platform.objectStore);
+  platform.objectStore.delete = async key => { deleted.push(key); return originalDelete(key); };
+  let note;
+  for (let version = 1; version <= 5; version += 1) {
+    note = await platform.service.saveDocument(accountId, { source: "manual", externalId: "retain", title: "版本笔记", content: `第 ${version} 版正文` });
+  }
+  assert.equal(note.version, 5);
+  const noteKeys = [...platform.objectStore.objects.keys()].filter(key => key.includes(`/notes/${note.id}/`)).sort();
+  assert.deepEqual(noteKeys.map(key => key.match(/\/v(\d+)\.enc$/u)[1]), ["3", "4", "5"]);
+  assert.deepEqual(platform.store.listNoteObjectKeys(accountId, note.id).sort(), noteKeys);
+  assert.deepEqual(deleted.map(key => key.match(/\/v(\d+)\.enc$/u)[1]), ["1", "2"]);
+  assert.equal((await platform.service.readNote(accountId, note.id)).content, "第 5 版正文");
+  assert.equal((await platform.service.readNote(accountId, other.id)).content, "不应被裁剪");
+
+  platform.objectStore.delete = async () => { throw Object.assign(new Error("R2 删除失败：HTTP 500"), { code: "R2_DELETE", status: 500 }); };
+  const sixth = await platform.service.saveDocument(accountId, { source: "manual", externalId: "retain", title: "版本笔记", content: "第 6 版正文" });
+  assert.equal(sixth.version, 6);
+  assert.equal(platform.store.listNoteObjectKeys(accountId, note.id).length, 4, "删除失败时保留索引行，留给下次写入或销户重试");
+  const failure = platform.store.db.prepare("SELECT payload_json AS payload FROM outbox WHERE event_type='NOTE_VERSION_PRUNE_FAILED'").get();
+  assert.match(failure.payload, /R2_DELETE/u);
+
+  platform.objectStore.delete = originalDelete;
+  await platform.service.saveDocument(accountId, { source: "manual", externalId: "retain", title: "版本笔记", content: "第 7 版正文" });
+  assert.deepEqual(platform.store.listNoteObjectKeys(accountId, note.id).map(key => key.match(/\/v(\d+)\.enc$/u)[1]).sort(), ["5", "6", "7"]);
+});
+
 test("行为分析需明确同意，撤销后删除非必要事件且推荐不依赖模型 Token", async t => {
   const platform = testPlatform();
   t.after(platform.close);

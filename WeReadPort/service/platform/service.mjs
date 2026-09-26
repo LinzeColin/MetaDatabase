@@ -49,6 +49,9 @@ const BOOK_SKILL_MAX_NOTES = 5_000;
 const BOOK_SKILL_MAX_BYTES = 20 * 1024 * 1024;
 const RECOVERY_VERIFY_MAX_NOTES = 5_000;
 const RECOVERY_VERIFY_CONCURRENCY = 4;
+// Owner 裁定（Private-Database OPS/AGENT_ONBOARDING.md §9.4）：每条笔记在对象存储只保留最新 3 个版本。
+// 删除只用 note_objects 里已知的 key 逐个 DELETE，不做 ListObjects；R2 的 DeleteObject 不计费。
+const NOTE_VERSIONS_RETAINED = 3;
 const SECRET_LIKE_WEREAD_KEY = /\bwrk-[A-Za-z0-9._-]{8,}\b/u;
 const ADMIN_DIRECT_VIEW_REASON = "管理员直接查看";
 
@@ -593,7 +596,28 @@ export class PlatformService {
       return reportStatus ? { note: result.current, conflict: true, unchanged: false } : result;
     }
     this.outbox(accountId, "NOTE_UPSERTED", { noteId: result.note.id, source, version: result.note.version, contentHash: result.note.contentHash, objectKey });
+    await this.pruneNoteVersions(accountId, result.note.id);
     return reportStatus ? { note: result.note, unchanged: false } : result.note;
+  }
+
+  // 新版本已提交后调用：按 key 中的版本号排序，删除第 4 版及更旧的对象。
+  // 先删对象再删索引行；对象删除失败时保留索引行（下次写入或销户时仍会重试删除），
+  // 并把真实原因写入 outbox，笔记本身已保存成功，不回滚。
+  async pruneNoteVersions(accountId, noteId) {
+    const keys = this.store.listNoteObjectKeys(accountId, noteId)
+      .map(objectKey => ({ objectKey, version: Number(/\/v(\d+)\.enc$/u.exec(objectKey)?.[1]) }));
+    const malformed = keys.filter(entry => !Number.isInteger(entry.version));
+    if (malformed.length) throw new PlatformError("NOTE_OBJECT_KEY_INVALID", `笔记对象键缺少版本号，无法裁剪旧版本：${malformed.map(entry => entry.objectKey).join(", ")}`, 500);
+    const stale = keys.sort((left, right) => right.version - left.version).slice(NOTE_VERSIONS_RETAINED);
+    for (const { objectKey, version } of stale) {
+      try {
+        await this.objectStore.delete(objectKey);
+      } catch (error) {
+        this.outbox(accountId, "NOTE_VERSION_PRUNE_FAILED", { noteId, version, errorCode: error?.code || "OBJECT_DELETE_FAILED", status: error?.status || null });
+        continue;
+      }
+      this.store.deleteNoteObject(accountId, objectKey);
+    }
   }
 
   async readNote(accountId, noteId) {
