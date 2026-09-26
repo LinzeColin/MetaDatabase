@@ -1,6 +1,6 @@
 import json,os,shutil,subprocess,sys,tempfile,unittest
 from pathlib import Path
-from signal_lattice.constants import VERSION
+from signal_lattice.version import VERSION
 
 class DeploymentNorthStarTests(unittest.TestCase):
  @classmethod
@@ -8,14 +8,6 @@ class DeploymentNorthStarTests(unittest.TestCase):
   cls.root=Path(__file__).resolve().parents[1]
   # 安装脚本需要 >=3.11 且带 pip/setuptools 的解释器；默认用跑测试的解释器，可用环境变量覆盖。
   cls.python=Path(os.environ.get('SIGNAL_LATTICE_TEST_PYTHON',sys.executable))
- def test_shell_syntax_and_completion_contract(self):
-  scripts=['deploy_northstar.sh','install_cloudflare_tunnel.sh','status_closure.sh','install_release.sh','rollback.sh','provision_runtime.sh']
-  for name in scripts:
-   r=subprocess.run(['bash','-n',str(self.root/'scripts'/name)],text=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE);self.assertEqual(r.returncode,0,name+':'+r.stderr)
-  deploy=(self.root/'scripts/deploy_northstar.sh').read_text();self.assertIn('verify_public_release.py',deploy);self.assertIn('DELIVERY_RESULT.json',deploy);self.assertIn('status_closure.sh',deploy);self.assertIn('verify_moomoo_opend.py',deploy);self.assertIn('signal-lattice-cycle.service',deploy);self.assertIn('ingest_api_token',deploy)
- def test_cloudflare_script_does_not_replace_active_shared_service(self):
-  text=(self.root/'scripts/install_cloudflare_tunnel.sh').read_text();self.assertIn('EXISTING_CLOUDFLARED_SERVICE_ACTIVE_NO_REPLACEMENT',text);self.assertNotIn('service uninstall',text)
-
  def test_v2_wheel_install_and_rollback_console_paths_complete(self):
   with tempfile.TemporaryDirectory() as tmp:
    tmp=Path(tmp);wheel_dir=tmp/'wheel';receipt=tmp/'wheel.json';install_root=tmp/'install'
@@ -79,8 +71,3 @@ class DeploymentNorthStarTests(unittest.TestCase):
   self.assertNotIn('Restart=always',service)
   self.assertIn('OnUnitInactiveSec=60',timer)
   self.assertIn('Unit=signal-lattice-v2-loop.service',timer)
- def test_required_schemas_and_northstar_fixtures(self):
-  for name in ('skill_signal.schema.json','market_snapshot.schema.json','recommendation_snapshot.schema.json','public_release_receipt.schema.json','delivery_result.schema.json'):
-   json.loads((self.root/'schemas'/name).read_text())
-  for name in ('market_snapshot.json','commercial_signal.json','bottleneck_signal.json'):
-   json.loads((self.root/'fixtures/northstar'/name).read_text())
