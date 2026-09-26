@@ -9,7 +9,6 @@ on:
       - "desktop-suite/**"
       - "scripts/validate-desktop-suite-contract.mjs"
       - ".github/workflows/desktop-app-suite-release.yml"
-      - ".github/workflows/upstream-desktop-sync.yml"
       - ".github/workflows/kimi-harness-ci.yml"
   workflow_dispatch:
     inputs:
