@@ -35,8 +35,9 @@ jobs:
           dsh_version="${dsh_tag#v}"
           source_kimi="$(node -p "require('./Kimi-Code-Desktop/package.json').version")"
           source_dsh="$(node -p "require('./desktop-suite/COMPATIBILITY_CONTRACT.json').applications.dshDesktop.version")"
-          test -n "$kimi_version"
-          test -n "$dsh_version"
+          stable='^[0-9]+\.[0-9]+\.[0-9]+$'
+          if ! [[ "$kimi_version" =~ $stable ]]; then kimi_version="$source_kimi"; fi
+          if ! [[ "$dsh_version" =~ $stable ]]; then dsh_version="$source_dsh"; fi
           printf 'kimi_version=%s\n' "$kimi_version" >> "$GITHUB_OUTPUT"
           printf 'dsh_version=%s\n' "$dsh_version" >> "$GITHUB_OUTPUT"
           {
@@ -76,20 +77,21 @@ jobs:
           KIMI_VERSION: ${{ steps.versions.outputs.kimi_version }}
           DSH_VERSION: ${{ steps.versions.outputs.dsh_version }}
         run: |
-          branch="automation/desktop-upstream-kimi-$KIMI_VERSION-dsh-$DSH_VERSION"
-          existing="$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --head "$branch" --json number --jq '.[0].number // empty')"
-          if [ -n "$existing" ]; then
-            printf 'Compatibility PR #%s already exists.\n' "$existing"
-            exit 0
-          fi
+          branch="automation/desktop-upstream"
           git config user.name github-actions
           git config user.email github-actions@github.com
           git switch -c "$branch"
           git add Kimi-Code-Desktop/package.json Kimi-Code-Desktop/package-lock.json desktop-suite/COMPATIBILITY_CONTRACT.json
-          git commit -m "chore(desktop-suite): propose official upstream versions"
+          git commit -m "chore(desktop-suite): propose Kimi $KIMI_VERSION and DSH $DSH_VERSION"
           gh auth setup-git
-          git push origin HEAD
-          gh pr create --repo "$GITHUB_REPOSITORY" --base main --head "$branch" \
-            --title "chore(desktop-suite): Kimi $KIMI_VERSION and DSH $DSH_VERSION" \
-            --body "Automated compatibility proposal. All three apps remain sourced from this PR commit; merging main triggers the only publisher."
+          git push --force origin HEAD:"refs/heads/$branch"
+          existing="$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --head "$branch" --json number --jq '.[0].number // empty')"
+          if [ -n "$existing" ]; then
+            gh pr edit "$existing" --repo "$GITHUB_REPOSITORY" \
+              --title "chore(desktop-suite): Kimi $KIMI_VERSION and DSH $DSH_VERSION"
+          elif ! gh pr create --repo "$GITHUB_REPOSITORY" --base main --head "$branch" \
+              --title "chore(desktop-suite): Kimi $KIMI_VERSION and DSH $DSH_VERSION" \
+              --body "Automated compatibility proposal. All three apps remain sourced from this PR commit; merging main triggers the only publisher."; then
+            echo "::warning::Proposal is on branch $branch. Open the PR at $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/main...$branch — or enable Settings > Actions > General > 'Allow GitHub Actions to create and approve pull requests'."
+          fi
           gh workflow run kimi-harness-ci.yml --repo "$GITHUB_REPOSITORY" --ref "$branch"
