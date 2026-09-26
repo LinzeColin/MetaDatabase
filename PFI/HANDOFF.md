@@ -5,27 +5,13 @@
 - 新核心 v0.3.0：`src/pfi_os/{importers,classify,report,ui,__main__}.py`，约 700 行。支付宝 / CBA 导入 → 分类 → 月度收支报告 / 本地界面，全部走 `PFI_DATA_DIR`，入口 `python -m pfi_os`。
 - 样例端到端（`examples/data/`）：月报每个数字与手算一致，新测试 42 条在 Linux 全部通过；`python -m pfi_os app` 在 Linux 上实测起得来。
 - `.github/workflows/deploy-pfi.yml` 已删除（它只部署一张说明页，还依赖 CodexProject 的 reusable workflow）；新增 `.github/workflows/pfi-tests.yml`。
-- 旧 v0.2.5 树（`src/pfi_v02/`、`src/pfi_os/` 下其余子包、283 个合同 / 阶段测试、`reports/` 145MB、`docs/`、`config/`、`scripts/`、`systems/`、`web/`、`macos/` 等）**尚未删除**：本轮删除操作被权限拦下，需主会话或 Owner 执行（命令见下）。完整旧状态在提交 `ee80b41ff`。
+- 旧 v0.2.5 树（约 3130 个文件，含 `reports/` 145MB 与 283 个合同 / 阶段测试）已删除，PFI 现为 46 个文件。完整旧状态在提交 `ee80b41ff`：`git show ee80b41ff:PFI/<路径>`。
 
 ## 卡点
 
-1. 删除旧树（主会话或 Owner，在本仓 worktree 根目录执行）：
-
-   ```bash
-   cd PFI
-   git rm -r -q CHANGELOG.md MetaDatabase PRODUCT.md StopPFI.command VERSION assets config data docs \
-     macos reports requirements.lock review_queue scripts shared systems web \
-     功能清单.md 开发记录.md 模型参数文件.md machine/runs src/pfi_v02
-   git ls-files src/pfi_os | grep -vE '^src/pfi_os/(__init__|__main__|importers|classify|report|ui)\.py$' | xargs git rm -q
-   git ls-files tests | grep -vE '^tests/test_(importers|classify|end_to_end|ui|pull)\.py$' | xargs git rm -q
-   python3 machine/tools/render_human.py --root .     # machine/runs 删除后 05 需重渲染
-   python -m pytest -q                                # 期望全绿
-   ```
-
-   删除后可从 `machine/facts/glossary.json` 去掉“旧版运行记录用词”那 13 条术语，再重渲染。
-2. 业务判据（Owner 本机）：`python -m pfi_os pull --client EEI/scripts/private_db_client.py` → `python -m pfi_os report`。
+1. 业务判据（Owner 本机）：`python -m pfi_os pull --client EEI/scripts/private_db_client.py` → `python -m pfi_os report`。
    旧版记录是 8,815 条原始、8,808 条入账；新核心按交易订单号跨文件去重，报告第二行会给出原始 / 去重 / 入账数，用来核对。
-3. Coolify 上的 `pfi-public` 应用（uuid `h2p7mvhj7095gma9r9g9otjo`，pfi.linzezhang.com）需 Owner 在 Coolify 停掉并删除，DNS 记录一并移除。
+2. Coolify 上的 `pfi-public` 应用（uuid `h2p7mvhj7095gma9r9g9otjo`，pfi.linzezhang.com）需 Owner 在 Coolify 停掉并删除，DNS 记录一并移除。
 
 ## 已知限制
 

@@ -3,11 +3,11 @@
   "stage": "重构",
   "phase": "核心收敛",
   "task": "新核心已可用；旧 v0.2.5 代码与证据删除待执行",
-  "real_progress": "新核心（导入、分类、月报、界面）完成，样例端到端测试通过；旧树删除与真实数据验收未完成",
+  "real_progress": "新核心（导入、分类、月报、界面）完成，样例端到端测试通过，旧树已删除；真实数据验收未完成",
   "report_grade": "样例数据逐项手算核对；真实流水尚未在本机用新核心跑过",
   "business_verdict": "未完成：业务判据是 Owner 在本机用真实支付宝流水跑出月度收支报告，尚未执行",
   "evidence_status": "SAMPLE_E2E_ONLY",
   "rendered_at": "2026-09-26",
   "facts_commit": "见 git log",
-  "next_task": "删除旧树，然后 Owner 本机拉取真实流水并出报告"
+  "next_task": "Owner 本机拉取真实流水并出报告"
 }
