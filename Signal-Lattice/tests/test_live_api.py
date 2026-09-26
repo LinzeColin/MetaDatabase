@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 from io import BytesIO
 from pathlib import Path
 
-from signal_lattice.constants import VERSION
+from signal_lattice.version import VERSION
 from signal_lattice.live_api import HEADERS, blocked_report, handler, latest_for_api, public_report_view, v2_get_route_responses
 from signal_lattice.live_config import LiveSettings, default_universe
 from signal_lattice.live_runtime import LiveEngine, LiveStore

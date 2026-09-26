@@ -1,0 +1,42 @@
+name: Signal-Lattice CI
+
+# Signal-Lattice 看板（src/signal_lattice）的全量测试。Stock_Skill 子目录由
+# stock-skill-validation.yml 单独校验，这里不重复。
+on:
+  pull_request:
+    paths:
+      - "Signal-Lattice/**"
+      - "!Signal-Lattice/Stock_Skill/**"
+      - ".github/workflows/signal-lattice-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "Signal-Lattice/**"
+      - "!Signal-Lattice/Stock_Skill/**"
+      - ".github/workflows/signal-lattice-ci.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: signal-lattice-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.11"
+      # 运行时零依赖；pytest 跑测试，setuptools 供安装/回滚测试离线构建 wheel。
+      - run: python -m pip install --quiet pytest==8.4.2 setuptools==80.9.0
+      - name: 全量测试（离线，不访问任何行情接口）
+        working-directory: Signal-Lattice
+        run: PYTHONPATH=src python -m pytest -q -p no:cacheprovider tests

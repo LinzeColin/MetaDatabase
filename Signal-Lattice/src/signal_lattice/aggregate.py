@@ -67,6 +67,8 @@ def _exclusion_reason(verdict: BranchVerdict) -> str:
         "SAMPLE_INSUFFICIENT": "日线样本不足",
         "BACKTEST_CONFIG_UNAVAILABLE": "没有可绑定到当前 as-of 的已评价训练窗参数",
         "EXCLUDED_PENDING_BACKTEST": "尚未通过回测推广门",
+        "EVIDENCE_GATE_NOT_PASSED": "时延假设未通过证据门",
+        "NO_FRESH_SOURCE_SESSION": "没有新的来源会话信息",
     }
     label = labels.get(verdict.participation_status, "当前权重为 0")
     return f"{label}：{verdict.counter_evidence}"
