@@ -1,4 +1,4 @@
-import json,os,shutil,subprocess,tempfile,unittest
+import json,os,shutil,subprocess,sys,tempfile,unittest
 from pathlib import Path
 from signal_lattice.constants import VERSION
 
@@ -6,7 +6,8 @@ class DeploymentNorthStarTests(unittest.TestCase):
  @classmethod
  def setUpClass(cls):
   cls.root=Path(__file__).resolve().parents[1]
-  cls.python=Path('/Users/linzezhang/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/bin/python3')
+  # 安装脚本需要 >=3.11 且带 pip/setuptools 的解释器；默认用跑测试的解释器，可用环境变量覆盖。
+  cls.python=Path(os.environ.get('SIGNAL_LATTICE_TEST_PYTHON',sys.executable))
  def test_shell_syntax_and_completion_contract(self):
   scripts=['deploy_northstar.sh','install_cloudflare_tunnel.sh','status_closure.sh','install_release.sh','rollback.sh','provision_runtime.sh']
   for name in scripts:
@@ -16,7 +17,7 @@ class DeploymentNorthStarTests(unittest.TestCase):
   text=(self.root/'scripts/install_cloudflare_tunnel.sh').read_text();self.assertIn('EXISTING_CLOUDFLARED_SERVICE_ACTIVE_NO_REPLACEMENT',text);self.assertNotIn('service uninstall',text)
 
  def test_v2_wheel_install_and_rollback_console_paths_complete(self):
-  with tempfile.TemporaryDirectory(dir='/private/tmp') as tmp:
+  with tempfile.TemporaryDirectory() as tmp:
    tmp=Path(tmp);wheel_dir=tmp/'wheel';receipt=tmp/'wheel.json';install_root=tmp/'install'
    built=subprocess.run([str(self.python),str(self.root/'scripts/build_wheel.py'),'--root',str(self.root),'--output-dir',str(wheel_dir),'--receipt',str(receipt)],cwd=self.root,text=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
    self.assertEqual(built.returncode,0,built.stderr)

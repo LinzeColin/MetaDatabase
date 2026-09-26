@@ -101,7 +101,6 @@ class BranchVerdictTests(unittest.TestCase):
             "stock-commercial-opportunities",
             "bottleneck-serenity-skill",
             "equity-foresight-signal",
-            "global-equity-lead-lag-atlas",
             "equity-event-atlas",
             "serenity-skill",
         })
