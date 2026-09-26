@@ -1,48 +1,45 @@
 {
-  "data_flow": "外部来源先进入私有只读登记与预览，再经显式确认写入本机账本；账户、持仓、价格、汇率和公式依赖共同生成不可变状态快照；页面、报告与导出只消费同一快照。公共静态面只接收固定状态型元数据，不能连接本机运行面。",
+  "data_flow": "私有仓 `Private-MetaDatabase`（数据域 `LinzeDatabase-alipay`）→ `pull` → 本机 `$PFI_DATA_DIR` → 导入（识别来源、去重）→ 分类 → 月度汇总 → 报告 / 本地界面 / 逐笔导出。全程只读原始账单，不写回私有仓，不把任何数据落进代码仓。",
   "entities": [
     {
-      "entity": "来源清单",
+      "entity": "流水",
       "keys": [
-        "`source_id`",
+        "`source`",
+        "`occurred_at`",
+        "`amount`（负数流出）",
+        "`currency`",
+        "`direction`",
+        "`counterparty`",
+        "`description`",
+        "`source_category`",
         "`status`",
-        "`parser_version`",
-        "`content_hash`",
-        "`as_of`"
+        "`order_id`"
       ],
-      "pk": "`source_id`"
+      "pk": "支付宝 `order_id`；CBA 为日期+金额+描述+同文件出现序号"
     },
     {
-      "entity": "账本事件",
+      "entity": "分类结果",
       "keys": [
-        "`event_id`",
-        "`source_record_id`",
-        "`event_type`",
-        "`lineage_hash`",
-        "`state`"
+        "`kind`",
+        "`category`",
+        "`reason`",
+        "`needs_review`"
       ],
-      "pk": "`event_id`"
+      "pk": "随流水"
     },
     {
-      "entity": "指标状态",
+      "entity": "月度汇总",
       "keys": [
-        "`metric_id`",
-        "`status`",
-        "`value`",
-        "`as_of`",
-        "`read_model_hash`"
+        "`month`",
+        "`currency`",
+        "`income`",
+        "`expense`",
+        "`refund`",
+        "`net`",
+        "`investment_net`",
+        "`categories`"
       ],
-      "pk": "`metric_id`"
-    },
-    {
-      "entity": "报告快照",
-      "keys": [
-        "`report_id`",
-        "`status`",
-        "`snapshot_hash`",
-        "`manifest_hash`"
-      ],
-      "pk": "`report_id`"
+      "pk": "`month` + `currency`"
     }
   ]
 }

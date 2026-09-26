@@ -1,0 +1,29 @@
+name: PFI tests
+
+# PFI 唯一专属 CI：Linux 上跑全量测试（样例数据端到端：导入 → 分类 → 月报）。
+on:
+  push:
+    branches: [main]
+    paths: ["PFI/**", ".github/workflows/pfi-tests.yml"]
+  pull_request:
+    paths: ["PFI/**", ".github/workflows/pfi-tests.yml"]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+      - name: 安装 PFI 与测试依赖
+        run: python -m pip install --quiet -e "PFI[test]"
+      - name: 全量测试
+        working-directory: PFI
+        run: python -m pytest -q -p no:cacheprovider
+      - name: 样例月报冒烟
+        working-directory: PFI
+        run: PFI_DATA_DIR=examples/data python -m pfi_os report

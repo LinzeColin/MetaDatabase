@@ -1,8 +1,29 @@
 {
   "troubleshooting": [
-    {"symptom": "页面显示来源未加载", "cause": "余额、负债、持仓、价格或汇率快照缺失", "fix": "从来源中心登记真实来源；不要手填零值绕过。"},
-    {"symptom": "发布身份冲突", "cause": "App、manifest、前后端 hash 或运行响应不一致", "fix": "停止运行并重新构建同一候选；不要在最终验收时临时补丁。"},
-    {"symptom": "数据库恢复被拒绝", "cause": "目标 hash、sidecar、权限、文件系统或备份校验不满足", "fix": "先在隔离目标验证，保留原库并重新取得一致备份。"},
-    {"symptom": "历史真实源在当前树中不存在", "cause": "上游已迁移顶层 MetaDatabase", "fix": "使用 v0.2.5 immutable source lock 读取已复核 Git 对象；不得恢复旧目录。"}
+    {
+      "symptom": "提示缺少数据目录",
+      "cause": "没设 `PFI_DATA_DIR` 也没传 `--data-dir`",
+      "fix": "`export PFI_DATA_DIR=~/.pfi/data`"
+    },
+    {
+      "symptom": "提示找不到支付宝表头",
+      "cause": "文件不是支付宝交易明细导出，或导出列名变了",
+      "fix": "确认表头含 交易时间、收/支、金额 三列"
+    },
+    {
+      "symptom": "提示压缩包已加密",
+      "cause": "支付宝邮件里的账单压缩包带密码",
+      "fix": "先用支付宝给的解压密码解压，再把表格放进数据目录"
+    },
+    {
+      "symptom": "拉取失败",
+      "cause": "本机 `gh` 未登录或无私有仓读权限",
+      "fix": "`gh auth login` 后重试 `python -m pfi_os pull`"
+    },
+    {
+      "symptom": "某些文件被跳过",
+      "cause": "既不是支付宝也不是 CBA 格式",
+      "fix": "报告开头列出了被跳过的文件名，确认后移走"
+    }
   ]
 }
