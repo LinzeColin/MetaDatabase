@@ -13,7 +13,18 @@ name: 阅迁生产持续验证
         type: boolean
         default: false
   schedule:
+    # 每日：只读生产 Smoke（发布身份、/readyz、安全边界）。
     - cron: "23 2 * * *"
+    # 每周一：真实账户 E2E（注册→登录→跨设备→检索→微信读书同步→读回正文→导出→删号）。
+    #
+    # R2 月操作量预算（桶 weread-port-private，AGENTS.md「算不出来就不上线」）：
+    #   设测试密钥账号同步出 K 条笔记（脚本以 WRP_E2E_MAX_SYNCED_NOTES=2000 为上限，超出即失败）。
+    #   每轮 Class A（PUT）：/readyz 探针 1 + 手写笔记 1 + Obsidian 1 + 同步 K = K+3
+    #   每轮 Class B（GET）：探针 1 + 写后校验 3+K + 第二设备读 1 + 读回 1 + 导出 K+2 ≈ 2K+8
+    #   删号的 DeleteObject 在 R2 不计费；测试账户删除后存储净增 0。
+    #   上限 K=2000、每月最多 5 轮：Class A 5×2003=10,015（1.0% of 1M），
+    #   Class B 5×4008=20,040（0.2% of 10M），均远低于免费额度的 50%。
+    - cron: "47 3 * * 1"
 permissions:
   contents: read
 concurrency:
@@ -69,7 +80,8 @@ jobs:
         run: python3 tests/browser/production_account_e2e.py --core-only --url "$WEREAD_PORT_SITE_URL"
   formal-account-e2e:
     name: 注册、登录、持久化、跨设备、隔离、导入、画像与微信读书
-    if: github.event_name == 'workflow_dispatch' && inputs.formal_account_e2e
+    # 定时只在每周那条 cron 上跑；缺 WRP_E2E_WEREAD_KEY 时脚本直接失败，不跳过。
+    if: (github.event_name == 'workflow_dispatch' && inputs.formal_account_e2e) || (github.event_name == 'schedule' && github.event.schedule == '47 3 * * 1')
     needs: production-smoke
     runs-on: ubuntu-latest
     timeout-minutes: 25

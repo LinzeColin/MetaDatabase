@@ -27,6 +27,8 @@ REQUIRED_WEREAD_CAPABILITIES = {
     "/review/list/mine", "/book/info", "/book/getprogress",
     "/book/chapterinfo", "/readdata/detail", "/book/recommend",
 }
+# 与 weread-port-postlaunch.yml 中的 R2 月操作量预算对应：每条同步笔记 1 次 PUT + 2 次 GET。
+MAX_SYNCED_NOTES = int(os.environ.get("WRP_E2E_MAX_SYNCED_NOTES", "2000"))
 OAUTH_HOSTS = {
     "google": "accounts.google.com",
     "github": "github.com",
@@ -233,6 +235,10 @@ def main() -> int:
                 if not any(event.get("entityId") == note["id"] for event in pulled.get("events", [])):
                     raise AssertionError("跨设备同步未包含新笔记")
                 report["checks"].append({"id": "cross-device-persistence-sync", "status": "PASS"})
+                listed = expect(api(page_a2, "/notes?limit=500"), 200, "第二设备列出笔记")["notes"]
+                if not any(item.get("id") == note["id"] for item in listed if "生产验收" in str(item.get("title", ""))):
+                    raise AssertionError("按标题检索不到刚创建的笔记")
+                report["checks"].append({"id": "note-list-search", "status": "PASS"})
 
                 context_b = browser.new_context(locale="zh-CN")
                 page_b = open_origin(context_b, origin)
@@ -272,6 +278,16 @@ def main() -> int:
                     if coverage.get("legacyTop5CeilingRemoved") is not True or int(coverage.get("detailedBooks") or 0) <= 5:
                         raise AssertionError("真实微信读书读取仍未证明突破 Top 5")
                     report["checks"].append({"id": "weread-key-login-wide-sync", "status": "PASS", "detailedBooks": int(coverage.get("detailedBooks") or 0), "capabilityCount": int(coverage.get("capabilityCount") or 0)})
+                    # 业务判据：同步必须真的产出可解密读回的微信读书笔记，而不只是任务状态 COMPLETE。
+                    synced = [item for item in expect(api(page_a2, "/notes?limit=5000"), 200, "列出同步后的笔记")["notes"] if item.get("source") == "weread"]
+                    if not synced:
+                        raise AssertionError("微信读书同步完成但账户里没有任何 weread 笔记；测试密钥对应的账号需至少有 1 条划线或想法")
+                    if len(synced) > MAX_SYNCED_NOTES:
+                        raise AssertionError(f"测试账号同步出 {len(synced)} 条笔记，超过 R2 预算假设 {MAX_SYNCED_NOTES}；先按 workflow 注释重算月操作量再调整")
+                    readback = expect(api(page_a2, f"/notes/{synced[0]['id']}"), 200, "读回微信读书笔记正文")["note"]
+                    if not str(readback.get("content") or "").strip():
+                        raise AssertionError("微信读书笔记读回正文为空")
+                    report["checks"].append({"id": "weread-note-readback", "status": "PASS", "wereadNotes": len(synced)})
 
                 dashboard = expect(api(page_a2, "/analytics/dashboard"), 200, "读取画像与行为可视化")["dashboard"]
                 if not dashboard.get("summary") or not isinstance(dashboard.get("noteActivityHeatmap"), list) or not isinstance(dashboard.get("recommendations"), list):
@@ -281,8 +297,8 @@ def main() -> int:
                 report["checks"].append({"id": "profile-behavior-visualization", "status": "PASS", "recommendations": len(dashboard.get("recommendations", []))})
 
                 export = expect(api(page_a2, "/account/export"), 200, "导出账户")
-                if not isinstance(export.get("notes"), list):
-                    raise AssertionError("账户导出缺少笔记")
+                if not any(item.get("id") == note["id"] and item.get("content") == "用于验证服务端长期存储、跨设备同步和租户隔离。" for item in export.get("notes") or []):
+                    raise AssertionError("账户导出缺少验收笔记正文")
                 delete_account(page_b, csrf_b)
                 account_b = None
                 delete_account(page_a2, csrf_current_a)
