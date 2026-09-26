@@ -297,6 +297,15 @@ export class PlatformStore {
     });
   }
 
+  listNoteObjectKeys(accountId, noteId) {
+    return this.db.prepare("SELECT object_key AS objectKey FROM note_objects WHERE account_id=? AND note_id=?")
+      .all(accountId, noteId).map(row => row.objectKey);
+  }
+
+  deleteNoteObject(accountId, objectKey) {
+    return Number(this.db.prepare("DELETE FROM note_objects WHERE account_id=? AND object_key=?").run(accountId, objectKey).changes) === 1;
+  }
+
   listBookSkillObjectKeys(accountId, id) {
     return this.db.prepare("SELECT object_key AS objectKey FROM book_skill_objects WHERE account_id=? AND book_skill_id=? ORDER BY created_at")
       .all(accountId, id).map(row => row.objectKey);

@@ -79,7 +79,7 @@ sudo python3 service/scripts/platform_preflight.py --env-file /etc/weread-port/p
 sudo python3 service/install_platform.py --apply
 ```
 
-启动、停止、诊断、备份、恢复、回滚、状态适配和生产 Smoke 的精确命令见正式任务包 `assets/OPERATIONS_RUNBOOK.md`。安装器采用版本化 release 和 `current` 软链接，失败时不得覆盖 Owner 的后续修改。
+日常运维命令：`sudo python3 service/scripts/platform_ops.py {health,backup,restore-check,restore,facts-sync,private-database-backup,r2-to-oci}`；systemd 单元见 `service/systemd/`。安装器采用版本化 release 和 `current` 软链接，失败时不得覆盖 Owner 的后续修改。
 
 ## 安全与真实性边界
 
@@ -89,11 +89,24 @@ sudo python3 service/install_platform.py --apply
 - 生产 OAuth、R2、OVH、Private-Database、OCI 与 Cloudflare Worker 的真实可用性只能由目标环境证据裁决，不能由本地测试冒充。
 
 
-## 冻结浏览器验收依赖
+## 生产持续验证（业务判据）
 
-核心账户 UI 与生产账户链路不得跳过浏览器验收。执行环境安装：
+`.github/workflows/weread-port-postlaunch.yml`：
 
-```bash
-python3 -m pip install --user -r requirements-production-e2e.txt
-# Chromium 必须位于 /usr/bin/chromium 或 PATH；也可设置 CHROMIUM_PATH。
-```
+- 每日 02:23 UTC：`scripts/smoke-site.py` 只读检查发布身份、`/readyz` 与安全边界。
+- 真实账户 E2E 只由 Owner 手动触发（`gh workflow run weread-port-postlaunch.yml -f formal_account_e2e=true`）：
+  `tests/browser/production_account_e2e.py` 用真实生产站注册两个临时账户，走完
+  登录→跨设备读取→按标题检索→微信读书密钥同步→**读回一条同步来的笔记正文**→导出（含正文）→删号。
+  「同步后能读回 weread 笔记正文」是本项目的业务判据；任务状态 COMPLETE 不算。
+  它使用 Owner 唯一的微信读书密钥（仓库 Secret `WRP_E2E_WEREAD_KEY`）：运行期间密钥绑在临时账户上，
+  中途失败且删号失败时，密钥会留在孤儿账户里、Owner 本人账户无法绑定（`CREDENTIAL_IN_USE`）。
+  因此它不进定时任务，只在 Owner 在场、站点健康时手动跑。
+
+本地运行：`python3 -m pip install -r requirements-production-e2e.txt && python3 -m playwright install chromium`，
+再 `WRP_E2E_WEREAD_KEY=... python3 tests/browser/production_account_e2e.py --url https://weread.linzezhang.com`。
+
+## 笔记版本保留
+
+每条笔记在 R2 只保留最新 3 个版本对象（Owner 裁定，Private-Database `OPS/AGENT_ONBOARDING.md` §9.4）。
+写入第 N 版后按 `note_objects` 里已知的 key 删除 N-3 及更旧版本，不做 ListObjects；删除失败时保留索引行
+并写 `NOTE_VERSION_PRUNE_FAILED` outbox 事件，下次写入或销户时重试。
