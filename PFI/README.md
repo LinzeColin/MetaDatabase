@@ -1,87 +1,65 @@
 # PFI
 
-`PFI` 是本地优先的 Personal Financial Intelligence 项目。当前唯一产品版本为 `v0.2.5`，canonical 产品根为本目录；`QBVS`、`Alpha`、`Ralpha`、`Serenity` 均不是 PFI 子模块。
+Personal Financial Intelligence：把本人的**支付宝账单**和 **CBA（Commonwealth Bank）流水**导入，
+自动分类，算出**每月收入 / 支出 / 退款 / 结余 / 类别排行 / 环比趋势**，输出 Markdown 报告，或在本地 Streamlit 界面里看。
 
-## 当前已验收冻结版本
+> 命名陷阱：仓里的 `LinzeDatabase/PFI/` 是旧数据目录的路牌，和本项目 `PFI/` 不是同一个东西。
 
-状态标识：`PFI-V025-DELIVERED-REMOTE-RECOVERY-READY-LOCAL-RETIREMENT`
+## 做什么
 
-- Roadmap：Stage 0–12 已完成；`S12-P3-T4` 已由 owner 精确最终验收并执行 release freeze。
-- 验收 Gate：A/B/C、evidence-index、请求时间、Stage 0–12 与五项非阻断 P2 已精确绑定；初审 `3` 项 P1 均 `closed_verified`，复审新增 `0 P0 / 0 P1 / 0 minor`。
-- 任务进度：`156/156 (100%)`；Stage 12 为 `12/12 (100%)`。
-- 唯一 CLI-only canonical App 最终重装已实际执行并通过；final delivery commit `d488b1f47d5ef8dd5f95fc7d6f9a5382d1486a8a` 已进入 GitHub `main`，当前远端仍保持已验收 product tree `a6aae2ae9e89f601b9a1833a45947ed625aa100c`。
-- 原始 Roadmap 与 TaskPack 已归档到 `docs/source_packages/pfi_v025/`；本机 PFI worktree、App、入口、Downloads 原包与可重建 runtime 已获授权退休，缺失属于迁移后的预期状态。
-- `final_human_acceptance=true`、`release_freeze_performed=true`、`final_reinstall_performed=true`、`production_accepted=true`、`push_performed=true`；v0.2.5 下一产品任务为 `NONE`。
+| 步骤 | 代码 | 说明 |
+|---|---|---|
+| 导入 | `src/pfi_os/importers.py` | 支付宝 CSV/ZIP（UTF-8 或 GB18030，自动跳过导出头尾说明）；CBA NetBank CSV（无表头 `日期,金额,描述,余额`，或带 Date/Amount、Debit/Credit 表头）。递归扫描数据目录，跨文件去重（支付宝按交易订单号）。|
+| 分类 | `src/pfi_os/classify.py` | 每笔定性质：`expense` 消费 / `income` 收入 / `refund` 退款 / `transfer` 自有账户搬运与还款 / `investment` 基金·余额宝·券商·黄金 / `excluded` 交易关闭或方向未知。类别：支付宝用自带“交易分类”，CBA 用关键词。数据目录下可放 `rules.json` 覆盖。|
+| 月报 | `src/pfi_os/report.py` | 按月、按币种（CNY / AUD 分开，不做汇率换算）汇总；净支出 = 支出 − 退款，结余 = 收入 − 净支出；转账、还款、投资不计收支，投资净流单列。|
+| 界面 | `src/pfi_os/ui.py` | 月度图表、类别明细、流水表、只看需复核。|
 
-## 当前 release identity
+`rules.json` 例子（命中即用，优先于内置规则）：
 
-- Version：`v0.2.5`
-- Build：`pfi-v025-s1p1-20260712.1`
-- App：`0.2.5 / 20260712.1`
-- Runtime source commit：`78375ec98fc1265abd03ef10087cc05beccab8b4`
-- Remediation candidate：`c8ce63aac785ae1f119cfe1ff993c4e81436bf97`
-- Reviewed remediation closure：`559cf190ccfd97aabcf37a5edf2bf1e9abe300fc`
-- Rereview evidence：`123f5a6f7e7af22c283e49e55c2ba581310238d5`
-- Evidence index：`sha256:ebd03b8abf92238aac0e3f972461e35de6ce4b3be27c3662ab24f6af7b342344`
-- Canonical App：最终 CLI 原子重装于 `2026-07-16T00:27:09Z` 实际执行并通过 version/build/codesign/project-binding/hash；本地迁移后该 App 可不存在，按本页 source package 与 GitHub `main` 重建。
-- 当前用户边界：禁止 Finder、`open`、LaunchServices、AppleScript 与 GUI 文件操作；上述操作计数保持 0。
-
-## 生产真值边界
-
-- 四个已复核支付宝来源由 [`config/sources/v025_immutable_real_source_lock.json`](config/sources/v025_immutable_real_source_lock.json) 固定 OID/bytes/SHA-256，并已在迁移后的 `LinzeColin/MetaDatabase@main` commit `8fad21d7e578c8ec56a1997d3a0e2f4a34a2fd6f` 逐项复验；不得恢复旧顶层 `MetaDatabase`。
-- 真实交易规模为 8,815 raw / 8,808 ledger；Phase 12.2 的一次人工工作流复核使待复核计数从 803 变为 802，并在重启后持久。
-- `SRC-HOLDINGS` 仍为 `not_loaded/not_run`；五份报告保持 `3 blocked / 2 partial`。缺失来源不得显示为零或财务通过。
-- Canonical private SQLite 在目标 Mac 演练中只读；restore/rollback 只作用于隔离副本。初审 `3` 项 P1 已独立复审关闭，`5` 项 P2 residual 继续明确披露。
-
-## Stage 12 初审、整改与复审证据
-
-- 初审报告：`docs/pfi_v025/stage_12/STAGE_12_WHOLE_STAGE_REVIEW_INITIAL.md`
-- Findings：`reports/pfi_v025/stage_12/whole_stage_review/initial_review_findings.json`
-- Requirement matrix：`reports/pfi_v025/stage_12/whole_stage_review/requirement_matrix.json`
-- Phase/index binding：`reports/pfi_v025/stage_12/whole_stage_review/phase_commit_binding.json`、`final_index_audit.json`
-- Release/App truth：`reports/pfi_v025/stage_12/whole_stage_review/release_identity_audit.json`、`entry_audit.json`
-- Fresh real E2E：`reports/pfi_v025/stage_12/whole_stage_review/fresh_real_e2e.json`
-- Review evidence：`reports/pfi_v025/stage_12/whole_stage_review/evidence.json`
-- 整改说明：`docs/pfi_v025/stage_12/STAGE_12_WHOLE_STAGE_REVIEW_REMEDIATION.md`
-- 整改结论：`reports/pfi_v025/stage_12/whole_stage_review/remediation/closed_findings.json`
-- Exact binding：`reports/pfi_v025/stage_12/whole_stage_review/remediation/exact_binding.json`
-- Release identity：`reports/pfi_v025/stage_12/whole_stage_review/remediation/release_identity.json`
-- CLI 入口隔离：`reports/pfi_v025/stage_12/whole_stage_review/remediation/entry_quarantine.json`
-- 整改 evidence：`reports/pfi_v025/stage_12/whole_stage_review/remediation/evidence.json`
-- 独立复审说明：`docs/pfi_v025/stage_12/STAGE_12_WHOLE_STAGE_REVIEW_REREVIEW.md`
-- 复审 findings：`reports/pfi_v025/stage_12/whole_stage_review/rereview/findings.json`
-- 复审 requirement matrix：`reports/pfi_v025/stage_12/whole_stage_review/rereview/requirement_matrix.json`
-- 复审 evidence：`reports/pfi_v025/stage_12/whole_stage_review/rereview/evidence.json`
-- 最终验收：`reports/pfi_v025/stage_12/final_acceptance/human_acceptance.json`
-- Release freeze：`reports/pfi_v025/stage_12/final_acceptance/release_freeze.json`
-- Final acceptance evidence：`reports/pfi_v025/stage_12/final_acceptance/evidence.json`
-- Final CLI reinstall：`reports/pfi_v025/stage_12/final_delivery/cli_app_reinstall.json`
-
-真正的 `human_acceptance.json` 已在整阶段审查、整改、独立复审及 owner 精确声明全部满足后创建并通过 TaskPack schema；App 最终重装、GitHub main 上传与 post-push parity 均已闭合。本地退休后的恢复入口见 `docs/source_packages/pfi_v025/SOURCE_PROVENANCE.md`。
-
-## 运行与验证
-
-```bash
-# 当前 release identity（只读）
-PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=PFI/src \
-  PFI/.venv/bin/python -B PFI/scripts/v025/release_cache_contract.py \
-  --project-root PFI --isolated-candidate --policy-json
-
-# Stage 12 final acceptance 与历史复审验证（只读，不 push、不重装）
-PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=PFI/src:PFI/scripts/v025 \
-  PFI/.venv/bin/python -B \
-  PFI/scripts/v025/stage12_whole_review_final_acceptance.py --verify
-
-PFI/.venv/bin/python -B -m pytest -q -p no:cacheprovider \
-  PFI/tests/test_v025_stage12_release_freeze.py \
-  PFI/tests/test_v025_stage12_whole_review_remediation.py \
-  PFI/tests/test_v025_stage12_whole_review_rereview.py \
-  PFI/tests/test_v025_stage12_whole_review_final_acceptance.py
-
-# Canonical governance 与双平面检查
-PFI/.venv/bin/python -B scripts/lean_governance.py check-render --project PFI
-PFI/.venv/bin/python -B PFI/machine/tools/check_dual_plane_ci.py \
-  --root PFI --projects . --require-projects
+```json
+[{"match": "transfer to landlord", "kind": "expense", "category": "住房物业"}]
 ```
 
-历史执行记录保存在 `docs/pfi_v025/` 与 `reports/pfi_v025/`；当前状态只以 `docs/governance/project.yaml`、`docs/governance/roadmap.yaml`、`docs/governance/development_events.jsonl`、`VERSION` 和本摘要为准。
+## 怎么跑
+
+Windows / macOS / Linux 相同，Python ≥ 3.10：
+
+```bash
+pip install -e "PFI[app]"                         # 只要命令行报告可不带 [app]
+export PFI_DATA_DIR=~/.pfi/data                   # 真实流水所在目录（仓外）
+
+python -m pfi_os report                           # 打印月度收支报告
+python -m pfi_os report --out ~/.pfi/月报.md       # 写文件
+python -m pfi_os ledger --out ~/.pfi/ledger.csv   # 导出逐笔分类结果，便于复核
+python -m pfi_os app                              # 本地界面 http://127.0.0.1:8501
+# 等价：PFI_DATA_DIR=... streamlit run PFI/src/pfi_os/ui.py
+```
+
+macOS 可双击 `StartPFI.command`，它只调用 `python -m pfi_os app`（`PFI_DATA_DIR` 可写在 `~/.pfi/env`）。
+
+先用仓内样例试：`PFI_DATA_DIR=PFI/examples/data python -m pfi_os report`。
+
+测试（Linux 全量，CI：`.github/workflows/pfi-tests.yml`）：
+
+```bash
+pip install -e "PFI[test]" && cd PFI && python -m pytest -q
+```
+
+## 数据在哪
+
+- **真实流水不进本仓**。支付宝 4 年账单（4 份原始 CSV，约 8,815 条）在私有仓
+  `LinzeColin/Private-Database` 的 `Private-MetaDatabase/`，domain `LinzeDatabase-alipay`。禁止 clone 私有仓。
+- 拉到本机（需要本机 `gh auth login` 且对私有仓有读权限；客户端用本仓 `EEI/scripts/private_db_client.py`，
+  或 `KMOS/KMDatabase/machine/tools/private_db_client.py` 的同协议实现）：
+
+```bash
+export PFI_DATA_DIR=~/.pfi/data
+python -m pfi_os pull --client EEI/scripts/private_db_client.py
+# 等价手工两步：
+python3 EEI/scripts/private_db_client.py list Private-MetaDatabase --prefix objects/ | grep '_alipay_20'
+python3 EEI/scripts/private_db_client.py get  Private-MetaDatabase objects/<xx>/<sha256>_alipay_<起>-<止>_<hash>.csv "$PFI_DATA_DIR/alipay/<同名>.csv"
+```
+
+  `pull` 只拉 `alipay_YYYYMMDD-YYYYMMDD_*.csv` 原始账单，不拉旧的 processed 汇总表（否则会重复计数）。
+- CBA 流水：在 NetBank 导出 CSV，放进 `$PFI_DATA_DIR/cba/`。新导出的账单直接放进数据目录即可，重叠区间会自动去重。
+- 仓内只有 `examples/data/` 的手工样例（无真实个人信息），测试用它逐项核对月报数字。

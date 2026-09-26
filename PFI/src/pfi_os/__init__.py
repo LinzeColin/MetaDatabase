@@ -1,3 +1,3 @@
-"""PFIOS: personal quantitative research and backtesting."""
+"""PFI：个人流水（支付宝 / CBA）导入 → 分类 → 月度收支报告。"""
 
-__version__ = "0.1.0"
+__version__ = "0.3.0"
