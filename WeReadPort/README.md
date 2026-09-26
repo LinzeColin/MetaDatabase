@@ -94,11 +94,13 @@ sudo python3 service/install_platform.py --apply
 `.github/workflows/weread-port-postlaunch.yml`：
 
 - 每日 02:23 UTC：`scripts/smoke-site.py` 只读检查发布身份、`/readyz` 与安全边界。
-- 每周一 03:47 UTC：`tests/browser/production_account_e2e.py` 用真实生产站注册两个临时账户，走完
+- 真实账户 E2E 只由 Owner 手动触发（`gh workflow run weread-port-postlaunch.yml -f formal_account_e2e=true`）：
+  `tests/browser/production_account_e2e.py` 用真实生产站注册两个临时账户，走完
   登录→跨设备读取→按标题检索→微信读书密钥同步→**读回一条同步来的笔记正文**→导出（含正文）→删号。
-  「同步后能读回 weread 笔记正文」是本项目在跑的业务判据；任务状态 COMPLETE 不算。
-  需要仓库 Secret `WRP_E2E_WEREAD_KEY`（专用测试账号的微信读书密钥）和变量 `WEREAD_PORT_SITE_URL`，缺了直接失败。
-  R2 月操作量预算写在该 workflow 注释里。
+  「同步后能读回 weread 笔记正文」是本项目的业务判据；任务状态 COMPLETE 不算。
+  它使用 Owner 唯一的微信读书密钥（仓库 Secret `WRP_E2E_WEREAD_KEY`）：运行期间密钥绑在临时账户上，
+  中途失败且删号失败时，密钥会留在孤儿账户里、Owner 本人账户无法绑定（`CREDENTIAL_IN_USE`）。
+  因此它不进定时任务，只在 Owner 在场、站点健康时手动跑。
 
 本地运行：`python3 -m pip install -r requirements-production-e2e.txt && python3 -m playwright install chromium`，
 再 `WRP_E2E_WEREAD_KEY=... python3 tests/browser/production_account_e2e.py --url https://weread.linzezhang.com`。
