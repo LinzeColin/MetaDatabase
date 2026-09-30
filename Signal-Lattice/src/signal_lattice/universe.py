@@ -1,10 +1,13 @@
-"""候选池：美国上市中小市值普通股。硬门写成常量，由 tests/test_universe.py 钉住。
+"""候选池：美国上市中小市值普通股（本土申报人）。硬门写成常量，由 tests/test_universe.py 钉住。
 
 流程：Nasdaq Trader 符号目录（剔除 ETF/测试股/优先股/权证/单位/ADS/SPAC）
 → 与 SEC company_tickers_exchange 取交集 → 新浪 gb_ 报价（价格）
-→ 市值 = SEC 申报流通股 × 最新价 → 腾讯日线算近 20 日成交额中位数
+→ 市值 = SEC 申报流通股 × 最新价；SEC 口径或新浪口径任一超过上限即剔除（宁可少，不混进大盘）
+→ 只收美国本土申报人：近 18 个月内在 SEC 有 10-K 或 10-Q（submissions 核对），
+  只报 20-F / 40-F / 6-K 的外国发行人剔除
+→ 腾讯日线算近 20 日成交额中位数
 → 输出不可变快照 universe-<日期>-<内容hash>.json。
-新浪市值只做交叉校验（差 >20% 标记，不剔除）。
+新浪市值不再只是交叉校验：超过上限直接剔除；与 SEC 口径差 >20% 仍标记。
 """
 
 from __future__ import annotations
@@ -24,7 +27,7 @@ from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence
 from zoneinfo import ZoneInfo
 
-from .evidence.sec_client import SecClient, SecNotFound
+from .evidence.sec_client import SecClient, SecFetchError, SecNotFound
 from .marketdata.base import DiskCache, HttpClient, MarketDataError, decode_text
 from .marketdata.models import Bar, Instrument
 from .marketdata.sina import SINA_REFERER, _ASSIGNMENT, _parse_source_time
@@ -32,7 +35,7 @@ from .marketdata.tencent import TencentKlineProvider
 
 # ---- 硬门（改这里必须同时改测试，测试会钉死这些数）-------------------------
 MIN_MARKET_CAP_USD = 300_000_000
-MAX_MARKET_CAP_USD = 10_000_000_000
+MAX_MARKET_CAP_USD = 5_000_000_000
 MIN_PRICE_USD = 3.0
 MIN_MEDIAN_DOLLAR_VOLUME_USD = 3_000_000
 DOLLAR_VOLUME_WINDOW_DAYS = 20
@@ -40,6 +43,10 @@ CAP_CROSSCHECK_TOLERANCE = 0.20
 # 输入有效性：SEC 流通股数的披露日不能太旧；日线最后一根不能太旧。
 MAX_SHARES_AGE_DAYS = 400
 MAX_BAR_AGE_DAYS = 7
+# 只收美国本土申报人：近 18 个月内必须有 10-K / 10-Q（含过渡期报告）；只报下列外国发行人表格的剔除。
+DOMESTIC_FILER_LOOKBACK_MONTHS = 18
+DOMESTIC_PERIODIC_FORMS = ("10-K", "10-KT", "10-Q", "10-QT")
+FOREIGN_ISSUER_FORMS = ("20-F", "40-F", "6-K")
 
 NASDAQ_LISTED_URL = "https://www.nasdaqtrader.com/dynamic/SymDir/nasdaqlisted.txt"
 OTHER_LISTED_URL = "https://www.nasdaqtrader.com/dynamic/SymDir/otherlisted.txt"
@@ -63,7 +70,6 @@ CAP_BUCKETS = (
     (500_000_000, 1_000_000_000, "$0.5-1B"),
     (1_000_000_000, 2_000_000_000, "$1-2B"),
     (2_000_000_000, 5_000_000_000, "$2-5B"),
-    (5_000_000_000, 10_000_000_000, "$5-10B"),
 )
 
 # 证券名称里出现这些词的不是普通股（优先股/权证/权利/单位/存托凭证/票据/基金/SPAC）。
@@ -115,6 +121,72 @@ class SinaQuote:
     market_cap: Optional[float]
     shares: Optional[float]
     source_time: Optional[datetime]
+
+
+@dataclass(frozen=True)
+class FilingProfile:
+    """来自 SEC submissions：本土申报人判定所需的最少事实，以及登记地与行业码。"""
+    domestic_form: Optional[str]        # 回看期内最近一份 10-K/10-KT/10-Q/10-QT 的表格类型
+    domestic_filed: Optional[str]
+    domestic_accession: Optional[str]
+    foreign_form_latest: Optional[str]  # 回看期内最近一份 20-F/40-F/6-K
+    foreign_form_filed: Optional[str]
+    state_of_business: Optional[str]    # 主要营业地址的州/国家代码（如 CA、TX、F4=中国）
+    sic: Optional[str]
+    sic_description: Optional[str]
+
+
+def months_before(day: date, months: int) -> date:
+    year, month = day.year, day.month - months
+    while month <= 0:
+        month += 12
+        year -= 1
+    last_day = [31, 29 if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0) else 28,
+                31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1]
+    return date(year, month, min(day.day, last_day))
+
+
+def filing_profile(payload: Mapping, today: date) -> FilingProfile:
+    """submissions 的 recent 列表 → 本土申报人证据。只看 filed <= today 且在回看期内的申报。"""
+    recent = (payload.get("filings") or {}).get("recent") or {}
+    forms = recent.get("form") or []
+    filed_dates = recent.get("filingDate") or []
+    accessions = recent.get("accessionNumber") or []
+    cutoff = months_before(today, DOMESTIC_FILER_LOOKBACK_MONTHS).isoformat()
+    today_iso = today.isoformat()
+    best_domestic = None
+    best_foreign = None
+    for index, form in enumerate(forms):
+        filed = filed_dates[index] if index < len(filed_dates) else None
+        if not filed or not (cutoff <= filed <= today_iso):
+            continue
+        accession = accessions[index] if index < len(accessions) else None
+        if form in DOMESTIC_PERIODIC_FORMS and (best_domestic is None or filed > best_domestic[1]):
+            best_domestic = (form, filed, accession)
+        if form in FOREIGN_ISSUER_FORMS and (best_foreign is None or filed > best_foreign[1]):
+            best_foreign = (form, filed)
+    business = ((payload.get("addresses") or {}).get("business") or {})
+    return FilingProfile(
+        domestic_form=best_domestic[0] if best_domestic else None,
+        domestic_filed=best_domestic[1] if best_domestic else None,
+        domestic_accession=best_domestic[2] if best_domestic else None,
+        foreign_form_latest=best_foreign[0] if best_foreign else None,
+        foreign_form_filed=best_foreign[1] if best_foreign else None,
+        state_of_business=business.get("stateOrCountry") or None,
+        sic=str(payload.get("sic")) if payload.get("sic") else None,
+        sic_description=payload.get("sicDescription") or None,
+    )
+
+
+def domestic_filer_reason(profile: Optional[FilingProfile]) -> Optional[str]:
+    """None 表示是本土申报人；否则返回剔除原因。宁可少：查不到 submissions 也剔除。"""
+    if profile is None:
+        return "NO_SUBMISSIONS"
+    if profile.domestic_form is None:
+        return "FOREIGN_ISSUER_FORMS_ONLY" if profile.foreign_form_latest else "NO_10K_10Q_IN_18_MONTHS"
+    if profile.foreign_form_filed and profile.foreign_form_filed > (profile.domestic_filed or ""):
+        return "SWITCHED_TO_FOREIGN_FORMS"  # 最近一份定期报告已是 20-F/40-F/6-K，不再按本土申报人处理
+    return None
 
 
 # ---- 符号目录 ---------------------------------------------------------------
@@ -299,11 +371,16 @@ def select_universe(
     quotes: Mapping[str, SinaQuote],
     fetch_bars: Callable[[Listing], Sequence[Bar]],
     now: datetime,
+    profile_for: Callable[[int], Optional[FilingProfile]],
     workers: int = 8,
 ) -> tuple[List[dict], Counter]:
-    """纯逻辑：输入都由调用方给，便于测试。返回 (入选条目, 各关淘汰计数)。"""
+    """纯逻辑：输入都由调用方给，便于测试。返回 (入选条目, 各关淘汰计数)。
+
+    profile_for(cik) 给出 SEC submissions 派生的申报画像（查不到返回 None，按剔除处理）；
+    它是必填项，没有任何路径可以绕过「只收本土申报人」这一关。"""
     funnel: Counter = Counter()
     today = now.astimezone(NEW_YORK).date()
+    pre_stage: List[tuple] = []
     stage: List[tuple] = []
     for listing in listings:
         sec = sec_ciks.get(listing.symbol)
@@ -337,7 +414,22 @@ def select_universe(
         if cap > MAX_MARKET_CAP_USD:
             funnel["CAP_ABOVE_MAX"] += 1
             continue
-        stage.append((listing, sec, quote, shares, cap))
+        if quote.market_cap is not None and quote.market_cap > MAX_MARKET_CAP_USD:
+            funnel["SINA_CAP_ABOVE_MAX"] += 1  # 两个口径任一超上限就剔除，宁可少
+            continue
+        pre_stage.append((listing, sec, quote, shares, cap))
+    funnel["need_filing_profile"] = len(pre_stage)
+
+    # submissions 每家一次请求：并发取（SecClient 内有进程级限速，总速率仍 ≤5 次/秒）。
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        profiles = list(pool.map(lambda item: profile_for(int(item[1]["cik"])), pre_stage))
+    for item, profile in zip(pre_stage, profiles):
+        reason = domestic_filer_reason(profile)
+        if reason:
+            funnel["NOT_DOMESTIC_FILER"] += 1
+            funnel["not_domestic_" + reason] += 1
+            continue
+        stage.append(item + (profile,))
     funnel["need_bars"] = len(stage)
 
     def load(item):
@@ -350,7 +442,7 @@ def select_universe(
         all_bars = list(pool.map(load, stage))
 
     entries: List[dict] = []
-    for (listing, sec, quote, shares, cap), bars in zip(stage, all_bars):
+    for (listing, sec, quote, shares, cap, profile), bars in zip(stage, all_bars):
         if bars is None:
             funnel["NO_BARS"] += 1
             continue
@@ -388,6 +480,12 @@ def select_universe(
             "last_bar_day": bars[-1].day.isoformat(),
             "last_bar_close_usd": bars[-1].close,
             "bars_source": "tencent_fqkline",
+            "domestic_form": profile.domestic_form,
+            "domestic_filed": profile.domestic_filed,
+            "domestic_accession": profile.domestic_accession,
+            "state_of_business": profile.state_of_business,
+            "sic": profile.sic,
+            "sic_description": profile.sic_description,
             "flags": flags,
         })
     entries.sort(key=lambda entry: entry["symbol"])
@@ -403,6 +501,9 @@ RULES = {
     "min_median_dollar_volume_20d_usd": MIN_MEDIAN_DOLLAR_VOLUME_USD,
     "dollar_volume_window_days": DOLLAR_VOLUME_WINDOW_DAYS,
     "cap_crosscheck_tolerance": CAP_CROSSCHECK_TOLERANCE,
+    "domestic_filer_lookback_months": DOMESTIC_FILER_LOOKBACK_MONTHS,
+    "domestic_periodic_forms": list(DOMESTIC_PERIODIC_FORMS),
+    "foreign_issuer_forms": list(FOREIGN_ISSUER_FORMS),
 }
 
 
@@ -442,11 +543,20 @@ def write_snapshot(snapshot: dict, out_dir: Path) -> Path:
     return path
 
 
+def _snapshot_today(snapshot: dict) -> date:
+    stamp = snapshot.get("generated_at")
+    if stamp:
+        return datetime.fromisoformat(stamp).astimezone(NEW_YORK).date()
+    return date.fromisoformat(snapshot["as_of_date"])
+
+
 def verify_snapshot(snapshot: dict, etf_symbols: Iterable[str] = ()) -> dict:
-    """读取端重算：不信快照里的派生值，按 SEC 流通股 × 价格重新核门槛。"""
+    """读取端重算：不信快照里的派生值，按 SEC 流通股 × 价格重新核门槛，并按存下的申报证据重核本土申报人。"""
     etfs = set(etf_symbols)
     etf_count = mega_count = below_count = low_price = low_liquidity = 0
+    foreign_count = 0
     buckets: Counter = Counter()
+    cutoff = months_before(_snapshot_today(snapshot), DOMESTIC_FILER_LOOKBACK_MONTHS).isoformat()
     for entry in snapshot["entries"]:
         cap = market_cap_usd(entry["shares_outstanding"], entry["price_usd"])
         etf_count += entry["symbol"] in etfs
@@ -454,6 +564,13 @@ def verify_snapshot(snapshot: dict, etf_symbols: Iterable[str] = ()) -> dict:
         below_count += cap < MIN_MARKET_CAP_USD
         low_price += entry["price_usd"] < MIN_PRICE_USD
         low_liquidity += entry["median_dollar_volume_20d_usd"] < MIN_MEDIAN_DOLLAR_VOLUME_USD
+        # 本土申报人证据缺失、表格不是 10-K/10-Q、或申报日早于 18 个月回看线，都算外国发行人/不合格。
+        foreign_count += not (
+            entry.get("domestic_form") in DOMESTIC_PERIODIC_FORMS
+            and entry.get("domestic_filed")
+            and entry["domestic_filed"] >= cutoff
+            and entry.get("domestic_accession")
+        )
         buckets[cap_bucket(cap)] += 1
     return {
         "total": len(snapshot["entries"]),
@@ -462,6 +579,7 @@ def verify_snapshot(snapshot: dict, etf_symbols: Iterable[str] = ()) -> dict:
         "below_min_cap_count": below_count,
         "below_min_price_count": low_price,
         "below_min_liquidity_count": low_liquidity,
+        "foreign_issuer_count": foreign_count,
         "buckets": {label: buckets.get(label, 0) for _, _, label in CAP_BUCKETS},
         "flagged_sina_cap_mismatch": sum("SINA_CAP_MISMATCH" in e["flags"] for e in snapshot["entries"]),
         "sina_cap_above_max": sum((e["sina_market_cap_usd"] or 0) > MAX_MARKET_CAP_USD for e in snapshot["entries"]),
@@ -469,7 +587,7 @@ def verify_snapshot(snapshot: dict, etf_symbols: Iterable[str] = ()) -> dict:
 
 
 def build(out_dir: Path, cache_dir: Path, now: Optional[datetime] = None, limit: Optional[int] = None,
-          log: Callable[[str], None] = print) -> tuple[Path, dict, dict]:
+          log: Callable[[str], None] = print, store=None) -> tuple[Path, dict, dict]:
     now = now or datetime.now(timezone.utc)
     http = HttpClient(timeout_seconds=20.0, attempts=3)
     sec = SecClient(Path(cache_dir) / "sec")
@@ -486,8 +604,25 @@ def build(out_dir: Path, cache_dir: Path, now: Optional[datetime] = None, limit:
         len(sec_ciks), len(shares), ",".join(periods), sec.requests_sent))
     quotes = fetch_sina_quotes(http, [listing.symbol for listing in directory.listings if listing.symbol in sec_ciks])
     log("sina quotes: %d" % len(quotes))
+    today = now.astimezone(NEW_YORK).date()
+    submissions_payloads: Dict[int, dict] = {}
+
+    def profile_for(cik: int) -> Optional[FilingProfile]:
+        try:
+            payload = sec.submissions(cik)
+        except SecFetchError:
+            return None
+        submissions_payloads[cik] = payload
+        return filing_profile(payload, today)
+
     entries, funnel = select_universe(
-        directory.listings, sec_ciks, shares, quotes, make_bar_fetcher(Path(cache_dir) / "bars"), now)
+        directory.listings, sec_ciks, shares, quotes, make_bar_fetcher(Path(cache_dir) / "bars"), now, profile_for)
+    if store is not None:  # 候选池核对过的 submissions 顺手入事实库，分支打分不必再请求一遍
+        for entry in entries:
+            payload = submissions_payloads.get(entry["cik"])
+            if payload is not None:
+                store.ingest_submissions(entry["cik"], payload, today)
+        log("submissions ingested into fact store: %d" % len(entries))
     for reason, count in directory.excluded.items():
         funnel["directory_excluded_" + reason] = count
     meta = {
@@ -505,23 +640,30 @@ def build(out_dir: Path, cache_dir: Path, now: Optional[datetime] = None, limit:
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
-    parser = argparse.ArgumentParser(description="生成美股中小盘候选池快照")
+    parser = argparse.ArgumentParser(description="生成美股中小盘（本土申报人）候选池快照")
     parser.add_argument("--out-dir", required=True, type=Path)
     parser.add_argument("--cache-dir", required=True, type=Path)
     parser.add_argument("--limit", type=int, default=None, help="只处理目录前 N 只（调试用）")
+    parser.add_argument("--fact-store", type=Path, default=None, help="把核对过的 submissions 入这个 SQLite 事实库")
     args = parser.parse_args(argv)
-    path, snapshot, report = build(args.out_dir, args.cache_dir, limit=args.limit)
+    store = None
+    if args.fact_store is not None:
+        from .evidence.factstore import FactStore
+        store = FactStore(args.fact_store)
+    path, snapshot, report = build(args.out_dir, args.cache_dir, limit=args.limit, store=store)
     print("snapshot:", path)
     print("funnel:", json.dumps(snapshot["funnel"], ensure_ascii=False, sort_keys=True))
     print("market-cap buckets:", json.dumps(report["buckets"], ensure_ascii=False))
     print("total:", report["total"])
     print("ETF count:", report["etf_count"])
-    print("mega-cap (>$10B) count:", report["mega_cap_count"])
+    print("above $5B (SEC-basis) count:", report["mega_cap_count"],
+          "| sina-basis above $5B:", report["sina_cap_above_max"])
+    print("foreign-issuer / non-domestic-filer count:", report["foreign_issuer_count"])
     print("below $0.3B / below $3 / below $3M-liquidity:", report["below_min_cap_count"],
           report["below_min_price_count"], report["below_min_liquidity_count"])
-    print("flagged SINA_CAP_MISMATCH:", report["flagged_sina_cap_mismatch"],
-          "| sina cap above $10B:", report["sina_cap_above_max"])
-    hard = report["etf_count"] + report["mega_cap_count"] + report["below_min_cap_count"] \
+    print("flagged SINA_CAP_MISMATCH:", report["flagged_sina_cap_mismatch"])
+    hard = report["etf_count"] + report["mega_cap_count"] + report["sina_cap_above_max"] \
+        + report["foreign_issuer_count"] + report["below_min_cap_count"] \
         + report["below_min_price_count"] + report["below_min_liquidity_count"]
     return 0 if hard == 0 and report["total"] > 0 else 1
 

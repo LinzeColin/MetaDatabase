@@ -1,0 +1,607 @@
+{
+  "schema": "signal-lattice-branch-params/1",
+  "skill": "bottleneck-serenity-skill",
+  "params_version": "0.0.0.1",
+  "source": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/references/scoring_model.md",
+  "dimension_weights": {
+    "constraint": {
+      "funded_demand": 15,
+      "architectural_necessity": 15,
+      "current_tightness": 10,
+      "supplier_concentration": 10,
+      "qualification_barrier": 15,
+      "substitution_difficulty": 15,
+      "expansion_lead_time": 10,
+      "policy_resilience": 10
+    },
+    "capture": {
+      "exposure_materiality": 15,
+      "pricing_power": 15,
+      "capacity_to_ship": 15,
+      "unit_economics": 10,
+      "contract_counterparty": 10,
+      "appropriability": 10,
+      "balance_sheet": 10,
+      "dilution_discipline": 10,
+      "capital_allocation": 5
+    },
+    "mispricing": {
+      "expectations_gap": 20,
+      "valuation_asymmetry": 20,
+      "coverage_gap": 10,
+      "catalyst_clarity": 15,
+      "estimate_revision_potential": 15,
+      "crowding_headroom": 10,
+      "entry_setup": 10
+    },
+    "evidence": {
+      "primary_source_coverage": 25,
+      "independent_corroboration": 20,
+      "numerical_traceability": 15,
+      "freshness": 15,
+      "contradiction_search": 15,
+      "source_independence": 10
+    },
+    "investability": {
+      "liquidity": 15,
+      "governance_accounting": 15,
+      "geopolitical_regulatory": 15,
+      "customer_diversification": 10,
+      "technology_resilience": 10,
+      "balance_sheet_survival": 15,
+      "float_gap_risk": 10,
+      "portfolio_fit": 10
+    }
+  },
+  "gates": {
+    "constraint_min": 60,
+    "capture_min": 55,
+    "evidence_min": 60,
+    "investability_min": 50,
+    "mispricing_min": 45,
+    "candidate_min_final": 62,
+    "priority_min_final": 75
+  },
+  "coverage": {
+    "min_by_dimension": {
+      "constraint": 0.4,
+      "capture": 0.5,
+      "mispricing": 0.4,
+      "evidence": 0.5,
+      "investability": 0.5
+    },
+    "required_factors": {
+      "constraint": [
+        "funded_demand",
+        "current_tightness"
+      ],
+      "capture": [
+        "pricing_power",
+        "unit_economics",
+        "dilution_discipline"
+      ],
+      "mispricing": [
+        "valuation_asymmetry"
+      ],
+      "evidence": [
+        "primary_source_coverage"
+      ],
+      "investability": [
+        "liquidity",
+        "balance_sheet_survival"
+      ]
+    }
+  },
+  "geometric_mean_floor": 0.01,
+  "duration": {
+    "upper_bounds_months": [
+      0,
+      6,
+      12,
+      24,
+      48
+    ],
+    "multipliers": [
+      0.5,
+      0.7,
+      0.85,
+      1.0,
+      1.07,
+      1.1
+    ],
+    "unknown_runway_multiplier": 0.85,
+    "monetization_lag_months_when_revenue_flowing": 3,
+    "contracted_forward_ramp_min_months": 12,
+    "hard_gate_runway_months": 6
+  },
+  "asymmetry": {
+    "unavailable_multiplier": 1.0
+  },
+  "financing_gap_runway_months": 12,
+  "rpo": {
+    "min_months_as_demand_evidence": 1.0
+  },
+  "text_markers": {
+    "marker_cap_rating": 2,
+    "corroborated_cap_rating": 4,
+    "min_count": 2,
+    "tightness_groups": [
+      "capacity_constrained",
+      "lead_times",
+      "allocation"
+    ]
+  },
+  "capacity": {
+    "volume_growth_min": 0.1,
+    "capex_intensity_min": 0.03,
+    "ppe_growth_min": 0.1,
+    "with_capex_rating": 3,
+    "with_ppe_bonus": 1,
+    "asset_light_rating": 2,
+    "shrinking_rating": 1,
+    "cap_rating": 4
+  },
+  "tightness": {
+    "revenue_yoy_min": 0.0,
+    "shrinking_cap_rating": 1,
+    "corroboration_revenue_yoy_min": 0.1
+  },
+  "pricing_power": {
+    "shrinking_cap_rating": 2
+  },
+  "governance": {
+    "start_rating": 4,
+    "nt_penalty": 2,
+    "nonreliance_penalty": 4,
+    "auditor_change_penalty": 1,
+    "restatement_penalty": 1,
+    "restatement_threshold": 0.05,
+    "min_filings_seen": 5
+  },
+  "geography": {
+    "us_rating": 4,
+    "foreign_rating": 2,
+    "china_hk_rating": 1
+  },
+  "evidence_factors": {
+    "critical_claims": [
+      "funded_demand",
+      "current_tightness",
+      "pricing_power",
+      "unit_economics"
+    ],
+    "source_independence_rating": 2,
+    "contradiction_clean_rating": 3,
+    "contradiction_tripped_rating": 1,
+    "restatement_threshold": 0.05,
+    "rpo_up_revenue_down": [
+      0.3,
+      -0.1
+    ]
+  },
+  "survival": {
+    "profitable_net_cash_rating": 4,
+    "debt_assumed_zero_cap_rating": 3
+  },
+  "balance_sheet": {
+    "debt_assumed_zero_cap_rating": 3
+  },
+  "entry_setup": {
+    "falling_knife_below_high": -0.5,
+    "falling_knife_cap": 2
+  },
+  "tables": {
+    "funded_demand_rpo_yoy": {
+      "direction": "higher",
+      "cuts": [
+        [
+          0.6,
+          5
+        ],
+        [
+          0.3,
+          4
+        ],
+        [
+          0.1,
+          3
+        ],
+        [
+          0.0,
+          2
+        ],
+        [
+          -0.1,
+          1
+        ]
+      ],
+      "floor": 0
+    },
+    "funded_demand_revenue_yoy": {
+      "direction": "higher",
+      "cuts": [
+        [
+          0.25,
+          3
+        ],
+        [
+          0.1,
+          2
+        ],
+        [
+          0.0,
+          1
+        ]
+      ],
+      "floor": 0
+    },
+    "tightness_gm_change_bps": {
+      "direction": "higher",
+      "cuts": [
+        [
+          400,
+          4
+        ],
+        [
+          200,
+          3
+        ],
+        [
+          50,
+          2
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "floor": 0
+    },
+    "pricing_power_gm_change_bps": {
+      "direction": "higher",
+      "cuts": [
+        [
+          500,
+          5
+        ],
+        [
+          300,
+          4
+        ],
+        [
+          100,
+          3
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          -100,
+          1
+        ]
+      ],
+      "floor": 0
+    },
+    "unit_economics_op_margin": {
+      "direction": "higher",
+      "cuts": [
+        [
+          0.2,
+          5
+        ],
+        [
+          0.12,
+          4
+        ],
+        [
+          0.05,
+          3
+        ],
+        [
+          0.0,
+          2
+        ],
+        [
+          -0.15,
+          1
+        ]
+      ],
+      "floor": 0
+    },
+    "balance_sheet_net_cash_to_cap": {
+      "direction": "higher",
+      "cuts": [
+        [
+          0.15,
+          5
+        ],
+        [
+          0.05,
+          4
+        ],
+        [
+          -0.05,
+          3
+        ],
+        [
+          -0.2,
+          2
+        ],
+        [
+          -0.4,
+          1
+        ]
+      ],
+      "floor": 0
+    },
+    "dilution_share_change_yoy": {
+      "direction": "lower",
+      "cuts": [
+        [
+          -0.02,
+          5
+        ],
+        [
+          0.01,
+          4
+        ],
+        [
+          0.03,
+          3
+        ],
+        [
+          0.08,
+          2
+        ],
+        [
+          0.2,
+          1
+        ]
+      ],
+      "floor": 0
+    },
+    "capital_allocation_net_buyback_yield": {
+      "direction": "higher",
+      "cuts": [
+        [
+          0.02,
+          5
+        ],
+        [
+          0.005,
+          4
+        ],
+        [
+          0.0,
+          3
+        ],
+        [
+          -0.02,
+          2
+        ],
+        [
+          -0.06,
+          1
+        ]
+      ],
+      "floor": 0
+    },
+    "valuation_percentile": {
+      "direction": "lower",
+      "cuts": [
+        [
+          0.15,
+          5
+        ],
+        [
+          0.3,
+          4
+        ],
+        [
+          0.5,
+          3
+        ],
+        [
+          0.7,
+          2
+        ],
+        [
+          0.85,
+          1
+        ]
+      ],
+      "floor": 0
+    },
+    "coverage_gap_market_cap": {
+      "direction": "lower",
+      "cuts": [
+        [
+          500000000,
+          4
+        ],
+        [
+          1000000000,
+          3
+        ],
+        [
+          2000000000,
+          2
+        ]
+      ],
+      "floor": 1
+    },
+    "catalyst_days_to_report": {
+      "direction": "lower",
+      "cuts": [
+        [
+          45,
+          3
+        ],
+        [
+          90,
+          2
+        ],
+        [
+          135,
+          1
+        ]
+      ],
+      "floor": 0
+    },
+    "entry_setup_ret_63d": {
+      "direction": "lower",
+      "cuts": [
+        [
+          0.1,
+          4
+        ],
+        [
+          0.3,
+          3
+        ],
+        [
+          0.6,
+          2
+        ]
+      ],
+      "floor": 1
+    },
+    "freshness_period_age_days": {
+      "direction": "lower",
+      "cuts": [
+        [
+          120,
+          5
+        ],
+        [
+          180,
+          4
+        ],
+        [
+          240,
+          3
+        ],
+        [
+          330,
+          2
+        ],
+        [
+          460,
+          1
+        ]
+      ],
+      "floor": 0
+    },
+    "numerical_traceability_fraction": {
+      "direction": "higher",
+      "cuts": [
+        [
+          0.9,
+          5
+        ],
+        [
+          0.75,
+          4
+        ],
+        [
+          0.6,
+          3
+        ],
+        [
+          0.4,
+          2
+        ],
+        [
+          0.2,
+          1
+        ]
+      ],
+      "floor": 0
+    },
+    "primary_coverage_claims": {
+      "direction": "higher",
+      "cuts": [
+        [
+          4,
+          5
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "floor": 0
+    },
+    "liquidity_dollar_volume": {
+      "direction": "higher",
+      "cuts": [
+        [
+          30000000,
+          5
+        ],
+        [
+          15000000,
+          4
+        ],
+        [
+          8000000,
+          3
+        ],
+        [
+          4500000,
+          2
+        ],
+        [
+          3000000,
+          1
+        ]
+      ],
+      "floor": 0
+    },
+    "survival_runway_months": {
+      "direction": "higher",
+      "cuts": [
+        [
+          36,
+          4
+        ],
+        [
+          24,
+          3
+        ],
+        [
+          12,
+          2
+        ],
+        [
+          6,
+          1
+        ]
+      ],
+      "floor": 0
+    },
+    "survival_debt_to_ocf": {
+      "direction": "lower",
+      "cuts": [
+        [
+          3,
+          3
+        ],
+        [
+          6,
+          2
+        ]
+      ],
+      "floor": 1
+    }
+  }
+}

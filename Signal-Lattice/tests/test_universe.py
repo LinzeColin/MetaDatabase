@@ -1,4 +1,5 @@
-"""候选池硬门：市值 3 亿～100 亿美元、价格 ≥3、20 日成交额中位数 ≥300 万；ETF 与超大盘必须为 0。"""
+"""候选池硬门：市值 3 亿～50 亿美元（SEC 口径与新浪口径任一超过即剔除）、价格 ≥3、20 日成交额中位数 ≥300 万、
+只收近 18 个月有 10-K/10-Q 的美国本土申报人；ETF、大盘、外国发行人必须为 0。"""
 
 from __future__ import annotations
 
@@ -64,7 +65,16 @@ def quote(symbol, price, cap=None):
     return U.SinaQuote(symbol, price, cap, None, None)
 
 
-def run(symbols_prices_shares, bars=None, sina_cap=None):
+def domestic_profile(form="10-Q", filed="2026-08-05", foreign=None, foreign_filed=None, state="TX"):
+    return U.FilingProfile(form, filed, "0000000000-26-000009" if form else None, foreign, foreign_filed, state,
+                           "3674", "Semiconductors")
+
+
+def all_domestic(cik):
+    return domestic_profile()
+
+
+def run(symbols_prices_shares, bars=None, sina_cap=None, profile_for=None):
     """symbols_prices_shares: {symbol: (price, shares)}；返回 (entries, funnel)。"""
     listings, sec, shares, quotes = [], {}, {}, {}
     for i, (symbol, (price, sh)) in enumerate(symbols_prices_shares.items(), start=1):
@@ -73,19 +83,24 @@ def run(symbols_prices_shares, bars=None, sina_cap=None):
         shares[i] = shares_rec(i, sh)
         quotes[symbol] = quote(symbol, price, (sina_cap or {}).get(symbol))
     fetch = (lambda listing: bars[listing.symbol]) if bars else (lambda listing: make_bars(listing.symbol))
-    return U.select_universe(listings, sec, shares, quotes, fetch, NOW, workers=2)
+    return U.select_universe(listings, sec, shares, quotes, fetch, NOW, profile_for or all_domestic, workers=2)
 
 
 class HardGateConstantsTests(unittest.TestCase):
     def test_gates_are_pinned(self):
         self.assertEqual(U.MIN_MARKET_CAP_USD, 300_000_000)
-        self.assertEqual(U.MAX_MARKET_CAP_USD, 10_000_000_000)
+        self.assertEqual(U.MAX_MARKET_CAP_USD, 5_000_000_000)
         self.assertEqual(U.MIN_PRICE_USD, 3.0)
         self.assertEqual(U.MIN_MEDIAN_DOLLAR_VOLUME_USD, 3_000_000)
         self.assertEqual(U.DOLLAR_VOLUME_WINDOW_DAYS, 20)
         self.assertEqual(U.CAP_CROSSCHECK_TOLERANCE, 0.20)
         self.assertEqual(U.RULES["min_market_cap_usd"], 3e8)
-        self.assertEqual(U.RULES["max_market_cap_usd"], 1e10)
+        self.assertEqual(U.RULES["max_market_cap_usd"], 5e9)
+        self.assertEqual(U.DOMESTIC_FILER_LOOKBACK_MONTHS, 18)
+        self.assertEqual(U.DOMESTIC_PERIODIC_FORMS, ("10-K", "10-KT", "10-Q", "10-QT"))
+        self.assertEqual(U.FOREIGN_ISSUER_FORMS, ("20-F", "40-F", "6-K"))
+        self.assertEqual(U.RULES["domestic_filer_lookback_months"], 18)
+        self.assertEqual(U.CAP_BUCKETS[-1][1], 5_000_000_000)  # 分档最高到 50 亿，没有 50-100 亿档
 
 
 class SymbolDirectoryTests(unittest.TestCase):
@@ -129,18 +144,26 @@ class MarketCapGateTests(unittest.TestCase):
         entries, funnel = run({
             "LOW": (10.0, 29_999_999),      # 2.99999990e8 < 3e8
             "MIN": (10.0, 30_000_000),      # 恰好 3 亿：含
-            "MAX": (10.0, 1_000_000_000),   # 恰好 100 亿：含
-            "OVER": (10.0, 1_000_000_001),  # 超大盘
+            "MAX": (10.0, 500_000_000),     # 恰好 50 亿：含
+            "OVER": (10.0, 500_000_001),    # 超过 50 亿：剔除
+            "OLDMAX": (10.0, 1_000_000_000),  # 旧上限 100 亿：现在也剔除
             "MID": (10.0, 200_000_000),
         })
         self.assertEqual([e["symbol"] for e in entries], ["MAX", "MID", "MIN"])
         self.assertEqual(funnel["CAP_BELOW_MIN"], 1)
-        self.assertEqual(funnel["CAP_ABOVE_MAX"], 1)
+        self.assertEqual(funnel["CAP_ABOVE_MAX"], 2)
+
+    def test_sina_cap_above_max_excludes_even_if_sec_cap_is_small(self):
+        # SEC 口径 5 亿但新浪口径 2000 亿（多类别股只报了一类股数之类）：宁可少，剔除。
+        entries, funnel = run({"AAA": (10.0, 50_000_000), "BBB": (10.0, 50_000_000)},
+                              sina_cap={"AAA": 999_999_999_999, "BBB": 5_000_000_000})
+        self.assertEqual([e["symbol"] for e in entries], ["BBB"])  # 新浪恰好 50 亿：含
+        self.assertEqual(funnel["SINA_CAP_ABOVE_MAX"], 1)
 
     def test_market_cap_is_sec_shares_times_price_not_sina_cap(self):
-        entries, _ = run({"AAA": (10.0, 50_000_000)}, sina_cap={"AAA": 999_999_999_999})
+        entries, _ = run({"AAA": (10.0, 50_000_000)}, sina_cap={"AAA": 900_000_000})
         self.assertEqual(entries[0]["market_cap_usd"], 500_000_000)
-        self.assertEqual(entries[0]["sina_market_cap_usd"], 999_999_999_999)
+        self.assertEqual(entries[0]["sina_market_cap_usd"], 900_000_000)
         self.assertIn("SINA_CAP_MISMATCH", entries[0]["flags"])
 
     def test_sina_cap_within_tolerance_is_not_flagged(self):
@@ -158,19 +181,19 @@ class MarketCapGateTests(unittest.TestCase):
         listings = [U.Listing("NOQ", "n", "Nasdaq"), U.Listing("NOS", "n", "Nasdaq")]
         sec = {"NOQ": sec_row(1), "NOS": sec_row(2)}
         entries, funnel = U.select_universe(listings, sec, {1: shares_rec(1, 5e7)}, {"NOS": quote("NOS", 10)},
-                                            lambda l: make_bars(l.symbol), NOW)
+                                            lambda l: make_bars(l.symbol), NOW, all_domestic)
         self.assertEqual(entries, [])
         self.assertEqual((funnel["NO_SINA_QUOTE"], funnel["NO_SEC_SHARES"]), (1, 1))
 
     def test_symbol_not_in_sec_is_dropped(self):
-        entries, funnel = U.select_universe([U.Listing("GHOST", "g", "Nasdaq")], {}, {}, {}, lambda l: [], NOW)
+        entries, funnel = U.select_universe([U.Listing("GHOST", "g", "Nasdaq")], {}, {}, {}, lambda l: [], NOW, all_domestic)
         self.assertEqual((entries, funnel["NOT_IN_SEC_TICKERS"]), ([], 1))
 
     def test_stale_sec_shares_rejected(self):
         listings = [U.Listing("OLD", "o", "Nasdaq")]
         entries, funnel = U.select_universe(
             listings, {"OLD": sec_row(1)}, {1: shares_rec(1, 5e7, end="2025-01-01")}, {"OLD": quote("OLD", 10)},
-            lambda l: make_bars(l.symbol), NOW)
+            lambda l: make_bars(l.symbol), NOW, all_domestic)
         self.assertEqual((entries, funnel["SEC_SHARES_STALE"]), ([], 1))
 
     def test_fallback_shares_need_sina_confirmation(self):
@@ -179,9 +202,82 @@ class MarketCapGateTests(unittest.TestCase):
         gaap = "us-gaap:CommonStockSharesOutstanding"
         shares = {1: shares_rec(1, 5e7, concept=gaap), 2: shares_rec(2, 5e7, concept=gaap)}
         quotes = {"CLA": quote("CLA", 10, 5.1e8), "CLB": quote("CLB", 10, 5e9)}  # CLB：只有一个类别的股数
-        entries, funnel = U.select_universe(listings, sec, shares, quotes, lambda l: make_bars(l.symbol), NOW)
+        entries, funnel = U.select_universe(listings, sec, shares, quotes, lambda l: make_bars(l.symbol), NOW, all_domestic)
         self.assertEqual([e["symbol"] for e in entries], ["CLA"])
         self.assertEqual(funnel["SHARES_FALLBACK_UNCONFIRMED"], 1)
+
+
+class DomesticFilerGateTests(unittest.TestCase):
+    """只收美国本土申报人：近 18 个月内有 10-K/10-Q；只报 20-F/40-F/6-K 的外国发行人剔除。"""
+
+    @staticmethod
+    def payload(filings, state="CA"):
+        forms, dates, accns = zip(*filings) if filings else ((), (), ())
+        return {"sic": "3674", "sicDescription": "Semiconductors", "addresses": {"business": {"stateOrCountry": state}},
+                "filings": {"recent": {"form": list(forms), "filingDate": list(dates),
+                                       "accessionNumber": list(accns)}}}
+
+    TODAY = date(2026, 9, 30)
+
+    def test_months_before_handles_month_ends_and_year_wrap(self):
+        self.assertEqual(U.months_before(date(2026, 9, 30), 18), date(2025, 3, 30))
+        self.assertEqual(U.months_before(date(2026, 3, 31), 1), date(2026, 2, 28))
+        self.assertEqual(U.months_before(date(2024, 3, 31), 1), date(2024, 2, 29))
+        self.assertEqual(U.months_before(date(2026, 1, 15), 18), date(2024, 7, 15))
+
+    def test_recent_10q_or_10k_is_domestic(self):
+        for form in ("10-Q", "10-K", "10-KT", "10-QT"):
+            profile = U.filing_profile(self.payload([(form, "2026-08-05", "0000000001-26-000001")]), self.TODAY)
+            self.assertIsNone(U.domestic_filer_reason(profile), form)
+            self.assertEqual((profile.domestic_form, profile.state_of_business, profile.sic), (form, "CA", "3674"))
+
+    def test_eighteen_month_boundary(self):
+        edge = U.filing_profile(self.payload([("10-K", "2025-03-30", "a")]), self.TODAY)
+        self.assertIsNone(U.domestic_filer_reason(edge))                       # 恰好 18 个月：含
+        old = U.filing_profile(self.payload([("10-K", "2025-03-29", "a")]), self.TODAY)
+        self.assertEqual(U.domestic_filer_reason(old), "NO_10K_10Q_IN_18_MONTHS")  # 差一天：剔除
+
+    def test_foreign_private_issuer_forms_only_are_excluded(self):
+        profile = U.filing_profile(self.payload([("20-F", "2026-04-01", "a"), ("6-K", "2026-09-01", "b"),
+                                                 ("40-F", "2026-03-01", "c")], state="F4"), self.TODAY)
+        self.assertEqual(U.domestic_filer_reason(profile), "FOREIGN_ISSUER_FORMS_ONLY")
+        self.assertIsNone(profile.domestic_form)
+
+    def test_other_forms_do_not_make_a_domestic_filer(self):
+        profile = U.filing_profile(self.payload([("8-K", "2026-09-01", "a"), ("4", "2026-09-02", "b"),
+                                                 ("10-K/A", "2026-08-01", "c"), ("S-3", "2026-07-01", "d")]), self.TODAY)
+        self.assertEqual(U.domestic_filer_reason(profile), "NO_10K_10Q_IN_18_MONTHS")
+
+    def test_switch_to_foreign_forms_after_last_10k_is_excluded(self):
+        profile = U.filing_profile(self.payload([("10-K", "2025-06-01", "a"), ("20-F", "2026-05-01", "b")]), self.TODAY)
+        self.assertEqual(U.domestic_filer_reason(profile), "SWITCHED_TO_FOREIGN_FORMS")
+
+    def test_filings_after_today_are_ignored_and_missing_submissions_excluded(self):
+        profile = U.filing_profile(self.payload([("10-Q", "2026-10-15", "future")]), self.TODAY)
+        self.assertEqual(U.domestic_filer_reason(profile), "NO_10K_10Q_IN_18_MONTHS")
+        self.assertEqual(U.domestic_filer_reason(None), "NO_SUBMISSIONS")
+
+    def test_gate_is_applied_inside_select_universe_and_counted(self):
+        profiles = {
+            1: domestic_profile(),                                                 # OK
+            2: U.filing_profile(self.payload([("20-F", "2026-04-01", "a")], "F4"), self.TODAY),   # 外国发行人
+            3: domestic_profile(form=None, filed=None),                            # 18 个月内没有 10-K/10-Q
+            4: None,                                                               # 查不到 submissions
+        }
+        entries, funnel = run({s: (10.0, 50_000_000) for s in ("DOM", "FPI", "GONE", "NOSUB")},
+                              profile_for=lambda cik: profiles[cik])
+        self.assertEqual([e["symbol"] for e in entries], ["DOM"])
+        self.assertEqual(funnel["NOT_DOMESTIC_FILER"], 3)
+        self.assertEqual(funnel["not_domestic_FOREIGN_ISSUER_FORMS_ONLY"], 1)
+        self.assertEqual(funnel["not_domestic_NO_SUBMISSIONS"], 1)
+        self.assertEqual(entries[0]["domestic_form"], "10-Q")
+        self.assertEqual(entries[0]["domestic_accession"], "0000000000-26-000009")
+
+    def test_profiles_are_only_requested_for_names_that_passed_the_cap_gates(self):
+        asked = []
+        run({"BIG": (10.0, 900_000_000), "SMALL": (10.0, 50_000_000)},
+            profile_for=lambda cik: asked.append(cik) or domestic_profile())
+        self.assertEqual(asked, [2])
 
 
 class LiquidityGateTests(unittest.TestCase):
@@ -223,7 +319,7 @@ class LiquidityGateTests(unittest.TestCase):
                 return make_bars("SHORT", n=10)
             return make_bars("STALE", last=date(2026, 9, 1))
 
-        entries, funnel = U.select_universe(listings, sec, shares, quotes, fetch, NOW)
+        entries, funnel = U.select_universe(listings, sec, shares, quotes, fetch, NOW, all_domestic)
         self.assertEqual(entries, [])
         self.assertEqual((funnel["NO_BARS"], funnel["BARS_INSUFFICIENT"], funnel["BARS_STALE"]), (1, 1, 1))
 
@@ -240,7 +336,8 @@ class SnapshotTests(unittest.TestCase):
         snapshot, _ = self.build()
         report = U.verify_snapshot(snapshot, etf_symbols={"IWM", "SPY"})
         self.assertEqual((report["etf_count"], report["mega_cap_count"], report["below_min_cap_count"],
-                          report["below_min_price_count"], report["below_min_liquidity_count"]), (0, 0, 0, 0, 0))
+                          report["below_min_price_count"], report["below_min_liquidity_count"],
+                          report["foreign_issuer_count"], report["sina_cap_above_max"]), (0, 0, 0, 0, 0, 0, 0))
         self.assertEqual(report["total"], 2)
         self.assertEqual(sum(report["buckets"].values()), 2)
 
@@ -251,10 +348,19 @@ class SnapshotTests(unittest.TestCase):
         report = U.verify_snapshot(snapshot, etf_symbols={"SPY"})
         self.assertEqual((report["etf_count"], report["mega_cap_count"]), (1, 1))
 
+    def test_verify_catches_a_stale_or_missing_domestic_filing(self):
+        snapshot, _ = self.build()
+        snapshot["entries"][0]["domestic_filed"] = "2025-01-15"      # 早于 18 个月回看线（2025-03-30）
+        snapshot["entries"][1]["domestic_form"] = "20-F"             # 表格不是 10-K/10-Q
+        snapshot["entries"].append({**snapshot["entries"][0], "symbol": "NOF", "domestic_form": None,
+                                    "domestic_filed": None, "domestic_accession": None})
+        self.assertEqual(U.verify_snapshot(snapshot)["foreign_issuer_count"], 3)
+
     def test_entries_carry_required_fields(self):
         snapshot, entries = self.build()
         for key in ("symbol", "cik", "market_cap_usd", "price_usd", "median_dollar_volume_20d_usd",
-                    "price_source_time", "shares_as_of", "shares_accession", "last_bar_day"):
+                    "price_source_time", "shares_as_of", "shares_accession", "last_bar_day",
+                    "domestic_form", "domestic_filed", "domestic_accession", "state_of_business", "sic"):
             self.assertIn(key, entries[0])
 
     def test_hash_is_content_addressed_and_stable(self):
