@@ -1,0 +1,85 @@
+name: ADP Selfhost
+
+# ADP（arXiv 每日推送）自托管运行时的回归门：
+#   1. pytest：迁移脚本、部署件静态合规、Node 侧 D1 兼容层 / 页面渲染 / 每日任务 arXiv 重试（全部假网络，不联网）；
+#   2. docker：真实构建镜像，以「只读根文件系统 + 非 root + 256m 内存 + 丢全部 capability」起容器，请求健康检查与页面。
+# 只在改到自托管相关文件时触发。不发布任何东西、不需要任何密钥。
+on:
+  pull_request:
+    paths:
+      - "arxiv-daily-push/deploy/**"
+      - "arxiv-daily-push/tests/test_selfhost_*.py"
+      - "arxiv-daily-push/tests/test_arxiv_fetch_retry.py"
+      - "arxiv-daily-push/tools/verify_arxiv_retry.mjs"
+      - ".github/workflows/adp-selfhost.yml"
+  push:
+    branches: [main]
+    paths:
+      - "arxiv-daily-push/deploy/**"
+      - "arxiv-daily-push/tests/test_selfhost_*.py"
+      - ".github/workflows/adp-selfhost.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: adp-selfhost-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: 版本自检（node:sqlite 需要 Node >= 22.13）
+        run: |
+          node --version
+          node -e "const [a,b]=process.versions.node.split('.').map(Number); if(a<22||(a===22&&b<13)){console.error('Node 太旧');process.exit(1)}"
+      - name: 安装 pytest
+        run: python3 -m pip install --quiet pytest
+      - name: pytest（迁移脚本 / 部署件 / 自托管运行时 / 既有 arXiv 重试验证器）
+        run: |
+          PYTHONPATH=arxiv-daily-push/src python3 -m pytest -q -p no:cacheprovider \
+            arxiv-daily-push/tests/test_selfhost_migration.py \
+            arxiv-daily-push/tests/test_selfhost_deploy_files.py \
+            arxiv-daily-push/tests/test_selfhost_node.py \
+            arxiv-daily-push/tests/test_arxiv_fetch_retry.py
+      - name: 构建镜像并以生产同款限制起容器
+        run: |
+          set -euo pipefail
+          cd arxiv-daily-push/deploy
+          docker build --build-arg SOURCE_COMMIT="${GITHUB_SHA}" -t adp-selfhost:ci -f selfhost/Dockerfile .
+          sudo install -d -o 10001 -g 10001 /tmp/adp-ci-data
+          docker run -d --name adp-ci --read-only --tmpfs /tmp:rw,noexec,nosuid,size=32m \
+            --cap-drop ALL --security-opt no-new-privileges --memory 256m --pids-limit 256 --cpus 1 \
+            --user 10001:10001 -v /tmp/adp-ci-data:/data adp-selfhost:ci
+          for i in $(seq 1 30); do
+            docker exec adp-ci wget -q -O /dev/null http://127.0.0.1:8080/healthz && break
+            sleep 1
+          done
+          echo "--- uid（必须是 10001，不是 root）"
+          docker exec adp-ci id -u | grep -qx 10001
+          echo "--- /healthz"
+          docker exec adp-ci wget -q -O - http://127.0.0.1:8080/healthz | grep -q '"service":"adp"'
+          echo "--- /version.txt 等于本次提交"
+          test "$(docker exec adp-ci wget -q -O - http://127.0.0.1:8080/version.txt)" = "${GITHUB_SHA}"
+          echo "--- 空库首页与系统页可渲染（200 + 标题）"
+          docker exec adp-ci wget -q -O - http://127.0.0.1:8080/ | grep -q 'ADP 前沿学习'
+          docker exec adp-ci wget -q -O - http://127.0.0.1:8080/system | grep -q '整套系统自托管'
+          echo "--- 状态接口"
+          docker exec adp-ci wget -q -O - http://127.0.0.1:8080/api/selfhost/status | grep -q '"runtime": "selfhost"'
+          echo "--- 内存上限"
+          test "$(docker inspect adp-ci --format '{{.HostConfig.Memory}}')" = 268435456
+          echo "--- 根文件系统只读（写 /app 必须失败）"
+          ! docker exec adp-ci sh -c 'touch /app/x 2>/dev/null'
+      - name: 容器日志（失败时排查用）
+        if: always()
+        run: docker logs adp-ci 2>&1 | tail -30 || true

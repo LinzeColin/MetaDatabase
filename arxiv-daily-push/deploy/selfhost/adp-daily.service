@@ -1,0 +1,28 @@
+[Unit]
+Description=ADP daily pipeline (fetch -> select -> lesson -> review cards; arXiv failures retried with backoff)
+Documentation=https://github.com/LinzeColin/MetaDatabase/tree/main/arxiv-daily-push/deploy/selfhost
+After=network-online.target docker.service
+Wants=network-online.target docker.service
+# 任何非 0 退出（运行失败 / arXiv 重试用尽 / 备份失败 / 上一次还在跑 / 缺配置）都会留一行失败记录，不静默
+OnFailure=adp-failure@%n.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/adp-daily-run.sh daily
+# 总时长上限：任务自己最多 3 次尝试（每次 20 分钟看门狗）+ 10/20 分钟退避 ≈ 1.5 小时；容器内硬上限 2.5 小时；这里 3 小时兜底
+# （Type=oneshot 下总时长由 TimeoutStartSec 管；RuntimeMaxSec 对 oneshot 无效，不写）
+TimeoutStartSec=3h
+# 资源限额：容器本身的限额（256m 内存/1 CPU/128 进程）在 adp-daily-run.sh 的 docker run 里；
+# 下面只约束宿主机上的这个包装脚本与 docker CLI 进程
+Nice=10
+IOSchedulingClass=idle
+CPUQuota=100%
+MemoryMax=128M
+TasksMax=64
+ExecStopPost=-/usr/bin/docker rm -f adp-job-daily
+StateDirectory=linze-pull-deploy
+Environment=DOCKER_CONFIG=/var/lib/linze-pull-deploy/docker-config
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full

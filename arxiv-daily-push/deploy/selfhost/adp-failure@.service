@@ -1,0 +1,10 @@
+[Unit]
+Description=Record failure of %i (ADP)
+Documentation=https://github.com/LinzeColin/MetaDatabase/tree/main/arxiv-daily-push/deploy/selfhost
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/adp-record-failure.sh %i
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
