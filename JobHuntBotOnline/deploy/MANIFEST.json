@@ -8,6 +8,7 @@
     "LICENSE",
     "NOTICE",
     "README.md",
+    "SPEC.md",
     "alembic.ini",
     "alembic/env.py",
     "alembic/script.py.mako",
@@ -99,6 +100,7 @@
     "tools/online_source_probe.py",
     "tools/ops_probe.py",
     "tools/production_state_probe.py",
-    "tools/verify_taskpack.py"
+    "tools/verify_taskpack.py",
+    "文档/归档/上线核验清单_2026-08.md"
   ]
 }
