@@ -60,8 +60,8 @@ companies:
   - cik: 1334933
     symbol: "UEC"
     name: "Uranium Energy Corp"
-    market_cap_usd: 4690000000
-    market_cap_as_of: "2026-09-29"
+    market_cap_usd: 4683275000
+    market_cap_as_of: "2026-09-30"
     exposure: "美国铀矿开发与生产商（怀俄明、南德克萨斯原地浸出项目），属于铀供给侧。"
     source:
       url: "https://www.sec.gov/Archives/edgar/data/1334933/000143774926031414/uec20260731_10k.htm"
@@ -72,8 +72,8 @@ companies:
   - cik: 1385849
     symbol: "UUUU"
     name: "Energy Fuels Inc"
-    market_cap_usd: 2770000000
-    market_cap_as_of: "2026-09-29"
+    market_cap_usd: 2920452000
+    market_cap_as_of: "2026-09-30"
     exposure: "美国最大铀生产商，运营 White Mesa Mill 铀、钒与稀土加工设施，属于铀供给侧。"
     source:
       url: "https://www.sec.gov/Archives/edgar/data/1385849/000138584926000009/efr-20251231.htm"
@@ -84,8 +84,8 @@ companies:
   - cik: 1923891
     symbol: "NNE"
     name: "Nano Nuclear Energy Inc."
-    market_cap_usd: 850000000
-    market_cap_as_of: "2026-09-29"
+    market_cap_usd: 851116000
+    market_cap_as_of: "2026-09-30"
     exposure: "微型反应堆开发商，同时参与铀转化、再转化、燃料制造与运输环节的研发，是核燃料供应链的使用方兼潜在补位方。"
     source:
       url: "https://www.sec.gov/Archives/edgar/data/1923891/000149315225028285/form10-k.htm"
@@ -93,6 +93,42 @@ companies:
       publisher: "U.S. SEC (company filing)"
       title: "Nano Nuclear Energy Inc. Form 10-K FY2025"
       excerpt: "LIST will oversee the development of the primary uranium enrichment processes using its novel laser technology, while our company will contribute towards development in the areas of conversion, deconversion, fuel fabrication, and fuel transportation."
+  - cik: 1065059
+    symbol: "LEU"
+    name: "Centrus Energy Corp"
+    market_cap_usd: 2853004000
+    market_cap_as_of: "2026-09-30"
+    exposure: "美国铀浓缩与核燃料组件供应商，在自有设施生产高丰度低浓铀 (HALEU)，属于浓缩服务供给侧。"
+    source:
+      url: "https://www.sec.gov/Archives/edgar/data/1065059/000162828026007117/leu-20251231.htm"
+      kind: "company_filing"
+      publisher: "U.S. SEC (company filing)"
+      title: "Centrus Energy Corp Form 10-K FY2025"
+      excerpt: "Centrus is pioneering U.S. production of HALEU, enabling the deployment of a new generation of HALEU-fueled reactors to meet the world’s growing need for carbon-free power."
+  - cik: 2019804
+    symbol: "IMSR"
+    name: "Terrestrial Energy Inc."
+    market_cap_usd: 412088000
+    market_cap_as_of: "2026-09-30"
+    exposure: "熔盐堆开发商，有意选用标准丰度低浓铀 (SALEU) 以避开 HALEU 供应链约束，是燃料供应约束的使用方（且因路线选择受影响较小）。"
+    source:
+      url: "https://www.sec.gov/Archives/edgar/data/2019804/000110465926036846/tmb-20251231x10k.htm"
+      kind: "company_filing"
+      publisher: "U.S. SEC (company filing)"
+      title: "Terrestrial Energy Inc. Form 10-K FY2025"
+      excerpt: "We believe that HALEU presents substantially greater supply chain challenges than the SALEU used by the IMSR Plant."
+  - cik: 1375205
+    symbol: "URG"
+    name: "Ur-Energy Inc"
+    market_cap_usd: 429697000
+    market_cap_as_of: "2026-09-30"
+    exposure: "美国原地浸出 (ISR) 铀生产商，运营怀俄明州 Lost Creek 项目，属于铀供给侧。"
+    source:
+      url: "https://www.sec.gov/Archives/edgar/data/1375205/000110465926025923/urg-20251231x10k.htm"
+      kind: "company_filing"
+      publisher: "U.S. SEC (company filing)"
+      title: "Ur-Energy Inc Form 10-K FY2025"
+      excerpt: "Through our Wyoming operating subsidiary, Lost Creek ISR, LLC, we began operation of our first in situ recovery uranium facility at our Lost Creek Project in 2013."
 contradictions:
   - searched: "在 EIA《Uranium Marketing Annual Report》2025 年数据里找供给放松的迹象：美国本土铀占交付比例是否上升、是否有大量未签约需求已被满足。"
     found: "美国本土铀占 2025 年交付的 7%，低于 2024 年的 8%；2025 年底仍有 1.86 亿磅 2025-2035 年需求未签约。没有发现供给放松的官方数字。"
@@ -102,4 +138,4 @@ contradictions:
     effect: "这削弱了「供给长期刚性」的论断，因此没有给 expansion_lead_time 超过 2 分，也没有给 current_tightness 超过 3 分。"
   - searched: "查 Terrestrial Energy (IMSR) 最新 10-K 对高丰度低浓铀 (HALEU) 供应的说法，判断燃料瓶颈是否对所有反应堆路线都成立。"
     found: "该公司 10-K 明确称其刻意避开 HALEU，使用更易获得的 SALEU；因此燃料瓶颈对不同反应堆路线影响不同。"
-    effect: "因此本卡没有登记 IMSR，也没有给 architectural_necessity 评分。"
+    effect: "因此本卡登记 IMSR 时只写「使用方且路线选择受影响较小」，没有给 architectural_necessity 评分。"

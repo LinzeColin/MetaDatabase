@@ -2,6 +2,30 @@
  "schema": "signal-lattice-card-verification/1",
  "generated": "2026-09-30",
  "entries": {
+  "0dc0c6433c035ec2304efd5f8f517b87": {
+   "url": "https://www.sec.gov/Archives/edgar/data/1512228/000119312526402806/nb-20260630.htm",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "c5963cfd7dbeb2c7da262c38d250235823755aac3b336983ac0ecd6ce9d5742e",
+   "bytes": 4172248,
+   "content_type": "text/html",
+   "card": "critical-minerals-antimony-rare-earths",
+   "place": "companies[3].source",
+   "note": ""
+  },
+  "0dc5a1950d177fd8fb0e755735f5cf2f": {
+   "url": "https://pubs.usgs.gov/periodicals/mcs2026/mcs2026-antimony.pdf",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "18c4498ac13ecd988439d7c78fb951d18498b172eea578b36f665a991720ca0d",
+   "bytes": 158818,
+   "content_type": "application/pdf",
+   "card": "critical-minerals-antimony-rare-earths",
+   "place": "factors.supplier_concentration.sources[0]",
+   "note": ""
+  },
   "157c7510097b29c5f029985c639e05d1": {
    "url": "https://www.eia.gov/uranium/marketing/pdf/umar.pdf",
    "status": 200,
@@ -12,6 +36,114 @@
    "content_type": "application/pdf",
    "card": "nuclear-fuel-cycle",
    "place": "factors.supplier_concentration.sources[1]",
+   "note": ""
+  },
+  "1d5c0f627fd6e4205057353b0b79bbfe": {
+   "url": "https://pubs.usgs.gov/periodicals/mcs2026/mcs2026-rare-earths.pdf",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "0116a192336fec41c38d8e11dad553bb7703308c1fbd1f97dc14b75c7e7d9900",
+   "bytes": 639984,
+   "content_type": "application/pdf",
+   "card": "critical-minerals-antimony-rare-earths",
+   "place": "factors.supplier_concentration.sources[1]",
+   "note": ""
+  },
+  "1e5b69128a3017d687c7b6aafe867f45": {
+   "url": "https://pubs.usgs.gov/periodicals/mcs2026/mcs2026-antimony.pdf",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "18c4498ac13ecd988439d7c78fb951d18498b172eea578b36f665a991720ca0d",
+   "bytes": 158818,
+   "content_type": "application/pdf",
+   "card": "critical-minerals-antimony-rare-earths",
+   "place": "factors.current_tightness.sources[0]",
+   "note": ""
+  },
+  "2fe81a304a34fc59f41eee1195523dd1": {
+   "url": "https://www.sec.gov/Archives/edgar/data/1023024/000102302426000014/anip-20251231.htm",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "8ca7e573c43f6263e831baf63cc19dc7c0db36784631b7cf86ec4a2cb9f7202b",
+   "bytes": 2908103,
+   "content_type": "text/html",
+   "card": "sterile-injectables",
+   "place": "companies[1].source",
+   "note": ""
+  },
+  "39e0156126558a3a80b27824bd45f61d": {
+   "url": "https://www.sec.gov/Archives/edgar/data/74303/000007430326000027/oln-20251231.htm",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "ce3b3247a3b7c5992e97fc5203944820133b6d2a5ae1cb1728e39c59bdb69dd4",
+   "bytes": 3389490,
+   "content_type": "text/html",
+   "card": "munitions-solid-rocket-motors",
+   "place": "companies[1].source",
+   "note": ""
+  },
+  "3b0ca094e877da9f44601341f6bc8658": {
+   "url": "https://www.war.gov/News/Releases/Release/Article/4316035/department-of-war-awards-335-million-to-increase-solid-rocket-motor-capacity-an/",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "8c5d12b7db0328694cd549de060139e6d8721f58fec7afffc3db06f7a627053c",
+   "bytes": 119943,
+   "content_type": "text/html",
+   "card": "munitions-solid-rocket-motors",
+   "place": "factors.funded_demand.sources[0]",
+   "note": ""
+  },
+  "3bc1a6bd7474c83a7d7ba45c102fce73": {
+   "url": "https://www.sec.gov/Archives/edgar/data/1981599/000198159926000020/ctri-20251228.htm",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "48fd159e5a5ad7e6c2ea2bcb69065e3e0026855465325e6bef6adc1c7da5d2ba",
+   "bytes": 2646927,
+   "content_type": "text/html",
+   "card": "grid-equipment",
+   "place": "companies[3].source",
+   "note": ""
+  },
+  "3ebc1aba0b88709fb1bf9f920286cd04": {
+   "url": "https://www.gao.gov/assets/gao-25-107283.pdf",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "00d11335fc796d53c62ab94b90391810e760a20231e6d74607c473e2f44738a2",
+   "bytes": 1467616,
+   "content_type": "application/pdf",
+   "card": "munitions-solid-rocket-motors",
+   "place": "factors.funded_demand.sources[1]",
+   "note": ""
+  },
+  "432a799245b303498e49988d978d5720": {
+   "url": "https://www.sec.gov/Archives/edgar/data/1367644/000136764426000015/ebs-20251231.htm",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "a41e1ce88ecc7258af73325936ed71c6fc7504bd1dd83ffdc9152cbf30f82c20",
+   "bytes": 2878497,
+   "content_type": "text/html",
+   "card": "sterile-injectables",
+   "place": "companies[2].source",
+   "note": ""
+  },
+  "4aea52e78f6019651bab67b38e580ae8": {
+   "url": "https://www.sec.gov/Archives/edgar/data/1297184/000129718426000009/amph-20251231x10k.htm",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "32322b8e5d3435187fb3df4c55a42bae7da65bb8499046fccb6ad7719415b79b",
+   "bytes": 4129789,
+   "content_type": "text/html",
+   "card": "sterile-injectables",
+   "place": "companies[0].source",
    "note": ""
   },
   "64a67c3f740484421e3a8b3d3642384b": {
@@ -38,6 +170,42 @@
    "place": "companies[0].source",
    "note": ""
   },
+  "6e5b13ca09c3149b20b3d6b612a73db8": {
+   "url": "https://aspe.hhs.gov/reports/roi-generic-injectable-prescription-drugs",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "b174484bb87d4e5f8fa154bc005946ed26e7af43d8160aaaf8cd77b0c473a91e",
+   "bytes": 40891,
+   "content_type": "text/html",
+   "card": "sterile-injectables",
+   "place": "factors.supplier_concentration.sources[0]",
+   "note": ""
+  },
+  "7a1264d560fac36ffe2bf7aee0aff33d": {
+   "url": "https://pubs.usgs.gov/periodicals/mcs2026/mcs2026-rare-earths.pdf",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "0116a192336fec41c38d8e11dad553bb7703308c1fbd1f97dc14b75c7e7d9900",
+   "bytes": 639984,
+   "content_type": "application/pdf",
+   "card": "critical-minerals-antimony-rare-earths",
+   "place": "factors.substitution_difficulty.sources[0]",
+   "note": ""
+  },
+  "7e30a9d21c499e1a3b1947cf29c89b86": {
+   "url": "https://www.gao.gov/assets/gao-18-45.pdf",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "2649b9ffca9f8d6800367076786a7a889eb8168d87250730fae4a1a50336472a",
+   "bytes": 918995,
+   "content_type": "application/pdf",
+   "card": "munitions-solid-rocket-motors",
+   "place": "factors.supplier_concentration.sources[0]",
+   "note": ""
+  },
   "7e79d68dd978946a4588dc59725780ac": {
    "url": "https://www.eia.gov/uranium/marketing/pdf/umar.pdf",
    "status": 200,
@@ -50,6 +218,18 @@
    "place": "factors.supplier_concentration.sources[0]",
    "note": ""
   },
+  "7f0319f79701bdb6a80d9f86a4c1f8ba": {
+   "url": "https://www.sec.gov/Archives/edgar/data/880807/000143774926018542/amsc20260331_10k.htm",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "40d2e3c6abba306ca02b5df054c4326defce485046e9838cb1cdbafd6d992cec",
+   "bytes": 2516116,
+   "content_type": "text/html",
+   "card": "grid-equipment",
+   "place": "companies[0].source",
+   "note": ""
+  },
   "843d4b2aca47d8049a80087b6b8e6bc3": {
    "url": "https://www.govinfo.gov/content/pkg/PLAW-118publ62/pdf/PLAW-118publ62.pdf",
    "status": 200,
@@ -59,6 +239,30 @@
    "bytes": 205692,
    "content_type": "application/pdf",
    "card": "nuclear-fuel-cycle",
+   "place": "factors.policy_resilience.sources[0]",
+   "note": ""
+  },
+  "880405613714eaa0897d144d4767bfb5": {
+   "url": "https://www.energy.gov/sites/default/files/2024-10/EXEC-2022-001242%20-%20Large%20Power%20Transformer%20Resilience%20Report%20signed%20by%20Secretary%20Granholm%20on%207-10-24.pdf",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "00a5efdd41b13ffc0df3f5a0a040c69a4c211b48afb092de728e660be0fd4948",
+   "bytes": 1943412,
+   "content_type": "application/pdf",
+   "card": "grid-equipment",
+   "place": "factors.supplier_concentration.sources[0]",
+   "note": ""
+  },
+  "8ef1b0692bd0d15f7442876d2643385e": {
+   "url": "https://pubs.usgs.gov/periodicals/mcs2026/mcs2026-rare-earths.pdf",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "0116a192336fec41c38d8e11dad553bb7703308c1fbd1f97dc14b75c7e7d9900",
+   "bytes": 639984,
+   "content_type": "application/pdf",
+   "card": "critical-minerals-antimony-rare-earths",
    "place": "factors.policy_resilience.sources[0]",
    "note": ""
   },
@@ -74,6 +278,126 @@
    "place": "companies[1].source",
    "note": ""
   },
+  "93f7beb260f40f2ba2dc7f0f67bf8b41": {
+   "url": "https://www.sec.gov/Archives/edgar/data/700923/000070092326000007/myrg-20251231.htm",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "641390fd5f69e6216b37211b9edf3d3d179595b2be30543185e5b08466190cdf",
+   "bytes": 2162560,
+   "content_type": "text/html",
+   "card": "grid-equipment",
+   "place": "companies[2].source",
+   "note": ""
+  },
+  "a05ae9e80fe37adcf7880952afc7b6e0": {
+   "url": "https://aspe.hhs.gov/sites/default/files/documents/efa332939da2064fa2c132bb8e842bb5/Drug%20Shortages_Data%20Brief_Final_2025.01.10.pdf",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "79103a0898583bddd867d93695289defd9a3c8b06d62ef3b06175eba1e2cd93d",
+   "bytes": 738168,
+   "content_type": "application/pdf",
+   "card": "sterile-injectables",
+   "place": "factors.current_tightness.sources[0]",
+   "note": ""
+  },
+  "a31f7419bc6b825a79bc88837bc292ad": {
+   "url": "https://www.sec.gov/Archives/edgar/data/2019804/000110465926036846/tmb-20251231x10k.htm",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "8bf72ffbd60f7bd6491248ee74ef350dcb80b7ab3cd6a99e0a625f5c2d4c0d84",
+   "bytes": 2460931,
+   "content_type": "text/html",
+   "card": "nuclear-fuel-cycle",
+   "place": "companies[4].source",
+   "note": ""
+  },
+  "a5dcd52e31e489edb272973dfd7f2809": {
+   "url": "https://www.sec.gov/Archives/edgar/data/1361538/000110465926018677/prim-20251231x10k.htm",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "a1b68bb9e7b89663437a247da8579f5750cb92405dad1eed7cb98f0a7a846b66",
+   "bytes": 3310009,
+   "content_type": "text/html",
+   "card": "grid-equipment",
+   "place": "companies[4].source",
+   "note": ""
+  },
+  "a7bdda624248a8d895a04ccfe81c3e39": {
+   "url": "https://www.sec.gov/Archives/edgar/data/880807/000143774926018542/amsc20260331_10k.htm",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "40d2e3c6abba306ca02b5df054c4326defce485046e9838cb1cdbafd6d992cec",
+   "bytes": 2516116,
+   "content_type": "text/html",
+   "card": "grid-equipment",
+   "place": "factors.expansion_lead_time.sources[1]",
+   "note": ""
+  },
+  "ac61710f54236c111c5a2141d37d57e2": {
+   "url": "https://www.gao.gov/assets/gao-25-107110.pdf",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "87a8eed67b40f2571a295eaa22287b76c0b447c8263b53879fc3bf8316318095",
+   "bytes": 4644011,
+   "content_type": "application/pdf",
+   "card": "sterile-injectables",
+   "place": "factors.current_tightness.sources[1]",
+   "note": ""
+  },
+  "acc64f08e1287e524e3e62a7739c2f59": {
+   "url": "https://www.sec.gov/Archives/edgar/data/80035/000008003526000007/plpc-20251231.htm",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "a46d00098ad0b006d4c3f120314b8638519f1892a454eaac3ed3371cab0cf026",
+   "bytes": 2219289,
+   "content_type": "text/html",
+   "card": "grid-equipment",
+   "place": "companies[1].source",
+   "note": ""
+  },
+  "b7e9c830fb3ca56b6bd08e9e799c1837": {
+   "url": "https://www.energy.gov/sites/default/files/2024-10/EXEC-2022-001242%20-%20Large%20Power%20Transformer%20Resilience%20Report%20signed%20by%20Secretary%20Granholm%20on%207-10-24.pdf",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "00a5efdd41b13ffc0df3f5a0a040c69a4c211b48afb092de728e660be0fd4948",
+   "bytes": 1943412,
+   "content_type": "application/pdf",
+   "card": "grid-equipment",
+   "place": "factors.expansion_lead_time.sources[0]",
+   "note": ""
+  },
+  "babb1c4ac2d8a580691b99c94078d9b0": {
+   "url": "https://www.sec.gov/Archives/edgar/data/101538/000110465926032049/uamy-20251231x10k.htm",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "c32c379ef371bd1a170cb28b211f045f01a305d72e25e1fe9eb7c2bbcd48a5c4",
+   "bytes": 2768268,
+   "content_type": "text/html",
+   "card": "critical-minerals-antimony-rare-earths",
+   "place": "companies[0].source",
+   "note": ""
+  },
+  "bdc1252c3ba340a3cd8bec6c658e7a17": {
+   "url": "https://pubs.usgs.gov/periodicals/mcs2026/mcs2026-antimony.pdf",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "18c4498ac13ecd988439d7c78fb951d18498b172eea578b36f665a991720ca0d",
+   "bytes": 158818,
+   "content_type": "application/pdf",
+   "card": "critical-minerals-antimony-rare-earths",
+   "place": "factors.funded_demand.sources[0]",
+   "note": ""
+  },
   "c53a6b720ecd42e50a9f20f19ed9478f": {
    "url": "https://www.eia.gov/uranium/marketing/pdf/umar.pdf",
    "status": 200,
@@ -84,6 +408,54 @@
    "content_type": "application/pdf",
    "card": "nuclear-fuel-cycle",
    "place": "factors.current_tightness.sources[0]",
+   "note": ""
+  },
+  "c6a96d9c973f984ea5af1eca427e8a2b": {
+   "url": "https://www.sec.gov/Archives/edgar/data/2040127/000204012726000014/krmn-20251231.htm",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "ce15475bf492a57ee4231e5794c3b594b86b706ea1b11560ae705716e0368397",
+   "bytes": 4043997,
+   "content_type": "text/html",
+   "card": "munitions-solid-rocket-motors",
+   "place": "companies[0].source",
+   "note": ""
+  },
+  "cbf1dbcf5fb5c57b68b7b5bfb819c37b": {
+   "url": "https://www.sec.gov/Archives/edgar/data/1526243/000110465926037403/ppta-20251231x10k.htm",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "7bdd720ce9fad67c39f8feda5e93f8a81a57e5d5c2142ee844d9bbc11b0db9a8",
+   "bytes": 2477329,
+   "content_type": "text/html",
+   "card": "critical-minerals-antimony-rare-earths",
+   "place": "companies[1].source",
+   "note": ""
+  },
+  "cd9a53c60e179b6304682bd5777f285f": {
+   "url": "https://www.energy.gov/oe/distribution-transformers",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "d15f25db4f36e204dbb0c822f1aeaffbb8d9ef3f2264e8384c970d23c9ae8379",
+   "bytes": 114048,
+   "content_type": "text/html",
+   "card": "grid-equipment",
+   "place": "factors.current_tightness.sources[0]",
+   "note": ""
+  },
+  "cf0b926fa2b5b66eaacb2d73a8c90512": {
+   "url": "https://www.sec.gov/Archives/edgar/data/1375205/000110465926025923/urg-20251231x10k.htm",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "f2caf37ee663ea2715bd5f20f7fc20661632148fc7896b636445bb93527a6f5d",
+   "bytes": 3779375,
+   "content_type": "text/html",
+   "card": "nuclear-fuel-cycle",
+   "place": "companies[5].source",
    "note": ""
   },
   "d1c09057a834f193c4909c48f30a4d30": {
@@ -98,6 +470,18 @@
    "place": "companies[2].source",
    "note": ""
   },
+  "d2dce05a6badce514ba2c3151737fc93": {
+   "url": "https://www.sec.gov/Archives/edgar/data/1065059/000162828026007117/leu-20251231.htm",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "6839a48cee655276ecc1a3d185a8861cc8bfc739bae1462db8743a31df74bbb2",
+   "bytes": 2784442,
+   "content_type": "text/html",
+   "card": "nuclear-fuel-cycle",
+   "place": "companies[3].source",
+   "note": ""
+  },
   "dd1255a095c137195fb4ffea8b9f292f": {
    "url": "https://www.sec.gov/Archives/edgar/data/1334933/000143774926031414/uec20260731_10k.htm",
    "status": 200,
@@ -108,6 +492,30 @@
    "content_type": "text/html",
    "card": "nuclear-fuel-cycle",
    "place": "factors.expansion_lead_time.sources[0]",
+   "note": ""
+  },
+  "f0148efd818aaccb4067d5594ee229c4": {
+   "url": "https://www.sec.gov/Archives/edgar/data/1030192/000165495426002560/idr_10k.htm",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "8d06e325a8f4aef3ac694cd3f93a1980041c90d6ad982684202d04843612ee9f",
+   "bytes": 1410162,
+   "content_type": "text/html",
+   "card": "critical-minerals-antimony-rare-earths",
+   "place": "companies[2].source",
+   "note": ""
+  },
+  "f9ccfbd060f6855ba49b0170dff5368d": {
+   "url": "https://www.sec.gov/Archives/edgar/data/80172/000143774926008214/npk20251231_10k.htm",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "dcc4cac2d11ab9e538af3c998f48a02867013169f8050ea3f8494a1cf7ec92a4",
+   "bytes": 1404508,
+   "content_type": "text/html",
+   "card": "munitions-solid-rocket-motors",
+   "place": "companies[2].source",
    "note": ""
   }
  }
