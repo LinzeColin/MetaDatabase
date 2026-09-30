@@ -99,6 +99,14 @@ services:
       - python
       - -m
       - scripts.authoritative.refresh_cycle
+      # The full DELETE+INSERT republish cannot fit D1's free tier (762k rows/day
+      # against 100k; the 2026-09-02 attempt died mid-way and emptied D1's
+      # relationships). Edges reach D1 through the gated backlog below instead.
+      - --skip-publish
+      - --relationship-backlog-batch
+      - "${EEI_REL_BACKLOG_BATCH:-2000}"
+      - --relationship-daily-write-budget
+      - "${EEI_REL_DAILY_WRITE_BUDGET:-35000}"
       - --loop
       - --interval-seconds
       - "${EEI_REFRESH_INTERVAL_SECONDS:-3600}"

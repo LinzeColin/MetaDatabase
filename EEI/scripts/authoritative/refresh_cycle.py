@@ -12,7 +12,10 @@ delivers BOTH freshness and growth):
      (freshness) and never-enriched companies get covered (growth);
   2. collect_gleif over the next `--gleif-batch` companies from its own
      rolling offset — tops up ownership/structure coverage;
-  3. publish_to_cloud_channel --apply — one-way republish to live D1.
+  3. publish_to_cloud_channel --apply — one-way republish to live D1; or, where
+     a full DELETE+INSERT cannot fit the free tier, the relationship backlog
+     (`--relationship-backlog-batch`): the next slice of gate-passing
+     relationships per cycle under a UTC-day write budget.
 The cursor wraps at the end of the universe, so successive daily runs sweep
 every company and come back around, keeping the whole graph fresh over time.
 
@@ -107,6 +110,24 @@ def publish_incremental_since(since: str) -> dict:
         return {"error": str(exc)[:200]}
 
 
+def publish_relationship_slice(args) -> dict:
+    """Push the next slice of gate-passing relationships (idempotent, budgeted)."""
+    creds = _publish_credentials()
+    if not creds:
+        return {"skipped": "EEI_PUBLISH_URL/TOKEN unset"}
+    try:
+        from scripts.publish_to_cloud_channel import push_relationship_backlog
+
+        return push_relationship_backlog(
+            publish_url=creds[0],
+            publish_token=creds[1],
+            daily_write_budget=args.relationship_daily_write_budget,
+            max_relationships=args.relationship_backlog_batch,
+        )
+    except Exception as exc:  # noqa: BLE001 - cursor did not advance; retried next cycle
+        return {"error": str(exc)[:200]}
+
+
 def publish_pulse() -> dict:
     creds = _publish_credentials()
     if not creds:
@@ -175,6 +196,11 @@ def one_cycle(args, *, publish: bool = True) -> dict:
         result["deep_offset"] = deep_off
         state["deep_offset"] = (deep_off + args.deep_batch) % total
 
+    # Independent of --skip-publish (which retires the full DELETE+INSERT): the
+    # gated relationship backlog is the steady-state way edges reach D1.
+    if args.relationship_backlog_batch > 0:
+        result["relationships"] = publish_relationship_slice(args)
+
     if not args.skip_publish and publish:
         report = ROOT / ".eei_refresh_publish_report.json"
         sqlout = ROOT / ".eei_refresh_publish.sql"
@@ -234,6 +260,18 @@ def main() -> int:
         help="full republish only every Nth cycle (enrich/gleif still run every"
              " cycle). Keeps D1 writes in the free tier when the enrich sweep"
              " runs frequently; the watcher owns minute-cadence freshness.",
+    )
+    p.add_argument(
+        "--relationship-backlog-batch", type=int, default=0,
+        help="max relationships pushed to D1 per cycle through the publication"
+             " gate (0 disables). New arrivals sort after the cursor, so backlog"
+             " and freshness are one mechanism.",
+    )
+    p.add_argument(
+        "--relationship-daily-write-budget", type=int, default=35_000,
+        help="D1 rows this step may write per UTC day. The free tier's 100k/day is"
+             " per ACCOUNT (shared with the ADP mirror and the retention guard),"
+             " so this is a deliberately small share.",
     )
     p.add_argument("--loop", action="store_true", help="run forever")
     p.add_argument("--interval-seconds", type=int, default=86400)
