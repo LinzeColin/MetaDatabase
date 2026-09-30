@@ -1,5 +1,7 @@
 "use client";
 
+import { readConfiguredApiBaseUrl } from "./api-base";
+
 export const MODEL_CONTEXT_API_BASE_STORAGE_KEY = "eei.modelApiBaseUrl.v1";
 
 export type ActiveModelContextRecord = {
@@ -191,7 +193,7 @@ type ModelProfileTransitionPayload = {
 
 export function readModelContextApiBaseUrl() {
   const override = window.localStorage.getItem(MODEL_CONTEXT_API_BASE_STORAGE_KEY)?.trim();
-  const configured = process.env.NEXT_PUBLIC_EEI_API_BASE_URL?.trim();
+  const configured = readConfiguredApiBaseUrl();
   return stripTrailingSlash(override || configured || "");
 }
 

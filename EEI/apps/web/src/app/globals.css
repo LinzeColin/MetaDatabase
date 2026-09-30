@@ -5144,3 +5144,45 @@ dd {
   .pulsePanel { padding: 16px 14px; }
   .pulseComposition li { grid-template-columns: minmax(0, 1fr) 56px auto; }
 }
+
+/* ==========================================================================
+   「证据栏」入口（旧版前端自托管时补的可发现性修复）
+   宽屏（≥1280px）右栏常驻：入口是右栏标题旁的可见按钮（图标 + 文字「证据栏」，键盘可达）；
+   窄屏（<1280px）右栏收成抽屉：入口是右下浮动的 .inspectorToggle，此按钮隐藏。
+   点开后证据面板（来源、原文链接、摘录）滚到眼前并短暂高亮（data-evidence-bar-focus）。
+   ========================================================================== */
+.evidenceBarButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 13px;
+  cursor: pointer;
+}
+.evidenceBarButton:hover {
+  border-color: var(--blue);
+}
+@media (max-width: 1279px) {
+  .evidenceBarButton {
+    display: none;
+  }
+}
+.productionEvidencePanel {
+  scroll-margin-top: 12px;
+}
+.productionEvidencePanel:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+.productionEvidencePanel[data-evidence-bar-focus="true"] {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--blue) 22%, transparent);
+  transition: box-shadow var(--motion-base) var(--ease-out);
+}

@@ -1,5 +1,7 @@
 "use client";
 
+import { readConfiguredApiBaseUrl } from "./api-base";
+
 export const SAVED_VIEW_API_BASE_STORAGE_KEY = "eei.apiBaseUrl.v1";
 export const SAVED_VIEW_WORKSPACE_KEY = "mvp";
 
@@ -46,7 +48,7 @@ export type SavedViewSavePayload = {
 
 export function readSavedViewApiBaseUrl() {
   const override = window.localStorage.getItem(SAVED_VIEW_API_BASE_STORAGE_KEY)?.trim();
-  const configured = process.env.NEXT_PUBLIC_EEI_API_BASE_URL?.trim();
+  const configured = readConfiguredApiBaseUrl();
   return stripTrailingSlash(override || configured || "");
 }
 

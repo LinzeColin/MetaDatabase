@@ -1867,6 +1867,8 @@ export default function Home() {
   const [semanticZoom, setSemanticZoom] = useState<SemanticZoom>("L1");
   // P2-11 响应式：窄屏（<1280px）右栏证据/详情收成可滑出抽屉，由此开关驱动。
   const [inspectorDrawerOpen, setInspectorDrawerOpen] = useState(false);
+  // 「证据栏」按钮点开后给证据面板一圈短暂的高亮（桌面右栏常驻，点了要让人看到落在哪）。
+  const [evidenceBarFocus, setEvidenceBarFocus] = useState(false);
   // P2-12 图谱骨架：探索回退栈（Undo/Redo，§C.2）。与面包屑（path）正交——
   // 面包屑是「到根的路径」，此处是「访问顺序的线性历史 + 游标」（浏览器式）。
   // 焦点每次经 reroot 漏斗（requestCenter/serverReroot/applyPathSubject/reset）
@@ -2651,6 +2653,13 @@ export default function Home() {
   }
 
   async function hydrateProductionData(reason = "manual_refresh", candidateId?: string | null) {
+    // 云发布面没有「候选事实 / 目录清单」这套本地 API：证据、评分、鲜度由 hydrateCloudData
+    // 按活图上的关系号取。这里若继续走本地流程，会在云取数完成后又把证据面板覆盖成
+    // local_fallback / object_id_missing（两个异步取数谁后返回谁赢，证据栏因此常常是空的）。
+    if (CLOUD_MODE) {
+      if (cloudEvidenceTargetId) await hydrateCloudData(reason, cloudEvidenceTargetId);
+      return;
+    }
     setProductionCatalogStatus("loading-production-data");
     setProductionScoreStatus(candidateId ? "loading-production-data" : "local-fixture");
     setProductionEvidenceStatus(candidateId ? "loading-production-data" : "local-fixture");
@@ -2886,6 +2895,9 @@ export default function Home() {
           : "server-current"
     );
 
+    // 云发布面只有只读的 /v1/scoring/active-context，没有评分档案列表（/v1/scoring/profiles 返回 404）；
+    // 模型中心的「在线草稿」是本地工作台能力，云模式不请求它，避免页面每次打开都留一条 404。
+    if (CLOUD_MODE) return;
     const profileResult = await listModelProfiles();
     if (profileResult.mode === "server" && profileResult.status === "listed") {
       const nextCandidate =
@@ -3239,6 +3251,27 @@ export default function Home() {
   // P0-1 §A.3：section 滚动式导航处理器已废除——「滚动到首页某段落」
   // 不配做一级导航；证据/时间轴/关注等能力以画布控件与右栏面板形式常驻。
 
+  // 「证据栏」按钮：窄屏（<1280px）开/关右侧抽屉；宽屏右栏本来就常驻，点它是把
+  // 证据面板（来源、原文链接、摘录）滚到眼前、给键盘焦点并短暂高亮。两种屏宽都走这一个入口。
+  const evidenceBarTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(evidenceBarTimer.current), []);
+  function toggleEvidenceBar() {
+    const narrow = window.matchMedia("(max-width: 1279px)").matches;
+    if (narrow && inspectorDrawerOpen) {
+      setInspectorDrawerOpen(false);
+      return;
+    }
+    if (narrow) setInspectorDrawerOpen(true);
+    setEvidenceBarFocus(true);
+    window.clearTimeout(evidenceBarTimer.current);
+    evidenceBarTimer.current = window.setTimeout(() => setEvidenceBarFocus(false), 2400);
+    window.setTimeout(() => {
+      const panel = document.getElementById("production-evidence-detail");
+      panel?.scrollIntoView({ block: "start" });
+      panel?.focus({ preventScroll: true });
+    }, 60);
+  }
+
   function openSelectedPath() {
     setNodeActionStatus(`path:${selectedNode.key}`);
   }
@@ -3559,7 +3592,8 @@ export default function Home() {
             </dd>
           </div>
           <div>
-            <dt>{CLOUD_MODE ? "数据截至" : "数据版本"}</dt>
+            {/* 云模式这一行也叫「数据版本」：验收旅程 EEI.yaml 的新鲜度检查按「数据版本 · YYYY-MM-DD」取日期。 */}
+            <dt>数据版本</dt>
             <dd>
               {CLOUD_MODE
                 ? publishedDataVersion
@@ -5181,6 +5215,19 @@ export default function Home() {
             <p className="eyebrow">证据中心</p>
             <h2>关系路径</h2>
           </div>
+          {/* 宽屏（≥1280px）右栏常驻，这里是「证据栏」的可见入口：点它把所选关系的证据
+              （来源、原文链接、摘录）滚到眼前。窄屏（<1280px）改由右下浮动的「证据栏」开关承担，此钮 CSS 隐藏。 */}
+          <button
+            aria-controls="production-evidence-detail"
+            className="evidenceBarButton pressable"
+            data-testid="evidence-bar-button"
+            onClick={toggleEvidenceBar}
+            title="查看所选关系的证据：官方来源、原文链接、摘录"
+            type="button"
+          >
+            <FileSearch size={16} aria-hidden="true" />
+            <span>证据栏</span>
+          </button>
           {/* P2-11：窄屏抽屉态才出现的关闭钮（宽屏右栏常驻，此钮 CSS 隐藏）。 */}
           <button
             aria-label="收起证据栏"
@@ -5232,73 +5279,6 @@ export default function Home() {
           </dl>
         </section>
 
-        <section
-          className="savedViewPanel"
-          data-api-base-storage-key={SAVED_VIEW_API_BASE_STORAGE_KEY}
-          data-data-snapshot={savedView.dataSnapshot}
-          data-model-version={savedView.modelVersion}
-          data-profile-version={savedView.profileVersion}
-          data-saved-view-id={savedView.id}
-          data-server-endpoint={savedView.serverEndpoint ?? ""}
-          data-server-id={savedView.serverId ?? ""}
-          data-server-version={savedView.serverVersion ?? ""}
-          data-saved-view-version={savedView.version}
-          data-score-snapshot={savedView.scoreSnapshot}
-          data-sync-mode={savedView.syncMode}
-          data-sync-reason={savedView.syncReason}
-          data-testid="saved-view-panel"
-          data-workspace-key={savedView.workspaceKey}
-        >
-          <header>
-            <p className="eyebrow">保存视图</p>
-            <strong data-testid="saved-view-status">{zhStatus(savedViewStatus)}</strong>
-          </header>
-          <dl data-testid="saved-view-contract">
-            <div>
-              <dt>主体</dt>
-              <dd>{entityLabels[savedView.focusKey]}</dd>
-            </div>
-            <div>
-              <dt>透镜 / 时间</dt>
-              <dd>
-                {savedView.activeLens} / {savedView.asOf}
-              </dd>
-            </div>
-            <div>
-              <dt>筛选</dt>
-              <dd>{savedView.filters}</dd>
-            </div>
-            <div>
-              <dt>布局</dt>
-              <dd>{savedView.layout}</dd>
-            </div>
-            <div>
-              <dt>备注</dt>
-              <dd>{savedView.notes}</dd>
-            </div>
-          </dl>
-          <div className="savedViewActions">
-            <button data-testid="save-current-view" onClick={saveCurrentView} type="button">
-              <Save size={16} aria-hidden="true" />
-              <span>保存</span>
-            </button>
-            <button data-testid="restore-saved-view" onClick={restoreSavedView} type="button">
-              <RotateCcw size={16} aria-hidden="true" />
-              <span>恢复</span>
-            </button>
-            {savedViewStatus === "server-conflict" && savedView.serverId ? (
-              <button
-                data-testid="resolve-saved-view-conflict"
-                onClick={resolveSavedViewConflict}
-                type="button"
-              >
-                <RotateCcw size={16} aria-hidden="true" />
-                <span>获取最新</span>
-              </button>
-            ) : null}
-          </div>
-        </section>
-
         <ol className="pathList">
           {CLOUD_MODE
             ? graphViewEdges.slice(0, 4).map((edge) => (
@@ -5337,7 +5317,11 @@ export default function Home() {
         </ol>
 
         <section
+          aria-label="所选关系的证据"
           className="graphPolicyPanel productionEvidencePanel"
+          data-evidence-bar-focus={evidenceBarFocus}
+          id="production-evidence-detail"
+          tabIndex={-1}
           data-evidence-count={productionEvidenceDetail?.evidence_count ?? 0}
           data-evidence-endpoint={productionEvidenceEndpoint || "local"}
           data-evidence-object-id={
@@ -5433,6 +5417,73 @@ export default function Home() {
               </li>
             ))}
           </ol>
+        </section>
+
+        <section
+          className="savedViewPanel"
+          data-api-base-storage-key={SAVED_VIEW_API_BASE_STORAGE_KEY}
+          data-data-snapshot={savedView.dataSnapshot}
+          data-model-version={savedView.modelVersion}
+          data-profile-version={savedView.profileVersion}
+          data-saved-view-id={savedView.id}
+          data-server-endpoint={savedView.serverEndpoint ?? ""}
+          data-server-id={savedView.serverId ?? ""}
+          data-server-version={savedView.serverVersion ?? ""}
+          data-saved-view-version={savedView.version}
+          data-score-snapshot={savedView.scoreSnapshot}
+          data-sync-mode={savedView.syncMode}
+          data-sync-reason={savedView.syncReason}
+          data-testid="saved-view-panel"
+          data-workspace-key={savedView.workspaceKey}
+        >
+          <header>
+            <p className="eyebrow">保存视图</p>
+            <strong data-testid="saved-view-status">{zhStatus(savedViewStatus)}</strong>
+          </header>
+          <dl data-testid="saved-view-contract">
+            <div>
+              <dt>主体</dt>
+              <dd>{entityLabels[savedView.focusKey]}</dd>
+            </div>
+            <div>
+              <dt>透镜 / 时间</dt>
+              <dd>
+                {savedView.activeLens} / {savedView.asOf}
+              </dd>
+            </div>
+            <div>
+              <dt>筛选</dt>
+              <dd>{savedView.filters}</dd>
+            </div>
+            <div>
+              <dt>布局</dt>
+              <dd>{savedView.layout}</dd>
+            </div>
+            <div>
+              <dt>备注</dt>
+              <dd>{savedView.notes}</dd>
+            </div>
+          </dl>
+          <div className="savedViewActions">
+            <button data-testid="save-current-view" onClick={saveCurrentView} type="button">
+              <Save size={16} aria-hidden="true" />
+              <span>保存</span>
+            </button>
+            <button data-testid="restore-saved-view" onClick={restoreSavedView} type="button">
+              <RotateCcw size={16} aria-hidden="true" />
+              <span>恢复</span>
+            </button>
+            {savedViewStatus === "server-conflict" && savedView.serverId ? (
+              <button
+                data-testid="resolve-saved-view-conflict"
+                onClick={resolveSavedViewConflict}
+                type="button"
+              >
+                <RotateCcw size={16} aria-hidden="true" />
+                <span>获取最新</span>
+              </button>
+            ) : null}
+          </div>
         </section>
 
         <section
@@ -5798,10 +5849,12 @@ export default function Home() {
       {/* P2-11：窄屏（<1280px）右栏收成抽屉时的浮动开关；宽屏 CSS 隐藏。
           遮罩点击关闭；打开钮常驻右下（避开底部 dock）。 */}
       <button
+        aria-controls="evidence-center"
         aria-expanded={inspectorDrawerOpen}
         className="inspectorToggle pressable"
         data-testid="inspector-drawer-toggle"
-        onClick={() => setInspectorDrawerOpen((open) => !open)}
+        onClick={toggleEvidenceBar}
+        title="查看所选关系的证据：官方来源、原文链接、摘录"
         type="button"
       >
         <FileSearch size={18} aria-hidden="true" />

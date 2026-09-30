@@ -1,0 +1,12 @@
+# 构建上下文是整个 EEI/ 目录（几千个文档、数据、测试）。这里用白名单：只放行 Dockerfile 用得到的文件。
+*
+!package.json
+!pnpm-workspace.yaml
+!pnpm-lock.yaml
+!apps/web
+!data
+!apps/universe
+apps/web/node_modules
+apps/web/.next
+apps/web/out
+apps/universe/deploy/*.sh

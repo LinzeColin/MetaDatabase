@@ -18,11 +18,11 @@ server {
   resolver_timeout 5s;
 
   # ---- 宇宙页面（静态）----
-# 缓存头写 "private, no-cache"：浏览器每次带 ETag 验证。Cloudflare 的区域设置「浏览器缓存 TTL」会把 .js/.css 的
-# 普通 no-cache 改写成 max-age=14400（实测），改了页面 4 小时内老访客还看旧版；带 private 时 Cloudflare 不缓存也不改写。
-  # 首页：无参数返回宇宙页面；带 ?subject= 的请求是旧版「完整图谱」的深链，交给上游
+  # 缓存头写 "private, no-cache"：浏览器每次带 ETag 验证。Cloudflare 的区域设置「浏览器缓存 TTL」会把 .js/.css 的
+  # 普通 no-cache 改写成 max-age=14400（实测），改了页面 4 小时内老访客还看旧版；带 private 时 Cloudflare 不缓存也不改写。
+  # 首页：无参数返回宇宙页面；带 ?subject= 的请求是旧版「完整图谱」的深链，由本地静态产物提供（@legacy_home）
   location = / {
-    error_page 418 = @upstream;
+    error_page 418 = @legacy_home;
     if ($arg_subject != "") { return 418; }
     include /etc/nginx/snippets/headers.conf;
     add_header Cache-Control "private, no-cache" always;
@@ -37,20 +37,52 @@ server {
   }
 
   # 其余路径：宇宙自己的静态文件（index.html、app.js、styles.css、version.txt）优先，每次带 ETag 重新验证；
-  # 不是宇宙文件的（旧版各模块页 /structure、/capital、/supply-chain…）一律交给上游，
-  # 否则切主站后旧页面全变 404（2026-09-30 切换后 E2E 抓到）。
+  # 不是宇宙文件的一律交给旧版图谱前端（@legacy）：旧版各模块页 /structure、/capital、/supply-chain…、
+  # 以及图标等根目录文件，都是镜像里自带的静态产物；本地找不到才回退上游。
   location / {
     include /etc/nginx/snippets/headers.conf;
     add_header Cache-Control "private, no-cache" always;
-    try_files $uri @upstream;
+    try_files $uri @legacy;
   }
 
-  # ---- 反代上游（默认旧版 EEI；切主站后仍是这一组路径）----
+  # ---- 旧版「完整图谱」前端（apps/web 静态导出，镜像构建时生成，root 是 /usr/share/nginx/legacy）----
+  # /_next/static/ 下的文件名带内容哈希，可以永久缓存；其余（HTML、RSC 数据）每次带 ETag 验证。
+  location /_next/static/ {
+    root /usr/share/nginx/legacy;
+    include /etc/nginx/snippets/headers.conf;
+    include /etc/nginx/snippets/legacy-headers.conf;
+    add_header Cache-Control "public, max-age=31536000, immutable" always;
+    try_files $uri @upstream;
+  }
+  location /_next/ {
+    root /usr/share/nginx/legacy;
+    include /etc/nginx/snippets/headers.conf;
+    include /etc/nginx/snippets/legacy-headers.conf;
+    add_header Cache-Control "private, no-cache" always;
+    try_files $uri @upstream;
+  }
+  # /?subject=… 深链：旧版首页的静态 HTML（前端自己读 URL 里的 subject 参数）
+  location @legacy_home {
+    root /usr/share/nginx/legacy;
+    include /etc/nginx/snippets/headers.conf;
+    include /etc/nginx/snippets/legacy-headers.conf;
+    add_header Cache-Control "private, no-cache" always;
+    rewrite ^ /index.html break;
+  }
+  # 旧模块页：/structure 对应 structure.html；带斜杠的 /structure/ 也认。都没有才回退上游
+  location @legacy {
+    root /usr/share/nginx/legacy;
+    include /etc/nginx/snippets/headers.conf;
+    include /etc/nginx/snippets/legacy-headers.conf;
+    add_header Cache-Control "private, no-cache" always;
+    try_files $uri $uri.html $uri/index.html @upstream;
+  }
+
+  # ---- 反代上游（Cloudflare Worker 上的旧程序；数据接口仍在这里，迁走后只改 EEI_UPSTREAM）----
   # 数据接口走缓存（@cached）；写入、个人数据、内部发布通道不缓存，原样转发
   location ~ ^/v1/(internal/|saved-views|watchlists|exploration-log|cloud/) { error_page 418 = @upstream; return 418; }
   location /v1/    { error_page 418 = @cached; return 418; }
   location = /health { error_page 418 = @upstream; return 418; }
-  location /_next/ { error_page 418 = @upstream; return 418; }
 
   # 只读数据查询：GET 与 POST /v1/explore（查询条件在请求体里，所以缓存键带请求体）。
   # 1 小时内同一查询直接回缓存；过期后先回旧结果、后台刷新；上游 5xx（例如 D1 额度用完）时继续回旧结果。
