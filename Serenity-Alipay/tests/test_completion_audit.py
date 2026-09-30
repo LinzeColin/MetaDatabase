@@ -59,11 +59,11 @@ def test_completion_audit_blocks_formal_report_local_path_leak(tmp_path: Path):
     report_dir = settings.root_dir / "outputs" / "preflight"
     report_dir.mkdir(parents=True)
     (report_dir / "PRODUCTION_READINESS_REPORT.md").write_text(
-        "Formal report leaked /Users/linzezhang/Documents/Codex/private.csv\n",
+        "Formal report leaked /Users/owner/Documents/Codex/private.csv\n",
         encoding="utf-8",
     )
     (report_dir / "PRODUCTION_READINESS_REPORT.pdf").write_bytes(
-        b"%PDF-1.4\n(/Users/linzezhang/Documents/Codex/private.csv) Tj\n%%EOF\n"
+        b"%PDF-1.4\n(/Users/owner/Documents/Codex/private.csv) Tj\n%%EOF\n"
     )
 
     result = run_completion_audit(settings)
@@ -95,7 +95,7 @@ def test_completion_audit_blocks_holdings_discovery_markdown_local_path_leak(tmp
         encoding="utf-8",
     )
     (preflight_dir / "holdings_discovery_latest.md").write_text(
-        "Leaked /Users/linzezhang/Documents/Codex/private-holdings.csv\n",
+        "Leaked /Users/owner/Documents/Codex/private-holdings.csv\n",
         encoding="utf-8",
     )
 
@@ -112,7 +112,7 @@ def test_completion_audit_blocks_auxiliary_markdown_local_path_leak(tmp_path: Pa
     preflight_dir = settings.root_dir / "outputs" / "preflight"
     preflight_dir.mkdir(parents=True, exist_ok=True)
     (preflight_dir / "preflight_latest.md").write_text(
-        "Auxiliary report leaked /Users/linzezhang/Documents/Codex/private.csv\n",
+        "Auxiliary report leaked /Users/owner/Documents/Codex/private.csv\n",
         encoding="utf-8",
     )
 
@@ -129,7 +129,7 @@ def test_completion_audit_blocks_intake_pack_user_facing_local_path_leak(tmp_pat
     intake_dir = settings.root_dir / "outputs" / "intake_pack"
     intake_dir.mkdir(parents=True, exist_ok=True)
     (intake_dir / "06_alipay_positions_review_prefill.csv").write_text(
-        "asset_code,source_note\nFUND001,prior_source_file=/Users/linzezhang/Downloads/private.mp4\n",
+        "asset_code,source_note\nFUND001,prior_source_file=/Users/owner/Downloads/private.mp4\n",
         encoding="utf-8",
     )
 
