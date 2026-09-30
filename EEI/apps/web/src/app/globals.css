@@ -1832,6 +1832,29 @@ dd {
   line-height: 1.3;
 }
 
+/* 发布闸门给每条边盖的章：单一官方来源 / 多来源交叉核实。 */
+.evidenceTierChip {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  min-height: 22px;
+  margin-top: 6px;
+  border: 1px solid #b7d6ca;
+  border-radius: 999px;
+  background: #eef8f3;
+  padding: 2px 10px;
+  color: #1f6f5b;
+  font-size: 11px;
+  font-weight: 720;
+  letter-spacing: 0.02em;
+}
+
+:root[data-theme="deep-space"] .evidenceTierChip {
+  border-color: rgba(120, 214, 184, 0.45);
+  background: rgba(120, 214, 184, 0.12);
+  color: #8fe3c8;
+}
+
 .evidencePill {
   display: inline-flex;
   min-height: 24px;

@@ -35,6 +35,8 @@ export const RELATIONSHIP_FAMILY_LABELS: Record<string, string> = {
 
 export const RELATIONSHIP_TYPE_LABELS: Record<string, string> = {
   subsidiary_of: "子公司",
+  voting_control: "表决权控制",
+  beneficial_owner: "实益所有人",
   parent_of: "母公司",
   controls: "控制",
   controlled_by: "受控于",
@@ -138,6 +140,19 @@ const LABEL_TABLES = {
 } as const;
 
 export type LabelKind = keyof typeof LABEL_TABLES;
+
+// 上图凭什么（发布闸门，Owner 2026-09-30「官方单来源可上图」）：
+//   single_official = 只有一个来源，但它是官方一手来源（SEC / GLEIF …）且能点开原文；
+//   multi_source    = 至少两个独立来源（非官方来源仍按原规则要求两个以上）。
+// 未知值不显示（返回 null），不猜。
+export const EVIDENCE_TIER_LABELS: Record<string, string> = {
+  single_official: "单一官方来源",
+  multi_source: "多来源交叉核实"
+};
+
+export function evidenceTierLabel(tier: string | null | undefined): string | null {
+  return (tier && EVIDENCE_TIER_LABELS[tier]) || null;
+}
 
 const warnedUnknownValues = new Set<string>();
 

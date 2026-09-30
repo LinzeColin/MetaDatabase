@@ -74,6 +74,7 @@ export async function loadCloudEvidenceDetail(
       object_id?: string;
       evidence?: CloudEvidenceRow[];
       evidence_count?: number;
+      evidence_tier?: string | null;
     } | null;
     if (!response.ok || !payload || !Array.isArray(payload.evidence)) {
       return {
@@ -124,7 +125,8 @@ export async function loadCloudEvidenceDetail(
       truncated: false,
       source_documents: items.map((item) => item.source_document),
       evidence: items,
-      production_context: {}
+      production_context: {},
+      evidence_tier: payload.evidence_tier ?? null
     };
     return { mode: "server", status: "hydrated", endpoint, record };
   } catch {

@@ -1,7 +1,10 @@
 // EEI cloud product API (S10PAT01): Cloudflare Worker reading the
 // eei-publication D1 database directly. Read path only - the publication
-// surface carries owner-signed published facts exclusively, so every
-// relationship served here is published by construction. Exploration is
+// surface carries only relationships that passed the publication gate
+// (scripts/relationship_publication_gate.py: one official first-hand source with
+// an openable original, or >= 2 independent sources + review), so every
+// relationship served here is published by construction and says which of the
+// two it is (evidence_tier). Exploration is
 // stateless in the cloud read path (session ids are echoed, not stored);
 // user-state persistence is S10PBT01.
 import {
@@ -237,7 +240,15 @@ async function publishedAnalysisContext(env) {
   }
 }
 
-async function publishedRelationshipCount(env) {
+// The publisher records the true D1 relationship count in publication_meta after
+// every push. Counting the table on every request would read ~20k index rows per
+// call and burn D1's daily read allowance; scan only when the meta is absent
+// (a database the publisher has not written yet).
+async function publishedRelationshipCount(env, meta) {
+  const recorded = meta?.published_relationship_count;
+  if (recorded !== undefined && Number.isFinite(Number(recorded))) {
+    return Number(recorded);
+  }
   const row = await env.EEI_PUB.prepare(
     "SELECT COUNT(*) AS n FROM relationships"
   ).first();
@@ -245,10 +256,10 @@ async function publishedRelationshipCount(env) {
 }
 
 async function productionContext(env, requestAsOf) {
-  const [meta, snapshot, publishedCount, analysisContext] = await Promise.all([
-    publicationMeta(env),
+  const meta = await publicationMeta(env);
+  const [snapshot, publishedCount, analysisContext] = await Promise.all([
     activeSnapshot(env),
-    publishedRelationshipCount(env),
+    publishedRelationshipCount(env, meta),
     publishedAnalysisContext(env)
   ]);
   return {
@@ -270,6 +281,9 @@ async function productionContext(env, requestAsOf) {
       snapshot_status: snapshot?.status ?? null,
       as_of: snapshot?.as_of ?? null,
       published_at: meta.published_at ?? null,
+      // 数据截至: the newest relationship actually published on this surface
+      // (computed by the publisher from the rows it wrote, not a build date).
+      relationships_as_of: meta.relationships_as_of ?? null,
       publisher_version: meta.publisher_version ?? null,
       data_snapshot_key: analysisContext?.active_data_snapshot_key ?? null,
       score_snapshot_id: analysisContext?.active_scoring_run_id ?? null,
@@ -291,14 +305,23 @@ async function productionContext(env, requestAsOf) {
       source_threshold_open: 0,
       review_open: 0,
       reason:
-        "cloud publication surface carries owner-signed published facts only;" +
-        " candidates and review queues stay local"
+        "cloud publication surface carries only relationships that passed the" +
+        " publication gate; candidates and review queues stay local"
     },
+    // The gate (Owner ruling 2026-09-30): an official first-hand source (SEC EDGAR,
+    // GLEIF, ...) with an openable original is enough on its own and is labelled
+    // evidence_tier=single_official. Everything else keeps the original rule:
+    // minimum_independent_sources (2) AND human review.
     publication_policy: {
       relationship_fact_candidates_in_graph_edges: false,
       minimum_independent_sources: CANDIDATE_SOURCE_THRESHOLD_MIN,
       publish_requires_source_threshold: true,
-      publish_requires_human_review: true
+      publish_requires_human_review: true,
+      non_official_minimum_independent_sources: CANDIDATE_SOURCE_THRESHOLD_MIN,
+      non_official_requires_human_review: true,
+      official_single_source_publishable: true,
+      official_source_tier_max: 1,
+      official_requires_openable_original: true
     }
   };
 }
@@ -331,7 +354,7 @@ async function relationshipsTouching(env, frontier, direction, limit) {
   const { results } = await env.EEI_PUB.prepare(
     "SELECT id, subject_entity_id, object_entity_id, relationship_type," +
       " relationship_family, status, confidence, observed_at, published_at," +
-      " qualifiers_json" +
+      " qualifiers_json, evidence_tier" +
       ` FROM relationships WHERE ${where} ORDER BY id LIMIT ?`
   )
     .bind(...binds, limit)
@@ -343,7 +366,11 @@ async function evidenceCounts(env, relationshipIds) {
   if (relationshipIds.length === 0) return new Map();
   const { results } = await env.EEI_PUB.prepare(
     "SELECT relationship_id, COUNT(*) AS n," +
-      " COUNT(DISTINCT source_document_id) AS source_documents" +
+      " COUNT(DISTINCT source_document_id) AS source_documents," +
+      " MIN(CASE WHEN role = 'supports' AND source_url LIKE 'http%' THEN source_url END)" +
+      " AS source_url," +
+      " MIN(CASE WHEN role = 'supports' AND source_url LIKE 'http%' THEN publisher END)" +
+      " AS publisher" +
       ` FROM relationship_evidence WHERE relationship_id IN (${placeholders(relationshipIds.length)})` +
       " GROUP BY relationship_id"
   )
@@ -456,6 +483,11 @@ async function exploreGraph(env, { sessionId, focusEntityId, direction, hops, bu
       valid_from: null,
       valid_to: null,
       evidence_count: Number(evidence.get(row.id)?.n ?? 0),
+      // How the edge earned its place (single_official | multi_source) and where
+      // to open the original: the UI labels 单一官方来源 and links the document.
+      evidence_tier: row.evidence_tier ?? null,
+      source_url: evidence.get(row.id)?.source_url ?? null,
+      source_publisher: evidence.get(row.id)?.publisher ?? null,
       synthetic: false,
       fixture_notice: null
     })),
@@ -494,7 +526,7 @@ async function scoreExplanation(env, relationshipId) {
     "SELECT r.id, r.subject_entity_id, subject.canonical_name AS subject_name," +
       " r.object_entity_id, object.canonical_name AS object_name," +
       " r.relationship_type, r.relationship_family, r.status, r.confidence," +
-      " r.observed_at, r.published_at, r.qualifiers_json" +
+      " r.observed_at, r.published_at, r.qualifiers_json, r.evidence_tier" +
       " FROM relationships r" +
       " JOIN entities subject ON subject.id = r.subject_entity_id" +
       " JOIN entities object ON object.id = r.object_entity_id" +
@@ -560,6 +592,7 @@ async function scoreExplanation(env, relationshipId) {
     relationship_family: row.relationship_family,
     record_mode: snapshot?.record_mode ?? "database",
     fact_status: row.status,
+    evidence_tier: row.evidence_tier ?? null,
     publication_status: publicationStatus,
     relationship_status: row.status,
     source_threshold: metrics.source_threshold,
@@ -603,7 +636,7 @@ async function scoreExplanation(env, relationshipId) {
 
 async function evidenceIndex(env, relationshipId) {
   const relationship = await env.EEI_PUB.prepare(
-    "SELECT id FROM relationships WHERE id = ?"
+    "SELECT id, evidence_tier FROM relationships WHERE id = ?"
   )
     .bind(relationshipId)
     .first();
@@ -621,6 +654,7 @@ async function evidenceIndex(env, relationshipId) {
   return json({
     object_type: "relationship",
     object_id: relationshipId,
+    evidence_tier: relationship.evidence_tier ?? null,
     evidence: results ?? [],
     evidence_count: (results ?? []).length
   });
@@ -789,7 +823,7 @@ async function familyRelationships(env, families) {
   const marks = families.map(() => "?").join(", ");
   const { results } = await env.EEI_PUB.prepare(
     "SELECT r.id, r.relationship_type, r.relationship_family, r.status," +
-      " r.confidence, r.observed_at," +
+      " r.confidence, r.observed_at, r.evidence_tier," +
       " subject.canonical_name AS subject_name," +
       " object.canonical_name AS object_name" +
       " FROM relationships r" +
@@ -807,7 +841,10 @@ async function familyRelationships(env, families) {
     status: row.status,
     confidence: row.confidence === null ? null : Number(row.confidence),
     observed_at: row.observed_at,
-    owner_signed_published: true,
+    evidence_tier: row.evidence_tier ?? null,
+    // Only the reviewed pipeline is "owner signed"; an edge published on one
+    // official first-hand source says so via evidence_tier instead.
+    owner_signed_published: row.evidence_tier !== "single_official",
     subject_name: row.subject_name,
     object_name: row.object_name,
     fixture_flag: false
@@ -866,6 +903,7 @@ async function supplyChainOverview(env) {
   }));
   const { results: relationshipRows } = await env.EEI_PUB.prepare(
     "SELECT r.id, r.relationship_type, r.status, r.confidence, r.observed_at," +
+      " r.evidence_tier," +
       " subject.canonical_name AS subject_name," +
       " object.canonical_name AS object_name" +
       " FROM relationships r" +
@@ -880,7 +918,10 @@ async function supplyChainOverview(env) {
     status: row.status,
     confidence: row.confidence === null ? null : Number(row.confidence),
     observed_at: row.observed_at,
-    owner_signed_published: true,
+    evidence_tier: row.evidence_tier ?? null,
+    // Only the reviewed pipeline is "owner signed"; an edge published on one
+    // official first-hand source says so via evidence_tier instead.
+    owner_signed_published: row.evidence_tier !== "single_official",
     subject_name: row.subject_name,
     object_name: row.object_name,
     fixture_flag: false,
@@ -1468,10 +1509,10 @@ async function handleFetch(request, env) {
     }
 
     if (pathname === "/v1/publication/meta" && request.method === "GET") {
-      const [meta, snapshot, publishedCount] = await Promise.all([
-        publicationMeta(env),
+      const meta = await publicationMeta(env);
+      const [snapshot, publishedCount] = await Promise.all([
         activeSnapshot(env),
-        publishedRelationshipCount(env)
+        publishedRelationshipCount(env, meta)
       ]);
       return json({
         publication_meta: meta,

@@ -122,6 +122,12 @@ export type ExploreGraphRecord = {
       minimum_independent_sources: number;
       publish_requires_source_threshold: boolean;
       publish_requires_human_review: boolean;
+      /** 官方一手来源单来源即可上图；下面三项只在云端发布面出现。 */
+      official_single_source_publishable?: boolean;
+      official_source_tier_max?: number;
+      official_requires_openable_original?: boolean;
+      non_official_minimum_independent_sources?: number;
+      non_official_requires_human_review?: boolean;
     };
   };
 };
@@ -145,6 +151,11 @@ export type ExploreGraphEdgeRecord = {
   valid_from?: string | null;
   valid_to?: string | null;
   evidence_count?: number;
+  /** 上图依据：single_official（单一官方来源）| multi_source（多来源交叉核实）。 */
+  evidence_tier?: string | null;
+  /** 原文（官方文件）链接与出处，点击即可核对。 */
+  source_url?: string | null;
+  source_publisher?: string | null;
   synthetic?: boolean | null;
   fixture_notice?: string | null;
 };

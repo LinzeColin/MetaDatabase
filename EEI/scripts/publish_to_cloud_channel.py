@@ -2,9 +2,10 @@
 """S7PDT04: one-way local -> Cloudflare cloud publication channel.
 
 Exports the PUBLICATION SURFACE ONLY from the local production database -
-owner-signed published relationships plus provenance-bound authoritative
-first-hand facts (SEC/GLEIF), their endpoint entities, the evidence index
-(locator + excerpt + official URL), first-hand events and active snapshot
+relationships that passed the publication gate (official first-hand single source
+with an openable original, or >= 2 independent sources + human review; see
+scripts/relationship_publication_gate.py), their endpoint entities, the evidence
+index (locator + excerpt + official URL), first-hand events and active snapshot
 metadata - pushes it to the remote D1 database, and verifies remote row
 counts against the export.
 
@@ -52,6 +53,12 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from scripts.db_tools import connect_database  # noqa: E402
+from scripts.relationship_publication_gate import (  # noqa: E402
+    TIER_SINGLE_OFFICIAL,
+    GateDecision,
+    evaluate_relationship_gate,
+    evidence_facts_from_rows,
+)
 
 SCHEMA_VERSION = "eei-cloud-publication-channel-v3-streaming"
 TASK_ID = "S7PDT04"
@@ -156,6 +163,33 @@ def insert_statement(
     return f"{verb} INTO {table}({col_list}) VALUES\n{values};"
 
 
+# D1 rejects a single SQL statement longer than 100,000 bytes. Row width varies
+# (excerpts, qualifiers), so a fixed row count can silently sit right at the
+# limit; size-bounded chunking cannot.
+D1_MAX_STATEMENT_BYTES = 60_000
+
+
+def sized_insert_statements(
+    table: str, columns: tuple[str, ...], rows: list[dict[str, Any]], *,
+    verb: str = "INSERT", max_rows: int = 200,
+    max_bytes: int = D1_MAX_STATEMENT_BYTES,
+) -> list[str]:
+    """Multi-row INSERTs, each under ``max_bytes`` and ``max_rows``."""
+    statements: list[str] = []
+    batch: list[dict[str, Any]] = []
+    size = 0
+    for row in rows:
+        row_bytes = sum(len(str(row[c]).encode("utf-8")) + 3 for c in columns)
+        if batch and (len(batch) >= max_rows or size + row_bytes > max_bytes):
+            statements.append(insert_statement(table, columns, batch, verb=verb))
+            batch, size = [], 0
+        batch.append(row)
+        size += row_bytes
+    if batch:
+        statements.append(insert_statement(table, columns, batch, verb=verb))
+    return statements
+
+
 def utc_now_iso() -> str:
     return datetime.now(UTC).replace(microsecond=0).isoformat()
 
@@ -178,22 +212,34 @@ ENTITIES_SQL = """
        )
 """
 
-RELATIONSHIPS_SQL = """
+# Relationships reach the public graph ONLY through the publication gate
+# (scripts/relationship_publication_gate.py): one row per relationship carrying
+# its full evidence aggregate + the registry tier of each evidence source, so the
+# gate decision and the evidence rows that get published always come from the
+# same snapshot of the data. There is no second, ungated relationship export.
+GATED_RELATIONSHIPS_SQL = """
     SELECT r.id, r.subject_entity_id, r.object_entity_id,
            r.relationship_type, r.relationship_family, r.status,
-           r.confidence, r.observed_at, r.created_at, r.qualifiers
+           r.confidence, r.observed_at, r.created_at, r.qualifiers,
+           r.derivation_rule,
+           COALESCE((
+             SELECT jsonb_agg(
+                      jsonb_build_object(
+                        'source_id', s.id::text, 'source_code', s.code,
+                        'source_tier', s.source_tier, 'source_active', s.active,
+                        'source_document_id', sd.id::text, 'role', re.role::text,
+                        'locator', re.locator, 'support_excerpt', re.support_excerpt,
+                        'url', sd.url, 'title', sd.title, 'publisher', sd.publisher,
+                        'document_date', sd.document_date)
+                      ORDER BY re.role::text, sd.publisher, sd.url)
+             FROM relationship_evidence re
+             JOIN source_documents sd ON sd.id = re.source_document_id
+             JOIN sources s ON s.id = sd.source_id
+             WHERE re.relationship_id = r.id
+           ), '[]'::jsonb) AS evidence
     FROM relationships r
-    WHERE r.derivation_rule = ANY(%s)
-"""
-
-RELATIONSHIP_EVIDENCE_SQL = """
-    SELECT re.relationship_id, re.source_document_id, re.role::text,
-           re.locator, re.support_excerpt, sd.url, sd.title,
-           sd.publisher, sd.document_date
-    FROM relationship_evidence re
-    JOIN relationships r ON r.id = re.relationship_id
-     AND r.derivation_rule = ANY(%s)
-    JOIN source_documents sd ON sd.id = re.source_document_id
+    WHERE r.derivation_rule = ANY(%(rules)s)
+      AND r.status NOT IN ('superseded', 'revoked')
 """
 
 EVENTS_SQL = """
@@ -236,33 +282,96 @@ def map_entity(r: tuple) -> dict[str, Any]:
     }
 
 
-def map_relationship(r: tuple) -> dict[str, Any]:
-    return {
-        "id": str(r[0]),
-        "subject_entity_id": str(r[1]),
-        "object_entity_id": str(r[2]),
-        "relationship_type": r[3],
-        "relationship_family": r[4],
-        "status": r[5],
-        "confidence": float(r[6]) if r[6] is not None else None,
-        "observed_at": iso(r[7]),
-        "published_at": iso(r[8]),
-        "qualifiers_json": qualifiers_json(r[9]),
+def gate_relationship(
+    raw: tuple,
+) -> tuple[dict[str, Any] | None, list[dict[str, Any]], GateDecision]:
+    """Apply the publication gate to one GATED_RELATIONSHIPS_SQL row.
+
+    Returns (D1 relationship row | None, D1 evidence rows, decision). A rejected
+    relationship yields no rows at all: neither the edge nor its evidence leave
+    the machine.
+    """
+    (rid, subject_id, object_id, rel_type, family, status, confidence, observed_at,
+     created_at, qualifiers, derivation_rule, evidence) = raw
+    qualifiers = dict(qualifiers or {})
+    policy = qualifiers.get("source_threshold_policy") or {}
+    decision = evaluate_relationship_gate(
+        evidence_facts_from_rows(evidence or []),
+        human_reviewed=derivation_rule == PUBLISHED_RULE,
+        review_override=bool(policy.get("met_by_review_override")),
+    )
+    if not decision.publishable:
+        return None, [], decision
+    if decision.evidence_tier == TIER_SINGLE_OFFICIAL:
+        # The cloud score explanation reads this block; for a single official
+        # source the threshold is one source, and it says so on the record.
+        qualifiers["source_threshold_policy"] = decision.as_source_threshold_policy()
+    relationship = {
+        "id": str(rid),
+        "subject_entity_id": str(subject_id),
+        "object_entity_id": str(object_id),
+        "relationship_type": rel_type,
+        "relationship_family": family,
+        "status": status,
+        "confidence": float(confidence) if confidence is not None else None,
+        "observed_at": iso(observed_at),
+        "published_at": iso(created_at),
+        "qualifiers_json": qualifiers_json(qualifiers),
+        "evidence_tier": decision.evidence_tier,
     }
+    evidence_rows = [
+        {
+            "relationship_id": str(rid),
+            "source_document_id": item["source_document_id"],
+            "role": item["role"],
+            "locator": item.get("locator"),
+            "support_excerpt": item.get("support_excerpt"),
+            "source_url": item.get("url"),
+            "source_title": item.get("title"),
+            "publisher": item.get("publisher"),
+            "document_date": item.get("document_date"),
+        }
+        for item in (evidence or [])
+    ]
+    return relationship, evidence_rows, decision
 
 
-def map_relationship_evidence(r: tuple) -> dict[str, Any]:
-    return {
-        "relationship_id": str(r[0]),
-        "source_document_id": str(r[1]),
-        "role": r[2],
-        "locator": r[3],
-        "support_excerpt": r[4],
-        "source_url": r[5],
-        "source_title": r[6],
-        "publisher": r[7],
-        "document_date": iso(r[8]),
-    }
+def iter_gated_relationships(
+    conn: Any,
+    *,
+    extra_where: str = "",
+    params: dict[str, Any] | None = None,
+    order_by: str = "",
+    limit: int | None = None,
+    cursor_name: str | None = None,
+    stats: dict[str, int] | None = None,
+) -> Iterator[tuple[tuple, dict[str, Any] | None, list[dict[str, Any]], GateDecision]]:
+    """Yield (raw, relationship|None, evidence rows, decision) for every candidate.
+
+    Rejected candidates are yielded too (relationship=None) so a caller that
+    keeps a cursor can step past them; ``stats`` accumulates the decision reasons.
+    """
+    sql = GATED_RELATIONSHIPS_SQL + (f" AND {extra_where}" if extra_where else "")
+    if order_by:
+        sql += f" ORDER BY {order_by}"
+    if limit is not None:
+        sql += f" LIMIT {int(limit)}"
+    bound = {"rules": list(PUBLISHED_RULES), **(params or {})}
+    if cursor_name:
+        with conn.cursor(name=cursor_name) as cur:
+            cur.itersize = 500
+            cur.execute(sql, bound)
+            for raw in cur:
+                relationship, evidence_rows, decision = gate_relationship(raw)
+                if stats is not None:
+                    stats[decision.reason] = stats.get(decision.reason, 0) + 1
+                yield raw, relationship, evidence_rows, decision
+        return
+    for raw in conn.execute(sql, bound).fetchall():
+        relationship, evidence_rows, decision = gate_relationship(raw)
+        if stats is not None:
+            stats[decision.reason] = stats.get(decision.reason, 0) + 1
+        yield raw, relationship, evidence_rows, decision
 
 
 def map_event(r: tuple) -> dict[str, Any]:
@@ -312,7 +421,7 @@ ENTITY_COLUMNS = ("id", "canonical_name", "entity_type", "status")
 RELATIONSHIP_COLUMNS = (
     "id", "subject_entity_id", "object_entity_id", "relationship_type",
     "relationship_family", "status", "confidence", "observed_at",
-    "published_at", "qualifiers_json",
+    "published_at", "qualifiers_json", "evidence_tier",
 )
 RELATIONSHIP_EVIDENCE_COLUMNS = (
     "relationship_id", "source_document_id", "role", "locator",
@@ -393,8 +502,48 @@ def active_analysis_context_payload(conn: Any) -> dict[str, Any] | None:
     }
 
 
-def stream_statements(conn: Any, counts: dict[str, int]) -> Iterator[str]:
+def stream_gated_relationships(
+    conn: Any, counts: dict[str, int], gate_stats: dict[str, int], newest: list[str]
+) -> Iterator[str]:
+    """Gated relationships + their evidence as bounded INSERTs.
+
+    Each relationship chunk is followed by the evidence chunk for exactly those
+    relationships, so D1's foreign key (evidence -> relationship) always holds.
+    """
+    chunk = 100
+    rels: list[dict[str, Any]] = []
+    evid: list[dict[str, Any]] = []
+
+    def flush() -> Iterator[str]:
+        nonlocal rels, evid
+        yield from sized_insert_statements("relationships", RELATIONSHIP_COLUMNS, rels)
+        yield from sized_insert_statements(
+            "relationship_evidence", RELATIONSHIP_EVIDENCE_COLUMNS, evid
+        )
+        rels, evid = [], []
+
+    for _raw, relationship, evidence_rows, _decision in iter_gated_relationships(
+        conn, cursor_name="pub_relationships", stats=gate_stats
+    ):
+        if relationship is None:
+            continue
+        rels.append(relationship)
+        evid.extend(evidence_rows)
+        observed = relationship["observed_at"] or ""
+        if observed > (newest[0] if newest else ""):
+            newest[:] = [observed]
+        counts["relationships"] += 1
+        counts["relationship_evidence"] += len(evidence_rows)
+        if len(rels) >= chunk:
+            yield from flush()
+    yield from flush()
+
+
+def stream_statements(
+    conn: Any, counts: dict[str, int], gate_stats: dict[str, int] | None = None
+) -> Iterator[str]:
     """The full publication surface as an ordered statement stream."""
+    gate_stats = gate_stats if gate_stats is not None else {}
     rules = list(PUBLISHED_RULES)
     for table in DELETE_ORDER:
         yield f"DELETE FROM {table};"
@@ -421,17 +570,18 @@ def stream_statements(conn: Any, counts: dict[str, int]) -> Iterator[str]:
         params=(rules,), table="event_evidence", columns=EVENT_EVIDENCE_COLUMNS,
         mapper=map_event_evidence, chunk=100, counts=counts,
     )
-    yield from stream_table(
-        conn, cursor_name="pub_relationships", sql=RELATIONSHIPS_SQL,
-        params=(rules,), table="relationships", columns=RELATIONSHIP_COLUMNS,
-        mapper=map_relationship, chunk=200, counts=counts,
+    newest_relationship: list[str] = []
+    yield from stream_gated_relationships(conn, counts, gate_stats, newest_relationship)
+    # What the Worker shows as the relationship count / 数据截至, from the rows written.
+    yield (
+        "INSERT OR REPLACE INTO publication_meta(key, value) VALUES"
+        f" ('published_relationship_count', {sql_quote(str(counts['relationships']))});"
     )
-    yield from stream_table(
-        conn, cursor_name="pub_relationship_evidence",
-        sql=RELATIONSHIP_EVIDENCE_SQL, params=(rules,),
-        table="relationship_evidence", columns=RELATIONSHIP_EVIDENCE_COLUMNS,
-        mapper=map_relationship_evidence, chunk=200, counts=counts,
-    )
+    if newest_relationship:
+        yield (
+            "INSERT OR REPLACE INTO publication_meta(key, value) VALUES"
+            f" ('relationships_as_of', {sql_quote(newest_relationship[0])});"
+        )
 
     # Small reference/meta tables (a handful of rows each; plain fetch).
     #
@@ -502,7 +652,7 @@ def stream_statements(conn: Any, counts: dict[str, int]) -> Iterator[str]:
     for statement in pulse_statements(pulse, replace=False):
         yield statement
 
-    counts["_meta_rows"] = counts.get("_meta_rows", 0) + 2
+    counts["_meta_rows"] = counts.get("_meta_rows", 0) + 4
     yield (
         "INSERT OR REPLACE INTO publication_meta(key, value) VALUES"
         f" ('published_at', {sql_quote(published_at)});"
@@ -606,6 +756,16 @@ def schema_statements() -> list[str]:
     return statements
 
 
+def relationship_ddl_statements() -> list[str]:
+    """The relationships / relationship_evidence tables and their indexes."""
+    return [
+        stmt for stmt in schema_statements()
+        if " relationships" in stmt.split("(")[0] + " "
+        or " relationship_evidence" in stmt.split("(")[0] + " "
+        or "idx_relationships_" in stmt.split("(")[0]
+    ]
+
+
 class WorkerApiTransport:
     """Chunked HTTPS transport to the worker's authenticated publish channel."""
 
@@ -676,6 +836,34 @@ class WorkerApiTransport:
 
     def apply_schema(self) -> None:
         self.apply_statements(schema_statements())
+        self.ensure_relationship_schema()
+
+    def ensure_relationship_schema(self) -> str:
+        """Bring an existing D1 relationships table to the current shape.
+
+        ``CREATE TABLE IF NOT EXISTS`` cannot alter a table that already exists,
+        and the production D1 predates ``evidence_tier`` / WITHOUT ROWID. Idempotent:
+        current -> no-op; empty old table -> rebuilt in the current shape (no data
+        to lose); populated old table -> only the missing column is added.
+        """
+        found = self.execute(
+            ["SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'relationships'"]
+        )[0].get("rows") or []
+        if not found:
+            self.apply_statements(relationship_ddl_statements())
+            return "created"
+        if "evidence_tier" in (found[0].get("sql") or ""):
+            return "current"
+        count_rows = self.execute(["SELECT count(*) AS n FROM relationships"])[0].get("rows")
+        if int((count_rows or [{"n": 0}])[0]["n"]) == 0:
+            self.apply_statements([
+                "DROP TABLE IF EXISTS relationship_evidence;",
+                "DROP TABLE IF EXISTS relationships;",
+                *relationship_ddl_statements(),
+            ])
+            return "rebuilt_empty"
+        self.apply_statements(["ALTER TABLE relationships ADD COLUMN evidence_tier TEXT;"])
+        return "column_added"
 
     def remote_counts(self) -> dict[str, int]:
         results = self.execute(
@@ -709,9 +897,10 @@ INCR_EVENTS_SQL = """
            ev.description, ev.qualifiers
     FROM events ev
     JOIN event_participants ep ON ep.event_id = ev.id
-    WHERE ep.entity_id = ANY(%s::uuid[])
-      AND ev.derivation_rule = ANY(%s)
+    WHERE ep.entity_id = ANY(%(entity_ids)s::uuid[])
+      AND ev.derivation_rule = ANY(%(rules)s)
       AND ev.status NOT IN ('superseded', 'revoked')
+      AND (%(since)s::timestamptz IS NULL OR ev.observed_at >= %(since)s::timestamptz)
 """
 INCR_EVENT_PARTICIPANTS_SQL = """
     SELECT ep.event_id, ep.entity_id, e.canonical_name, ep.role, ep.direction
@@ -728,45 +917,120 @@ INCR_EVENT_EVIDENCE_SQL = """
 """
 
 
-INCR_RELATIONSHIPS_SQL = """
-    SELECT r.id, r.subject_entity_id, r.object_entity_id, r.relationship_type::text,
-           r.relationship_family::text, r.status::text, r.confidence,
-           r.effective_from, r.effective_to, r.observed_at, r.qualifiers,
-           subject.canonical_name, object.canonical_name
-    FROM relationships r
-    JOIN entities subject ON subject.id = r.subject_entity_id
-    JOIN entities object ON object.id = r.object_entity_id
-    WHERE r.derivation_rule = ANY(%s)
-      AND (r.subject_entity_id = ANY(%s::uuid[]) OR r.object_entity_id = ANY(%s::uuid[]))
-"""
-INCR_RELATIONSHIP_EVIDENCE_SQL = """
-    SELECT re.relationship_id, re.source_document_id, re.role::text, re.locator,
-           re.support_excerpt, sd.url, sd.title, sd.publisher, sd.document_date
-    FROM relationship_evidence re
-    JOIN source_documents sd ON sd.id = re.source_document_id
-    WHERE re.relationship_id = ANY(%s::uuid[])
-"""
+RELATIONSHIP_STATE_SQL = (
+    "SELECT count(*) AS n, max(observed_at) AS newest FROM relationships"
+)
+
+
+def refresh_relationship_meta(channel: WorkerApiTransport, published_at: str) -> int:
+    """Record the TRUE D1 relationship count and newest-relationship time.
+
+    The Worker serves these from publication_meta instead of scanning the table on
+    every request (a COUNT(*) reads every edge row, and D1's read allowance is
+    shared account-wide). Every path that adds relationships calls this.
+    """
+    totals = channel.execute([RELATIONSHIP_STATE_SQL])[0].get("rows") or [{}]
+    remote_total = int(totals[0].get("n", 0))
+    newest = totals[0].get("newest")
+    meta = [
+        "INSERT OR REPLACE INTO publication_meta(key, value) VALUES"
+        f" ('published_at', {sql_quote(published_at)});",
+        "INSERT OR REPLACE INTO publication_meta(key, value) VALUES"
+        f" ('published_relationship_count', {sql_quote(str(remote_total))});",
+    ]
+    if newest:
+        meta.append(
+            "INSERT OR REPLACE INTO publication_meta(key, value) VALUES"
+            f" ('relationships_as_of', {sql_quote(newest)});"
+        )
+    channel.apply_statements(meta)
+    return remote_total
+
+
+def upsert_statements(
+    entities: list[dict[str, Any]],
+    events: list[dict[str, Any]],
+    participants: list[dict[str, Any]],
+    event_evidence: list[dict[str, Any]],
+    relationships: list[dict[str, Any]],
+    relationship_evidence: list[dict[str, Any]],
+) -> list[str]:
+    """Idempotent upserts in dependency order (every D1 table has a PK).
+
+    Relationship rows are emitted in chunks each immediately followed by the
+    evidence for exactly those rows, so the evidence -> relationship foreign key
+    (enforced by D1) holds at every statement boundary.
+    """
+    statements: list[str] = []
+    for table, columns, rows, chunk in (
+        ("entities", ENTITY_COLUMNS, entities, 200),
+        ("events", EVENT_COLUMNS, events, 100),
+        ("event_participants", EVENT_PARTICIPANT_COLUMNS, participants, 200),
+        ("event_evidence", EVENT_EVIDENCE_COLUMNS, event_evidence, 100),
+    ):
+        for start in range(0, len(rows), chunk):
+            statements.append(
+                insert_statement(table, columns, rows[start:start + chunk],
+                                 verb="INSERT OR REPLACE")
+            )
+    by_relationship: dict[str, list[dict[str, Any]]] = {}
+    for row in relationship_evidence:
+        by_relationship.setdefault(row["relationship_id"], []).append(row)
+    for start in range(0, len(relationships), 100):
+        chunk_rows = relationships[start:start + 100]
+        statements.extend(
+            sized_insert_statements("relationships", RELATIONSHIP_COLUMNS, chunk_rows,
+                                    verb="INSERT OR REPLACE")
+        )
+        chunk_evidence = [
+            e for r in chunk_rows for e in by_relationship.get(r["id"], [])
+        ]
+        statements.extend(
+            sized_insert_statements("relationship_evidence",
+                                    RELATIONSHIP_EVIDENCE_COLUMNS, chunk_evidence,
+                                    verb="INSERT OR REPLACE")
+        )
+    return statements
+
+
+def _gated_relationships_for(
+    conn: Any, *, extra_where: str, params: dict[str, Any],
+    stats: dict[str, int] | None = None,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    relationships: list[dict[str, Any]] = []
+    evidence: list[dict[str, Any]] = []
+    for _raw, relationship, evidence_rows, _decision in iter_gated_relationships(
+        conn, extra_where=extra_where, params=params, stats=stats
+    ):
+        if relationship is not None:
+            relationships.append(relationship)
+            evidence.extend(evidence_rows)
+    return relationships, evidence
 
 
 def push_incremental(
     entity_ids: list[str], *, publish_url: str, publish_token: str,
-    include_relationships: bool = True,
+    include_relationships: bool = True, since: str | None = None,
 ) -> dict[str, Any]:
     """Upsert only the surface touched by the given entities to live D1.
+
+    ``since`` (ISO timestamp) narrows events to the ones that actually arrived
+    after it, so a poll that found one new filing writes that filing - not every
+    filing the company ever made. Relationships always pass the publication gate.
 
     Returns {upserted: {table: n}, requests, bytes_sent}. Small by construction.
     """
     if not entity_ids:
         return {"upserted": {}, "requests": 0, "bytes_sent": 0}
     rules = list(PUBLISHED_RULES)
+    gate_stats: dict[str, int] = {}
     with connect_database() as conn:
-        entities = [
-            map_entity(r)
-            for r in conn.execute(INCR_ENTITIES_SQL, (entity_ids,)).fetchall()
-        ]
         events = [
             map_event(r)
-            for r in conn.execute(INCR_EVENTS_SQL, (entity_ids, rules)).fetchall()
+            for r in conn.execute(
+                INCR_EVENTS_SQL,
+                {"entity_ids": entity_ids, "rules": rules, "since": since},
+            ).fetchall()
         ]
         event_ids = [e["id"] for e in events]
         participants = (
@@ -782,39 +1046,29 @@ def push_incremental(
         relationships: list[dict[str, Any]] = []
         relationship_evidence: list[dict[str, Any]] = []
         if include_relationships:
-            relationships = [
-                map_relationship(r)
-                for r in conn.execute(
-                    INCR_RELATIONSHIPS_SQL, (rules, entity_ids, entity_ids)
-                ).fetchall()
-            ]
-            rel_ids = [r["id"] for r in relationships]
-            if rel_ids:
-                relationship_evidence = [
-                    map_relationship_evidence(r)
-                    for r in conn.execute(
-                        INCR_RELATIONSHIP_EVIDENCE_SQL, (rel_ids,)
-                    ).fetchall()
-                ]
-
-    statements: list[str] = []
-    # Entities first (FK-ish ordering mirrors the full publisher); events and
-    # relationships before their participants/evidence. All INSERT OR REPLACE
-    # (every table has a PK) => idempotent upsert, no DELETE.
-    for table, columns, rows, chunk in (
-        ("entities", ENTITY_COLUMNS, entities, 200),
-        ("events", EVENT_COLUMNS, events, 100),
-        ("event_participants", EVENT_PARTICIPANT_COLUMNS, participants, 200),
-        ("event_evidence", EVENT_EVIDENCE_COLUMNS, evidence, 100),
-        ("relationships", RELATIONSHIP_COLUMNS, relationships, 200),
-        ("relationship_evidence", RELATIONSHIP_EVIDENCE_COLUMNS,
-         relationship_evidence, 200),
-    ):
-        for start in range(0, len(rows), chunk):
-            statements.append(
-                insert_statement(table, columns, rows[start:start + chunk],
-                                 verb="INSERT OR REPLACE")
+            relationships, relationship_evidence = _gated_relationships_for(
+                conn,
+                extra_where=(
+                    "(r.subject_entity_id = ANY(%(entity_ids)s::uuid[])"
+                    " OR r.object_entity_id = ANY(%(entity_ids)s::uuid[]))"
+                ),
+                params={"entity_ids": entity_ids},
+                stats=gate_stats,
             )
+        # Every endpoint must exist in D1 before an edge or participant points at it.
+        endpoint_ids = sorted(
+            set(entity_ids)
+            | {r["subject_entity_id"] for r in relationships}
+            | {r["object_entity_id"] for r in relationships}
+        )
+        entities = [
+            map_entity(r)
+            for r in conn.execute(INCR_ENTITIES_SQL, (endpoint_ids,)).fetchall()
+        ]
+
+    statements = upsert_statements(
+        entities, events, participants, evidence, relationships, relationship_evidence
+    )
     statements.append(
         "INSERT OR REPLACE INTO publication_meta(key, value) VALUES"
         f" ('published_at', {sql_quote(utc_now_iso())});"
@@ -823,6 +1077,8 @@ def push_incremental(
     channel = WorkerApiTransport(publish_url, publish_token)
     try:
         channel.apply_statements(statements)
+        if relationships:
+            refresh_relationship_meta(channel, utc_now_iso())
     finally:
         channel.close()
     return {
@@ -834,6 +1090,7 @@ def push_incremental(
             "relationships": len(relationships),
             "relationship_evidence": len(relationship_evidence),
         },
+        "gate": gate_stats,
         "requests": channel.requests,
         "bytes_sent": channel.bytes_sent,
     }
@@ -854,17 +1111,6 @@ DELTA_EVENTS_SQL = """
       AND ev.status NOT IN ('superseded', 'revoked')
     LIMIT %s
 """
-DELTA_RELATIONSHIPS_SQL = """
-    SELECT r.id, r.subject_entity_id, r.object_entity_id, r.relationship_type::text,
-           r.relationship_family::text, r.status::text, r.confidence,
-           r.effective_from, r.effective_to, r.observed_at, r.qualifiers,
-           subject.canonical_name, object.canonical_name
-    FROM relationships r
-    JOIN entities subject ON subject.id = r.subject_entity_id
-    JOIN entities object ON object.id = r.object_entity_id
-    WHERE r.created_at >= %s AND r.derivation_rule = ANY(%s)
-    LIMIT %s
-"""
 
 
 def push_recent(
@@ -872,13 +1118,11 @@ def push_recent(
 ) -> dict[str, Any]:
     """Upsert exactly the rows that arrived since `since` (ISO).
 
-    This is what makes an hourly collector visible hourly: without it, new
-    ownership edges and newly deepened filing history sit in the local
-    system-of-record until the next full republish. Scoped to the delta, so the
-    write cost tracks what actually arrived rather than the size of the
-    entities it arrived for.
+    Scoped to the delta, so the write cost tracks what actually arrived rather
+    than the size of the entities it arrived for. Relationships pass the gate.
     """
     rules = list(PUBLISHED_RULES)
+    gate_stats: dict[str, int] = {}
     with connect_database() as conn:
         events = [
             map_event(r)
@@ -895,19 +1139,14 @@ def push_recent(
              for r in conn.execute(INCR_EVENT_EVIDENCE_SQL, (event_ids,)).fetchall()]
             if event_ids else []
         )
-        relationships = [
-            map_relationship(r)
-            for r in conn.execute(DELTA_RELATIONSHIPS_SQL, (since, rules, cap)).fetchall()
-        ]
-        rel_ids = [r["id"] for r in relationships]
-        relationship_evidence = (
-            [map_relationship_evidence(r)
-             for r in conn.execute(INCR_RELATIONSHIP_EVIDENCE_SQL, (rel_ids,)).fetchall()]
-            if rel_ids else []
+        relationships, relationship_evidence = _gated_relationships_for(
+            conn,
+            extra_where="r.created_at >= %(since)s::timestamptz",
+            params={"since": since},
+            stats=gate_stats,
         )
         # Endpoint entities for whatever we are about to push, so a brand-new
-        # company never lands as an event with a dangling participant. One row
-        # each, and INSERT OR REPLACE keeps it idempotent.
+        # company never lands as an event with a dangling participant.
         entity_ids = sorted(
             {p["entity_id"] for p in participants}
             | {r["subject_entity_id"] for r in relationships}
@@ -922,21 +1161,9 @@ def push_recent(
     if not (events or relationships):
         return {"upserted": {}, "requests": 0, "bytes_sent": 0, "delta_rows": 0}
 
-    statements: list[str] = []
-    for table, columns, rows, chunk in (
-        ("entities", ENTITY_COLUMNS, entities, 200),
-        ("events", EVENT_COLUMNS, events, 100),
-        ("event_participants", EVENT_PARTICIPANT_COLUMNS, participants, 200),
-        ("event_evidence", EVENT_EVIDENCE_COLUMNS, evidence, 100),
-        ("relationships", RELATIONSHIP_COLUMNS, relationships, 200),
-        ("relationship_evidence", RELATIONSHIP_EVIDENCE_COLUMNS,
-         relationship_evidence, 200),
-    ):
-        for start in range(0, len(rows), chunk):
-            statements.append(
-                insert_statement(table, columns, rows[start:start + chunk],
-                                 verb="INSERT OR REPLACE")
-            )
+    statements = upsert_statements(
+        entities, events, participants, evidence, relationships, relationship_evidence
+    )
     statements.append(
         "INSERT OR REPLACE INTO publication_meta(key, value) VALUES"
         f" ('published_at', {sql_quote(utc_now_iso())});"
@@ -945,6 +1172,8 @@ def push_recent(
     channel = WorkerApiTransport(publish_url, publish_token)
     try:
         channel.apply_statements(statements)
+        if relationships:
+            refresh_relationship_meta(channel, utc_now_iso())
     finally:
         channel.close()
     upserted = {
@@ -957,8 +1186,167 @@ def push_recent(
     }
     return {
         "upserted": upserted,
+        "gate": gate_stats,
         "delta_rows": sum(upserted.values()),
-        "capped": len(events) >= cap or len(relationships) >= cap,
+        "capped": len(events) >= cap,
+        "requests": channel.requests,
+        "bytes_sent": channel.bytes_sent,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Relationship backlog: the steady-state way relationships reach D1.
+#
+# A full DELETE+INSERT republish cannot fit D1's free tier (100k rows written per
+# day; the 2026-09-02 attempt died mid-way and left D1 with zero relationships).
+# Instead every refresh cycle pushes the next slice of gate-passing relationships
+# in (created_at, id) order and remembers where it stopped. New arrivals simply
+# sort after the cursor, so backlog and freshness are the same mechanism. Each
+# slice is an idempotent upsert; the cursor only advances after D1 acknowledged
+# the write; a UTC-day write budget keeps the whole thing inside the free tier.
+# Losing the state file re-publishes from the start, which is harmless.
+# ---------------------------------------------------------------------------
+
+RELPUB_STATE_ENV = "EEI_RELPUB_STATE"
+DEFAULT_RELPUB_STATE = "/state/.eei_relpub_state.json"
+# D1 rows written per published relationship: 1 table row + 2 secondary-index rows
+# (WITHOUT ROWID table) + 1 evidence row, plus one row of margin.
+WRITES_PER_PUBLISHED_RELATIONSHIP = 5
+# The free tier's 100k rows-written/day is per ACCOUNT, shared with every other
+# D1 database on it (the ADP mirror, the retention guard). A deliberately small
+# share: the ~20k-edge backlog lands in a few days, and nothing else goes hungry.
+DEFAULT_DAILY_WRITE_BUDGET = 35_000
+DEFAULT_BACKLOG_BATCH = 2_000
+
+def _load_state(path: Path) -> dict[str, Any]:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+
+def _save_state(path: Path, state: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(json.dumps(state, indent=2, sort_keys=True), encoding="utf-8")
+    tmp.replace(path)
+
+
+def push_relationship_backlog(
+    *,
+    publish_url: str,
+    publish_token: str,
+    state_path: Path | None = None,
+    daily_write_budget: int = DEFAULT_DAILY_WRITE_BUDGET,
+    max_relationships: int = DEFAULT_BACKLOG_BATCH,
+    now: datetime | None = None,
+) -> dict[str, Any]:
+    """Publish the next slice of gate-passing relationships to D1 (idempotent)."""
+    path = state_path or Path(os.environ.get(RELPUB_STATE_ENV, DEFAULT_RELPUB_STATE))
+    now = now or datetime.now(UTC)
+    today = now.strftime("%Y-%m-%d")
+    state = _load_state(path)
+    if state.get("day") != today:
+        state["day"] = today
+        state["rows_written"] = 0
+    remaining = daily_write_budget - int(state.get("rows_written", 0))
+    allowed = min(max_relationships, remaining // WRITES_PER_PUBLISHED_RELATIONSHIP)
+    if allowed <= 0:
+        return {"published": 0, "skipped": "daily_write_budget_exhausted",
+                "rows_written_today": state.get("rows_written", 0)}
+
+    gate_stats: dict[str, int] = {}
+    relationships: list[dict[str, Any]] = []
+    evidence: list[dict[str, Any]] = []
+    last_raw: tuple | None = None
+    exhausted = False
+    with connect_database() as conn:
+        cursor_at, cursor_id = state.get("cursor_created_at"), state.get("cursor_id")
+        while len(relationships) < allowed:
+            where = (
+                "(r.created_at, r.id) > (%(c_at)s::timestamptz, %(c_id)s::uuid)"
+                if cursor_at else ""
+            )
+            params = {"c_at": cursor_at, "c_id": cursor_id} if cursor_at else {}
+            fetch = allowed - len(relationships) + 200
+            got = 0
+            for raw, relationship, evidence_rows, _decision in iter_gated_relationships(
+                conn, extra_where=where, params=params,
+                order_by="r.created_at, r.id", limit=fetch, stats=gate_stats,
+            ):
+                got += 1
+                last_raw = raw
+                if relationship is not None:
+                    relationships.append(relationship)
+                    evidence.extend(evidence_rows)
+                    if len(relationships) >= allowed:
+                        break
+            if got == 0 or (got < fetch and len(relationships) < allowed):
+                exhausted = True
+                break
+            cursor_at, cursor_id = last_raw[8].isoformat(), str(last_raw[0])
+        endpoint_ids = sorted(
+            {r["subject_entity_id"] for r in relationships}
+            | {r["object_entity_id"] for r in relationships}
+        )
+        entities = (
+            [map_entity(r)
+             for r in conn.execute(INCR_ENTITIES_SQL, (endpoint_ids,)).fetchall()]
+            if endpoint_ids else []
+        )
+
+    if last_raw is None:
+        return {"published": 0, "exhausted": True, "gate": gate_stats,
+                "rows_written_today": state.get("rows_written", 0)}
+
+    # Endpoints already in D1 must not be rewritten (2 row-writes each): OR IGNORE.
+    statements = [
+        insert_statement("entities", ENTITY_COLUMNS, entities[start:start + 200],
+                         verb="INSERT OR IGNORE")
+        for start in range(0, len(entities), 200)
+    ]
+    statements += upsert_statements([], [], [], [], relationships, evidence)
+    channel = WorkerApiTransport(publish_url, publish_token)
+    published_at = utc_now_iso()
+    remote_total: int | None = None
+    meta_error: str | None = None
+    try:
+        channel.ensure_relationship_schema()
+        # Charge the budget BEFORE writing: statements go out over several requests,
+        # and a failure part-way must not leave already-committed rows unaccounted
+        # (the retry rewrites them). Conservative by design.
+        state["rows_written"] = int(state.get("rows_written", 0)) + (
+            WRITES_PER_PUBLISHED_RELATIONSHIP * len(relationships)
+            + 2 * len(entities)
+        )
+        _save_state(path, state)
+        channel.apply_statements(statements)
+        # The rows are in D1: move the cursor NOW, before any bookkeeping that could
+        # fail, so a failed meta write can never make the next cycle re-push (and
+        # re-pay the write budget for) the same slice.
+        state.update(
+            cursor_created_at=last_raw[8].isoformat(),
+            cursor_id=str(last_raw[0]),
+            last_published_at=published_at,
+        )
+        _save_state(path, state)
+        try:
+            remote_total = refresh_relationship_meta(channel, published_at)
+            state["remote_relationship_count"] = remote_total
+            _save_state(path, state)
+        except Exception as exc:  # noqa: BLE001 - bookkeeping only; data is already in D1
+            meta_error = str(exc)[:200]
+    finally:
+        channel.close()
+
+    return {
+        "published": len(relationships),
+        "evidence_rows": len(evidence),
+        "exhausted": exhausted,
+        "gate": gate_stats,
+        "remote_relationship_count": remote_total,
+        "meta_error": meta_error,
+        "rows_written_today": state["rows_written"],
         "requests": channel.requests,
         "bytes_sent": channel.bytes_sent,
     }
@@ -1167,6 +1555,7 @@ def main() -> int:
 
     cf_dir = ROOT / "apps" / "cloudflare-public"
     counts: dict[str, int] = {table: 0 for table in COUNT_TABLES}
+    gate_stats: dict[str, int] = {}
     sql_statements = 0
     sql_bytes = 0
     worker_api_stats: dict[str, int] | None = None
@@ -1185,7 +1574,7 @@ def main() -> int:
             parser.error("--sql-out is required for the wrangler transport")
         args.sql_out.parent.mkdir(parents=True, exist_ok=True)
         with connect_database() as conn, args.sql_out.open("w", encoding="utf-8") as f:
-            for stmt in counted(stream_statements(conn, counts)):
+            for stmt in counted(stream_statements(conn, counts, gate_stats)):
                 f.write(stmt + "\n")
         sql_file = str(args.sql_out)
         if args.apply:
@@ -1201,7 +1590,7 @@ def main() -> int:
         channel: WorkerApiTransport | None = None
         try:
             with connect_database() as conn:
-                stream = counted(stream_statements(conn, counts))
+                stream = counted(stream_statements(conn, counts, gate_stats))
                 if args.apply:
                     channel = WorkerApiTransport(publish_url, publish_token)
                     channel.apply_schema()
@@ -1231,7 +1620,9 @@ def main() -> int:
         "transport": transport,
         "publication_boundary": {
             "included": [
-                "owner-signed published relationships",
+                "published relationships that passed the publication gate"
+                " (official first-hand single source with an openable original,"
+                " or >= 2 independent sources + human review)",
                 "endpoint entities",
                 "evidence index (locator + excerpt + official URL)",
                 "first-hand published events + participants + event evidence"
@@ -1252,6 +1643,7 @@ def main() -> int:
             "direction": "one-way local->cloud; no cloud read-back",
         },
         "local_export_counts": local_counts,
+        "relationship_gate": gate_stats,
         "sql_file": sql_file,
         "sql_statements": sql_statements,
         "applied": bool(args.apply),

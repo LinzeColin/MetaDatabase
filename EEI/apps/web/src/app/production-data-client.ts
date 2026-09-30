@@ -99,6 +99,8 @@ export type EvidenceDetailRecord = {
   source_documents: Record<string, unknown>[];
   evidence: EvidenceDetailItem[];
   production_context: Record<string, unknown>;
+  /** 云端发布面：这条关系上图的依据（single_official | multi_source）。 */
+  evidence_tier?: string | null;
 };
 
 export type SourceFreshnessItem = {

@@ -18,7 +18,11 @@ $WRANGLER d1 execute eei-publication --local --file tests/smoke_seed.sql >/dev/n
 
 echo "[smoke] booting wrangler dev --local on :$PORT (with scheduled drill)"
 LOG="$(mktemp)"
-$WRANGLER dev --local --port "$PORT" --test-scheduled >"$LOG" 2>&1 &
+# The publish channel is enabled locally with a throwaway token so the gate smoke
+# below can publish through the same route the OVH publisher uses.
+PUBLISH_TOKEN="smoke-publish-$(date +%s)"
+$WRANGLER dev --local --port "$PORT" --test-scheduled \
+  --var EEI_PUBLISH_TOKEN:"$PUBLISH_TOKEN" >"$LOG" 2>&1 &
 DEV_PID=$!
 trap 'kill "$DEV_PID" 2>/dev/null || true' EXIT
 
@@ -36,6 +40,10 @@ done
 
 echo "[smoke] asserting contracts"
 node "$REPO_ROOT/apps/cloudflare-public/tests/smoke_assert.mjs" "http://127.0.0.1:$PORT"
+
+echo "[smoke] asserting the publication gate (official single source -> on the graph)"
+EEI_SMOKE_PUBLISH_TOKEN="$PUBLISH_TOKEN" \
+  node "$REPO_ROOT/apps/cloudflare-public/tests/smoke_assert_official.mjs" "http://127.0.0.1:$PORT"
 
 echo "[smoke] firing scheduled drills (hourly heartbeat, then SEC slice)"
 curl -sf "http://127.0.0.1:$PORT/__scheduled?cron=0+*+*+*+*" >/dev/null
