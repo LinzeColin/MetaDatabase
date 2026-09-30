@@ -343,7 +343,7 @@ def render(report: dict, status: dict, *, archive: bool = False) -> str:
 </section>
 <h2>未来 14 天的比赛与模型概率</h2>
 <p class="muted">概率来自带时间衰减的泊松进球模型；每个概率下面的「区间」是参数不确定度的 10%–90% 范围。
-时间为悉尼时间（10 月 4 日起悉尼进入夏令时）。</p>
+时间为悉尼时间（自动处理夏令时切换）。</p>
 {_fixtures(report)}
 <h2>盘口对比</h2>
 <div class="empty"><b>暂无合法盘口源。</b>唯一免费的赔率数据集禁止自动化访问，其他要么要注册 key、要么是 TAB 官网（被判定拒绝 AI 受控访问，按硬边界失败关闭）。
