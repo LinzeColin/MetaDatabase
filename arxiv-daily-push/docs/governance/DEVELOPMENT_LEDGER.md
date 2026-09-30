@@ -3712,7 +3712,7 @@ The append-only machine record is `development_events.jsonl`.
 - Result commit: PENDING
 - Task IDs: `ADP-S1P5T04-POST-MERGE-TEST10-040`; current V6 task remains `S1P5T04`
 - Goal: Advance Stage 1 from post-PR service-date correction to the exact controlled post-merge test10 gate without enabling production scheduling.
-- Assumptions: test10 must run from `main`, leave `generated_at` empty, use `max_results_per_category=1`, send only one Gmail SMTP test email to `linzezhang35@gmail.com`, and preserve fail-closed production scheduling.
+- Assumptions: test10 must run from `main`, leave `generated_at` empty, use `max_results_per_category=1`, send only one Gmail SMTP test email to `LinzeColin@users.noreply.github.com`, and preserve fail-closed production scheduling.
 - Files changed: governance status, owner status, delivery plan/task records, development event, version matrix, dashboard decision policy, root governance test expectation, and this run manifest only.
 - Model changes: No ranking, queue, report, email content, workflow, SMTP, Release, Stage 2, or video model changed.
 - Formula changes: No formula expression changed.
@@ -4425,7 +4425,7 @@ The append-only machine record is `development_events.jsonl`.
 - Parameter changes: Added PARAM-ADP-081 through PARAM-ADP-085.
 - Commands run: focused notification/CLI tests; send-notification dry-run CLI. Full project and governance validation pending in this iteration.
 - Test results: focused notification/CLI tests 9 OK; send-notification dry-run evidence emitted.
-- Successes: Dry-run mode requires no secrets and makes no SMTP connection; real send blocks without env keys; mocked SMTP send starts TLS, logs in, sends to `linzezhang35@gmail.com`, and does not log password values in the report.
+- Successes: Dry-run mode requires no secrets and makes no SMTP connection; real send blocks without env keys; mocked SMTP send starts TLS, logs in, sends to `LinzeColin@users.noreply.github.com`, and does not log password values in the report.
 - Failures: none for focused tests; real production SMTP remains unverified because SMTP secrets and runner are not provisioned in this local environment.
 - Decisions: Keep scheduler/workflow SMTP side effects disabled until production preflight and explicit production enablement exist.
 - Remaining risks: Production acceptance still requires actual runner provisioning, CA trust fix, SMTP/Release configuration, preflight pass on runner, scheduled execution, weekly/monthly replay, recovery drill, and 30-day trial evidence.
@@ -5343,7 +5343,7 @@ None for this new project baseline.
 - Formula changes: No formula expression changed; current machine fingerprints/evidence hashes were refreshed for FORM-ADP-013, FORM-ADP-014, FORM-ADP-024, FORM-ADP-034, and FORM-ADP-042 through FORM-ADP-046 after the CI semantic gate identified drift.
 - Parameter changes: No active parameter value changed; PARAM-ADP-183 metadata was reverified for the manual-delivery evidence boundary.
 - Commands run: source roadmap SHA-256 and line-count check; GitHub Actions workflow/job/artifact inspection; scheduled execution artifact inspection without printing email body or secrets; semantic extractor; changed-only governance sync; root governance tests; ADP unit tests.
-- Test results: Manual workflow `28002478689` completed `success`; job `manual-delivery-test` completed `success`; scheduled execution artifact reports `status=succeeded`, `mode=daily-run`, `notification_status=sent`, `real_smtp_send_enabled=true`, recipient `linzezhang35@gmail.com`, Chinese lesson true, candidate queue summary true, video link false; semantic extractor checked 46 formulas and 331 parameters; changed-only governance sync reports 0 errors 0 warnings.
+- Test results: Manual workflow `28002478689` completed `success`; job `manual-delivery-test` completed `success`; scheduled execution artifact reports `status=succeeded`, `mode=daily-run`, `notification_status=sent`, `real_smtp_send_enabled=true`, recipient `LinzeColin@users.noreply.github.com`, Chinese lesson true, candidate queue summary true, video link false; semantic extractor checked 46 formulas and 331 parameters; changed-only governance sync reports 0 errors 0 warnings.
 - Successes: V6 roadmap is now the current task-numbering roadmap under `docs/pursuing_goal/`; future closeouts must report the current V6 Task ID; first controlled Gmail SMTP evidence is present on GitHub/cloud runner.
 - Failures: First PR #73 CI attempt failed because the pull_request changed-scope gate used the force-pushed old head SHA as `GOVERNANCE_BASE_REF`; fixed by switching pull_request diff base to `github.event.pull_request.base.sha`. Email template quality is owner-rejected for now but explicitly deferred; complete two-day controlled evidence and `ARXIV_PRODUCTION_ACCEPTED` remain incomplete.
 - Decisions: Continue from `S1P5T04` and prioritize Stage 1 acceptance evidence before template redesign or Stage 2 expansion.
@@ -5367,7 +5367,7 @@ None for this new project baseline.
 - Formula changes: No formula implementation changed.
 - Parameter changes: No active parameter value changed.
 - Commands run: GitHub Actions rerun job `82921274100`; artifact inspection for `7811543123` and `7816791617` without printing email body or secrets.
-- Test results: Both scheduled-execution artifacts report `production_evidence_ready=true`, `notification_status=sent`, recipient `linzezhang35@gmail.com`, Chinese lesson true, candidate queue summary true, and video link false.
+- Test results: Both scheduled-execution artifacts report `production_evidence_ready=true`, `notification_status=sent`, recipient `LinzeColin@users.noreply.github.com`, Chinese lesson true, candidate queue summary true, and video link false.
 - Successes: Controlled SMTP evidence count is now `2`; production schedule remains disabled; runner is GitHub/cloud, not local Mac.
 - Failures: Both sends share daily date `2026-06-23`; second distinct natural-day evidence and `ARXIV_PRODUCTION_ACCEPTED` remain incomplete.
 - Decisions: Keep `S1P5T04` in progress and do not enable production scheduling.
@@ -5463,7 +5463,7 @@ None for this new project baseline.
 - Formula changes: No formula expression changed.
 - Parameter changes: No active parameter value changed.
 - Commands run: GitHub Actions API run/job/artifact inspection; authenticated artifact downloads for artifacts `7834307458`, `7834306281`, `7834305857`, and `7834283976`; scheduled workflow metadata inspection.
-- Test results: manual run `28059194999` is run number 10 on `main`, head SHA `2f715f37ee21df59cc1cf092d712bd9399157469`, and completed success. GitHub-hosted Ubuntu jobs `guard` and `manual-delivery-test` completed success. scheduled-execution artifact `7834307458` reports `status=succeeded`, `preflight_status=pass`, `production_evidence_ready=true`, `notification_report.status=sent`, `real_smtp_send_enabled=true`, recipient `linzezhang35@gmail.com`, and subject `20260624 -- arXiv Computer Science -- Computer Science -- Open Problem: Is AdamW Effective Under Heavy-Tailed Noise?`. The daily input reports `date=2026-06-24`, `archive_count=20`, `blocked_archive_count=0`, and `candidate_count=16`.
+- Test results: manual run `28059194999` is run number 10 on `main`, head SHA `2f715f37ee21df59cc1cf092d712bd9399157469`, and completed success. GitHub-hosted Ubuntu jobs `guard` and `manual-delivery-test` completed success. scheduled-execution artifact `7834307458` reports `status=succeeded`, `preflight_status=pass`, `production_evidence_ready=true`, `notification_report.status=sent`, `real_smtp_send_enabled=true`, recipient `LinzeColin@users.noreply.github.com`, and subject `20260624 -- arXiv Computer Science -- Computer Science -- Open Problem: Is AdamW Effective Under Heavy-Tailed Noise?`. The daily input reports `date=2026-06-24`, `archive_count=20`, `blocked_archive_count=0`, and `candidate_count=16`.
 - Successes: Post-merge Sydney service-date behavior is proven on GitHub/cloud runner and the controlled Gmail SMTP path sent to the configured recipient without logging email body or secret values.
 - Failures: None for test10. Release upload remains disabled/dry-run and no video link is required for current Stage 1 text-first delivery.
 - Decisions: Keep production schedule disabled; the next task is an explicit owner decision gate before any `ADP_PRODUCTION_ENABLED`, `ADP_SCHEDULED_RUN_ENABLED`, `ADP_ALLOW_SMTP_SEND`, or `ADP_ALLOW_RELEASE_UPLOAD` production enablement.

@@ -22,7 +22,7 @@ Validated evidence must prove:
 - Release, SMTP, RunRecord, and resource gate references exist per daily run.
 - Scheduler is enabled with `04:45` health check and manual rerun evidence.
 - Private Release or equivalent publishing evidence exists.
-- Real SMTP delivery evidence targets `linzezhang35@gmail.com`.
+- Real SMTP delivery evidence targets `LinzeColin@users.noreply.github.com`.
 - Disk, memory, cache, Git artifact, and secret hygiene evidence exists.
 - Weekly replay, monthly replay, and failure recovery drill evidence exists.
 

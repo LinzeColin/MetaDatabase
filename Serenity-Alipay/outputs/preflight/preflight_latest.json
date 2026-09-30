@@ -137,7 +137,7 @@
       "message": "Real Apple Mail sending is enabled for production alerts",
       "evidence": {
         "mail_send_enabled": true,
-        "recipient_email": "linzezhang35@gmail.com",
+        "recipient_email": "LinzeColin@users.noreply.github.com",
         "env_var": "SERENITY_MAIL_SEND_ENABLED"
       }
     },

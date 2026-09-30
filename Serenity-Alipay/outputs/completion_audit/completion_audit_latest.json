@@ -413,7 +413,7 @@
       "requirement": "Production alert delivery must have real Apple Mail sending enabled before rebalance or urgent risk alerts can claim readiness.",
       "status": "pass",
       "severity": "info",
-      "proof": "{'mail_send_enabled': True, 'recipient_email': 'linzezhang35@gmail.com', 'env_var': 'SERENITY_MAIL_SEND_ENABLED'}",
+      "proof": "{'mail_send_enabled': True, 'recipient_email': 'LinzeColin@users.noreply.github.com', 'env_var': 'SERENITY_MAIL_SEND_ENABLED'}",
       "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/preflight_latest.json",
       "next_action": "None"
     },

@@ -4,7 +4,7 @@
   "workflow_ready": true,
   "production_send_ready_now": false,
   "mail_send_enabled_now": false,
-  "recipient_email": "linzezhang35@gmail.com",
+  "recipient_email": "LinzeColin@users.noreply.github.com",
   "mail_smoke_status": "pass",
   "mail_smoke_json_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/apple_mail_smoke_latest.json",
   "production_plist_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/implementation/com.serenity.daily-analysis.production-mail.plist",

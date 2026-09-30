@@ -340,7 +340,7 @@ boards:
 email:
   enabled: true
   recipients:
-    - "linzezhang35@gmail.com"
+    - "LinzeColin@users.noreply.github.com"
   split_mode: five_independent_messages
   send_order:
     - B1

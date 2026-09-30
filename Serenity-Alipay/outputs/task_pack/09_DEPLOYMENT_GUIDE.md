@@ -52,7 +52,7 @@ MVP should default to:
 Recipient:
 
 ```text
-linzezhang35@gmail.com
+LinzeColin@users.noreply.github.com
 ```
 
 ## Operational Modes
