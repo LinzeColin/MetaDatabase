@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>商域宇宙 · EEI</title>
+<meta name="description" content="美国商业权力的宇宙视图：每家核心公司是一颗恒星，子公司、董事与股东是它的行星，公司之间的关联是穿越星海的光弧。数据全部来自 SEC 与 GLEIF 官方原文。">
+<meta name="theme-color" content="#020708">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='7' fill='%23E0A843'/%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%233FD6E0' stroke-width='1.5' opacity='.6'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./styles.css">
+<script type="importmap">
+{ "imports": { "three": "./vendor/three/three.module.js", "three/addons/": "./vendor/three/addons/" } }
+</script>
+</head>
+<body>
+<canvas id="cosmos" aria-label="商域宇宙三维视图"></canvas>
+
+<header class="brand glass">
+  <div class="brand-row">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <div>
+      <h1>商域宇宙</h1>
+      <p class="brand-sub">每颗恒星是一家公司，行星是它的子公司、董事与股东</p>
+    </div>
+  </div>
+  <dl class="pulse" id="pulse">
+    <div><dt>全库实体</dt><dd id="kpi-entities">—</dd></div>
+    <div><dt>全库关系</dt><dd id="kpi-relationships">—</dd></div>
+    <div><dt>官方申报事件</dt><dd id="kpi-events">—</dd></div>
+  </dl>
+  <p class="pulse-foot"><span class="live-dot" id="live-dot"></span><span id="pulse-foot">正在连接官方数据…</span></p>
+</header>
+
+<div class="search glass" role="search">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+  <input id="search" type="search" placeholder="搜公司或人名，飞过去" autocomplete="off" aria-label="搜索公司或人名">
+  <ul id="search-results" class="search-results" hidden></ul>
+</div>
+
+<nav class="legend glass" id="legend" aria-label="关系类型">
+  <h2>关系类型 <small>点一下隐藏或显示</small></h2>
+  <ul id="legend-list"></ul>
+  <p class="legend-foot" id="legend-foot"></p>
+</nav>
+
+<aside class="detail glass" id="detail" hidden aria-live="polite">
+  <button class="detail-close" id="detail-close" aria-label="关闭">×</button>
+  <div id="detail-body"></div>
+</aside>
+
+<div class="toolbar">
+  <button class="chip glass" id="btn-home" hidden>← 返回全宇宙</button>
+  <button class="chip glass" id="btn-tour" aria-pressed="true">漫游中</button>
+</div>
+
+<p class="hint" id="hint">拖动旋转 · 滚轮或双指缩放 · 点击恒星进入它的星系 · 点击行星看官方原文</p>
+
+<div class="state" id="state" role="status">
+  <div class="state-core"></div>
+  <p id="state-text">正在从 SEC 与 GLEIF 官方数据点亮星图…</p>
+</div>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>
