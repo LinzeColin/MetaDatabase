@@ -1,0 +1,9 @@
+project: Serenity
+owner_words: "fifa、serenity need back on trail（2026-09-30）"
+base_url: https://serenity.linzezhang.com/
+journeys:
+  - name: 打开公开页
+    steps:
+      - goto: ""
+      - expect_any_text: ["Serenity"]
+      - screenshot: 首屏

@@ -1,0 +1,18 @@
+project: ADP 前沿学习
+owner_words: "ADP：网页即主体（2026-07-15）"
+base_url: https://adp.linzezhang.com/
+freshness:
+  pattern: '决策日期\s*(\d{4}-\d{2}-\d{2})'
+  max_age_hours: 36
+journeys:
+  - name: 打开看今天学什么
+    steps:
+      - goto: ""
+      - expect_text: ["为什么选它", "原文"]
+      - expect_no_text: ["还没选出来"]
+      - screenshot: 首屏
+  - name: 去复习
+    steps:
+      - click_text: "复习"
+      - expect_any_text: ["待复习", "复习"]
+      - screenshot: 复习
