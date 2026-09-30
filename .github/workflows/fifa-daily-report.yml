@@ -62,15 +62,26 @@ jobs:
         run: |
           set -euo pipefail
           REPO_URL="https://github.com/${GITHUB_REPOSITORY}"
-          git config --global http.https://github.com/.extraheader "AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
-          if git ls-remote --exit-code --heads "$REPO_URL" gh-pages >/dev/null 2>&1; then
+          AUTH="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          # 只在 pages 仓库里配认证头（不设全局：checkout 已在工作区配了一份，重复的认证头会让 GitHub 拒绝请求）。
+          # ls-remote 的退出码要分清：0=分支在，2=分支确实不存在，其他=访问出错——出错必须报错，
+          # 不能当成「分支不存在」从空目录重来（那会丢掉全部状态）。
+          set +e
+          (cd "$RUNNER_TEMP" && git -c http.extraheader="$AUTH" ls-remote --exit-code --heads "$REPO_URL" gh-pages >/dev/null 2>&1)
+          rc=$?
+          set -e
+          if [ "$rc" -eq 0 ]; then
             git clone --quiet --depth 1 --branch gh-pages "$REPO_URL" pages
-          else
+          elif [ "$rc" -eq 2 ]; then
             echo "gh-pages 分支不存在，创建空分支（首次运行或分支被删）"
             mkdir pages
             git -C pages init -q -b gh-pages
             git -C pages remote add origin "$REPO_URL"
+          else
+            echo "::error::无法访问远端仓库（ls-remote 退出码 $rc），中止，避免丢失已发布的状态"
+            exit 1
           fi
+          git -C pages config http.extraheader "$AUTH"
       - name: 生成日报
         id: gen
         continue-on-error: true
@@ -97,7 +108,8 @@ jobs:
             echo "没有变化，不提交"
           else
             git commit -q -m "fifa: daily report $(date -u +%F) [skip ci]"
-            git push origin HEAD:gh-pages || { git pull --rebase origin gh-pages && git push origin HEAD:gh-pages; }
+            # 并发由 concurrency 组保证只有一个写入者；推送被拒说明有人改了分支，直接报错，不做自动合并
+            git push origin HEAD:gh-pages
           fi
       - name: 生成失败则让本次运行标红
         if: steps.gen.outcome == 'failure'
