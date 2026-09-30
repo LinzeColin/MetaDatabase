@@ -30,6 +30,9 @@ def parser() -> argparse.ArgumentParser:
     sub.add_parser("serve")
     sub.add_parser("print-latest")
     sub.add_parser("verify-runtime")
+    research = sub.add_parser("research", help="研究层：候选池 -> 增量采集 -> 证据快照 -> 五个分支（隔离子进程）-> shortlist")
+    from .research_cycle import add_arguments as add_research_arguments
+    add_research_arguments(research)
     return root
 
 
@@ -42,7 +45,7 @@ def verify_runtime(settings: LiveSettings) -> dict:
         "state_dir_exists": settings.state_dir.is_dir(),
         "web_dir": str(settings.web_dir),
         "web_index_exists": web_index.is_file(),
-        "commands": ["once", "loop", "serve", "print-latest", "verify-runtime"],
+        "commands": ["once", "loop", "serve", "print-latest", "verify-runtime", "research"],
     }
     return {
         "state": "PASS" if checks["state_dir_exists"] and checks["web_index_exists"] else "FAIL",
@@ -63,6 +66,9 @@ def run_outcome(report: dict) -> dict:
 
 def main(argv: Optional[List[str]] = None) -> int:
     args = parser().parse_args(argv)
+    if args.command == "research":
+        from .research_cycle import cli_main as research_main
+        return research_main(args, project_root())
     settings = LiveSettings.from_env(project_root())
     if args.command == "once":
         # 定时器每分钟跑一次 once。整份报告已落盘（print-latest / API 可读），

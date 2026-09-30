@@ -33,6 +33,8 @@ from .fundamentals import (CHINA_HK_CODES, US_STATE_CODES, Fundamentals, MarketI
 from .scoring_support import (KIND_MARKET, NO_EVIDENCE, DimensionResult, EvidenceRef, FactorResult, ParamsError,
                               Receipt, aggregate_dimension, check_table, check_unit_interval, dedupe_refs,
                               geometric_mean, load_params, no_evidence, table_rating, clamp, _check_weights)
+from .structure_factors import StructureEvidence
+from . import structure_factors as SF
 from .textmarkers import TextMarkers
 
 SKILL_ID = "bottleneck-serenity-skill"
@@ -43,7 +45,7 @@ DIMENSIONS = ("constraint", "capture", "mispricing", "evidence", "investability"
 DEFAULT_PARAMS: Dict[str, Any] = {
     "schema": "signal-lattice-branch-params/1",
     "skill": SKILL_ID,
-    "params_version": "0.0.0.1",
+    "params_version": "0.0.0.2",
     "source": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/references/scoring_model.md",
     "dimension_weights": {
         "constraint": {"funded_demand": 15, "architectural_necessity": 15, "current_tightness": 10,
@@ -96,6 +98,19 @@ DEFAULT_PARAMS: Dict[str, Any] = {
                  "cap_rating": 4},
     "tightness": {"revenue_yoy_min": 0.0, "shrinking_cap_rating": 1, "corroboration_revenue_yoy_min": 0.10},
     "pricing_power": {"shrinking_cap_rating": 2},
+    # 10-K/10-Q 正文抽取（evidence/structure_text.py）如何折成 0-5 分；有数字才能到 3 以上，方向不明不计分
+    "structure_text": {
+        "owner_sole_source_rating": 3,
+        "utilization_min_pct": 90,
+        "utilization_text_only_rating": 3,
+        "backlog_yoy_cap_rating": 4,
+        "upstream_supply_only_rating": 3,
+        "upstream_sole_source_rating": 2,
+        "upstream_share_mid_pct": 30,
+        "upstream_share_mid_rating": 2,
+        "upstream_share_high_pct": 50,
+        "upstream_share_high_rating": 1,
+    },
     "governance": {"start_rating": 4, "nt_penalty": 2, "nonreliance_penalty": 4, "auditor_change_penalty": 1,
                    "restatement_penalty": 1, "restatement_threshold": 0.05, "min_filings_seen": 5},
     "geography": {"us_rating": 4, "foreign_rating": 2, "china_hk_rating": 1},
@@ -109,6 +124,10 @@ DEFAULT_PARAMS: Dict[str, Any] = {
     "tables": {
         "funded_demand_rpo_yoy": {"direction": "higher", "cuts": [[0.6, 5], [0.3, 4], [0.1, 3], [0.0, 2], [-0.1, 1]], "floor": 0},
         "funded_demand_revenue_yoy": {"direction": "higher", "cuts": [[0.25, 3], [0.10, 2], [0.0, 1]], "floor": 0},
+        "funded_demand_backlog_months": {"direction": "higher", "cuts": [[6, 3], [3, 2], [1, 1]], "floor": 0},
+        "expansion_lead_time_months": {"direction": "higher", "cuts": [[12, 4], [6, 3], [3, 2]], "floor": 1},
+        "qualification_months": {"direction": "higher", "cuts": [[24, 4], [12, 3], [6, 2]], "floor": 1},
+        "customer_top_share_pct": {"direction": "lower", "cuts": [[9.99, 4], [19.99, 3], [34.99, 2], [49.99, 1]], "floor": 0},
         "tightness_gm_change_bps": {"direction": "higher", "cuts": [[400, 4], [200, 3], [50, 2], [0, 1]], "floor": 0},
         "pricing_power_gm_change_bps": {"direction": "higher", "cuts": [[500, 5], [300, 4], [100, 3], [0, 2], [-100, 1]], "floor": 0},
         "unit_economics_op_margin": {"direction": "higher", "cuts": [[0.20, 5], [0.12, 4], [0.05, 3], [0.0, 2], [-0.15, 1]], "floor": 0},
@@ -129,13 +148,13 @@ DEFAULT_PARAMS: Dict[str, Any] = {
 }
 
 FACTOR_SOURCES: Dict[str, str] = {
-    "funded_demand": "XBRL us-gaap:RevenueRemainingPerformanceObligation 同比（最高 5）；否则 TTM 营收同比（最高 3，间接证据）",
+    "funded_demand": "XBRL us-gaap:RevenueRemainingPerformanceObligation 同比（最高 5）；无 RPO 时用正文积压订单金额（覆盖月数最高 3，带对比期同比最高 4）；否则 TTM 营收同比（最高 3，间接证据）",
     "architectural_necessity": "NO_EVIDENCE：需要系统架构/客户设计资料，申报 XBRL 没有",
     "current_tightness": "XBRL 毛利率 TTM 同比变化（需营收未下滑）；原文标记（产能受限/交期/配给）只作佐证，单独最高 2",
-    "supplier_concentration": "原文标记 sole/single source（最高 2，方向需人核对：可能是公司自己的上游瓶颈）；未扫原文=NO_EVIDENCE",
-    "qualification_barrier": "NO_EVIDENCE：需要认证/设计导入资料",
+    "supplier_concentration": "10-K/10-Q 正文抽取：公司自称唯一/少数供应商（OWNER，最高 3）；依赖上游单一来源是风险，进 technology_resilience 不加分；判不出方向=AMBIGUOUS 不计分；没抽到=NO_EVIDENCE",
+    "qualification_barrier": "10-K/10-Q 正文抽取：客户换供应商要认证 N 个月（OWNER 且带数字，≥12 个月 3 分、≥24 个月 4 分）；没抽到=NO_EVIDENCE",
     "substitution_difficulty": "NO_EVIDENCE：需要技术替代路线资料",
-    "expansion_lead_time": "原文标记 lead times（最高 2）；未扫原文=NO_EVIDENCE",
+    "expansion_lead_time": "10-K/10-Q 正文抽取：自家产品交期 N 周/月（OWNER 且带数字，≥6 个月 3 分、≥12 个月 4 分，PROXY）；上游交期进风险；没抽到=NO_EVIDENCE",
     "policy_resilience": "NO_EVIDENCE：需要政策/地理集中度资料",
     "exposure_materiality": "NO_EVIDENCE：companyfacts 无 segment 维度，无法证明约束业务占营收比",
     "pricing_power": "XBRL 毛利率 TTM 同比变化（营收下滑则封顶 2）",
@@ -162,8 +181,8 @@ FACTOR_SOURCES: Dict[str, str] = {
     "liquidity": "20 日成交额中位数（美元）",
     "governance_accounting": "起评 4（无审计核验不给 5），扣分项：NT 10-K/10-Q、8-K 4.02 非依赖、8-K 4.01 换所、大幅重述",
     "geopolitical_regulatory": "SEC 登记主要营业地：美国州=4，中国/香港=1，其他境外=2（只是登记地代理）",
-    "customer_diversification": "NO_EVIDENCE：companyfacts 无客户集中度维度",
-    "technology_resilience": "NO_EVIDENCE",
+    "customer_diversification": "10-K/10-Q 正文抽取：最大单一客户占营收 %（<10% 自述 4 分，10-20% 3 分，20-35% 2 分，35-50% 1 分，≥50% 0 分）；没披露=NO_EVIDENCE",
+    "technology_resilience": "PROXY 供应链单点依赖风险：正文披露依赖上游单一来源/单一供应商采购占比时给偏低评分；没披露=NO_EVIDENCE（不给抗风险加分）",
     "balance_sheet_survival": "经营现金流为负：现金/月度消耗；为正：净现金≥0 得 4，否则按 债务/经营现金流 分档，最高 4",
     "float_gap_risk": "NO_EVIDENCE：需要自由流通量与做空数据",
     "portfolio_fit": "NO_EVIDENCE：组合层面因子",
@@ -210,13 +229,21 @@ def write_default_params(path: Path) -> None:
 
 
 # ---- 因子 ----------------------------------------------------------------------
+class _Metric:
+    """funded_demand 的候选证据（数值 + 证据引用），与 fundamentals.M 的 .value/.refs 同形。"""
+
+    def __init__(self, value: float, refs: Tuple[EvidenceRef, ...]) -> None:
+        self.value, self.refs = value, refs
+
+
 def _fmt(value: Optional[float], pct: bool = False, digits: int = 2) -> str:
     if value is None:
         return "n/a"
     return ("%.1f%%" % (value * 100.0)) if pct else ("%.*f" % (digits, value))
 
 
-def constraint_factors(f: Fundamentals, text: Optional[TextMarkers], p: dict) -> Dict[str, FactorResult]:
+def constraint_factors(f: Fundamentals, text: Optional[TextMarkers], p: dict,
+                       structure: Optional[StructureEvidence] = None) -> Dict[str, FactorResult]:
     T = p["tables"]
     tm = p["text_markers"]
     out: Dict[str, FactorResult] = {}
@@ -235,6 +262,11 @@ def constraint_factors(f: Fundamentals, text: Optional[TextMarkers], p: dict) ->
     if f.revenue_yoy.ok:
         options.append((table_rating(f.revenue_yoy.value, T["funded_demand_revenue_yoy"]),
                         "TTM 营收同比 %s（间接证据，最高 3）" % _fmt(f.revenue_yoy.value, True), f.revenue_yoy))
+    backlog_option = None
+    if structure is not None and not rpo_material:
+        backlog_option = SF.backlog_demand(structure, f, p)
+    if backlog_option is not None:
+        options.append((backlog_option[0], backlog_option[1], _Metric(backlog_option[3], backlog_option[2])))
     if options:
         best = max(options, key=lambda o: o[0])
         out["funded_demand"] = FactorResult("funded_demand", best[0], "；".join(o[1] for o in options) + rpo_note,
@@ -255,26 +287,50 @@ def constraint_factors(f: Fundamentals, text: Optional[TextMarkers], p: dict) ->
             numeric = min(numeric, p["tightness"]["shrinking_cap_rating"])
             basis.append("营收同比 %s 为负，毛利率上升不算紧张，封顶 %s" % (
                 _fmt(f.revenue_yoy.value, True), p["tightness"]["shrinking_cap_rating"]))
-    marker_groups = [g for g in tm["tightness_groups"] if text is not None and text.counts.get(g, 0) >= tm["min_count"]]
-    if numeric is None and text is None:
-        out["current_tightness"] = no_evidence("current_tightness", "拿不到毛利率同比，也未扫描原文")
-    else:
-        rating = numeric
-        if text is not None:
-            if marker_groups:
-                basis.append("原文标记：" + ",".join("%s×%d" % (g, text.counts[g]) for g in marker_groups))
-                refs = refs + tuple(text.ref(g) for g in marker_groups)
+    if structure is not None:
+        owner = SF.owner_tightness(structure, p)
+        if numeric is None and owner is None:
+            out["current_tightness"] = no_evidence("current_tightness", "拿不到毛利率同比；正文没有方向明确的产能受限/满负荷表述" +
+                                                   SF._ambiguous_note(structure, "capacity_constraint"))
+        else:
+            rating = numeric
+            if owner is not None:
+                basis.append(owner[2])
+                refs = refs + owner[3]
                 if rating is not None and rating >= 2:
                     rating = min(tm["corroborated_cap_rating"], rating + 1)   # 数字与原文互证
                 else:
-                    rating = max(rating or 0, tm["marker_cap_rating"])          # 只有原文：最高 2
-            elif rating is None:
-                rating = 0
-                basis.append("已扫描原文，未见产能受限/交期/配给措辞")
-        out["current_tightness"] = FactorResult("current_tightness", rating, "；".join(basis), dedupe_refs(refs),
-                                                "OBSERVED", f.gm_change_bps.value if f.gm_change_bps.ok else None)
+                    rating = max(rating or 0, owner[1])                        # 只有原文：无数字最高 2，有利用率数字最高 3
+            out["current_tightness"] = FactorResult("current_tightness", rating, "；".join(basis), dedupe_refs(refs),
+                                                    "OBSERVED", f.gm_change_bps.value if f.gm_change_bps.ok else None)
+    else:
+        marker_groups = [g for g in tm["tightness_groups"] if text is not None and text.counts.get(g, 0) >= tm["min_count"]]
+        if numeric is None and text is None:
+            out["current_tightness"] = no_evidence("current_tightness", "拿不到毛利率同比，也未扫描原文")
+        else:
+            rating = numeric
+            if text is not None:
+                if marker_groups:
+                    basis.append("原文标记：" + ",".join("%s×%d" % (g, text.counts[g]) for g in marker_groups))
+                    refs = refs + tuple(text.ref(g) for g in marker_groups)
+                    if rating is not None and rating >= 2:
+                        rating = min(tm["corroborated_cap_rating"], rating + 1)   # 数字与原文互证
+                    else:
+                        rating = max(rating or 0, tm["marker_cap_rating"])          # 只有原文：最高 2
+                elif rating is None:
+                    rating = 0
+                    basis.append("已扫描原文，未见产能受限/交期/配给措辞")
+            out["current_tightness"] = FactorResult("current_tightness", rating, "；".join(basis), dedupe_refs(refs),
+                                                    "OBSERVED", f.gm_change_bps.value if f.gm_change_bps.ok else None)
 
-    # supplier_concentration / expansion_lead_time：只来自原文标记
+    # supplier_concentration / expansion_lead_time / qualification_barrier：只来自正文抽取
+    if structure is not None:
+        out["supplier_concentration"] = SF.supplier_concentration(structure, p)
+        out["expansion_lead_time"] = SF.expansion_lead_time(structure, p)
+        out["qualification_barrier"] = SF.qualification_barrier(structure, p)
+        for name in ("substitution_difficulty", "policy_resilience"):
+            out[name] = no_evidence(name, FACTOR_SOURCES[name])
+        return out
     for name, group in (("supplier_concentration", "sole_source"), ("expansion_lead_time", "lead_times")):
         if text is None:
             out[name] = no_evidence(name, "未扫描申报原文（不扫描就没有依据）")
@@ -416,7 +472,7 @@ def mispricing_factors(f: Fundamentals, peers: Optional[PeerContext], p: dict) -
     return out
 
 
-def investability_factors(f: Fundamentals, p: dict) -> Dict[str, FactorResult]:
+def investability_factors(f: Fundamentals, p: dict, structure: Optional[StructureEvidence] = None) -> Dict[str, FactorResult]:
     T = p["tables"]
     out: Dict[str, FactorResult] = {}
     m = f.market
@@ -457,6 +513,9 @@ def investability_factors(f: Fundamentals, p: dict) -> Dict[str, FactorResult]:
         out["geopolitical_regulatory"] = no_evidence("geopolitical_regulatory", "submissions 没有营业地址")
     for name in ("customer_diversification", "technology_resilience", "float_gap_risk", "portfolio_fit"):
         out[name] = no_evidence(name, FACTOR_SOURCES[name])
+    if structure is not None:
+        out["customer_diversification"] = SF.customer_diversification(structure, p)
+        out["technology_resilience"] = SF.upstream_dependency_risk(structure, p)
 
     sv = p["survival"]
     if f.ocf_ttm.ok and f.ocf_ttm.value < 0 and f.cash_runway_months.ok:
@@ -670,7 +729,8 @@ def _gate_summary(dims: Dict[str, DimensionResult], runway: dict, g: dict, p: di
 
 def score_bottleneck(store: FactStore, market: MarketInput, as_of: str, params: Optional[dict] = None,
                      findings: Optional[List[dict]] = None, peers: Optional[PeerContext] = None,
-                     text: Optional[TextMarkers] = None, fundamentals: Optional[Fundamentals] = None) -> Receipt:
+                     text: Optional[TextMarkers] = None, fundamentals: Optional[Fundamentals] = None,
+                     structure: Optional[StructureEvidence] = None) -> Receipt:
     """对一只股票、在 as_of 这一天的可见事实上打分。fundamentals 若传入必须是同一个 as_of 算出来的。"""
     if params is None:
         params, findings = load_bottleneck_params()
@@ -681,13 +741,15 @@ def score_bottleneck(store: FactStore, market: MarketInput, as_of: str, params: 
     f = fundamentals
     if text is not None and text.filed > as_of:
         raise ValueError("text markers filed %s are after as_of %s" % (text.filed, as_of))
+    if structure is not None and structure.latest_filed is not None and structure.latest_filed > as_of:
+        raise ValueError("structure extraction filed %s is after as_of %s" % (structure.latest_filed, as_of))
     p = params
 
     factors: Dict[str, Dict[str, FactorResult]] = {
-        "constraint": constraint_factors(f, text, p),
+        "constraint": constraint_factors(f, text, p, structure),
         "capture": capture_factors(f, p),
         "mispricing": mispricing_factors(f, peers, p),
-        "investability": investability_factors(f, p),
+        "investability": investability_factors(f, p, structure),
     }
     factors["evidence"] = evidence_factors(f, factors, p)
 
@@ -733,6 +795,7 @@ def score_bottleneck(store: FactStore, market: MarketInput, as_of: str, params: 
         "rank_key": rank_key(verdict, final, gate_margin(dims, p["gates"])),
         "equity_bridge": bridge,
         "text_markers": None if text is None else text.to_dict(),
+        "structure_text": None if structure is None else SF.summary(structure),
         "primary_links": links,
         "no_evidence_ratio": _ne_ratio(factors),
         "params_version": p["params_version"],
@@ -767,7 +830,8 @@ def hard_flags_v2(f: Fundamentals, bridge: dict, factors: Dict[str, Dict[str, Fa
 def collect_primary_links(factors: Dict[str, Dict[str, FactorResult]], text: Optional[TextMarkers], limit: int = 8) -> List[dict]:
     seen: Dict[str, dict] = {}
     priority = ("funded_demand", "current_tightness", "pricing_power", "unit_economics", "valuation_asymmetry",
-                "balance_sheet_survival", "freshness")
+                "balance_sheet_survival", "expansion_lead_time", "qualification_barrier", "supplier_concentration",
+                "customer_diversification", "technology_resilience", "freshness")
     ordered = [(dim, name) for name in priority for dim in factors if name in factors[dim]]
     ordered += [(dim, name) for dim in factors for name in factors[dim] if name not in priority]
     for dim, name in ordered:

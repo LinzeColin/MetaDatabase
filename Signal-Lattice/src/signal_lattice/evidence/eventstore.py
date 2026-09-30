@@ -137,6 +137,16 @@ class EventStore:
         self.db.commit()
         self._offering_cache: dict = {}
 
+    @classmethod
+    def read_only(cls, path: Union[str, Path]) -> "EventStore":
+        """只读打开（immutable：不建库、不写、不取锁；WAL 必须已检查点，快照构建时保证）。"""
+        store = cls.__new__(cls)
+        store.path = str(path)
+        store.db = sqlite3.connect("file:%s?mode=ro&immutable=1" % store.path, uri=True)
+        store.db.row_factory = sqlite3.Row
+        store._offering_cache = {}
+        return store
+
     def close(self) -> None:
         self.db.close()
 

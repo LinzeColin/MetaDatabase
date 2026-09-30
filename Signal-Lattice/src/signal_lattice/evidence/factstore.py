@@ -111,6 +111,15 @@ class FactStore:
         self.db.executescript(SCHEMA)
         self.db.commit()
 
+    @classmethod
+    def read_only(cls, path: Union[str, Path]) -> "FactStore":
+        """只读打开（immutable：不建库、不写、不取锁）。给隔离子进程读快照用；写入方法在只读连接上会直接报错。"""
+        store = cls.__new__(cls)
+        store.path = str(path)
+        store.db = sqlite3.connect("file:%s?mode=ro&immutable=1" % store.path, uri=True)
+        store.db.row_factory = sqlite3.Row
+        return store
+
     def close(self) -> None:
         self.db.close()
 

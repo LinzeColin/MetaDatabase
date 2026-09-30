@@ -1,7 +1,7 @@
 {
   "schema": "signal-lattice-branch-params/1",
   "skill": "bottleneck-serenity-skill",
-  "params_version": "0.0.0.1",
+  "params_version": "0.0.0.2",
   "source": "Stock_Skill/bottleneck-serenity-skill/task-pack/skill_draft/bottleneck-serenity-skill/references/scoring_model.md",
   "dimension_weights": {
     "constraint": {
@@ -149,6 +149,18 @@
   "pricing_power": {
     "shrinking_cap_rating": 2
   },
+  "structure_text": {
+    "owner_sole_source_rating": 3,
+    "utilization_min_pct": 90,
+    "utilization_text_only_rating": 3,
+    "backlog_yoy_cap_rating": 4,
+    "upstream_supply_only_rating": 3,
+    "upstream_sole_source_rating": 2,
+    "upstream_share_mid_pct": 30,
+    "upstream_share_mid_rating": 2,
+    "upstream_share_high_pct": 50,
+    "upstream_share_high_rating": 1
+  },
   "governance": {
     "start_rating": 4,
     "nt_penalty": 2,
@@ -230,6 +242,82 @@
         ],
         [
           0.0,
+          1
+        ]
+      ],
+      "floor": 0
+    },
+    "funded_demand_backlog_months": {
+      "direction": "higher",
+      "cuts": [
+        [
+          6,
+          3
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "floor": 0
+    },
+    "expansion_lead_time_months": {
+      "direction": "higher",
+      "cuts": [
+        [
+          12,
+          4
+        ],
+        [
+          6,
+          3
+        ],
+        [
+          3,
+          2
+        ]
+      ],
+      "floor": 1
+    },
+    "qualification_months": {
+      "direction": "higher",
+      "cuts": [
+        [
+          24,
+          4
+        ],
+        [
+          12,
+          3
+        ],
+        [
+          6,
+          2
+        ]
+      ],
+      "floor": 1
+    },
+    "customer_top_share_pct": {
+      "direction": "lower",
+      "cuts": [
+        [
+          9.99,
+          4
+        ],
+        [
+          19.99,
+          3
+        ],
+        [
+          34.99,
+          2
+        ],
+        [
+          49.99,
           1
         ]
       ],
