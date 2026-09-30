@@ -3603,7 +3603,8 @@ export default function Home() {
           </div>
           {CLOUD_MODE ? (
             <div>
-              <dt>更新于</dt>
+              {/* activated_at 是评分模型的启用时间，不是数据更新时间；数据新旧看上一行「数据版本」。 */}
+              <dt>评分模型启用于</dt>
               <dd>
                 {serverModelContext?.activated_at
                   ? serverModelContext.activated_at.slice(5, 16).replace("T", " ")
