@@ -1,7 +1,7 @@
 name: FIFA Daily Report
 
 # FIFA 足球研究日报（只研究、不下注）。运行与对外服务都在云服务器 VPS-3，不在 GitHub：
-#   页面：https://home.linzezhang.com/fifa/
+#   页面：https://fifa.linzezhang.com/
 #   服务器上：systemd timer fifa-daily.timer（UTC 20:37 与 08:47）+ fifa-daily-pull.timer（拉本仓 main 的 FIFA/daily-research）
 #   代码与说明：FIFA/daily-research/README.md；服务器部署件：FIFA/deploy/vps/
 # 本工作流只在 PR 上跑离线测试（合成数据，不联网），不定时、不发布任何页面。
