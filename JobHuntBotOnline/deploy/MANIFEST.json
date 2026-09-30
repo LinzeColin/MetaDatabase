@@ -89,6 +89,7 @@
     "tests/test_business_e2e.py",
     "tests/test_config_and_security.py",
     "tests/test_finance_legal_intelligence.py",
+    "tests/test_job_quality.py",
     "tests/test_migration_and_url_safety.py",
     "tests/test_onboarding_discovery.py",
     "tools/deepseek_probe.py",
