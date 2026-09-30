@@ -93,6 +93,7 @@ apps/web/public/eei-app-icon.png
 apps/web/public/eei-app-icon.svg
 apps/web/src/app/analysis-context-badge.tsx
 apps/web/src/app/analysis-contract.ts
+apps/web/src/app/api-base.ts
 apps/web/src/app/capital-events-client.ts
 apps/web/src/app/capital/page.tsx
 apps/web/src/app/cloud-data-client.ts
