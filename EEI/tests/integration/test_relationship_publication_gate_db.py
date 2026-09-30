@@ -8,6 +8,8 @@ and the UTC-day write budget - on the real schema.
 from __future__ import annotations
 
 import os
+import subprocess
+import sys
 from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
@@ -87,6 +89,27 @@ def _relationship(
         (relationship_id, document_id),
     )
     return relationship_id
+
+
+def _run_script(*args: str) -> None:
+    subprocess.run([sys.executable, *args], check=True, cwd=os.getcwd(), text=True)
+
+
+@pytest.fixture(scope="module", autouse=True)
+def provisioned_database() -> Iterator[None]:
+    """The migration test leaves the database migrated DOWN; bring it up for this
+    module and put it back the way it was found."""
+    with connect_database() as connection:
+        present = connection.execute("SELECT to_regclass('public.sources')").fetchone()[0]
+    if present is not None:
+        yield
+        return
+    _run_script("scripts/migrate.py", "upgrade")
+    _run_script("scripts/load_seed_catalogs.py")
+    try:
+        yield
+    finally:
+        _run_script("scripts/migrate.py", "downgrade", "--all")
 
 
 @pytest.fixture()
