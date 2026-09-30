@@ -8,6 +8,9 @@
 #   3. EXTRA_DOMAINS：同一个容器多接受几个域名（EXTRA_DOMAINS_CERT=yes 才为它们向 Let's Encrypt 申请证书）；
 #   4. run --force：内容没变也重新部署一次（切换主域名、改了 env 里的标签相关配置后用）；
 #   5. 接入 Traefik 网络后起停一个一次性容器，主动触发 Traefik 重读配置（首次部署没有旧容器可停时，模板会路由到不可达地址）。
+#   6. WATCH_PATHS：构建上下文（SUBDIR）比要监视的内容大时用。只取并只监视这些仓库根相对路径（目录或文件），
+#      变化检测的 tree 哈希 = 这些路径各自哈希的合并哈希。EEI 的 Dockerfile 要从 EEI/ 下同时取 apps/universe、apps/web、
+#      data 和 pnpm 锁文件（多阶段构建前端），但 EEI/ 里其余几千个文档的提交不应该触发重建。
 #
 # 以下为原模板说明：
 #
@@ -55,6 +58,7 @@ set -a; . "$CONF"; set +a
 : "${REPO_URL:?配置缺 REPO_URL}" "${DOMAIN:?配置缺 DOMAIN}" "${IMAGE:?配置缺 IMAGE}"
 BRANCH=${BRANCH_OVERRIDE:-${BRANCH:-main}}
 SUBDIR=${SUBDIR:-.}
+WATCH_PATHS=${WATCH_PATHS:-}
 DOCKERFILE=${DOCKERFILE:-Dockerfile}
 CONTAINER_PORT=${CONTAINER_PORT:-80}
 HEALTH_PATH=${HEALTH_PATH:-/}
@@ -81,6 +85,9 @@ declare -a EXTRA_ARGS=(); read -r -a EXTRA_ARGS <<< "$RUN_EXTRA_ARGS"
 for _d in $EXTRA_DOMAINS; do [[ $_d =~ ^[a-z0-9.-]+$ ]] || { echo "EXTRA_DOMAINS 格式不对" >&2; exit 78; }; done
 [[ $IMAGE =~ ^[a-z0-9][a-z0-9._/-]*$ ]] || { echo "IMAGE 格式不对" >&2; exit 78; }
 [[ $SUBDIR =~ ^[A-Za-z0-9._/-]+$ && $SUBDIR != /* && $SUBDIR != *..* ]] || { echo "SUBDIR 格式不对" >&2; exit 78; }
+for _p in $WATCH_PATHS; do
+  [[ $_p =~ ^[A-Za-z0-9._/-]+$ && $_p != /* && $_p != *..* ]] || { echo "WATCH_PATHS 格式不对：$_p" >&2; exit 78; }
+done
 
 STATE_DIR="$STATE_ROOT/$APP"
 STATE_FILE="$STATE_DIR/state.env"
@@ -170,12 +177,32 @@ fetch_source() {
   git -C "$WORK" remote remove origin >/dev/null 2>&1
   git -C "$WORK" remote add origin "$REPO_URL" || return 1
   timeout 180 git -C "$WORK" -c credential.helper= fetch -q --depth 1 --filter=blob:none origin "$sha" || return 1
-  if [ "$SUBDIR" != "." ]; then git -C "$WORK" sparse-checkout set --cone "$SUBDIR" || return 1; fi
+  if [ -n "$WATCH_PATHS" ]; then
+    # 非 cone 模式：只检出 WATCH_PATHS 里列的路径（目录要以 / 结尾，文件原样），不带出 SUBDIR 下的其它文件
+    local pats=() p t
+    for p in $WATCH_PATHS; do
+      t=$(git -C "$WORK" cat-file -t "FETCH_HEAD:$p" 2>/dev/null) || { log "仓库里找不到监视路径 $p"; return 1; }
+      if [ "$t" = tree ]; then pats+=("/$p/"); else pats+=("/$p"); fi
+    done
+    git -C "$WORK" sparse-checkout set --no-cone "${pats[@]}" || return 1
+  elif [ "$SUBDIR" != "." ]; then
+    git -C "$WORK" sparse-checkout set --cone "$SUBDIR" || return 1
+  fi
   git -C "$WORK" checkout -q -f --detach FETCH_HEAD || return 1
   git -C "$WORK" clean -ffdxq
   [ "$(git -C "$WORK" rev-parse HEAD)" = "$sha" ] || return 1
   [ -f "$WORK/$SUBDIR/$DOCKERFILE" ] || { log "仓库里找不到 $SUBDIR/$DOCKERFILE"; return 1; }
-  TREE=$(git -C "$WORK" rev-parse "HEAD:$SUBDIR") && [[ $TREE =~ ^[0-9a-f]{40}$ ]] || { log "取不到 $SUBDIR 的 tree 哈希"; return 1; }
+  if [ -n "$WATCH_PATHS" ]; then
+    local lines="" h
+    for p in $WATCH_PATHS; do
+      h=$(git -C "$WORK" rev-parse "HEAD:$p") || { log "取不到 $p 的哈希"; return 1; }
+      lines+="$p $h"$'\n'
+    done
+    TREE=$(printf '%s' "$lines" | git -C "$WORK" hash-object --stdin)
+  else
+    TREE=$(git -C "$WORK" rev-parse "HEAD:$SUBDIR")
+  fi
+  [[ $TREE =~ ^[0-9a-f]{40}$ ]] || { log "取不到 ${WATCH_PATHS:-$SUBDIR} 的 tree 哈希"; return 1; }
 }
 
 build_image() {

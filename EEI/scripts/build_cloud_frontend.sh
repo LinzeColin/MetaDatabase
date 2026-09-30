@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
-# S10PAT02: build the static cloud frontend and stage it as the codex-eei
-# Worker's asset directory. The export talks to the Worker API at
-# EEI_CLOUD_API_BASE. Default is the production custom domain: workers.dev
-# serving is DISABLED for this worker (error 1042) - a bare rebuild against
-# the old default silently points every production-data panel at a dead
-# origin (the S12 timeline-empty incident).
+# S10PAT02: build the static cloud frontend (legacy path: stage it as the
+# codex-eei Worker's asset directory).
+#
+# 现行生产路径不再用本脚本：旧版图谱前端由宇宙容器自托管，前端在镜像构建时生成
+# （EEI/apps/universe/deploy/Dockerfile 第 1 阶段，同样的 next build 参数）。本脚本只服务于
+# 「回滚到 Cloudflare Worker」这条退路。接口基址默认 same-origin：产物运行时取页面自己的
+# origin 去请求 /v1/*，不写死任何域名（也不再写 workers.dev / 自定义域名）。
+# 需要指向别处（例如本机 API）时用 EEI_CLOUD_API_BASE 覆盖。
 #
 # EEI-F07: the build is stamped with the git commit (clean tree required) so
 # production can be provably mapped to a revision. The same SHA goes into the
@@ -13,7 +15,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-API_BASE="${EEI_CLOUD_API_BASE:-https://eei.linzezhang.com}"
+API_BASE="${EEI_CLOUD_API_BASE:-same-origin}"
 WEB_DIR="$REPO_ROOT/apps/web"
 DIST_DIR="$REPO_ROOT/apps/cloudflare-public/dist"
 

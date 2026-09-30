@@ -69,9 +69,10 @@ server {
     add_header Cache-Control "private, no-cache" always;
     rewrite ^ /index.html break;
   }
-  # 旧模块页：/structure 对应 structure.html；带斜杠的 /structure/ 也认。都没有才回退上游
+  # 旧模块页：/structure 对应 structure.html；带斜杠的 /structure/ 先 301 到不带斜杠。都没有才回退上游
   location @legacy {
     root /usr/share/nginx/legacy;
+    rewrite ^/(.+)/$ /$1 permanent;
     include /etc/nginx/snippets/headers.conf;
     include /etc/nginx/snippets/legacy-headers.conf;
     add_header Cache-Control "private, no-cache" always;

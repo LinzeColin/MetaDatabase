@@ -5186,3 +5186,29 @@ dd {
   box-shadow: 0 0 0 6px color-mix(in srgb, var(--blue) 22%, transparent);
   transition: box-shadow var(--motion-base) var(--ease-out);
 }
+
+/* 深空主题下右栏的「所选节点」卡与证据/收录面板：原来只有浅色主题的底色（#edf8f1 / #fbfcfc），
+   文字却继承深空的浅色，结果证据面板里的标题、摘录数几乎看不见。这里补深空配色（与 .savedViewPanel 同一套）。 */
+:root[data-theme="deep-space"] .graphPolicyPanel,
+:root[data-theme="deep-space"] .selectedNodeCard {
+  border-color: #23345a;
+  background: rgba(13, 19, 34, 0.82);
+  color: var(--ink);
+}
+:root[data-theme="deep-space"] .graphPolicyPanel header strong,
+:root[data-theme="deep-space"] .graphPolicyPanel dt,
+:root[data-theme="deep-space"] .selectedNodeCard h3,
+:root[data-theme="deep-space"] .selectedNodeCard dd {
+  color: var(--ink);
+}
+:root[data-theme="deep-space"] .graphPolicyPanel dd,
+:root[data-theme="deep-space"] .graphPolicyPanel small {
+  color: var(--muted);
+}
+:root[data-theme="deep-space"] .graphPolicyPanel dl div,
+:root[data-theme="deep-space"] .selectedNodeCard dl div {
+  border-top-color: #23345a;
+}
+:root[data-theme="deep-space"] .diagDetails > summary {
+  color: var(--muted);
+}
