@@ -5144,3 +5144,70 @@ dd {
   .pulsePanel { padding: 16px 14px; }
   .pulseComposition li { grid-template-columns: minmax(0, 1fr) 56px auto; }
 }
+
+/* ==========================================================================
+   「证据栏」入口（旧版前端自托管时补的可发现性修复）
+   宽屏（≥1280px）右栏常驻：入口是右栏标题旁的可见按钮（图标 + 文字「证据栏」，键盘可达）；
+   窄屏（<1280px）右栏收成抽屉：入口是右下浮动的 .inspectorToggle，此按钮隐藏。
+   点开后证据面板（来源、原文链接、摘录）滚到眼前并短暂高亮（data-evidence-bar-focus）。
+   ========================================================================== */
+.evidenceBarButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 13px;
+  cursor: pointer;
+}
+.evidenceBarButton:hover {
+  border-color: var(--blue);
+}
+@media (max-width: 1279px) {
+  .evidenceBarButton {
+    display: none;
+  }
+}
+.productionEvidencePanel {
+  scroll-margin-top: 12px;
+}
+.productionEvidencePanel:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+.productionEvidencePanel[data-evidence-bar-focus="true"] {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--blue) 22%, transparent);
+  transition: box-shadow var(--motion-base) var(--ease-out);
+}
+
+/* 深空主题下证据/收录面板（.graphPolicyPanel）：原来只有浅色主题的底色（#edf8f1），文字却继承深空的浅色，
+   证据标题与「N 条摘录」几乎看不见。这里补深空配色（与 .savedViewPanel 同一套）。
+   只在云发布面（生产，.workspace[data-cloud-surface="true"]）生效：本地样例工作台的 A167 视觉回归基线
+   （tests/e2e/visual-regression.spec.ts，CI 权威基线）里这块是浅色的，改它要连基线一起重生成。
+   右栏「所选节点」卡（.selectedNodeCard）有同样的浅底浅字问题，它在 1440x900 首屏内，本次不动。 */
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphPolicyPanel {
+  border-color: #23345a;
+  background: rgba(13, 19, 34, 0.82);
+  color: var(--ink);
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphPolicyPanel header strong,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphPolicyPanel dt {
+  color: var(--ink);
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphPolicyPanel dd,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphPolicyPanel small {
+  color: var(--muted);
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphPolicyPanel dl div {
+  border-top-color: #23345a;
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphPolicyPanel .diagDetails > summary {
+  color: var(--muted);
+}
