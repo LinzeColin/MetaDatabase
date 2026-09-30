@@ -8,7 +8,7 @@ from pathlib import Path
 
 from signal_lattice import hub
 from signal_lattice.research_view import load_research
-from hub_fixtures import BOTTLENECK, COMMERCIAL, EVENT, NOW, standard_pool, write_research_dir
+from hub_fixtures import BOTTLENECK, COMMERCIAL, EVENT, NOW, open_proof, standard_pool, write_research_dir
 
 
 class LoadTests(unittest.TestCase):
@@ -32,7 +32,7 @@ class LoadTests(unittest.TestCase):
     def test_the_loaded_view_produces_the_same_decision_as_the_in_memory_one(self):
         write_research_dir(self.root, standard_pool())
         view = load_research(self.root)
-        outcome = hub.decide(view, {e["symbol"]: {"price": 10.0, "quote_status": "FRESH"} for e in view.shortlist}, now=NOW)
+        outcome = hub.decide(view, {e["symbol"]: {"price": 10.0, "quote_status": "FRESH"} for e in view.shortlist}, now=NOW, proof=open_proof())
         self.assertEqual(outcome["decision"]["primary_symbol"], "ALPHA")
 
     def test_empty_directory_is_a_research_missing_problem(self):

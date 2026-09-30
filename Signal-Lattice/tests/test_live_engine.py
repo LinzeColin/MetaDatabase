@@ -14,7 +14,7 @@ from signal_lattice.live_runtime import BENCHMARK_SYMBOL, LiveEngine, LiveStore
 from signal_lattice.marketdata.base import MarketDataError
 from signal_lattice.marketdata.models import Bar, Quote
 from signal_lattice.serialization import strict_json_dumps
-from hub_fixtures import COMMERCIAL, EVENT, filler, record, sec_link, standard_pool, write_research_dir
+from hub_fixtures import COMMERCIAL, EVENT, filler, record, sec_link, seed_shadow_evidence, standard_pool, write_research_dir
 
 SESSION = datetime(2026, 9, 30, 15, 0, tzinfo=timezone.utc)          # 美东 11:00，开市
 AFTER_CLOSE = datetime(2026, 9, 30, 20, 10, tzinfo=timezone.utc)     # 美东 16:10，已收盘
@@ -76,6 +76,9 @@ class EngineCase(unittest.TestCase):
         write_research_dir(self.research, standard_pool())
         base = LiveSettings.from_env(Path(__file__).resolve().parents[1])
         self.settings = replace(base, state_dir=self.root / "state", research_dir=self.research, backtest_dir=self.root / "bt")
+        # 规则自证门默认要有证据才放行建议：这里让前向证据 (b) 达标（8 条已结算的影子候选、命中 8/8），
+        # 这些测试要验的是实时层的建议流程；自证门本身的测试在 test_proof_gate.py。
+        seed_shadow_evidence(self.settings.state_dir / "ledger.sqlite")
 
     def engine(self, gateway):
         engine = LiveEngine(self.settings)
@@ -274,7 +277,8 @@ class LedgerIntegrationTests(EngineCase):
         report = self.engine(FakeGateway(later, bars=extended)).run_once(later)
         self.assertEqual(report["ledger"]["settled"]["20"], 1)
         self.assertEqual(report["ledger"]["sample_status"], "SAMPLE_INSUFFICIENT")        # 只有 1 条 < 8
-        self.assertNotIn("hit_rate", json.dumps(report["ledger"]))
+        # 正式记分簿本身不含数字。（setUp 为了让自证门达标，另外种了 8 条已结算的影子候选，它们在 ledger["shadow"] 里，样本已够，自然有数字。）
+        self.assertNotIn("hit_rate", json.dumps({k: v for k, v in report["ledger"].items() if k != "shadow"}))
 
 
 if __name__ == "__main__":

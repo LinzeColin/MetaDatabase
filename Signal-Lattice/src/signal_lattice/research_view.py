@@ -18,6 +18,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional
 
+from . import branch_notes
+
 STOCK_BRANCHES = ("equity-event-atlas", "bottleneck-serenity-skill", "stock-commercial-opportunities", "equity-foresight-signal")
 ENVIRONMENT_BRANCH = "global-equity-lead-lag-atlas"
 ALL_BRANCHES = STOCK_BRANCHES + (ENVIRONMENT_BRANCH,)
@@ -45,6 +47,7 @@ class ResearchView:
     pool: Dict[str, dict] = field(default_factory=dict)
     fundamentals: Dict[str, dict] = field(default_factory=dict)
     environment: Dict[str, Any] = field(default_factory=dict)
+    notes: Dict[str, str] = field(default_factory=dict)          # 分支 -> 一句话说明（取自收据与逐股结论，见 branch_notes）
     universe_count: int = 0
     problems: List[str] = field(default_factory=list)
 
@@ -167,6 +170,7 @@ def load_research(out_dir: Path) -> ResearchView:
             view.ranks[branch_id] = _rank_table(records)
         if branch_id == ENVIRONMENT_BRANCH:
             view.environment = dict(document.get("meta") or {})
+        view.notes[branch_id] = branch_notes.describe(branch_id, receipt, view.verdicts[branch_id], document.get("meta") or {})
     hub_file = latest.get("hubinputs")
     if hub_file and (day / hub_file).is_file():
         try:

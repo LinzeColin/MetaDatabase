@@ -141,7 +141,12 @@
           "primary_name": {"type": ["string", "null"]},
           "market_cap_usd": {"type": ["number", "null"]},
           "price": {"type": ["number", "null"]},
-          "rationale": {"type": "string"},
+          "rationale": {"type": "string", "description": "NO_ACTION 且规则自证门没开时，就是那句人话原因：「这套选股规则在过去 N 个月的回测里平均跑输小盘基准 IWM（20 日 −X%），在它证明自己之前不给建议」"},
+          "no_action_cause": {"enum": ["PROOF_GATE_CLOSED", "NO_QUALIFYING_CANDIDATE"], "description": "NO_ACTION 的原因：规则自证门没开 / 没有候选满足发布条件"},
+          "candidate_note": {"type": "string", "description": "候选层面的说明（多少只候选、离发布最近的是谁）"},
+          "proof_gate": {"$ref": "#/components/schemas/ProofGate"},
+          "shadow_candidate": {"oneOf": [{"$ref": "#/components/schemas/ShadowCandidate"}, {"type": "null"}], "description": "规则自证门没开时，「今天如果发布会选谁」。只记录、不发布。"},
+          "shadow_note": {"type": ["string", "null"]},
           "support": {"type": "object", "description": "加权支持度合计、门槛 1.3、各计分分支（PASS 1.0 / 排序支持 0.3 x 权重）与证据根去重结果", "additionalProperties": true},
           "reasons": {"type": "array", "description": "每个支持分支一句话理由与一条 SEC 原文链接", "items": {"type": "object", "additionalProperties": true}},
           "sources": {"type": "array", "description": "SEC 一手原文清单", "items": {"type": "object", "additionalProperties": true}},
@@ -231,7 +236,8 @@
           "params_sha256": {"type": ["string", "null"]},
           "skill_version": {"type": ["string", "null"]},
           "verdict_counts": {"type": "object", "required": ["PASS", "ABSTAIN", "FAILED"], "properties": {"PASS": {"type": "integer"}, "ABSTAIN": {"type": "integer"}, "FAILED": {"type": "integer"}}},
-          "reason": {"type": ["string", "null"]}
+          "reason": {"type": ["string", "null"]},
+          "note": {"type": ["string", "null"], "description": "一句话说明：取自收据里的原因与逐股结论里的原因，不写死"}
         },
         "additionalProperties": true
       },
@@ -246,7 +252,9 @@
           "price": {"type": ["number", "null"]},
           "quote_status": {"type": ["string", "null"]},
           "support_total": {"type": "number"},
-          "gates": {"type": "object", "description": "pool / quote / liquidity / veto / support 五道门各自的 ok 与说明", "additionalProperties": true},
+          "gates": {"type": "object", "description": "pool / quote / liquidity / veto / support 五道候选门，加上 proof（规则自证门）各自的 ok 与说明", "additionalProperties": true},
+          "passes_candidate_gates": {"type": "boolean", "description": "五道逐股候选门是否全过（不含规则自证门）"},
+          "branch_kinds": {"type": "object", "description": "每个选股分支对这只股的支持类型：PASS / RANK（排序支持）/ FAILED / NONE / NO_PRIMARY_SOURCE", "additionalProperties": {"type": "string"}},
           "gate_summary": {"type": "string"}
         },
         "additionalProperties": true
@@ -261,9 +269,68 @@
           "recorded_days": {"type": "integer"},
           "settled": {"type": "object", "additionalProperties": {"type": "integer"}},
           "horizons": {"type": "object", "additionalProperties": true},
-          "recent": {"type": "array", "items": {"type": "object", "additionalProperties": true}}
+          "recent": {"type": "array", "items": {"type": "object", "additionalProperties": true}},
+          "shadow": {"type": "object", "description": "影子候选（规则自证门没开时「如果发布会选谁」）的记分簿摘要，结构同正式记分簿，单独统计；已结算 < 8 的周期同样不含任何收益数字。", "additionalProperties": true}
         },
         "additionalProperties": true
+      },
+      "ProofGate": {
+        "type": "object",
+        "description": "规则自证门（B4.5）：满足 (a) 回测证据 或 (b) 前向证据 任一才允许发布唯一建议。证据不足的一半（回测窗口 < 6、前向已结算 < 8）不含任何收益数字。",
+        "required": ["schema", "open", "state", "rule", "backtest", "forward", "line"],
+        "properties": {
+          "schema": {"const": "signal-lattice-proof-gate/1"},
+          "open": {"type": "boolean"},
+          "state": {"enum": ["OPEN", "CLOSED"]},
+          "opened_by": {"type": "array", "items": {"enum": ["BACKTEST", "FORWARD"]}},
+          "rule": {"type": "string"},
+          "line": {"type": "string", "description": "一行：关/开 + 依据"},
+          "evidence": {"type": "string", "description": "依据（回测一段 + 前向一段），不含「关/开」前缀；证据不足的一半只写样本数，不含收益数字"},
+          "headline": {"type": ["string", "null"], "description": "门关着时的人话原因；门开着为 null"},
+          "reasons": {"type": "array", "items": {"type": "string"}},
+          "backtest": {
+            "type": "object",
+            "required": ["available", "min_windows", "sufficient", "passed", "checks"],
+            "properties": {
+              "available": {"type": "boolean"}, "windows": {"type": ["integer", "null"]}, "min_windows": {"const": 6},
+              "sufficient": {"type": "boolean"}, "passed": {"type": "boolean"}, "generated_at": {"type": ["string", "null"]},
+              "checks": {"type": "object", "additionalProperties": {"type": ["boolean", "null"]}},
+              "formal_20d_vs_iwm": {"type": ["number", "null"], "description": "只在 sufficient=true 时出现"},
+              "formal_20d_vs_control": {"type": ["number", "null"], "description": "只在 sufficient=true 时出现"},
+              "placebo_20d_vs_iwm": {"type": ["number", "null"], "description": "只在 sufficient=true 时出现"},
+              "hit_rate_20d": {"type": ["number", "null"], "description": "只在 sufficient=true 时出现"}
+            },
+            "additionalProperties": false
+          },
+          "forward": {
+            "type": "object",
+            "required": ["settled", "min_settled", "sufficient", "passed", "checks"],
+            "properties": {
+              "settled": {"type": "integer"}, "shadow_settled": {"type": "integer"}, "formal_settled": {"type": "integer"},
+              "min_settled": {"const": 8}, "min_hit_rate": {"const": 0.55}, "sufficient": {"type": "boolean"}, "passed": {"type": "boolean"},
+              "checks": {"type": "object", "additionalProperties": {"type": ["boolean", "null"]}},
+              "hit_rate": {"type": "number", "description": "只在 sufficient=true 时出现"},
+              "mean_excess_vs_iwm": {"type": ["number", "null"], "description": "只在 sufficient=true 时出现"}
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "ShadowCandidate": {
+        "type": "object",
+        "description": "影子候选：规则自证门没开时，「今天如果发布会选谁」。只记录、不发布；收盘后进记分簿的 shadow 表，按 20/60 日结算并带随机对照。",
+        "required": ["symbol", "sentence", "why_not_published"],
+        "properties": {
+          "symbol": {"type": "string"}, "name": {"type": ["string", "null"]}, "market_cap_usd": {"type": ["number", "null"]}, "price": {"type": ["number", "null"]},
+          "support_total": {"type": "number"},
+          "support_branches": {"type": "array", "items": {"type": "object", "additionalProperties": true}},
+          "reasons": {"type": "array", "items": {"type": "object", "additionalProperties": true}},
+          "sources": {"type": "array", "items": {"type": "object", "additionalProperties": true}},
+          "sentence": {"type": "string"}, "why_not_published": {"type": "string"}, "publishable_if_gate_opens": {"const": true},
+          "gates": {"type": "object", "additionalProperties": true}
+        },
+        "additionalProperties": false
       },
       "PublicReport": {
         "type": "object",
@@ -291,6 +358,7 @@
           "ledger": {"oneOf": [{"$ref": "#/components/schemas/LedgerSummary"}, {"type": "null"}]},
           "backtest": {"oneOf": [{"$ref": "#/components/schemas/ProfitabilityLimitedBacktest"}, {"type": "object", "additionalProperties": true}]},
           "contribution_weights": {"$ref": "#/components/schemas/ContributionWeights"},
+          "proof_gate": {"$ref": "#/components/schemas/ProofGate"},
           "profitability_status": {"type": "string"},
           "profitability_disclosure": {"type": "object", "additionalProperties": true}
         },

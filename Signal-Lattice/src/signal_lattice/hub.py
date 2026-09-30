@@ -17,6 +17,11 @@
          权重只会把支持度往下调（上限 1.0），不会让门槛变低。
 发布   = 加权支持度合计 >= 1.3（至少一个分支 PASS 且至少另一个独立分支排序支持）且全部硬门通过；取合计最高者，
          平局按支持它的事件的新近程度。否则 NO_ACTION，并给观察名单前 5。
+自证门 = 规则自证门（B4.5）：发布唯一建议前，规则必须先自己证明有信息量，满足任一即开——
+         (a) 回测证据：样本外窗口 >= 6，且唯一建议 20 日净超额均值相对 IWM > 0、相对同档随机 > 0，且安慰剂均值 < 正式结果均值；
+         (b) 前向证据：记分簿里已结算的候选（影子候选 + 正式建议）>= 8 条，命中率 >= 55%，平均超额 > 0。
+         门没开：决策一律 NO_ACTION（原因写人话），照常算出「如果发布会选谁」记为影子候选，只记录、不发布，并给观察名单前 5。
+         证据不足（回测窗口 < 6、前向已结算 < 8）时，门的判定里不含任何收益数字。
 阻断   = 研究快照过期（> 36 小时没确认）、分支收据不全或有分支运行失败、行情源全断 -> SYSTEM_BLOCKED。
 动作只写「研究跟进（看多）」，不写「买入」；系统不下单。
 """
@@ -43,6 +48,16 @@ MIN_PRICE_USD = 3.0
 MIN_MEDIAN_DOLLAR_VOLUME_USD = 3_000_000.0
 MAX_MARKET_CAP_USD = 5_000_000_000.0
 PUBLISHED_TTL_DAYS = 60
+
+# ---- 规则自证门（B4.5）：Owner 定的门槛，不许为了让门打开而改 ---------------------------------
+PROOF_MIN_OOS_WINDOWS = 6
+PROOF_FORWARD_MIN_SETTLED = 8
+PROOF_FORWARD_MIN_HIT_RATE = 0.55
+PROOF_GATE_SCHEMA = "signal-lattice-proof-gate/1"
+PROOF_GATE_RULE = ("规则自证门：满足任一才允许发布唯一建议。(a) 回测：样本外窗口 >= %d，唯一建议 20 日净超额均值相对 IWM > 0、相对同档随机 > 0，"
+                   "且安慰剂（事件日期后移 60 个交易日）均值低于正式结果；(b) 前向：记分簿里已结算的候选（影子候选 + 正式建议）>= %d 条，"
+                   "命中率（相对 IWM 超额 > 0）>= %d%%，平均超额 > 0。证据不足时不显示任何收益数字。"
+                   % (PROOF_MIN_OOS_WINDOWS, PROOF_FORWARD_MIN_SETTLED, int(PROOF_FORWARD_MIN_HIT_RATE * 100)))
 
 ACTION_FOLLOW = "研究跟进（看多）"
 # 展示层按这个机器码上色；颜色只绑机器码，不绑中文文案（改文案不会让颜色静默失效）。
@@ -436,6 +451,150 @@ def system_block(research: ResearchView, now: datetime, *, quotes_available: boo
     return None
 
 
+# ---- 规则自证门 ---------------------------------------------------------------------------
+def _finite(value: Any) -> Optional[float]:
+    return float(value) if isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) else None
+
+
+def signed_pct(value: float) -> str:
+    """+2.4% / −3.9%（负号用真正的减号，和正号一样宽，一眼分得出方向）。"""
+    return "%s%.1f%%" % ("+" if value >= 0 else "\u2212", abs(value) * 100)
+
+
+def backtest_proof(report: Optional[Mapping]) -> dict:
+    """(a) 回测证据。report = 私有完整回测报告（hub-backtest.json）；没有或读不懂就当没有证据。
+
+    收益数字只在样本外窗口 >= 6 时才写进结果：证据不足的数字在这里就不存在，不靠调用方去隐藏。"""
+    out: Dict[str, Any] = {"available": False, "min_windows": PROOF_MIN_OOS_WINDOWS, "windows": None, "sufficient": False, "passed": False,
+                           "checks": {"windows_ok": False, "beats_iwm": None, "beats_control": None, "beats_placebo": None}, "generated_at": None}
+    if not isinstance(report, Mapping):
+        return out
+    try:
+        actual = report["summary"]["actual"]["pick_20"]
+        placebo = (report["summary"].get("placebo") or {}).get("pick_20") or {}
+        windows = int(report.get("oos_windows", actual.get("windows", 0)) or 0)
+    except (KeyError, TypeError, ValueError, AttributeError):
+        return out
+    out.update({"available": True, "windows": windows, "generated_at": report.get("generated_at")})
+    out["sufficient"] = out["checks"]["windows_ok"] = windows >= PROOF_MIN_OOS_WINDOWS
+    if not out["sufficient"]:
+        return out
+    formal_iwm = _finite((actual.get("excess_vs_iwm") or {}).get("mean"))
+    formal_control = _finite((actual.get("excess_vs_control") or {}).get("mean"))
+    placebo_iwm = _finite((placebo.get("excess_vs_iwm") or {}).get("mean"))
+    out["formal_20d_vs_iwm"], out["formal_20d_vs_control"], out["placebo_20d_vs_iwm"] = formal_iwm, formal_control, placebo_iwm
+    out["hit_rate_20d"] = _finite((actual.get("excess_vs_iwm") or {}).get("hit_rate"))
+    checks = out["checks"]
+    checks["beats_iwm"] = formal_iwm is not None and formal_iwm > 0
+    checks["beats_control"] = formal_control is not None and formal_control > 0
+    checks["beats_placebo"] = formal_iwm is not None and placebo_iwm is not None and placebo_iwm < formal_iwm
+    out["passed"] = all(checks[k] is True for k in ("windows_ok", "beats_iwm", "beats_control", "beats_placebo"))
+    return out
+
+
+def forward_proof(stats: Optional[Mapping]) -> dict:
+    """(b) 前向证据。stats 来自记分簿：{settled, shadow_settled, formal_settled, hits, mean_excess}（20 日已结算的候选，影子 + 正式）。"""
+    stats = stats or {}
+    settled = int(stats.get("settled") or 0)
+    out: Dict[str, Any] = {"settled": settled, "shadow_settled": int(stats.get("shadow_settled") or 0), "formal_settled": int(stats.get("formal_settled") or 0),
+                           "min_settled": PROOF_FORWARD_MIN_SETTLED, "min_hit_rate": PROOF_FORWARD_MIN_HIT_RATE,
+                           "sufficient": settled >= PROOF_FORWARD_MIN_SETTLED, "passed": False,
+                           "checks": {"enough_samples": settled >= PROOF_FORWARD_MIN_SETTLED, "hit_rate_ok": None, "mean_excess_positive": None}}
+    if not out["sufficient"]:
+        return out
+    hit_rate = int(stats.get("hits") or 0) / settled
+    mean_excess = _finite(stats.get("mean_excess"))
+    out["hit_rate"], out["mean_excess_vs_iwm"] = hit_rate, mean_excess
+    out["checks"]["hit_rate_ok"] = hit_rate >= PROOF_FORWARD_MIN_HIT_RATE - 1e-12
+    out["checks"]["mean_excess_positive"] = mean_excess is not None and mean_excess > 0
+    out["passed"] = all(out["checks"].values())
+    return out
+
+
+def _backtest_piece(bt: Mapping) -> str:
+    if not bt["available"]:
+        return "回测：还没有产出"
+    if not bt["sufficient"]:
+        return "回测：样本外窗口 %d/%d，样本不足，不显示收益数字" % (bt["windows"], bt["min_windows"])
+    text = "回测：过去 %d 个月，20 日净超额相对 IWM %s" % (bt["windows"], signed_pct(bt["formal_20d_vs_iwm"]) if bt["formal_20d_vs_iwm"] is not None else "—")
+    if bt["formal_20d_vs_control"] is not None:
+        text += "、相对同档随机 %s" % signed_pct(bt["formal_20d_vs_control"])
+    if bt["placebo_20d_vs_iwm"] is not None:
+        text += "，安慰剂 %s" % signed_pct(bt["placebo_20d_vs_iwm"])
+    return text + ("（通过）" if bt["passed"] else "（未通过）")
+
+
+def _forward_piece(fw: Mapping) -> str:
+    if not fw["sufficient"]:
+        return "前向：已结算的影子候选 %d/%d 条，样本不足，不显示收益数字" % (fw["settled"], fw["min_settled"])
+    text = "前向：已结算 %d 条，命中率 %.0f%%" % (fw["settled"], fw["hit_rate"] * 100)
+    if fw["mean_excess_vs_iwm"] is not None:
+        text += "、平均超额 %s" % signed_pct(fw["mean_excess_vs_iwm"])
+    return text + ("（通过）" if fw["passed"] else "（未通过）")
+
+
+def _closed_headline(bt: Mapping) -> str:
+    tail = "在它证明自己之前不给建议。"
+    if bt["sufficient"]:
+        n, iwm = bt["windows"], bt["formal_20d_vs_iwm"]
+        if not bt["checks"]["beats_iwm"]:
+            verb = "平均跑输" if (iwm is not None and iwm < 0) else "平均没有跑赢"
+            return "这套选股规则在过去 %d 个月的回测里%s小盘基准 IWM（20 日 %s），%s" % (n, verb, "—" if iwm is None else signed_pct(iwm), tail)
+        if not bt["checks"]["beats_control"]:
+            ctrl = bt["formal_20d_vs_control"]
+            return "这套选股规则在过去 %d 个月的回测里虽然平均跑赢了 IWM（20 日 %s），但没有跑赢同市值档的随机抽样（%s），%s" % (
+                n, signed_pct(iwm), "—" if ctrl is None else signed_pct(ctrl), tail)
+        placebo = bt["placebo_20d_vs_iwm"]
+        return "这套选股规则在过去 %d 个月的回测里（20 日 %s）并不比把事件日期后移 60 个交易日的安慰剂（%s）更好，成绩不像来自规则本身，%s" % (
+            n, signed_pct(iwm), "—" if placebo is None else signed_pct(placebo), tail)
+    if bt["available"]:
+        return "这套选股规则的回测只有 %d 个样本外月份（至少要 %d 个才算数），还没有被证明，%s" % (bt["windows"], bt["min_windows"], tail)
+    return "这套选股规则还没有可用的回测，也没有前向成绩，还没有被证明，" + tail
+
+
+def proof_gate(backtest_report: Optional[Mapping] = None, forward_stats: Optional[Mapping] = None) -> dict:
+    """规则自证门：(a) 回测证据 或 (b) 前向证据 满足任一即开。纯函数。"""
+    bt, fw = backtest_proof(backtest_report), forward_proof(forward_stats)
+    opened_by = [name for name, part in (("BACKTEST", bt), ("FORWARD", fw)) if part["passed"]]
+    is_open = bool(opened_by)
+    pieces = "；".join((_backtest_piece(bt), _forward_piece(fw)))
+    reasons: List[str] = []
+    if not bt["passed"]:
+        if not bt["available"]:
+            reasons.append("回测还没有产出。")
+        elif not bt["sufficient"]:
+            reasons.append("回测样本外窗口只有 %d 个，少于 %d 个，不足以证明规则有信息量。" % (bt["windows"], bt["min_windows"]))
+        else:
+            checks = bt["checks"]
+            if not checks["beats_iwm"]:
+                reasons.append("正式结果相对 IWM 没有正超额（20 日 %s）。" % ("—" if bt["formal_20d_vs_iwm"] is None else signed_pct(bt["formal_20d_vs_iwm"])))
+            if not checks["beats_control"]:
+                reasons.append("正式结果没有跑赢同档随机抽样（%s）。" % ("—" if bt["formal_20d_vs_control"] is None else signed_pct(bt["formal_20d_vs_control"])))
+            if not checks["beats_placebo"]:
+                reasons.append("安慰剂（事件后移 60 个交易日）%s，不低于正式结果，说明成绩不像来自规则本身。" % (
+                    "—" if bt["placebo_20d_vs_iwm"] is None else signed_pct(bt["placebo_20d_vs_iwm"])))
+    if not fw["passed"]:
+        if not fw["sufficient"]:
+            reasons.append("前向影子候选已结算 %d 条，少于 %d 条，样本不足。" % (fw["settled"], fw["min_settled"]))
+        else:
+            if not fw["checks"]["hit_rate_ok"]:
+                reasons.append("前向命中率 %.0f%%，低于 %d%%。" % (fw["hit_rate"] * 100, int(PROOF_FORWARD_MIN_HIT_RATE * 100)))
+            if not fw["checks"]["mean_excess_positive"]:
+                reasons.append("前向平均超额不为正。")
+    return {
+        "schema": PROOF_GATE_SCHEMA, "open": is_open, "opened_by": opened_by, "state": "OPEN" if is_open else "CLOSED", "rule": PROOF_GATE_RULE,
+        "backtest": bt, "forward": fw, "reasons": [] if is_open else reasons,
+        "headline": None if is_open else _closed_headline(bt), "evidence": pieces,
+        "line": ("规则自证门：开。依据（%s）。" if is_open else "规则自证门：关。%s。") % (
+            "、".join({"BACKTEST": "回测", "FORWARD": "前向"}[x] for x in opened_by) + "达标：" + pieces if is_open else pieces),
+    }
+
+
+def missing_proof_gate() -> dict:
+    """调用方没有给证据：按证据不足处理，门关着（不因为没传参数而放行）。"""
+    return proof_gate(None, None)
+
+
 # ---- 主入口 -------------------------------------------------------------------------------
 def _gate_row(symbol: str, research: ResearchView, summary: dict, market: Mapping[str, Mapping], vetoes: Sequence[dict],
               liquidity_fn: Optional[Liquidity], evaluate_liquidity: bool) -> dict:
@@ -470,10 +629,10 @@ def _support_shortfall(summary: dict) -> str:
 
 
 def _first_failed_gate(row: dict) -> Tuple[str, str]:
-    order = (("veto", "一票否决"), ("support", "支持度"), ("quote", "实时报价"), ("liquidity", "流动性"), ("pool", "候选池"))
+    order = (("veto", "一票否决"), ("support", "支持度"), ("quote", "实时报价"), ("liquidity", "流动性"), ("pool", "候选池"), ("proof", "规则自证门"))
     for key, name in order:
-        gate = row["gates"][key]
-        if gate["ok"] is False:
+        gate = row["gates"].get(key)
+        if gate is not None and gate["ok"] is False:
             return name, gate["detail"]
     return "", ""
 
@@ -499,12 +658,18 @@ def rank_candidates(research: ResearchView, market: Mapping[str, Mapping[str, An
     return rows, summaries, winner
 
 
+CANDIDATE_GATES = ("pool", "quote", "liquidity", "veto", "support")
+
+
 def decide(research: ResearchView, market: Mapping[str, Mapping[str, Any]], *, now: datetime,
            liquidity_fn: Optional[Liquidity] = None, weights: Optional[Mapping[str, Any]] = None,
-           state: Optional[Mapping] = None, quotes_available: bool = True) -> dict:
-    """返回 {decision, candidates, state, weights}。纯函数：同样的输入得到同样的输出。"""
+           state: Optional[Mapping] = None, quotes_available: bool = True, proof: Optional[Mapping] = None) -> dict:
+    """返回 {decision, candidates, state, weights}。纯函数：同样的输入得到同样的输出。
+
+    proof：规则自证门（proof_gate() 的结果）。不传等于「没有证据」，门关着——不会因为漏传参数而放行建议。"""
     now = now.astimezone(timezone.utc)
     weights = dict(weights or branch_weights(None))
+    proof = dict(proof) if proof is not None else missing_proof_gate()
     blocked = system_block(research, now, quotes_available=quotes_available)
     if blocked is not None:
         return {"decision": blocked, "candidates": [], "state": deepcopy(dict(state or {})), "weights": weights}
@@ -517,24 +682,36 @@ def decide(research: ResearchView, market: Mapping[str, Mapping[str, Any]], *, n
 
     rows, summaries, winner = rank_candidates(research, market, weights, invalidated, liquidity_fn)
 
+    # 第六道门：规则自证门。它不属于逐股的门（回测重放的是逐股规则本身），只在这里、在发布这一步拦。
+    proof_detail = proof["line"] if proof["open"] else "规则还没证明自己有信息量，暂不发布（依据见首屏「规则自证门」）"
+    for row in rows:
+        row["gates"]["proof"] = {"ok": bool(proof["open"]), "detail": proof_detail}
     candidates = [_candidate_view(research, summaries[row["symbol"]], row, market) for row in rows]
     for rank, view in enumerate(candidates, 1):
         view["rank"] = rank
 
-    watch_source = [c for c in candidates if not (winner is not None and c["symbol"] == winner["symbol"])]
-    watchlist = [_watch_view(c) for c in watch_source[:WATCHLIST_SIZE]]
-    qualifying = sum(1 for c in candidates if c["passes_all_gates"])
+    gate_closed = not proof["open"]
+    # 门关着：唯一建议不发布，观察名单就是候选前 5（含「如果发布会选谁」那一只）；门开着：名单不含被选中的那一只。
+    watch_source = candidates if gate_closed else [c for c in candidates if not (winner is not None and c["symbol"] == winner["symbol"])]
+    watchlist = [_watch_view(c, shadow=gate_closed and winner is not None and c["symbol"] == winner["symbol"]) for c in watch_source[:WATCHLIST_SIZE]]
+    qualifying = sum(1 for c in candidates if c["passes_candidate_gates"])
     common = {"qualifying_candidates": qualifying, "weights_mode": weights["mode"], "data_chain": chain, "market_environment": environment, "support_rule": SUPPORT_RULE,
-              "weight_formula": WEIGHT_FORMULA, "publish_threshold": PUBLISH_THRESHOLD,
+              "weight_formula": WEIGHT_FORMULA, "publish_threshold": PUBLISH_THRESHOLD, "proof_gate": proof,
               "invalidated_recommendations": [_published_view(s, r) for s, r in sorted(invalidated.items())]}
 
-    if winner is None:
+    if winner is None or gate_closed:
         best = candidates[0] if candidates else None
         why = ("候选 %d 只，没有一只同时满足「支持度合计 >= %.1f」和全部硬门。" % (len(candidates), PUBLISH_THRESHOLD)
                + ("离发布最近的是 %s（%s）。" % (best["symbol"], best["gate_summary"]) if best else ""))
+        shadow = None
+        if gate_closed and winner is not None:
+            shadow = _shadow_view(research, summaries[winner["symbol"]], next(c for c in candidates if c["symbol"] == winner["symbol"]), market, proof)
         decision = {"state": "NO_ACTION", "action": None, "action_code": ACTION_CODES["NO_ACTION"], "primary_symbol": None,
-                    "rationale": why, "reasons": [], "sources": [], "conflicts": [], "invalidation": None,
-                    "watchlist": watchlist, "candidates_evaluated": len(candidates), **common}
+                    "no_action_cause": "PROOF_GATE_CLOSED" if gate_closed else "NO_QUALIFYING_CANDIDATE",
+                    "rationale": proof["headline"] if gate_closed else why, "candidate_note": why,
+                    "reasons": [], "sources": [], "conflicts": [], "invalidation": None,
+                    "watchlist": watchlist, "candidates_evaluated": len(candidates), "shadow_candidate": shadow,
+                    "shadow_note": None if shadow else ("今天没有候选同时满足发布条件，所以今天没有影子候选。" if gate_closed else None), **common}
         return {"decision": decision, "candidates": candidates, "state": new_state, "weights": weights}
 
     symbol = winner["symbol"]
@@ -604,13 +781,50 @@ def _candidate_view(research: ResearchView, summary: dict, row: dict, market: Ma
         "scores": {i["branch_id"]: i["score"] for i in summary["all"] if i["score"] is not None},
         "gates": row["gates"], "vetoes": row.get("vetoes", []),
         "passes_all_gates": all(g["ok"] for g in row["gates"].values()),
-        "failed_gate": failed_name, "gate_summary": ("差在【%s】：%s" % (failed_name, failed_detail)) if failed_name else "全部门通过（与唯一建议同分，平局按事件新近度排在后面）",
-        "links": [x["url"] for i in summary["counted"] for x in i["links"][:1]],
+        "passes_candidate_gates": all(row["gates"][k]["ok"] for k in CANDIDATE_GATES),
+        "branch_kinds": {i["branch_id"]: i["kind"] for i in summary["all"]},
+        "failed_gate": failed_name, "gate_summary": ("差在【%s】：%s%s" % (failed_name, failed_detail, "；这只股本身的其余门都过了" if failed_name == "规则自证门" else "")) if failed_name else "全部门通过（与唯一建议同分，平局按事件新近度排在后面）",
+        "links": [x["url"] for i in summary["counted"] for x in i["links"][:1]] or _any_sec_link(research, symbol),
         "latest_event_date": summary["latest_event_date"],
     }
 
 
-def _watch_view(candidate: Mapping) -> dict:
-    return {"symbol": candidate["symbol"], "name": candidate["name"], "support_total": candidate["support_total"],
-            "failed_gate": candidate["failed_gate"], "sentence": candidate["gate_summary"], "links": candidate["links"][:2],
-            "scores": candidate["scores"], "price": candidate["price"]}
+def _any_sec_link(research: ResearchView, symbol: str) -> List[str]:
+    """没有分支给出可计分的支持时，观察名单仍要给一条 SEC 原文：取任一分支对这只股引用的第一条。"""
+    for branch in STOCK_BRANCHES:
+        record = research.verdict(branch, symbol)
+        for link in (record or {}).get("links") or []:
+            if is_sec_link(link):
+                return [link["url"]]
+    return []
+
+
+def _watch_view(candidate: Mapping, *, shadow: bool = False) -> dict:
+    """观察名单一行：支持它的分支、差在哪一道门、一条 SEC 原文。shadow = 这一只是「如果发布会选它」的影子候选。"""
+    return {"symbol": candidate["symbol"], "name": candidate["name"], "market_cap_usd": candidate.get("market_cap_usd"),
+            "support_total": candidate["support_total"], "failed_gate": candidate["failed_gate"], "sentence": candidate["gate_summary"],
+            "links": candidate["links"][:2], "scores": candidate["scores"], "price": candidate["price"],
+            "support_branches": [{"branch_id": b["branch_id"], "label": b["label"], "kind": b["kind"]} for b in candidate["support_branches"]],
+            "is_shadow_candidate": shadow}
+
+
+def _shadow_view(research: ResearchView, summary: Mapping, candidate: Mapping, market: Mapping[str, Mapping], proof: Mapping) -> dict:
+    """影子候选：规则自证门关着时，「如果发布，会选谁」。只记录、不发布。"""
+    symbol = candidate["symbol"]
+    entry = research.pool.get(symbol) or {}
+    reasons = [{"branch_id": i["branch_id"], "label": i["label"], "kind": i["kind"], "sentence": i["sentence"],
+                "link": i["links"][0]["url"] if i["links"] else None} for i in summary["counted"]]
+    sources: List[dict] = []
+    for item in summary["counted"]:
+        for link in item["links"][:2]:
+            if link["url"] not in {x["url"] for x in sources}:
+                sources.append({"url": link["url"], "branch_id": item["branch_id"], "summary": link.get("summary") or link.get("label"),
+                                "published_date": link.get("published_date") or link.get("filed")})
+    return {"symbol": symbol, "name": entry.get("name") or candidate.get("name"), "market_cap_usd": candidate.get("market_cap_usd"),
+            "price": (market.get(symbol) or {}).get("price"), "support_total": summary["total"],
+            "support_branches": [{"branch_id": i["branch_id"], "label": i["label"], "kind": i["kind"], "raw": i["raw"], "weight": i["weight"],
+                                  "weighted": i["weighted"]} for i in summary["counted"]],
+            "reasons": reasons, "sources": sources,
+            "sentence": "今天如果发布，会是 %s（%s）：%s。" % (symbol, entry.get("name") or candidate.get("name") or "", "；".join(r["sentence"] for r in reasons)),
+            "why_not_published": "规则自证门没开，只记录、不发布：" + (proof.get("headline") or ""), "publishable_if_gate_opens": True,
+            "gates": candidate["gates"]}

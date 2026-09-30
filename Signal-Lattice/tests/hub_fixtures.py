@@ -145,7 +145,57 @@ def write_research_dir(root: Path, view_records: Mapping[str, Sequence[dict]], *
     return root
 
 
+def backtest_report(*, windows: int = 20, formal_iwm: float = 0.03, formal_control: float = 0.02, placebo_iwm: float = -0.01,
+                    hit_rate: float = 0.6) -> dict:
+    """私有完整回测报告里中枢自证门读的那几个字段（默认：全部达标）。"""
+    def block(iwm, control, rate):
+        return {"windows": windows, "excess_vs_iwm": {"n": windows, "mean": iwm, "hit_rate": rate},
+                "excess_vs_control": {"n": windows, "mean": control, "hit_rate": rate}}
+    return {"schema": "signal-lattice-hub-backtest/1", "generated_at": "2026-09-30T00:00:00+00:00", "oos_windows": windows,
+            "summary": {"actual": {"pick_20": block(formal_iwm, formal_control, hit_rate)}, "placebo": {"pick_20": block(placebo_iwm, placebo_iwm, 0.4)}}}
+
+
+def forward_stats(*, settled: int = 10, hits: int = 7, mean_excess: float = 0.02, formal: int = 0) -> dict:
+    return {"settled": settled, "shadow_settled": settled - formal, "formal_settled": formal, "hits": hits, "mean_excess": mean_excess}
+
+
+def seed_shadow_evidence(ledger_path, *, settled: int = 8, hits: Optional[int] = None, excess: float = 0.03) -> None:
+    """往记分簿里直接写入 settled 条已结算（20 日）的影子候选，用来让规则自证门的 (b) 前向证据达标（或按参数不达标）。"""
+    from signal_lattice.ledger import Ledger
+    hits = settled if hits is None else hits
+    ledger = Ledger(ledger_path)
+    try:
+        with ledger.db:
+            for i in range(settled):
+                day = "2026-08-%02d" % (i + 1)
+                ledger.db.execute(
+                    "INSERT INTO shadow_record (trading_day, recorded_at, symbol, name, market_cap_usd, decision_json, supporters_json, snapshot_sha256, "
+                    "close_price, iwm_close) VALUES (?,?,?,?,?,?,?,?,?,?)", (day, day + "T21:00:00+00:00", "SH%02d" % i, "Shadow %d" % i, 1.2e9, "{}", "[]", "a" * 64, 10.0, 200.0))
+                record_id = ledger.db.execute("SELECT id FROM shadow_record WHERE trading_day = ?", (day,)).fetchone()[0]
+                hit = i < hits
+                ledger.db.execute(
+                    "INSERT INTO shadow_settlement (record_id, horizon, exit_day, settled_at, exit_close, iwm_exit_close, stock_return, iwm_return, "
+                    "excess_vs_iwm, hit) VALUES (?,?,?,?,?,?,?,?,?,?)",
+                    (record_id, 20, "2026-09-%02d" % (i + 1), "2026-09-30T21:00:00+00:00", 10.5, 201.0, 0.05, 0.005, excess if hit else -excess, 1 if hit else 0))
+    finally:
+        ledger.close()
+
+
+def open_proof() -> dict:
+    """一个打开着的规则自证门（回测证据达标）。"""
+    gate = hub.proof_gate(backtest_report(), None)
+    assert gate["open"] and gate["opened_by"] == ["BACKTEST"]
+    return gate
+
+
+def closed_proof() -> dict:
+    """与真实产物同一形状：回测 20 个窗口、正式 20 日 -3.9%、安慰剂反而 +2.4%；影子候选 0 条。"""
+    return hub.proof_gate(backtest_report(formal_iwm=-0.0393, formal_control=-0.0319, placebo_iwm=0.0238, hit_rate=0.3), forward_stats(settled=0, hits=0, mean_excess=0.0))
+
+
 def run_decision(view: ResearchView, *, market: Optional[Mapping] = None, weights: Optional[Mapping] = None, state: Optional[Mapping] = None,
-                 now: datetime = NOW, liquidity_fn=None, quotes_available: bool = True) -> dict:
+                 now: datetime = NOW, liquidity_fn=None, quotes_available: bool = True, proof: Optional[Mapping] = "OPEN") -> dict:
+    """默认给一个打开的规则自证门：这些测试要验的是逐股规则，不是自证门（自证门的测试在 test_proof_gate.py）。"""
     market = market if market is not None else fresh_market([e["symbol"] for e in view.shortlist])
-    return hub.decide(view, market, now=now, weights=weights, state=state, liquidity_fn=liquidity_fn, quotes_available=quotes_available)
+    return hub.decide(view, market, now=now, weights=weights, state=state, liquidity_fn=liquidity_fn, quotes_available=quotes_available,
+                      proof=open_proof() if proof == "OPEN" else proof)

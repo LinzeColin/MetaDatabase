@@ -1258,22 +1258,25 @@ class LiveEngine:
             return None
 
     def _ledger_step(self, ledger: Ledger, now: datetime, decision: dict, research: ResearchView) -> dict:
-        """收盘后记一行、结算已满 20/60 个交易日的建议。任何一步失败只影响记分簿，不影响本轮结论。"""
+        """收盘后记一行（正式建议 / NO_ACTION，门没开时另记一行影子候选）、结算已满 20/60 个交易日的记录。
+        任何一步失败只影响记分簿，不影响本轮结论。"""
         exchange_now = now.astimezone(NEW_YORK)
         after_close = exchange_now.weekday() < 5 and exchange_now.time() >= LEDGER_RECORD_AFTER
         day = exchange_now.date().isoformat() if after_close else None
-        status: dict = {"trading_day": day, "recorded": False, "settled": []}
+        status: dict = {"trading_day": day, "recorded": False, "settled": [], "shadow_recorded": False, "shadow_settled": []}
         iwm = us_instrument(BENCHMARK_SYMBOL, "iShares 罗素2000 ETF", BENCHMARK_EXCHANGE)
+        shadow = decision.get("shadow_candidate") if decision["state"] == "NO_ACTION" else None
         need_record = bool(day) and not ledger.has_day(day) and decision["state"] in ("RECOMMENDATION", "NO_ACTION")
-        has_unsettled = bool(ledger.unsettled())
-        if not need_record and not has_unsettled:
+        need_shadow = bool(day) and bool(shadow) and not ledger.has_shadow_day(day)
+        has_unsettled = bool(ledger.unsettled()) or bool(ledger.unsettled_shadow())
+        if not need_record and not need_shadow and not has_unsettled:
             return status
-        iwm_bars = self._closes(iwm, refresh=need_record)
+        iwm_bars = self._closes(iwm, refresh=need_record or need_shadow)
         if iwm_bars is None:
             status["error"] = "IWM_BARS_UNAVAILABLE"
             return status
         cache: Dict[str, List[Tuple[str, float]] | None] = {BENCHMARK_SYMBOL: iwm_bars}
-        refreshed: set = {BENCHMARK_SYMBOL} if need_record else set()
+        refreshed: set = {BENCHMARK_SYMBOL} if (need_record or need_shadow) else set()
 
         def bars_for(symbol: str, refresh: bool = False):
             if symbol not in cache or (refresh and symbol not in refreshed):
@@ -1284,40 +1287,58 @@ class LiveEngine:
             return cache[symbol]
 
         status["settled"] = ledger.settle_due(bars_for, iwm_bars, now)
-        if need_record and day in {d for d, _ in iwm_bars}:
+        status["shadow_settled"] = ledger.settle_shadow_due(bars_for, iwm_bars, now)
+        calendar = {d for d, _ in iwm_bars}
+
+        def stock_close_and_control(symbol: str, market_cap: Any):
+            """当天收盘价 + 同市值档随机对照（顺延到有收盘价的下一只）。取不到收盘价返回 (None, None, None)。"""
+            close = dict(bars_for(symbol, refresh=True) or []).get(day)
+            if close is None:
+                return None, None, None
+            attempts = {"n": 0}
+
+            def has_close(candidate: str) -> bool:
+                attempts["n"] += 1
+                if attempts["n"] > LEDGER_CONTROL_MAX_ATTEMPTS:
+                    return False
+                return dict(bars_for(candidate, refresh=True) or []).get(day) is not None
+
+            control = draw_control(day, symbol, market_cap, [research.pool[s] for s in sorted(research.pool)], has_close)
+            control_close = dict(bars_for(control["symbol"]) or []).get(day) if control is not None else None
+            return close, control, control_close
+
+        if need_record and day in calendar:
             iwm_close = dict(iwm_bars)[day]
             close, control, control_close = None, None, None
             if decision["state"] == "RECOMMENDATION":
-                stock_bars = bars_for(decision["primary_symbol"], refresh=True)
-                close = dict(stock_bars or []).get(day)
+                close, control, control_close = stock_close_and_control(decision["primary_symbol"], decision.get("market_cap_usd"))
                 if close is None:
                     status["error"] = "CLOSE_PRICE_NOT_YET_AVAILABLE:%s" % decision["primary_symbol"]
                     return status
-                attempts = {"n": 0}
-
-                def has_close(symbol: str) -> bool:
-                    attempts["n"] += 1
-                    if attempts["n"] > LEDGER_CONTROL_MAX_ATTEMPTS:
-                        return False
-                    return dict(bars_for(symbol, refresh=True) or []).get(day) is not None
-
-                control = draw_control(day, decision["primary_symbol"], decision.get("market_cap_usd"),
-                                       [research.pool[s] for s in sorted(research.pool)], has_close)
-                if control is not None:
-                    control_close = dict(bars_for(control["symbol"]) or []).get(day)
             status["recorded"] = ledger.record_day(day, decision, close_price=close, iwm_close=iwm_close, control=control,
                                                    control_close=control_close, now=now)
         elif need_record:
             status["error"] = "TRADING_DAY_NOT_IN_CALENDAR_OR_BAR_NOT_YET_PUBLISHED"
+        if need_shadow and day in calendar:
+            close, control, control_close = stock_close_and_control(shadow["symbol"], shadow.get("market_cap_usd"))
+            if close is None:
+                status["shadow_error"] = "CLOSE_PRICE_NOT_YET_AVAILABLE:%s" % shadow["symbol"]
+            else:
+                status["shadow_recorded"] = ledger.record_shadow(day, decision, close_price=close, iwm_close=dict(iwm_bars)[day], control=control,
+                                                                 control_close=control_close, now=now)
         return status
 
     # ---- 回测摘要 -----------------------------------------------------------------------
-    def _backtest_summary(self) -> dict:
-        path = self.backtest_dir / "hub-backtest.json"
+    def _backtest_report(self) -> dict | None:
+        """私有完整回测报告（含全部数字）。只给规则自证门做判定用，不直接进任何公开响应。"""
         try:
-            value = json.loads(path.read_text(encoding="utf-8"))
+            value = json.loads((self.backtest_dir / "hub-backtest.json").read_text(encoding="utf-8"))
         except (OSError, UnicodeDecodeError, json.JSONDecodeError):
-            value = None
+            return None
+        return value if isinstance(value, dict) else None
+
+    def _backtest_summary(self) -> dict:
+        value = self._backtest_report()
         if isinstance(value, dict) and isinstance(value.get("public"), dict):
             return value["public"]
         return {
@@ -1336,7 +1357,7 @@ class LiveEngine:
             "quote_sources": {}, "quotes": {}, "quote_freshness": {}, "market_fingerprint": {"quotes": {}, "bars": {}},
             "freshness_findings": [], "blocking_findings": [decision["blocked_reason"]] if decision.get("blocked_reason") else [],
             "degraded_symbols": {}, "branches": [], "receipts": [], "candidates": [], "ledger": None,
-            "backtest": self._backtest_summary(), **(extra or {}),
+            "proof_gate": decision.get("proof_gate"), "backtest": self._backtest_summary(), **(extra or {}),
         }
 
     def _blocked_report(self, now: datetime, reason: str, message: str, findings: List[str] | None = None,
@@ -1375,7 +1396,7 @@ class LiveEngine:
                 "snapshot_hash": receipt.get("snapshot_hash"), "params_version": receipt.get("params_version"),
                 "params_sha256": receipt.get("params_sha256"), "skill_version": receipt.get("skill_version"),
                 "verdict_counts": {"PASS": counts.get("PASS", 0), "ABSTAIN": counts.get("ABSTAIN", 0), "FAILED": counts.get("FAILED", 0)},
-                "reason": receipt.get("reason"), "started_at": receipt.get("started_at"), "finished_at": receipt.get("finished_at"),
+                "reason": receipt.get("reason"), "note": research.notes.get(branch_id), "started_at": receipt.get("started_at"), "finished_at": receipt.get("finished_at"),
                 "duration_seconds": receipt.get("duration_seconds"),
             })
         order = {b: i for i, b in enumerate(list(STOCK_BRANCHES) + ["global-equity-lead-lag-atlas"])}
@@ -1424,8 +1445,9 @@ class LiveEngine:
         ledger = Ledger(self.settings.state_dir / "ledger.sqlite")
         try:
             weights = hub.branch_weights(ledger.branch_hit_stats(20))
+            proof = hub.proof_gate(self._backtest_report(), ledger.forward_evidence(20))
             outcome = hub.decide(
-                research, market, now=now, weights=weights, state=self.store.hub_state(), quotes_available=quotes_available,
+                research, market, now=now, weights=weights, state=self.store.hub_state(), quotes_available=quotes_available, proof=proof,
                 liquidity_fn=lambda symbol: self._liquidity(by_symbol[symbol], now) if symbol in by_symbol else None)
             decision = outcome["decision"]
             if outcome["state"] != self.store.hub_state():
@@ -1463,6 +1485,7 @@ class LiveEngine:
             "receipts": self._receipts_view(research), "branches": self._receipts_view(research),
             "research": decision.get("data_chain") or hub.data_chain(research, now),
             "candidates": outcome["candidates"], "weights": weights, "contribution_weights": self._weights_view(weights),
+            "proof_gate": proof,
             "ledger": ledger_summary,
             "message": ("数据链路不完整，不出结论" if state == "SYSTEM_BLOCKED" else "研究快照与实时行情均通过时效门，已完成中枢决策"),
         })
