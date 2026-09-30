@@ -216,3 +216,25 @@ def test_rejection_audit_persisted_via_store(tmp_path):
     assert store.get_state(order_id) is OrderState.RISK_REJECTED
     events = store.list_events(order_id)
     assert events[-1]["to_state"] == "RISK_REJECTED"
+
+
+def test_exposure_cap_from_truth(monkeypatch):
+    """RiskContext 缺省敞口上限取 truth.capital_aud();新鲜度缺省取 guard 常量(仍 5 秒,不放宽)。"""
+    from datetime import datetime, timezone
+    from decimal import Decimal
+
+    import backend.app.truth as truth
+    from backend.app.marketdata.guard import DEFAULT_FRESHNESS_THRESHOLD_SECONDS
+    from backend.app.risk.engine import RiskContext
+
+    truth._policy.cache_clear()
+    monkeypatch.delenv("ALPHA_CAPITAL_AUD", raising=False)
+    ctx = RiskContext(side="BUY", symbol="SPY", market="US_ETF", quantity=1,
+                      price_usd=Decimal("100"), fx_usd_aud=Decimal("1.5"),
+                      now=datetime(2026, 7, 21, 14, 30, tzinfo=timezone.utc))
+    assert ctx.max_gross_exposure_aud == Decimal(str(truth.capital_aud())) == Decimal("3000")
+    assert ctx.freshness_threshold_seconds == DEFAULT_FRESHNESS_THRESHOLD_SECONDS == 5.0
+    monkeypatch.setenv("ALPHA_CAPITAL_AUD", "2000")      # 真源变了,缺省上限跟着变
+    assert RiskContext(side="BUY", symbol="SPY", market="US_ETF", quantity=1,
+                       price_usd=Decimal("100"), fx_usd_aud=Decimal("1.5"),
+                       now=ctx.now).max_gross_exposure_aud == Decimal("2000.0")

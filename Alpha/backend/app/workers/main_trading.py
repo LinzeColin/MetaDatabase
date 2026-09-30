@@ -1,7 +1,8 @@
 """交易 Worker 入口(systemd: alpha-trading-worker)。
 
-优先装配 070 实盘循环(行情->策略->组合->风控->网关);装配失败(无 SDK/无账户/探针未过)
-则以 BLOCKED_ON_OPEND 诚实空转心跳,绝不伪造——**但会持续重试装配,不再永久空转**。
+按模式经 wiring 装配交易循环(行情->策略->组合->风控->网关);装配失败则以该模式的空转标签
+(影子盘 BLOCKED_ON_FEED / 券商模式 BLOCKED_ON_OPEND / 模式未启用 BLOCKED_ON_MODE)
+诚实空转心跳,绝不伪造——**但会持续重试装配,不再永久空转**。
 
 2026-07-28 事故教训:开机时 OpenD 尚未就绪,build_live_cycle 抛「账户不在券商列表」,
 worker 落入 idle_cycle 后**再也不会重建**,连喂 15 小时心跳却一次评估都没做,把当天的
@@ -25,12 +26,13 @@ def make_self_healing_cycle(
     build: Callable[[], Callable[[], dict]],
     *,
     retry_seconds: float = BUILD_RETRY_SECONDS,
+    blocked_status: str = "BLOCKED_ON_OPEND",
     clock: Callable[[], float] = time.monotonic,
 ) -> Callable[[], dict]:
     """把"一次性装配"包成"装不上就按间隔重试"的自愈循环(纯函数,可注入时钟测试)。
 
     - 装配成功:此后直接跑真实循环,零额外开销;
-    - 装配失败:如实回 BLOCKED_ON_OPEND + 原因 + retrying=True,并在 retry_seconds 后再试;
+    - 装配失败:如实回 blocked_status + 原因 + retrying=True,并在 retry_seconds 后再试;
     - 已装配成功后运行期抛错:照旧上抛(交给看门狗/守护处理),不在此吞掉。
     """
     state: dict = {"cycle": None, "reason": "", "next_at": 0.0, "attempts": 0}
@@ -47,7 +49,7 @@ def make_self_healing_cycle(
                     state["reason"] = f"{type(exc).__name__}: {exc}"[:150]
                     state["next_at"] = now + retry_seconds
             if state["cycle"] is None:
-                return {"status": "BLOCKED_ON_OPEND", "note": state["reason"],
+                return {"status": blocked_status, "note": state["reason"],
                         "retrying": True, "build_attempts": state["attempts"]}
         return state["cycle"]()
 
@@ -56,6 +58,8 @@ def make_self_healing_cycle(
 
 def build_worker(*, retry_seconds: float = BUILD_RETRY_SECONDS,
                  clock: Optional[Callable[[], float]] = None) -> TradingWorker:
+    from backend.app import truth, wiring
+
     rt = build_runtime()
 
     def _build() -> Callable[[], dict]:
@@ -64,6 +68,7 @@ def build_worker(*, retry_seconds: float = BUILD_RETRY_SECONDS,
 
     cycle = make_self_healing_cycle(
         _build, retry_seconds=retry_seconds,
+        blocked_status=wiring.blocked_status(truth.mode()),
         **({"clock": clock} if clock else {}))
 
     return TradingWorker(

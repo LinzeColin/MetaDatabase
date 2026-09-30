@@ -13,9 +13,10 @@
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
+from typing import Iterable, Optional
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -38,6 +39,33 @@ from backend.app.domain.state_machine import (
 
 class DuplicateIdempotencyKeyError(Exception):
     """幂等键已被占用:同一键至多一条券商指令,重复意图直接拒绝。"""
+
+
+@dataclass(frozen=True)
+class OwnBook:
+    """系统自有账:净持仓、持仓成本(美元)、累计现金流(美元,买为负卖为正,已扣费用)。"""
+
+    net: dict[str, int]
+    cost: dict[str, float]
+    cash_flow_usd: float
+
+
+def fold_own_executions(rows: Iterable[tuple[str, str, int, Decimal, Decimal]]) -> OwnBook:
+    """自有账的**唯一算法**(R4):只由本系统成交推导,绝不读任何券商余额。
+
+    rows = 按成交时间排序的 (symbol, side, quantity, price, fees)。
+    看盘、净值快照、体检、摘要都用这一个函数,不再各写一遍循环。
+    """
+    net: dict[str, int] = {}
+    cost: dict[str, float] = {}
+    cash_flow = 0.0
+    for symbol, side, qty, price, fees in rows:
+        sign = 1 if side == "BUY" else -1
+        net[symbol] = net.get(symbol, 0) + sign * qty
+        cost[symbol] = cost.get(symbol, 0.0) + sign * qty * float(price)
+        cash_flow += -sign * qty * float(price) - float(fees or 0)
+    held = {s: q for s, q in net.items() if q}
+    return OwnBook(net=held, cost={s: cost[s] for s in held}, cash_flow_usd=cash_flow)
 
 
 class OrderStore:
@@ -383,6 +411,30 @@ class OrderStore:
         for symbol, side, qty in rows:
             net[symbol] = net.get(symbol, 0) + (qty if side == "BUY" else -qty)
         return {s: q for s, q in net.items() if q != 0}
+
+    def own_book(self) -> OwnBook:
+        """系统自有账(净持仓/成本/现金流),经 fold_own_executions 唯一算法。"""
+        with self._sessions() as session:
+            rows = session.execute(
+                select(OrderIntent.symbol, OrderIntent.side, Execution.quantity,
+                       Execution.price, Execution.fees)
+                .join(BrokerOrder, BrokerOrder.intent_id == OrderIntent.intent_id)
+                .join(Execution, Execution.order_id == BrokerOrder.order_id)
+                .order_by(Execution.executed_at)
+            ).all()
+        return fold_own_executions(rows)
+
+    def get_risk_rules(self, order_id: str) -> list[str]:
+        """该订单最近一次风控裁定触发的规则(完成记录与告警用)。"""
+        with self._sessions() as session:
+            order = session.get(BrokerOrder, order_id)
+            if order is None:
+                return []
+            row = session.scalars(
+                select(RiskDecision).where(RiskDecision.intent_id == order.intent_id)
+                .order_by(RiskDecision.decided_at.desc()).limit(1)
+            ).first()
+            return list(json.loads(row.triggered_rules)) if row is not None else []
 
     def execution_exists(self, broker_execution_id: str) -> bool:
         """成交是否已入账(070 轮询回灌的幂等闸:同一券商成交号只入账一次)。"""

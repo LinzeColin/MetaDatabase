@@ -77,6 +77,14 @@ class ExecutionGateway:
         business_limiter: Optional[BusinessRateLimiter] = None,
         broker_limiter: Optional[BrokerRateLimiter] = None,
     ) -> None:
+        # 结构校验:LOCAL(影子盘)只许配模拟券商;券商环境绝不许配模拟券商。
+        # 防 SHADOW 接上真券商客户端,也防模拟券商冒充券商模拟盘或实盘。
+        env = MODE_TO_TRD_ENV[mode][0]
+        client_local = getattr(client, "TRD_ENV", None) == TrdEnv.LOCAL.value
+        if env is TrdEnv.LOCAL and not client_local:
+            raise RuntimeError(f"{mode.value} 只允许本机模拟券商(TRD_ENV=LOCAL),拒绝装配")
+        if env in (TrdEnv.SIMULATE, TrdEnv.REAL) and client_local:
+            raise RuntimeError(f"{mode.value} 不得配本机模拟券商,拒绝装配")
         self._store = store
         self._client = client
         self._lease = lease

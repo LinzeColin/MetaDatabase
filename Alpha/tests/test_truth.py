@@ -64,3 +64,27 @@ def test_no_duplicated_compound_live_check():
                 and "is_micro_live" not in txt and "resolve_mode" not in txt):
             offenders.append(str(f.relative_to(root)))
     assert not offenders, f"这些文件在就地重拼复合实盘判定,应改用 is_micro_live():{offenders}"
+
+
+def test_mode_parsing_fail_closed(monkeypatch):
+    """ALPHA_MODE 缺失/空/拼错一律 DISABLED(没有缺省 PAPER);大小写不敏感。"""
+    from backend.app.adapters.brokers.base import SystemMode
+    from backend.app.truth import mode
+
+    monkeypatch.delenv("ALPHA_MODE", raising=False)
+    assert mode() is SystemMode.DISABLED
+    for raw in ("", "SHADOWW", "paper-ish"):
+        monkeypatch.setenv("ALPHA_MODE", raw)
+        assert mode() is SystemMode.DISABLED, raw
+    monkeypatch.setenv("ALPHA_MODE", "shadow")
+    assert mode() is SystemMode.SHADOW
+
+
+def test_strategy_config_default_is_production(monkeypatch):
+    """不设 env 时策略配置指向生产主力 s1_gem_plus.yaml(不再缺省到已退役的 gold_blend)。"""
+    from backend.app.strategies.s1_momentum import load_s1_config
+    from backend.app.truth import strategy_config_path
+
+    monkeypatch.delenv("ALPHA_STRATEGY_CONFIG", raising=False)
+    assert strategy_config_path() == "configs/strategies/s1_gem_plus.yaml"
+    assert load_s1_config(strategy_config_path())["strategy_id"] == "S1_GEM_PLUS_FINE"

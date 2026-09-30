@@ -50,12 +50,17 @@ def _http_json(url: str, *, timeout: int = 30, retries: int = 3) -> dict:
 class YahooDailySource:
     name = "yahoo_v8"
 
+    def __init__(self, *, timeout: int = 30, retries: int = 3) -> None:
+        # 回测沿用 30 秒×3 次;实盘装配传更短的上限,避免撞 systemd 看门狗
+        self.timeout = timeout
+        self.retries = retries
+
     def fetch(self, symbol: str, start: date, end: date) -> list[RawDay]:
         p1 = int(datetime(start.year, start.month, start.day, tzinfo=timezone.utc).timestamp())
         p2 = int(datetime(end.year, end.month, end.day, 23, 59, tzinfo=timezone.utc).timestamp())
         url = (f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
                f"?period1={p1}&period2={p2}&interval=1d&events=div%2Csplit")
-        data = _http_json(url)
+        data = _http_json(url, timeout=self.timeout, retries=self.retries)
         result = data["chart"]["result"][0]
         ts = result["timestamp"]
         quote = result["indicators"]["quote"][0]

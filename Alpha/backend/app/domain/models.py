@@ -23,6 +23,7 @@ from typing import Any, Optional
 from sqlalchemy import (
     Boolean,
     DateTime,
+    Float,
     ForeignKey,
     Integer,
     String,
@@ -257,3 +258,28 @@ class ReconciliationRun(Base):
     resolution: Mapped[str] = mapped_column(Text, nullable=False, default="")
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class SimOrder(Base):
+    """影子盘模拟券商订单簿(SimBroker 的"券商侧真相";与 ShadowOrder 假想记录无关)。
+
+    要么 FILLED_ALL(可成交限价单当即全部成交),要么 FAILED(先记原因再拒);
+    remark 即幂等键,唯一——同一键永远只产生一笔成交。与账本同库,重启不丢不重。
+    """
+
+    __tablename__ = "sim_orders"
+
+    sim_order_id: Mapped[str] = mapped_column(String(64), primary_key=True)   # = broker_order_id
+    remark: Mapped[str] = mapped_column(String(128), unique=True, index=True, nullable=False)
+    symbol: Mapped[str] = mapped_column(String(32), nullable=False)
+    side: Mapped[str] = mapped_column(String(8), nullable=False)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    limit_price: Mapped[Optional[Decimal]] = mapped_column(DecimalText, nullable=True)
+    status: Mapped[str] = mapped_column(String(16), nullable=False)   # FILLED_ALL / FAILED
+    reason: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    quote_price: Mapped[Optional[Decimal]] = mapped_column(DecimalText, nullable=True)
+    quote_time: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    fill_price: Mapped[Optional[Decimal]] = mapped_column(DecimalText, nullable=True)
+    fees: Mapped[Decimal] = mapped_column(DecimalText, nullable=False, default=Decimal("0"))
+    slippage_bps: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)

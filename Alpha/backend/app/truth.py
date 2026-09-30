@@ -14,12 +14,72 @@ from __future__ import annotations
 import os
 from functools import lru_cache
 from pathlib import Path
+from typing import Optional
+
+from backend.app.adapters.brokers.base import SystemMode
 
 #: 契约资金常量(与 configs/trading_governor_policy.yaml 一致;env 可覆盖用于测试)
 DEFAULT_CAPITAL_AUD = 3000.0
 #: 契约保守汇率:资金上限只紧不松,**不随行情浮动**(实时汇率只用于净值显示)
 DEFAULT_CONTRACT_FX = 0.65
 POLICY_PATH = "configs/trading_governor_policy.yaml"
+#: 生产策略配置(S1_GEM_PLUS_FINE)。此前 live_cycle 缺省指向已退役的 gold_blend。
+DEFAULT_STRATEGY_CONFIG = "configs/strategies/s1_gem_plus.yaml"
+
+#: 模式 -> (徽章, 一句话说明)。看盘页、摘要、体检只从这里取文案。
+MODE_LABELS: dict[SystemMode, tuple[str, str]] = {
+    SystemMode.SHADOW: (
+        "影子盘：按真实行情模拟成交，未动真钱",
+        "不连券商、不登录；用 Yahoo 实时行情在本机模拟成交，手续费按 moomoo AU 价目扣，账本真实记账。"),
+    SystemMode.PAPER: (
+        "模拟盘",
+        "用券商模拟账户和真实行情演练,不动真钱;moomoo 手机应用里看不到这个模拟账户,本页就是唯一窗口。"),
+    SystemMode.MICRO_LIVE: (
+        "微实盘(真实资金)",
+        "真实资金、真实订单,每一笔买卖都会原生出现在你的 moomoo 应用里;失败关闭。"),
+    SystemMode.DISABLED: ("未启用（不交易）", "交易循环未启用:不评估、不下单。"),
+    SystemMode.HALTED: ("未启用（不交易）", "系统已停机:不评估、不下单。"),
+}
+
+
+def mode() -> SystemMode:
+    """当前运行模式。**全项目唯一解析点。**
+
+    读 ALPHA_MODE(不分大小写);缺失、空值、拼错一律 DISABLED——**没有缺省 PAPER**。
+    DISABLED 在 wiring 里没有装配条目,于是交易循环失败关闭(BLOCKED_ON_MODE)。
+    """
+    raw = os.environ.get("ALPHA_MODE", "").strip().upper()
+    try:
+        return SystemMode(raw)
+    except ValueError:
+        return SystemMode.DISABLED
+
+
+def mode_label(m: Optional[SystemMode] = None) -> str:
+    return MODE_LABELS[m or mode()][0]
+
+
+def mode_explainer(m: Optional[SystemMode] = None) -> str:
+    return MODE_LABELS[m or mode()][1]
+
+
+def expects_evaluation(m: Optional[SystemMode] = None) -> bool:
+    """该模式是否应当按节拍评估(漏评估判据据此判红)。"""
+    return (m or mode()) in (SystemMode.SHADOW, SystemMode.PAPER, SystemMode.MICRO_LIVE)
+
+
+def runtime_dir() -> Path:
+    """运行期可写目录(标记、冻结本金、完成记录都在这里)。"""
+    return Path(os.environ.get("ALPHA_RUNTIME_DIR", "runtime"))
+
+
+def facts_dir() -> Path:
+    """运行期事实文件目录(代码目录只读时也可写)。"""
+    return runtime_dir() / "facts"
+
+
+def strategy_config_path() -> str:
+    return os.environ.get("ALPHA_STRATEGY_CONFIG") or DEFAULT_STRATEGY_CONFIG
 
 
 def is_micro_live() -> bool:
