@@ -14,9 +14,10 @@ from social_archive.config import Settings
 from social_archive.db import RuntimeStore
 from social_archive.private_facts import (
     PRIVATE_DATABASE_EVENT,
-    completed_content_facts,
+    SyncPlan,
     fact_bytes,
     fact_sha256,
+    plan_sync,
 )
 from social_archive.utils import read_secret, redact, sha256_file, utcnow
 
@@ -228,24 +229,35 @@ def _blocked(message: str, *, error_code: str = "PRIVATE_DATABASE_CLIENT_UNAVAIL
     return 3
 
 
-def _dry_run(store: RuntimeStore, *, limit: int) -> int:
-    facts = completed_content_facts(store, limit=limit)
-    delivered = 0
-    for fact in facts:
-        event = store.get_outbox_event(
-            event_type=PRIVATE_DATABASE_EVENT,
-            aggregate_id=str(fact["content"]["id"]),
-            payload_sha256=fact_sha256(fact),
+def _scan_fields(plan: SyncPlan) -> dict[str, Any]:
+    """Whole-archive counters shared by every report (dry-run, NO_CHANGE, PASS, DEGRADED)."""
+    fields: dict[str, Any] = {
+        "completed_total": plan.completed_total,
+        "candidate_fact_count": plan.scanned,
+        "already_delivered_count": plan.already_delivered,
+        "never_delivered_count": plan.never_delivered,
+        "changed_since_delivery_count": plan.changed_since_delivery,
+        "scan_truncated_count": plan.scan_truncated_count,
+    }
+    if plan.scan_truncated_count:
+        fields["message"] = (
+            f"单轮扫描上限已到，另有 {plan.scan_truncated_count} 条已完成内容本轮未扫描；"
+            "不是静默截断"
         )
-        delivered += int(bool(event and event.get("status") == "delivered"))
+    return fields
+
+
+def _dry_run(store: RuntimeStore, *, limit: int) -> int:
+    plan = plan_sync(store, limit=limit)
     print(json.dumps({
         "schema_version": "1.0",
         "generated_at": utcnow(),
         "status": "READY",
         "dry_run": True,
-        "candidate_fact_count": len(facts),
-        "already_delivered_count": delivered,
-        "pending_count": len(facts) - delivered,
+        **_scan_fields(plan),
+        "pending_total": plan.pending_total,
+        "pending_count": plan.pending_total,
+        "would_deliver_this_run": len(plan.selected),
         "transport": "Private-Database API client",
         "local_checkout": False,
     }, ensure_ascii=False))
@@ -258,7 +270,10 @@ def main() -> int:
     )
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--once", action="store_true", help="run one bounded, idempotent pass")
-    parser.add_argument("--limit", type=int, default=100)
+    parser.add_argument(
+        "--limit", type=int, default=100,
+        help="deliver at most this many facts this run (never-delivered first, then changed); the rest carries to the next run",
+    )
     args = parser.parse_args()
 
     settings = Settings.from_env()
@@ -292,41 +307,29 @@ def main() -> int:
     settings.ensure_directories()
     store = RuntimeStore(settings.runtime_db)
     store.initialize()
-    facts = completed_content_facts(store, limit=limit)
-    if not facts:
+    plan = plan_sync(store, limit=limit)
+    if plan.pending_total == 0:
         print(json.dumps({
             "schema_version": "1.0",
             "generated_at": utcnow(),
             "status": "NO_CHANGE",
-            "candidate_fact_count": 0,
+            **_scan_fields(plan),
+            "pending_total": 0,
+            "delivered_this_run": 0,
             "transport": "Private-Database API client",
             "local_checkout": False,
         }, ensure_ascii=False))
         return 0
 
     pending: list[tuple[dict[str, Any], dict[str, Any]]] = []
-    delivered = 0
-    for fact in facts:
+    for fact in plan.selected:
         event = store.ensure_outbox_event(
             event_type=PRIVATE_DATABASE_EVENT,
             aggregate_id=str(fact["content"]["id"]),
             payload=fact,
         )
-        if event.get("status") == "delivered":
-            delivered += 1
-        else:
+        if event.get("status") != "delivered":
             pending.append((fact, event))
-    if not pending:
-        print(json.dumps({
-            "schema_version": "1.0",
-            "generated_at": utcnow(),
-            "status": "NO_CHANGE",
-            "candidate_fact_count": len(facts),
-            "already_delivered_count": delivered,
-            "transport": "Private-Database API client",
-            "local_checkout": False,
-        }, ensure_ascii=False))
-        return 0
 
     failures: list[dict[str, str]] = []
     attempted_events: list[dict[str, Any]] = []
@@ -373,14 +376,16 @@ def main() -> int:
                     store.mark_outbox_failed(str(event["id"]), "PRIVATE_DATABASE_BATCH_INCOMPLETE")
 
     status = "PASS" if not failures else "DEGRADED"
+    delivered_this_run = len(pending) if status == "PASS" else 0
     report = {
         "schema_version": "1.0",
         "generated_at": utcnow(),
         "status": status,
-        "candidate_fact_count": len(facts),
+        **_scan_fields(plan),
         "attempted_fact_count": len(pending),
-        "already_delivered_count": delivered,
-        "delivered_this_run": len(pending) if status == "PASS" else 0,
+        "pending_before_run": plan.pending_total,
+        "delivered_this_run": delivered_this_run,
+        "pending_total": plan.pending_total - delivered_this_run,
         "failures": failures,
         "transport": "Private-Database API client",
         "local_checkout": False,
