@@ -76,8 +76,8 @@ def _backup_private_database(
     runner: Runner,
     archive_fetcher: ArchiveFetcher,
     tool_lookup: ToolLookup,
-) -> tuple[str, str, dict[str, Any]]:
-    """Back up the canonical GitHub repository to encrypted R2, then mirror R2 to OCI.
+) -> tuple[str, dict[str, Any]]:
+    """Back up the canonical GitHub repository to encrypted R2 (the only cold copy).
 
     The rebuildable SQLite journal is deliberately not uploaded as the canonical
     backup object. A successful routine backup also does not enqueue a new
@@ -85,19 +85,19 @@ def _backup_private_database(
     """
     details: dict[str, Any] = {"repository": PRIVATE_DATABASE_REPOSITORY}
     if not settings.restic_repository:
-        return "not_configured", "not_configured", details
+        return "not_configured", details
     if not tool_lookup("gh"):
-        return "gh_missing", "not_attempted", details
+        return "gh_missing", details
     if not tool_lookup("restic"):
-        return "restic_missing", "not_attempted", details
+        return "restic_missing", details
 
     commit, error = _private_db_commit(runner)
     if error or not commit:
-        return error or "github_commit_unavailable", "not_attempted", details
+        return error or "github_commit_unavailable", details
     details["commit"] = commit
     previous = db.get_cursor("private_db_r2_commit")
     if previous == commit:
-        return "unchanged", "unchanged", details
+        return "unchanged", details
 
     with tempfile.TemporaryDirectory(prefix="weread-private-db-backup-", dir=settings.state_dir) as folder:
         temp = Path(folder)
@@ -105,7 +105,7 @@ def _backup_private_database(
         archive_result = archive_fetcher(commit, archive_path)
         if archive_result.returncode != 0:
             details["archiveError"] = sanitize_public((archive_result.stderr or "")[-1200:])
-            return f"archive_failed_exit_{archive_result.returncode}", "not_attempted", details
+            return f"archive_failed_exit_{archive_result.returncode}", details
         archive_info = _verify_archive(archive_path)
         metadata = {
             "schemaVersion": 1,
@@ -138,34 +138,10 @@ def _backup_private_database(
         details["archive"] = archive_info
         details["resticResult"] = sanitize_public((restic.stdout or restic.stderr or "")[-1500:])
         if restic.returncode != 0:
-            return f"restic_failed_exit_{restic.returncode}", "not_attempted", details
+            return f"restic_failed_exit_{restic.returncode}", details
         db.set_cursor("private_db_r2_commit", commit, at=moment)
 
-    oci_status = "not_configured"
-    if settings.r2_remote and settings.oci_remote:
-        if not tool_lookup("rclone"):
-            oci_status = "rclone_missing"
-        else:
-            replica = runner(
-                [
-                    "rclone",
-                    "sync",
-                    settings.r2_remote,
-                    settings.oci_remote,
-                    "--checksum",
-                    "--fast-list",
-                    "--transfers",
-                    "4",
-                    "--checkers",
-                    "8",
-                ],
-                capture_output=True,
-                text=True,
-                timeout=1800,
-            )
-            oci_status = "replicated" if replica.returncode == 0 else f"failed_exit_{replica.returncode}"
-            details["replicationResult"] = sanitize_public((replica.stdout or replica.stderr or "")[-1500:])
-    return "stored", oci_status, details
+    return "stored", details
 
 
 def run_backup(
@@ -184,7 +160,7 @@ def run_backup(
     snapshot = snapshot_dir / f"runtime-{stamp}.sqlite3"
     digest = db.consistent_backup(snapshot)
 
-    r2_status, oci_status, details = _backup_private_database(
+    r2_status, details = _backup_private_database(
         settings,
         db,
         moment=moment,
@@ -204,20 +180,18 @@ def run_backup(
                 digest,
                 "ok",
                 r2_status,
-                oci_status,
+                "retired",
                 json.dumps(sanitize_public(details), ensure_ascii=False, sort_keys=True),
             ),
         )
     r2_ok = r2_status in {"not_configured", "unchanged", "stored"}
-    oci_ok = oci_status in {"not_configured", "unchanged", "replicated"}
-    overall = "complete" if r2_ok and oci_ok else "degraded"
+    overall = "complete" if r2_ok else "degraded"
     return {
         "status": overall,
         "backupId": backup_id,
         "localRuntimeSnapshot": str(snapshot),
         "localRuntimeSha256": digest,
         "r2Status": r2_status,
-        "ociStatus": oci_status,
         "privateDatabaseCommit": details.get("commit"),
     }
 

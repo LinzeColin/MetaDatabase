@@ -6,7 +6,7 @@
 - 当前产品是账户中心化、多租户个人阅读资产平台；必须提供密码、微信读书密钥、Google、GitHub、Notion 注册/登录与显式绑定。
 - 永久身份主体是不可变 `account_id`。微信读书密钥和 OAuth 身份只是可轮换凭据，不得作为数据库主键；不得因邮箱相同自动合并账户。
 - 所有数据库读写和对象路径必须显式绑定 `account_id`；跨账户访问必须 fail-closed。密码不得明文保存；微信读书密钥、OAuth Token 与笔记正文必须账户级信封加密。
-- 服务端长期保存个人笔记；R2 保存加密正文对象，OVH SQLite 只保存实时索引、会话、队列、幂等、游标、Runtime Journal 和 Outbox。Private-Database 只保存脱敏结构化事实、对象引用、哈希、版本和恢复记录；OCI 提供异地冷备。
+- 服务端长期保存个人笔记；R2 保存加密正文对象，OVH SQLite 只保存实时索引、会话、队列、幂等、游标、Runtime Journal 和 Outbox。Private-Database 只保存脱敏结构化事实、对象引用、哈希、版本和恢复记录。OCI 已于 2026-09-30 退役，R2 加密正文对象无异地镜像，服务器本机保留最近 14 份 SQLite 快照。
 - 必须支持 Notion、Obsidian、GitHub、Google 一键导入。Obsidian 使用本地 Vault 文件夹、ZIP 或 Markdown/TXT，不伪造集中式 Obsidian 登录。其他平台使用官方 OAuth/OIDC 和最小必要权限。
 - 微信读书同步必须通过官方 gateway 和冻结 skill 版本执行能力发现与分页，不得恢复 Top 5 限制；覆盖书架、笔记本、划线、想法、书评、书籍信息、进度、章节、统计和推荐等已审阅能力。
 - 画像、行为分析、阅读热度和潜在推荐必须绑定账户、可解释、可关闭；非必要行为采集需要明确同意，关闭后删除行为事件。运行时模型 Agent 和 Token 依赖为零。

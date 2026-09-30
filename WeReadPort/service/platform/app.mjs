@@ -266,7 +266,7 @@ function businessLines(counts, readiness) {
     line("legacy-migration", "匿名迁移兼容入口", "READY", "/migrate 兼容旧导出"),
     line("release-supply-chain", "发布与供应链", "NOT_VERIFIED", "等待同一 commit 的 CI 与部署证据"),
     line("operations-recovery", "运维、自愈与恢复", readiness?.ready ? (counts.pendingOutbox ? "DEGRADED" : "READY") : "BLOCKED", `${counts.pendingOutbox} 个待同步事实`),
-    line("facts-backup", "结构化事实与异地冷备", "EXTERNAL", "Private-Database、R2 与 OCI 外部证据"),
+    line("facts-backup", "结构化事实与冷备", "EXTERNAL", "Private-Database 与 R2 外部证据"),
   ];
 }
 function line(id, name, state, detail) { return { id, name, stage: "v0.0.0.1.9", state, detail }; }
