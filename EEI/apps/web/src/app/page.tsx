@@ -5864,6 +5864,7 @@ export default function Home() {
       </button>
       <button
         aria-hidden={!inspectorDrawerOpen}
+        aria-label="关闭证据栏"
         className="inspectorScrim"
         data-testid="inspector-drawer-scrim"
         onClick={() => setInspectorDrawerOpen(false)}

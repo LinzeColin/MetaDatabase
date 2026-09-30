@@ -5347,9 +5347,108 @@ dd {
 .workspace[data-cloud-surface="true"] .graphPolicyPanel {
   overflow-wrap: anywhere;
 }
+/* ============================================================
+   云发布面 · 手机（<= 767px）首屏布局
+   原因：S13「全屏地图基座」把地图底板、图例、时间轴、图谱 svg 都设成 position:fixed 浮在整个视口上，
+   手机上下面的左栏文字（标题、统计）整段滚动，于是图谱/图例/时间轴/数据截至戳与文字互相压叠，
+   右下角「证据栏」浮钮又压在统计区上。
+   改法（只在云发布面，样例工作台不受影响）：
+   1. 顶部一条固定标题栏，证据栏按钮放进这条栏里，不再浮在正文上；
+   2. 图谱放进文档流：地图舞台在最前，svg 叠在舞台预留的 390px 空位上（右侧留 72px 给时间轴）；
+   3. 图例、数据截至戳、KPI 条回到文档流，排在图谱下方；
+   4. 其余控制条、左栏内容依次往下排。
+   ============================================================ */
+@media (max-width: 767px) {
+  .workspace[data-cloud-surface="true"] {
+    padding-top: 56px;
+  }
+  .workspace[data-cloud-surface="true"]::before {
+    content: "商域图谱 · EEI";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 39;
+    display: flex;
+    align-items: center;
+    height: 52px;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .workspace[data-cloud-surface="true"] .inspectorToggle {
+    top: 4px;
+    bottom: auto;
+    right: 12px;
+  }
+  /* 证据抽屉从标题栏下方滑出（标题栏与「证据栏」开关始终可见、可点来关闭），底色不透明，不透出下面的正文。 */
+  .workspace[data-cloud-surface="true"] .inspector {
+    top: 52px;
+    background: var(--panel);
+    box-shadow: -12px 0 32px rgba(2, 6, 16, 0.45);
+  }
+  .workspace[data-cloud-surface="true"] .canvas {
+    order: -1;
+    padding: 12px 12px 8px;
+  }
+  .workspace[data-cloud-surface="true"] .mapSurface {
+    position: relative;
+    inset: auto;
+    z-index: 0;
+    order: -2;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: auto;
+    padding-top: 396px;
+    overflow: hidden;
+  }
+  .workspace[data-cloud-surface="true"] .ecosystemMap {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    right: 84px;
+    bottom: auto;
+    width: calc(100% - 96px);
+    height: 390px;
+    min-height: 0;
+  }
+  .workspace[data-cloud-surface="true"] .historyScrubber {
+    top: 8px;
+    right: 8px;
+    bottom: auto;
+    width: 64px;
+    height: 380px;
+    overflow-y: auto;
+  }
+  .workspace[data-cloud-surface="true"] .changeOverlay {
+    position: static;
+    max-width: none;
+    margin: 8px 10px 0;
+  }
+  .workspace[data-cloud-surface="true"] .empireLegend,
+  .workspace[data-cloud-surface="true"] .contextKpiBar {
+    position: static;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    width: auto;
+    margin: 8px 10px;
+    transform: none;
+  }
+}
+
 .workspace[data-cloud-surface="true"] .inspector .pathList,
 .workspace[data-cloud-surface="true"] .inspector .pathList > li {
   grid-template-columns: minmax(0, 1fr);
   min-width: 0;
   overflow-wrap: anywhere;
+}
+.workspace[data-cloud-surface="true"] .inspector .pathList em {
+  max-width: 100%;
+  white-space: normal;
 }
