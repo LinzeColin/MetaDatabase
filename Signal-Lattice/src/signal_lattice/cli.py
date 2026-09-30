@@ -50,12 +50,32 @@ def verify_runtime(settings: LiveSettings) -> dict:
     }
 
 
+def run_outcome(report: dict) -> dict:
+    """一轮采集的结论摘要：只含决定「要不要记一行」的字段。"""
+    decision = report.get("decision") or {}
+    return {
+        "state": report.get("state"),
+        "action_code": decision.get("action_code"),
+        "primary_symbol": decision.get("primary_symbol"),
+        "blocking_findings": report.get("blocking_findings") or [],
+    }
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     args = parser().parse_args(argv)
     settings = LiveSettings.from_env(project_root())
     if args.command == "once":
+        # 定时器每分钟跑一次 once。整份报告已落盘（print-latest / API 可读），
+        # stdout 只在结论变化时记一行：原先每轮打印整份报告约 0.7 MB，
+        # journal 与 syslog 各存一份，把整机日志冲到只剩 2 天。
+        previous = LiveStore(settings.state_dir).latest()
         report = LiveEngine(settings).run_once()
-        print(strict_json_dumps(report, ensure_ascii=False, indent=2, sort_keys=True))
+        outcome = run_outcome(report)
+        if not previous or run_outcome(previous) != outcome:
+            print(strict_json_dumps(
+                {"event": "OUTCOME_CHANGED", "generated_at": report.get("generated_at"), **outcome},
+                ensure_ascii=False, sort_keys=True,
+            ))
         return 0 if report["state"] == "DATA_READY" else 2
     if args.command == "loop":
         engine = LiveEngine(settings)
