@@ -1,5 +1,6 @@
-# FIFA 日报对外服务：极小的 nginx 静态容器，接入 Traefik（coolify-proxy）所在网络，
-# 路由 home.linzezhang.com/fifa（优先级高于门户的整域名路由，不影响门户其它路径）。装在 /etc/fifa-daily/，由 install.sh 启动。
+# FIFA 日报对外服务：极小的 nginx 静态容器，接入 Traefik（coolify-proxy）所在网络。
+# 主站 fifa.linzezhang.com；旧地址 home.linzezhang.com/fifa[/…] 仍路由进来，由 nginx 301 到新域名
+#（优先级高于门户的整域名路由，不影响门户其它路径）。装在 /etc/fifa-daily/，由 install.sh 启动。
 name: fifa-daily
 services:
   web:
@@ -32,18 +33,30 @@ services:
       - traefik.http.services.fifa-daily.loadbalancer.server.port=8080
       - traefik.http.middlewares.fifa-daily-gzip.compress=true
       - traefik.http.middlewares.fifa-daily-https-redirect.redirectscheme.scheme=https
-      - "traefik.http.routers.fifa-daily-http.rule=Host(`home.linzezhang.com`) && (Path(`/fifa`) || PathPrefix(`/fifa/`))"
-      - traefik.http.routers.fifa-daily-http.priority=1000
+      # 新站 fifa.linzezhang.com（证书方式与 home 相同：letsencrypt certresolver）
+      - "traefik.http.routers.fifa-daily-http.rule=Host(`fifa.linzezhang.com`)"
       - traefik.http.routers.fifa-daily-http.entrypoints=http
       - traefik.http.routers.fifa-daily-http.middlewares=fifa-daily-https-redirect
       - traefik.http.routers.fifa-daily-http.service=fifa-daily
-      - "traefik.http.routers.fifa-daily-https.rule=Host(`home.linzezhang.com`) && (Path(`/fifa`) || PathPrefix(`/fifa/`))"
-      - traefik.http.routers.fifa-daily-https.priority=1000
+      - "traefik.http.routers.fifa-daily-https.rule=Host(`fifa.linzezhang.com`)"
       - traefik.http.routers.fifa-daily-https.entrypoints=https
       - traefik.http.routers.fifa-daily-https.tls=true
       - traefik.http.routers.fifa-daily-https.tls.certresolver=letsencrypt
       - traefik.http.routers.fifa-daily-https.middlewares=fifa-daily-gzip
       - traefik.http.routers.fifa-daily-https.service=fifa-daily
+      # 旧地址 home.linzezhang.com/fifa[/…]：转进容器，由 nginx 301 到新域名
+      - "traefik.http.routers.fifa-daily-legacy-http.rule=Host(`home.linzezhang.com`) && (Path(`/fifa`) || PathPrefix(`/fifa/`))"
+      - traefik.http.routers.fifa-daily-legacy-http.priority=1000
+      - traefik.http.routers.fifa-daily-legacy-http.entrypoints=http
+      - traefik.http.routers.fifa-daily-legacy-http.middlewares=fifa-daily-https-redirect
+      - traefik.http.routers.fifa-daily-legacy-http.service=fifa-daily
+      - "traefik.http.routers.fifa-daily-legacy-https.rule=Host(`home.linzezhang.com`) && (Path(`/fifa`) || PathPrefix(`/fifa/`))"
+      - traefik.http.routers.fifa-daily-legacy-https.priority=1000
+      - traefik.http.routers.fifa-daily-legacy-https.entrypoints=https
+      - traefik.http.routers.fifa-daily-legacy-https.tls=true
+      - traefik.http.routers.fifa-daily-legacy-https.tls.certresolver=letsencrypt
+      - traefik.http.routers.fifa-daily-legacy-https.middlewares=fifa-daily-gzip
+      - traefik.http.routers.fifa-daily-legacy-https.service=fifa-daily
 networks:
   coolify:
     external: true
