@@ -1,5 +1,15 @@
 # Changelog
 
+## Headless cloud run (revive) - 2026-09-30
+
+- 新增 `app/headless/`：在云端服务器用 systemd timer 按原设计的 10 个北京时段（工作日 08:30-17:30）无人值守运行；不经过任何大模型，不依赖 MooMoo/OpenD、Apple Mail 和本机桌面。
+- 只用免费且允许自动访问的公开数据：基金净值与申赎状态（天天基金公开接口）、上证综指（上交所官方行情）、标普 500（FRED）；任一源失败如实标注为“降级”，不拿旧数据冒充；Yahoo/Stooq 因 robots 禁止自动访问而弃用。
+- 报告（Markdown + HTML）写成私有仓 Release 资产（草稿 Release，每个北京日一个，tag 前缀 `serenity-report-`）；令牌只经 systemd LoadCredential 只读挂入，发布前核对目标仓为私有。
+- 没有真实持仓快照时报告如实写“持仓快照：暂无”，不出偏离与增减配动作。
+- `missing_nav_days` 改为按真实净值日期和上交所交易日历重算；`run_slot` 的运行产物可经 `SERENITY_STATE_DIR` 整体改写到状态目录；无人值守模式不再落全量净值历史、不写旧版邮件草稿。
+- 修复 `deploy-serenity.yml` 里与线上不一致的 Coolify 应用 UUID。
+- 不改评分、权重、硬规则（MDD≥40%、恢复≥365 天、净值≥24 个月）、Top5 逻辑，不下单。
+
 ## Cloudflare L2 public review cockpit — 2026-07-10
 
 - 新增隔离的 `app/cloudflare-public` 静态 review cockpit、Workers Static Assets 配置、隐私扫描和兼容性回归。

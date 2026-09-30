@@ -100,6 +100,38 @@ def cmd_run(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_service_tick(args: argparse.Namespace) -> int:
+    """云端无人值守调度（systemd timer 调用）：公开数据 -> 分析 -> 私有仓 Release。"""
+    import os
+    from datetime import datetime
+
+    from app.headless.service import CST, service_tick
+
+    os.environ.setdefault("SERENITY_HEADLESS", "1")
+    settings = load_settings()
+    now = datetime.fromisoformat(args.now).astimezone(CST) if args.now else None
+    try:
+        result = service_tick(
+            settings,
+            now=now,
+            force_slot=args.force_slot,
+            catch_up_minutes=args.catch_up_minutes,
+            publish=not args.no_publish,
+            allow_duplicate=args.allow_duplicate,
+        )
+    except Exception as exc:  # 失败要让 systemd 看见（非零退出），并留一份状态供排查
+        import json as _json
+
+        (settings.data_dir / "status.json").write_text(
+            _json.dumps({"action": "failed", "error": f"{exc.__class__.__name__}: {exc}", "at": datetime.now(CST).isoformat(timespec="seconds")}, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        print(f"service-tick failed: {exc.__class__.__name__}: {exc}", file=sys.stderr)
+        return 1
+    _print_result(result, args.json)
+    return 0
+
+
 def cmd_report(args: argparse.Namespace) -> int:
     settings = load_settings()
     init_db(settings.db_path)
@@ -605,6 +637,15 @@ def build_parser() -> argparse.ArgumentParser:
     notify.add_argument("--local", action="store_true", help="Send local macOS notification when not dry-run")
     notify.add_argument("--json", action="store_true")
     notify.set_defaults(func=cmd_notify)
+
+    service = sub.add_parser("service-tick", help="Headless cloud tick: public data -> analysis -> private Release report")
+    service.add_argument("--now", help="Override current time, e.g. 2026-09-30T14:30:00+08:00")
+    service.add_argument("--force-slot", choices=list(SCHEDULE_SLOTS))
+    service.add_argument("--catch-up-minutes", type=int, default=180)
+    service.add_argument("--no-publish", action="store_true", help="Compute and render only; do not touch GitHub")
+    service.add_argument("--allow-duplicate", action="store_true")
+    service.add_argument("--json", action="store_true")
+    service.set_defaults(func=cmd_service_tick)
 
     tick = sub.add_parser("scheduler-tick", help="Codex Automation/launchd dispatcher tick")
     tick.add_argument("--now", help="Override current time, e.g. 2026-06-12T14:30:00+08:00")

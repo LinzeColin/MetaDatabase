@@ -255,7 +255,7 @@ def collect_fund_nav_history(
             source_url = _history_url(candidate.asset_code, resolved_start, resolved_end)
             summaries.append(_summary_for(candidate, [], settings.min_candidate_nav_history_span_days, source_url, str(exc)))
 
-    output_dir = settings.root_dir / "outputs" / "preflight"
+    output_dir = settings.output_root() / "preflight"
     files = {
         "markdown": str(output_dir / "fund_nav_history_latest.md"),
         "csv": str(output_dir / "fund_nav_history_latest.csv"),

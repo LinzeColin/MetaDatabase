@@ -1,0 +1,26 @@
+[Unit]
+Description=Serenity daily analysis tick (public data -> private Release report)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# 动态用户 + 只写自己的状态目录 /var/lib/serenity；代码目录只读。
+DynamicUser=yes
+StateDirectory=serenity
+WorkingDirectory=/opt/serenity/src/Serenity-Alipay
+Environment=SERENITY_HEADLESS=1
+Environment=SERENITY_STATE_DIR=/var/lib/serenity
+Environment=PYTHONDONTWRITEBYTECODE=1
+# 复用 VPS-3 上已有的 GitHub 备份凭据，只读挂成 $CREDENTIALS_DIRECTORY/github_token；不复制、不落盘。
+LoadCredential=github_token:/srv/linze/secrets/github_backup_pat
+ExecStart=/usr/bin/python3 -B -m app.cli service-tick
+TimeoutStartSec=900
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes

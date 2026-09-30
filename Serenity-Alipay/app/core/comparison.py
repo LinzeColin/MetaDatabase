@@ -46,8 +46,10 @@ def _run_time_bj(conn: sqlite3.Connection, run_id: str) -> datetime:
     return datetime.fromisoformat(row["run_time_bj"])
 
 
-def _eligible_base_run(row: sqlite3.Row, primary_tz: str) -> bool:
-    if row["status"] != "success" or row["data_quality_status"] != "pass":
+def _eligible_base_run(row: sqlite3.Row, primary_tz: str, headless: bool = False) -> bool:
+    # 无人值守模式的 manual_review 只表示“Top5 里有候选需人工复核”，数据本身是好的，可以当对比基线。
+    accepted = {"pass", "manual_review"} if headless else {"pass"}
+    if row["status"] != "success" or row["data_quality_status"] not in accepted:
         return False
     try:
         run_time = datetime.fromisoformat(row["run_time_bj"])
@@ -77,7 +79,7 @@ def _base_run(
             (current_run_id, current_time.date().isoformat(), current_time.isoformat()),
         ).fetchall()
         for row in rows:
-            if _eligible_base_run(row, settings.timezone_primary):
+            if _eligible_base_run(row, settings.timezone_primary, settings.headless):
                 return row["run_id"]
         return None
 
@@ -99,7 +101,7 @@ def _base_run(
         (current_run_id, target.isoformat()),
     ).fetchall()
     for row in rows:
-        if _eligible_base_run(row, settings.timezone_primary):
+        if _eligible_base_run(row, settings.timezone_primary, settings.headless):
             return row["run_id"]
     return None
 

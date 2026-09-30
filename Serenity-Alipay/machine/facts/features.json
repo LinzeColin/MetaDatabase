@@ -28,5 +28,11 @@
     "name": "Cloudflare 安全 L2 只读投资驾驶舱",
     "status": "active",
     "evidence": "extracted"
+  },
+  {
+    "id": "FEAT-SER-HL-001",
+    "name": "云端无人值守运行（公开数据、每日 10 个时段、报告写入私有仓 Release）",
+    "status": "active",
+    "evidence": "extracted"
   }
 ]
