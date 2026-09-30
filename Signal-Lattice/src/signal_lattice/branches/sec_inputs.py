@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -38,6 +39,21 @@ def prune_companyfacts(payload: dict, concepts: Iterable[str] = NEEDED_CONCEPTS)
 def already_ingested(store: FactStore) -> set:
     rows = store.db.execute("SELECT DISTINCT cik FROM ingest_log WHERE source = ?", (INGEST_SOURCE,))
     return {int(row[0]) for row in rows}
+
+
+def concept_set_marker(concepts: Iterable[str] = NEEDED_CONCEPTS) -> str:
+    """入库概念集合的指纹。概念集合一变（例如新增债务/营收标签），已入库公司的 companyfacts 需要按新集合重取一次，
+    否则新概念要等到该公司下一次发新 10-Q/10-K 才会出现。"""
+    return "concepts:" + hashlib.sha256("\n".join(sorted(set(concepts))).encode("utf-8")).hexdigest()[:12]
+
+
+def ciks_missing_concept_set(store: FactStore, ciks: Iterable[int], marker: str) -> List[int]:
+    done = {int(row[0]) for row in store.db.execute("SELECT DISTINCT cik FROM ingest_log WHERE source = ?", (marker,))}
+    return [int(c) for c in ciks if int(c) not in done]
+
+
+def mark_concept_set(store: FactStore, cik: int, marker: str, at: str) -> None:
+    store.db.execute("INSERT INTO ingest_log (cik, source, ingested_at, rows_added) VALUES (?,?,?,0)", (int(cik), marker, at))
 
 
 def collect_companyfacts(client: SecClient, store: FactStore, ciks: Sequence[int], today: str,
