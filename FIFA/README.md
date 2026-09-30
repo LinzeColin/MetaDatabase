@@ -1,5 +1,7 @@
 # FIFA 中文 Owner 快速入口
 
+> **当前运行中的部分（2026-09-30 起）**：每天自动生成的足球研究日报，网页 `https://linzecolin.github.io/MetaDatabase/fifa/`，代码与说明见 `daily-research/README.md`。只研究、不下注；下面的 TAB 研究流水线条目是世界杯时期的历史实现，保持失败关闭，不参与日报。
+
 - S6PAT02 中文 Owner 快速入口：用户可读优先；中文优先，默认全局中文。
 - 本轮 Owner-flow 治理任务：`S6PAT02` / `ACC-S6PAT02`，只补 Owner 路径，不改产品 canonical current_task；下一 Gate：`S6PA-GATE` 仍在进行中。
 - 本轮边界：只补 Owner 可读路径，不改运行代码，不移动文件，不触发投注、TAB 点击、OpenD、邮件、launchd、app 打包或外部自动化。

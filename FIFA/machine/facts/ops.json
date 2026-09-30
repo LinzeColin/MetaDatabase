@@ -1,0 +1,24 @@
+{
+ "troubleshooting": [
+  {
+   "symptom": "页面第一屏显示「今天没有新报告」",
+   "cause": "最近一次运行失败；原因写在第一屏，也在 `status.json` 的 `error` 字段",
+   "fix": "到仓库的自动化页面看 `fifa-daily-report.yml` 的运行日志；上游临时故障会自己恢复，下次定时运行即补上"
+  },
+  {
+   "symptom": "页面红条写着生成于很多小时前",
+   "cause": "定时任务没有跑（被平台跳过、仓库停用了定时、工作流被停）",
+   "fix": "到仓库自动化页面确认 `fifa-daily-report.yml` 未被停用，再手动触发一次"
+  },
+  {
+   "symptom": "数据截至日期比今天早一周",
+   "cause": "联赛数据集每周更新一次，赛果最多滞后约一周",
+   "fix": "不是故障；欧冠当季数据来自维基百科，几乎实时"
+  },
+  {
+   "symptom": "欧冠当季一场都没有",
+   "cause": "维基百科页面结构变了导致解析出 0 场，或页面标题变了",
+   "fix": "检查 `FIFA/daily-research/fifa_daily/config.py` 里的 `WIKI_CL_PAGE`，以及 `sources.py` 里的 `parse_wiki_boxes`"
+  }
+ ]
+}

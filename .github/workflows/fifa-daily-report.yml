@@ -1,0 +1,106 @@
+name: FIFA Daily Report
+
+# FIFA 足球研究日报（只研究、不下注）。无人值守：GitHub Actions 定时生成，发布到 GitHub Pages。
+#   页面：https://linzecolin.github.io/MetaDatabase/fifa/
+#   代码与说明：FIFA/daily-research/README.md
+# 每天两次（非整点，悉尼 06:37 前后与 18:47 前后）。第二次是兜底：第一次被 GitHub 跳过或失败时补上，
+# 同一天重复运行是幂等的（同一份存档被覆盖，预测账本按比赛编号更新）。
+# 失败时页面第一屏如实显示「今天没有新报告 + 原因」，并且本工作流会以失败状态结束。
+# 缺天不会补发当天的赛前预测（那是事后诸葛）；下一次运行直接覆盖全部未来赛程，赛果到了自动打分。
+on:
+  schedule:
+    - cron: "37 20 * * *"
+    - cron: "47 8 * * *"
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "FIFA/daily-research/**"
+      - ".github/workflows/fifa-daily-report.yml"
+
+concurrency:
+  group: fifa-daily-report-${{ github.event_name == 'pull_request' && github.ref || 'site' }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: FIFA/daily-research/requirements.txt
+      - name: 安装依赖
+        run: python -m pip install --quiet -r FIFA/daily-research/requirements.txt
+      - name: 离线单元测试与端到端（合成数据，不联网）
+        working-directory: FIFA/daily-research
+        run: python -m unittest discover -s tests -t . -v
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: FIFA/daily-research/requirements.txt
+      - name: 安装依赖
+        run: python -m pip install --quiet -r FIFA/daily-research/requirements.txt
+      - name: 取出上次发布的站点（状态、预测账本、运行记录都在里面）
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REPO_URL="https://github.com/${GITHUB_REPOSITORY}"
+          git config --global http.https://github.com/.extraheader "AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          if git ls-remote --exit-code --heads "$REPO_URL" gh-pages >/dev/null 2>&1; then
+            git clone --quiet --depth 1 --branch gh-pages "$REPO_URL" pages
+          else
+            echo "gh-pages 分支不存在，创建空分支（首次运行或分支被删）"
+            mkdir pages
+            git -C pages init -q -b gh-pages
+            git -C pages remote add origin "$REPO_URL"
+          fi
+      - name: 生成日报
+        id: gen
+        continue-on-error: true
+        working-directory: FIFA/daily-research
+        run: python -m fifa_daily run --site "${GITHUB_WORKSPACE}/pages/fifa"
+      - name: 预览产物（仅 PR，不发布）
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: fifa-preview
+          path: pages/fifa
+          retention-days: 7
+      - name: 发布到 gh-pages（成功与失败都发布：失败时页面要如实写出原因）
+        if: github.event_name != 'pull_request'
+        working-directory: pages
+        run: |
+          set -euo pipefail
+          touch .nojekyll
+          [ -f index.html ] || printf '%s\n' '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=fifa/"><title>FIFA</title><a href="fifa/">FIFA 足球研究日报</a>' > index.html
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "没有变化，不提交"
+          else
+            git commit -q -m "fifa: daily report $(date -u +%F) [skip ci]"
+            git push origin HEAD:gh-pages || { git pull --rebase origin gh-pages && git push origin HEAD:gh-pages; }
+          fi
+      - name: 生成失败则让本次运行标红
+        if: steps.gen.outcome == 'failure'
+        run: |
+          echo "::error::日报没有成功生成，页面已如实显示失败原因（见 pages/fifa/status.json）"
+          exit 1
