@@ -5486,3 +5486,133 @@ dd {
   max-width: 100%;
   white-space: normal;
 }
+
+/* ============================================================
+   云发布面 · 图谱布局收尾（仅云发布面；样例工作台 A167 基线不受影响）
+   1. 桌面：图谱 svg 是 fixed 且层级高于画布顶部控制条，节点球会盖住阶段胶囊 / L0–L3 / 面包屑。
+      page.tsx 量出控制条底边写进 --cloud-hud-bottom，图谱从它下面开始。
+   2. 手机：主体名与规模条放在图谱上方；svg 按节点包围盒取景（page.tsx 里的 cloudFit），高度跟着变。
+   3. 关系表格：右栏只有约 250px 宽，8 列表格每列被挤成 1–3 个字、行高上百像素。
+      云发布面改成每条关系一张卡片，列名用伪元素标注，「方向」列与「来源方 → 指向方」重复，只留给读屏。
+   4. 左栏「数据新鲜度」小方块：浅底改深底，长时间戳允许折行。
+   ============================================================ */
+.cloudMobileSubject {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .workspace[data-cloud-surface="true"] .ecosystemMap {
+    top: var(--cloud-hud-bottom, 84px);
+    /* 左下的图例/小地图挡不到左侧节点：svg 让出约 60px */
+    left: calc(var(--map-inset-left) + 60px);
+  }
+}
+
+@media (max-width: 767px) {
+  .workspace[data-cloud-surface="true"] .cloudMobileSubject {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    order: -3;
+    padding: 10px 16px 10px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+  }
+  .workspace[data-cloud-surface="true"] .cloudMobileSubject span {
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .workspace[data-cloud-surface="true"] .cloudMobileSubject strong {
+    font-size: 22px;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+  .workspace[data-cloud-surface="true"] .cloudMobileSubject small {
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .workspace[data-cloud-surface="true"] .mapSurface {
+    padding-top: calc(var(--cloud-map-h, 390px) + 6px);
+  }
+  .workspace[data-cloud-surface="true"] .ecosystemMap {
+    height: var(--cloud-map-h, 390px);
+  }
+  .workspace[data-cloud-surface="true"] .historyScrubber {
+    height: calc(var(--cloud-map-h, 390px) - 10px);
+  }
+}
+
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .freshnessGrid span {
+  border-color: var(--cloud-line);
+  background: var(--cloud-surface);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel table,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel tbody,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel td {
+  display: block;
+  min-width: 0;
+  width: 100%;
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel thead {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel tr {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 4px 10px;
+  padding: 10px 0;
+  border-top: 1px solid var(--cloud-line);
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel td {
+  position: relative;
+  grid-column: 1 / -1;
+  border-top: 0;
+  padding: 0 0 0 50px;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel td::before {
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel td:nth-child(1),
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel td:nth-child(2) {
+  grid-column: auto;
+  padding: 0;
+  font-weight: 650;
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel td:nth-child(1)::before,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel td:nth-child(2)::before {
+  position: static;
+  display: block;
+  font-weight: 400;
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel td:nth-child(3) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel td:nth-child(1)::before { content: "来源方"; }
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel td:nth-child(2)::before { content: "指向方"; }
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel td:nth-child(4)::before { content: "类型"; }
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel td:nth-child(5)::before { content: "关系"; }
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel td:nth-child(6)::before { content: "环节"; }
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel td:nth-child(7)::before { content: "证据"; }
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel td:nth-child(8)::before { content: "时间"; }
