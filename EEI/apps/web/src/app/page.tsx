@@ -5279,6 +5279,73 @@ export default function Home() {
           </dl>
         </section>
 
+        <section
+          className="savedViewPanel"
+          data-api-base-storage-key={SAVED_VIEW_API_BASE_STORAGE_KEY}
+          data-data-snapshot={savedView.dataSnapshot}
+          data-model-version={savedView.modelVersion}
+          data-profile-version={savedView.profileVersion}
+          data-saved-view-id={savedView.id}
+          data-server-endpoint={savedView.serverEndpoint ?? ""}
+          data-server-id={savedView.serverId ?? ""}
+          data-server-version={savedView.serverVersion ?? ""}
+          data-saved-view-version={savedView.version}
+          data-score-snapshot={savedView.scoreSnapshot}
+          data-sync-mode={savedView.syncMode}
+          data-sync-reason={savedView.syncReason}
+          data-testid="saved-view-panel"
+          data-workspace-key={savedView.workspaceKey}
+        >
+          <header>
+            <p className="eyebrow">保存视图</p>
+            <strong data-testid="saved-view-status">{zhStatus(savedViewStatus)}</strong>
+          </header>
+          <dl data-testid="saved-view-contract">
+            <div>
+              <dt>主体</dt>
+              <dd>{entityLabels[savedView.focusKey]}</dd>
+            </div>
+            <div>
+              <dt>透镜 / 时间</dt>
+              <dd>
+                {savedView.activeLens} / {savedView.asOf}
+              </dd>
+            </div>
+            <div>
+              <dt>筛选</dt>
+              <dd>{savedView.filters}</dd>
+            </div>
+            <div>
+              <dt>布局</dt>
+              <dd>{savedView.layout}</dd>
+            </div>
+            <div>
+              <dt>备注</dt>
+              <dd>{savedView.notes}</dd>
+            </div>
+          </dl>
+          <div className="savedViewActions">
+            <button data-testid="save-current-view" onClick={saveCurrentView} type="button">
+              <Save size={16} aria-hidden="true" />
+              <span>保存</span>
+            </button>
+            <button data-testid="restore-saved-view" onClick={restoreSavedView} type="button">
+              <RotateCcw size={16} aria-hidden="true" />
+              <span>恢复</span>
+            </button>
+            {savedViewStatus === "server-conflict" && savedView.serverId ? (
+              <button
+                data-testid="resolve-saved-view-conflict"
+                onClick={resolveSavedViewConflict}
+                type="button"
+              >
+                <RotateCcw size={16} aria-hidden="true" />
+                <span>获取最新</span>
+              </button>
+            ) : null}
+          </div>
+        </section>
+
         <ol className="pathList">
           {CLOUD_MODE
             ? graphViewEdges.slice(0, 4).map((edge) => (
@@ -5417,73 +5484,6 @@ export default function Home() {
               </li>
             ))}
           </ol>
-        </section>
-
-        <section
-          className="savedViewPanel"
-          data-api-base-storage-key={SAVED_VIEW_API_BASE_STORAGE_KEY}
-          data-data-snapshot={savedView.dataSnapshot}
-          data-model-version={savedView.modelVersion}
-          data-profile-version={savedView.profileVersion}
-          data-saved-view-id={savedView.id}
-          data-server-endpoint={savedView.serverEndpoint ?? ""}
-          data-server-id={savedView.serverId ?? ""}
-          data-server-version={savedView.serverVersion ?? ""}
-          data-saved-view-version={savedView.version}
-          data-score-snapshot={savedView.scoreSnapshot}
-          data-sync-mode={savedView.syncMode}
-          data-sync-reason={savedView.syncReason}
-          data-testid="saved-view-panel"
-          data-workspace-key={savedView.workspaceKey}
-        >
-          <header>
-            <p className="eyebrow">保存视图</p>
-            <strong data-testid="saved-view-status">{zhStatus(savedViewStatus)}</strong>
-          </header>
-          <dl data-testid="saved-view-contract">
-            <div>
-              <dt>主体</dt>
-              <dd>{entityLabels[savedView.focusKey]}</dd>
-            </div>
-            <div>
-              <dt>透镜 / 时间</dt>
-              <dd>
-                {savedView.activeLens} / {savedView.asOf}
-              </dd>
-            </div>
-            <div>
-              <dt>筛选</dt>
-              <dd>{savedView.filters}</dd>
-            </div>
-            <div>
-              <dt>布局</dt>
-              <dd>{savedView.layout}</dd>
-            </div>
-            <div>
-              <dt>备注</dt>
-              <dd>{savedView.notes}</dd>
-            </div>
-          </dl>
-          <div className="savedViewActions">
-            <button data-testid="save-current-view" onClick={saveCurrentView} type="button">
-              <Save size={16} aria-hidden="true" />
-              <span>保存</span>
-            </button>
-            <button data-testid="restore-saved-view" onClick={restoreSavedView} type="button">
-              <RotateCcw size={16} aria-hidden="true" />
-              <span>恢复</span>
-            </button>
-            {savedViewStatus === "server-conflict" && savedView.serverId ? (
-              <button
-                data-testid="resolve-saved-view-conflict"
-                onClick={resolveSavedViewConflict}
-                type="button"
-              >
-                <RotateCcw size={16} aria-hidden="true" />
-                <span>获取最新</span>
-              </button>
-            ) : null}
-          </div>
         </section>
 
         <section
