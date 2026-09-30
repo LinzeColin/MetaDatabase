@@ -117,3 +117,19 @@ def make_market():
 @pytest.fixture
 def make_clock():
     return Clock
+
+
+@pytest.fixture
+def shadow_env(tmp_path, monkeypatch):
+    """影子盘运行环境:独立运行目录/库/刹车文件,清掉券商与实盘相关键。返回运行目录。"""
+    from backend.app.workers.shadow_cycle import FORBIDDEN_ENV
+
+    rt = tmp_path / "rt"
+    rt.mkdir()
+    monkeypatch.setenv("ALPHA_MODE", "SHADOW")
+    monkeypatch.setenv("ALPHA_RUNTIME_DIR", str(rt))
+    monkeypatch.setenv("ALPHA_DATABASE_URL", f"sqlite:///{tmp_path / 'alpha.sqlite'}")
+    monkeypatch.setenv("ALPHA_KILL_SWITCH_PATH", str(rt / "KILL_SWITCH"))
+    for key in FORBIDDEN_ENV + ("LIVE_TRADING_ENABLED", "ALPHA_ALERT_WEBHOOK"):
+        monkeypatch.delenv(key, raising=False)
+    return rt

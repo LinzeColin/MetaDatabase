@@ -11,20 +11,21 @@ from backend.app.workers.killswitch import KillSwitch
 
 
 def build_app():
-    from backend.app.control_page.dashboard_data import (
-        OpenDQuoteSource, OpenDRealFunds, YahooFxSource)
+    from backend.app import truth, wiring
+    from backend.app.control_page.dashboard_data import YahooFxSource
 
+    # 行情源与资金源按模式经 wiring 取:影子盘 = Yahoo 行情、无券商资金源(不读任何券商余额)
+    m = truth.mode()
+    quotes_cls = wiring.resolve(m, "quotes")
+    funds_cls = wiring.resolve(m, "funds")
     factory = create_session_factory(init_engine())
     app = build_control_app(
         kill_switch=KillSwitch(os.environ.get("ALPHA_KILL_SWITCH_PATH", "runtime/KILL_SWITCH")),
         heartbeats=HeartbeatStore(factory),
         session_factory=factory,
-        quotes=OpenDQuoteSource(
-            host=os.environ.get("ALPHA_OPEND_HOST", "127.0.0.1"),
-            port=int(os.environ.get("ALPHA_OPEND_PORT", "11111")),
-        ),
-        # 资金真相:读券商真实购买力,页面不再拿授权额度冒充现金(owner 2026-07-24 抓到)
-        real_funds=OpenDRealFunds(),
+        quotes=quotes_cls() if quotes_cls else None,
+        # 资金真相:券商模式读真实购买力,页面不再拿授权额度冒充现金(owner 2026-07-24 抓到)
+        real_funds=funds_cls() if funds_cls else None,
         # 实时汇率:每 30 秒刷新一次,页面显示汇率与取得时间(owner 2026-07-24 要求)
         fx_source=YahooFxSource(ttl=30.0),
     )

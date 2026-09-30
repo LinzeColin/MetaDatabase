@@ -3,15 +3,18 @@
 让净值曲线随时间生长:每 15 分钟按真实世界状态记一个净值点。
 
   期初本金(基准)= 固定 3000 澳元,永不浮动(owner:"本金基准是期初本金 3000,不能搞错")
-  净值           = 账户真实购买力 + 系统自有持仓市值(动态的是净值与目标线,不是基准)
+  已冻结本金:净值 = 冻结本金 + 系统自有现金流(含手续费)+ 系统自有持仓 × 最新价
+             ——只由本系统成交推导(fold_own_executions),从不读任何券商余额(R4 隔离)
+  未冻结本金(仅券商模式,尚未首笔成交):净值 = 券商真实购买力 + 自有持仓市值
 
-只读券商、只写自己的历史文件;永不下单。取不到券商数据就跳过本次快照,绝不编造点位。
+行情源按模式经 wiring 取(影子盘 = Yahoo);无持仓时也探一次 SPY,顺带记录行情源健康
+(facts/quote_feed.json,连续失败由健康判据告警)。持仓标的取不到价就不记这个点,绝不编造。
+只写自己的历史文件;永不下单。
 """
 
 from __future__ import annotations
 
 import json
-import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -19,76 +22,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 MAX_POINTS = 4000          # 15 分钟一点 ≈ 保留约 40 天
-RUNTIME = Path(os.environ.get("ALPHA_RUNTIME_DIR", "runtime"))
-HISTORY = RUNTIME / "equity_history.json"
-
-
-def _real_funds_and_positions(acc_id: str) -> tuple[float | None, dict[str, int]]:
-    """真实购买力与系统自有持仓(只读)。失败返回 (None, {})。"""
-    try:
-        from moomoo import (RET_OK, Currency, OpenSecTradeContext, SecurityFirm,
-                            TrdEnv, TrdMarket)
-        tc = OpenSecTradeContext(filter_trdmarket=TrdMarket.US, host="127.0.0.1",
-                                 port=11111, security_firm=SecurityFirm.FUTUAU)
-        try:
-            ret, df = tc.accinfo_query(trd_env=TrdEnv.REAL, acc_id=int(acc_id),
-                                       refresh_cache=True, currency=Currency.USD)
-            power = float(df.iloc[0]["power"]) if ret == RET_OK and len(df) else None
-        finally:
-            tc.close()
-        return power, {}
-    except Exception:
-        return None, {}
-
-
-def system_ledger(session_factory) -> tuple[dict[str, int], float]:
-    """系统自己的(净持仓, 现金流)——仅由本系统成交推导,绝不含 owner 持仓。
-
-    现金流:买入为负、卖出为正(不含费用,费用已在净值里由 power 反映;此处仅供未成交前对账)。
-    """
-    from sqlalchemy import select
-
-    from backend.app.domain.models import BrokerOrder, Execution, OrderIntent
-    with session_factory() as s:
-        intents = {i.intent_id: i for i in s.scalars(select(OrderIntent)).all()}
-        orders = {o.order_id: o for o in s.scalars(select(BrokerOrder)).all()}
-        execs = list(s.scalars(select(Execution)).all())
-    net: dict[str, int] = {}
-    cash_flow = 0.0
-    for e in execs:
-        o = orders.get(e.order_id)
-        i = intents.get(o.intent_id) if o else None
-        if i is None:
-            continue
-        sign = 1 if i.side == "BUY" else -1
-        net[i.symbol] = net.get(i.symbol, 0) + sign * e.quantity
-        cash_flow += (-sign) * e.quantity * float(e.price)
-    return {k: v for k, v in net.items() if v}, cash_flow
-
-
-def system_position_value_usd(session_factory) -> float:
-    """系统自有持仓市值(按成交流水净额 × 最新价);无持仓返回 0。"""
-    try:
-        held, _ = system_ledger(session_factory)
-        if not held:
-            return 0.0
-        from moomoo import RET_OK, OpenQuoteContext
-        qc = OpenQuoteContext(host="127.0.0.1", port=11111)
-        try:
-            ret, df = qc.get_market_snapshot([f"US.{s}" for s in held])
-            if ret != RET_OK:
-                return 0.0
-            px = {str(r["code"]).split(".", 1)[-1]: float(r["last_price"])
-                  for _, r in df.iterrows()}
-        finally:
-            qc.close()
-        return sum(q * px.get(sym, 0.0) for sym, q in held.items())
-    except Exception:
-        return 0.0
+PROBE_SYMBOL = "SPY"       # 空仓时的行情探针
 
 
 def fx_aud_usd() -> tuple[float, bool]:
     """实时汇率(取不到回落契约固定口径并标注)。"""
+    from backend.app import truth
     try:
         from backend.app.control_page.dashboard_data import YahooFxSource
         rate, _ = YahooFxSource(ttl=0.0).rate()
@@ -96,63 +35,104 @@ def fx_aud_usd() -> tuple[float, bool]:
             return float(rate), True
     except Exception:
         pass
-    return float(os.environ.get("ALPHA_FX_AUD_USD", "0.65")), False
+    return truth.contract_fx_aud_usd(), False
 
 
-def main() -> int:
-    acc = os.environ.get("ALPHA_REAL_ACC_ID", "")
-    if not acc:
-        print("跳过:未配置真实账户"); return 0
-    power, _ = _real_funds_and_positions(acc)
-    if power is None:
-        print("跳过:券商购买力读不到(不编造点位)"); return 0
-
-    from backend.app.store.db import create_session_factory, init_engine
-    factory = create_session_factory(init_engine())
-    _held, cash_flow = system_ledger(factory)
-    pos_usd = system_position_value_usd(factory)
-
-    capital_aud = float(os.environ.get("ALPHA_CAPITAL_AUD", "3000"))
-    fx_contract = float(os.environ.get("ALPHA_FX_AUD_USD", "0.65"))
-    fx, fx_live = fx_aud_usd()
-
-    authorized_usd = capital_aud * fx_contract          # 授权上限(风控同款保守汇率)
-    # 隔离铁律:已冻结初始本金则净值 = 冻结本金 + 系统现金流 + 系统持仓,与 owner 账户彻底隔离;
-    # 未冻结(尚未首笔成交)则跟随真实可用,反映入金进度。
-    start_cap = None
+def _record_feed(ok: bool, now: datetime, error: str) -> None:
+    """行情源健康:成功清零并记 last_ok_at,失败累加 consecutive_failures。"""
+    from backend.app import truth
+    path = truth.facts_dir() / "quote_feed.json"
     try:
-        start_cap = float(json.loads((RUNTIME / "LIVE_START_CAPITAL.json").read_text())["start_capital_usd"])
+        feed = json.loads(path.read_text())
+    except Exception:
+        feed = {}
+    if ok:
+        feed.update(consecutive_failures=0, last_ok_at=now.isoformat(), last_error="")
+    else:
+        feed.update(consecutive_failures=int(feed.get("consecutive_failures", 0)) + 1,
+                    last_error=error[:200])
+    feed["at"] = now.isoformat()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(feed, ensure_ascii=False))
+
+
+def main(*, quotes=None, fx: tuple[float, bool] | None = None,
+         now: datetime | None = None) -> int:
+    from backend.app import truth, wiring
+    from backend.app.store.db import create_session_factory, init_engine
+    from backend.app.store.orders import OrderStore
+
+    now = now or datetime.now(timezone.utc)
+    m = truth.mode()
+    rt = truth.runtime_dir()
+    factory = create_session_factory(init_engine())
+    book = OrderStore(factory).own_book()
+    held = sorted(book.net)
+
+    if quotes is None:
+        quotes_cls = wiring.resolve(m, "quotes")
+        if quotes_cls is None:
+            print(f"跳过:模式 {m.value} 不运行交易,无行情源"); return 0
+        quotes = quotes_cls()
+    probe = held or [PROBE_SYMBOL]
+    try:
+        snap = quotes.snapshots(probe) or {}
+        err = ""
+    except Exception as exc:
+        snap, err = {}, f"{type(exc).__name__}: {exc}"
+    missing = [s for s in probe if s not in snap]
+    _record_feed(not missing, now, err or f"取不到 {missing}")
+    if any(s in missing for s in held):
+        print(f"跳过:持仓 {missing} 取不到价(不编造点位)"); return 0
+    pos_usd = sum(q * float(snap[s]["price"]) for s, q in book.net.items())
+
+    capital_aud = truth.capital_aud()
+    authorized_usd = capital_aud * truth.contract_fx_aud_usd()   # 授权上限(风控同款保守汇率)
+    fx_rate, fx_live = fx or fx_aud_usd()
+    try:
+        start_cap = float(json.loads((rt / "LIVE_START_CAPITAL.json").read_text())["start_capital_usd"])
     except Exception:
         start_cap = None
     if start_cap is not None:
-        equity_usd = start_cap + cash_flow + pos_usd
+        cash_usd = start_cap + book.cash_flow_usd
+        equity_usd = cash_usd + pos_usd
         funded_usd = min(authorized_usd, start_cap)
+        # 本金以澳元记账,只有交易盈亏过实时汇率(与看盘同口径;否则本金汇率往返会造出假盈亏)
+        equity_aud = capital_aud + (equity_usd - start_cap) / fx_rate
     else:
+        funds_cls = wiring.resolve(m, "funds")
+        if funds_cls is None:
+            print("跳过:尚未冻结期初本金"); return 0
+        power = funds_cls().power_usd()
+        if power is None:
+            print("跳过:券商购买力读不到(不编造点位)"); return 0
+        cash_usd = power
         equity_usd = power + pos_usd
         funded_usd = min(authorized_usd, power + pos_usd)
+        equity_aud = equity_usd / fx_rate
 
-    now = datetime.now(timezone.utc)
     point = {
         "at": now.isoformat(),
         "date": now.astimezone().strftime("%Y-%m-%d"),
-        "equity_aud": round(equity_usd / fx, 2),
+        "equity_aud": round(equity_aud, 2),
         "baseline_aud": round(capital_aud, 2),   # 期初本金固定 3000,不随可用资金浮动
         "equity_usd": round(equity_usd, 2),
         "funded_usd": round(funded_usd, 2),
-        "power_usd": round(power, 2),
+        "cash_usd": round(cash_usd, 2),
         "position_usd": round(pos_usd, 2),
-        "fx_aud_usd": round(fx, 6),
+        "fx_aud_usd": round(fx_rate, 6),
         "fx_live": fx_live,
     }
-    HISTORY.parent.mkdir(parents=True, exist_ok=True)
+    history = rt / "equity_history.json"
+    history.parent.mkdir(parents=True, exist_ok=True)
     try:
-        hist = json.loads(HISTORY.read_text())
+        hist = json.loads(history.read_text())
         if not isinstance(hist, list):
             hist = []
     except Exception:
         hist = []
     hist.append(point)
-    HISTORY.write_text(json.dumps(hist[-MAX_POINTS:], ensure_ascii=False))
+    history.write_text(json.dumps(hist[-MAX_POINTS:], ensure_ascii=False))
     print(f"已记:{point['at']} 净值={point['equity_aud']} 本金={point['baseline_aud']} 澳元 "
           f"(共 {len(hist[-MAX_POINTS:])} 点)")
     return 0

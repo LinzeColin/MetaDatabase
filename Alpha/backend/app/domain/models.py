@@ -283,3 +283,22 @@ class SimOrder(Base):
     fees: Mapped[Decimal] = mapped_column(DecimalText, nullable=False, default=Decimal("0"))
     slippage_bps: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class AlertState(Base):
+    """告警状态(持久化去重):同一 key 只在状态变化时发信,进程重启不重发。
+
+    status:OK / FIRING。bad_streak/good_streak 为连续坏/好的检查次数;
+    since = 当前这轮「坏」开始的时刻(恢复后清空);repeat_count = FIRING 期间又坏了几次(不发信)。
+    """
+
+    __tablename__ = "alert_states"
+
+    key: Mapped[str] = mapped_column(String(128), primary_key=True)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="OK")
+    bad_streak: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    good_streak: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    since: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_notified: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    repeat_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    last_text: Mapped[str] = mapped_column(Text, nullable=False, default="")

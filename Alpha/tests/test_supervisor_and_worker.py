@@ -44,9 +44,12 @@ def test_supervisor_stale_heartbeat_fails_closed(tmp_path):
     clock["t"] = NOW + timedelta(seconds=120)      # 超过 90s 容忍
     report = sup.check_once()
     assert set(report.stale) == {"trading-worker", "notify-worker"}
-    assert report.kill_switch_engaged and ks.active()
+    assert report.kill_switch_engaged and ks.active()   # 杀开关第一拍就拍下
     assert ks.detail()["source"] == "supervisor"
-    assert ob.pending_count() == 1                 # WORKER_HEARTBEAT_LOST 告警
+    assert ob.pending_count() == 0                 # 抖动 1 拍不发信
+    clock["t"] += timedelta(seconds=30)
+    sup.check_once()
+    assert ob.pending_count() == 2                 # 连续 2 拍:每个失联组件各一封 WORKER_HEARTBEAT_LOST
 
 
 def test_supervisor_missing_worker_alerts(tmp_path):
@@ -95,15 +98,7 @@ def test_worker_crash_marks_error_and_reraises(tmp_path):
 
 
 def test_supervisor_alarm_dedup_and_recovery(tmp_path):
-    """去重:持续故障只告警一次;6小时后重提醒;恢复发一封平安信。杀开关行为不变。"""
-    from datetime import datetime, timedelta, timezone
-
-    from backend.app.notify.outbox import Outbox
-    from backend.app.store.db import create_session_factory, init_engine
-    from backend.app.workers.heartbeat import HeartbeatStore
-    from backend.app.workers.killswitch import KillSwitch
-    from backend.app.workers.supervisor import Supervisor
-
+    """持久化去重:持续故障只告警一次(不再 6 小时重提醒);连续 6 拍健康才发一封恢复。杀开关行为不变。"""
     factory = create_session_factory(init_engine(f"sqlite:///{tmp_path/'d.sqlite'}"))
     clock = {"t": datetime(2026, 7, 21, 0, 0, tzinfo=timezone.utc)}
     hb = HeartbeatStore(factory, now_fn=lambda: clock["t"])
@@ -111,29 +106,28 @@ def test_supervisor_alarm_dedup_and_recovery(tmp_path):
     ks = KillSwitch(tmp_path / "KS")
     sup = Supervisor(heartbeats=hb, outbox=ob, kill_switch=ks,
                      expected_workers=("trading-worker",),
-                     engage_kill_switch_on_loss=True, now_fn=lambda: clock["t"])
+                     engage_kill_switch_on_loss=True, now_fn=lambda: clock["t"],
+                     health_fn=lambda **_: [])   # 只看心跳去重;业务判据另有专测(发件箱积压也会告警)
 
-    # 从未心跳 = missing:第一拍告警 1 条 + 拉闸
+    # 从未心跳 = missing:第一拍拉闸但不发信,第二拍发 1 封
     sup.check_once()
-    assert ob.pending_count() == 1 and ks.active()
-    # 之后连续 10 拍同一故障:不再新增(旧行为会 +10)
+    assert ob.pending_count() == 0 and ks.active()
+    clock["t"] += timedelta(seconds=30)
+    sup.check_once()
+    assert ob.pending_count() == 1
+    # 之后连续 10 拍同一故障、再过 6 小时:都不再新增
     for _ in range(10):
         clock["t"] += timedelta(seconds=30)
         sup.check_once()
-    assert ob.pending_count() == 1
-    # 过 6 小时仍未修:补一条提醒
     clock["t"] += timedelta(hours=6, seconds=1)
     sup.check_once()
-    assert ob.pending_count() == 2
-    # 心跳恢复:发『已恢复』;后续健康拍不再发
-    hb.beat("trading-worker", status="RUNNING", detail="回来了")
-    sup.check_once()
-    assert ob.pending_count() == 3
-    for _ in range(5):
-        clock["t"] += timedelta(seconds=30)
-        hb.beat("trading-worker", status="RUNNING", detail="稳")
+    assert ob.pending_count() == 1
+    # 心跳恢复:前 5 拍健康不发,第 6 拍发『已恢复』;之后不再发
+    for i in range(8):
+        hb.beat("trading-worker", status="RUNNING", detail="回来了")
         sup.check_once()
-    assert ob.pending_count() == 3
+        assert ob.pending_count() == (1 if i < 5 else 2), i
+        clock["t"] += timedelta(seconds=30)
 
 
 def test_supervisor_limited_restart_after_persistent_loss(tmp_path):

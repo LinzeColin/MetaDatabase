@@ -56,8 +56,8 @@ def test_readiness_rows_render(tmp_path, monkeypatch):
     """运维就绪:读自检/备份事实文件 → 渲染出对应灯。"""
     from datetime import datetime, timezone
 
-    monkeypatch.chdir(tmp_path)
-    facts = tmp_path / "machine/facts"
+    monkeypatch.setenv("ALPHA_RUNTIME_DIR", str(tmp_path / "rt"))
+    facts = tmp_path / "rt" / "facts"           # 事实文件在运行目录(truth.facts_dir),代码目录可只读
     facts.mkdir(parents=True)
     (facts / "preflight_status.json").write_text(json.dumps({
         "at": datetime.now(timezone.utc).isoformat(), "all_ok": True,
