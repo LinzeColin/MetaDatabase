@@ -1,25 +1,22 @@
 name: FIFA Daily Report
 
-# FIFA 足球研究日报（只研究、不下注）。无人值守：GitHub Actions 定时生成，发布到 GitHub Pages。
-#   页面：https://linzecolin.github.io/MetaDatabase/fifa/
-#   代码与说明：FIFA/daily-research/README.md
-# 每天两次（非整点，悉尼 06:37 前后与 18:47 前后）。第二次是兜底：第一次被 GitHub 跳过或失败时补上，
-# 同一天重复运行是幂等的（同一份存档被覆盖，预测账本按比赛编号更新）。
-# 失败时页面第一屏如实显示「今天没有新报告 + 原因」，并且本工作流会以失败状态结束。
-# 缺天不会补发当天的赛前预测（那是事后诸葛）；下一次运行直接覆盖全部未来赛程，赛果到了自动打分。
+# FIFA 足球研究日报（只研究、不下注）。运行与对外服务都在云服务器 VPS-3，不在 GitHub：
+#   页面：https://home.linzezhang.com/fifa/
+#   服务器上：systemd timer fifa-daily.timer（UTC 20:37 与 08:47）+ fifa-daily-pull.timer（拉本仓 main 的 FIFA/daily-research）
+#   代码与说明：FIFA/daily-research/README.md；服务器部署件：FIFA/deploy/vps/
+# 本工作流只在 PR 上跑离线测试（合成数据，不联网），不定时、不发布任何页面。
+# 已于 2026-09-30 从「GitHub Actions 定时 + GitHub Pages」迁走；gh-pages 上只剩一页指向新地址的跳转说明。
 on:
-  schedule:
-    - cron: "37 20 * * *"
-    - cron: "47 8 * * *"
   workflow_dispatch:
   pull_request:
     paths:
       - "FIFA/daily-research/**"
+      - "FIFA/deploy/**"
       - ".github/workflows/fifa-daily-report.yml"
 
 concurrency:
-  group: fifa-daily-report-${{ github.event_name == 'pull_request' && github.ref || 'site' }}
-  cancel-in-progress: false
+  group: fifa-daily-report-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -40,79 +37,9 @@ jobs:
       - name: 离线单元测试与端到端（合成数据，不联网）
         working-directory: FIFA/daily-research
         run: python -m unittest discover -s tests -t . -v
-
-  publish:
-    needs: test
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
-        with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: FIFA/daily-research/requirements.txt
-      - name: 安装依赖
-        run: python -m pip install --quiet -r FIFA/daily-research/requirements.txt
-      - name: 取出上次发布的站点（状态、预测账本、运行记录都在里面）
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: 服务器部署件语法检查（脚本、compose、nginx 配置）
         run: |
           set -euo pipefail
-          REPO_URL="https://github.com/${GITHUB_REPOSITORY}"
-          AUTH="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
-          # 只在 pages 仓库里配认证头（不设全局：checkout 已在工作区配了一份，重复的认证头会让 GitHub 拒绝请求）。
-          # ls-remote 的退出码要分清：0=分支在，2=分支确实不存在，其他=访问出错——出错必须报错，
-          # 不能当成「分支不存在」从空目录重来（那会丢掉全部状态）。
-          set +e
-          (cd "$RUNNER_TEMP" && git -c http.extraheader="$AUTH" ls-remote --exit-code --heads "$REPO_URL" gh-pages >/dev/null 2>&1)
-          rc=$?
-          set -e
-          if [ "$rc" -eq 0 ]; then
-            git clone --quiet --depth 1 --branch gh-pages "$REPO_URL" pages
-          elif [ "$rc" -eq 2 ]; then
-            echo "gh-pages 分支不存在，创建空分支（首次运行或分支被删）"
-            mkdir pages
-            git -C pages init -q -b gh-pages
-            git -C pages remote add origin "$REPO_URL"
-          else
-            echo "::error::无法访问远端仓库（ls-remote 退出码 $rc），中止，避免丢失已发布的状态"
-            exit 1
-          fi
-          git -C pages config http.extraheader "$AUTH"
-      - name: 生成日报
-        id: gen
-        continue-on-error: true
-        working-directory: FIFA/daily-research
-        run: python -m fifa_daily run --site "${GITHUB_WORKSPACE}/pages/fifa"
-      - name: 预览产物（仅 PR，不发布）
-        if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: fifa-preview
-          path: pages/fifa
-          retention-days: 7
-      - name: 发布到 gh-pages（成功与失败都发布：失败时页面要如实写出原因）
-        if: github.event_name != 'pull_request'
-        working-directory: pages
-        run: |
-          set -euo pipefail
-          touch .nojekyll
-          [ -f index.html ] || printf '%s\n' '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=fifa/"><title>FIFA</title><a href="fifa/">FIFA 足球研究日报</a>' > index.html
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          if git diff --cached --quiet; then
-            echo "没有变化，不提交"
-          else
-            git commit -q -m "fifa: daily report $(date -u +%F) [skip ci]"
-            # 并发由 concurrency 组保证只有一个写入者；推送被拒说明有人改了分支，直接报错，不做自动合并
-            git push origin HEAD:gh-pages
-          fi
-      - name: 生成失败则让本次运行标红
-        if: steps.gen.outcome == 'failure'
-        run: |
-          echo "::error::日报没有成功生成，页面已如实显示失败原因（见 pages/fifa/status.json）"
-          exit 1
+          for f in FIFA/deploy/vps/*.sh; do bash -n "$f"; done
+          docker compose -f FIFA/deploy/vps/docker-compose.yml config -q
+          docker run --rm -v "$PWD/FIFA/deploy/vps/nginx.conf:/etc/nginx/nginx.conf:ro" nginx:1.28.3-alpine nginx -t

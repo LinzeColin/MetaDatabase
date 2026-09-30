@@ -1,0 +1,14 @@
+[Unit]
+Description=FIFA daily report, twice a day (UTC 20:37 and 08:47, same as the former GitHub schedule)
+Documentation=https://github.com/LinzeColin/MetaDatabase/tree/main/FIFA/deploy/vps
+
+[Timer]
+OnCalendar=*-*-* 20:37:00 UTC
+OnCalendar=*-*-* 08:47:00 UTC
+RandomizedDelaySec=180
+AccuracySec=10s
+# 服务器关机/重启错过了点，开机后补跑一次（幂等：同一天重复运行只覆盖同一份存档）
+Persistent=true
+
+[Install]
+WantedBy=timers.target

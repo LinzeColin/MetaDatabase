@@ -1,0 +1,12 @@
+[Unit]
+Description=Poll public repo every 10 minutes for FIFA/daily-research changes
+Documentation=https://github.com/LinzeColin/MetaDatabase/tree/main/FIFA/deploy/vps
+
+[Timer]
+OnBootSec=2min
+OnCalendar=*:0/10
+RandomizedDelaySec=45s
+AccuracySec=10s
+
+[Install]
+WantedBy=timers.target

@@ -64,5 +64,5 @@ BACKTEST_DAYS = 240
 BACKTEST_STEP_DAYS = 14
 MODEL_VERSION = "poisson-ridge-1"
 
-# 页面「已过期」阈值（小时）：两次定时之间最长约 12 小时，再宽 30 小时容忍 GitHub 排队延迟
+# 页面「已过期」阈值（小时）：两次定时之间最长约 12 小时，再宽 30 小时容忍一次运行失败或服务器短暂停机
 STALE_AFTER_HOURS = 30

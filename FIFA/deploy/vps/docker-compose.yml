@@ -1,0 +1,49 @@
+# FIFA 日报对外服务：极小的 nginx 静态容器，接入 Traefik（coolify-proxy）所在网络，
+# 路由 home.linzezhang.com/fifa（优先级高于门户的整域名路由，不影响门户其它路径）。装在 /etc/fifa-daily/，由 install.sh 启动。
+name: fifa-daily
+services:
+  web:
+    image: nginx:1.28.3-alpine
+    container_name: fifa-daily-web
+    restart: unless-stopped
+    read_only: true
+    user: "101:101"
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs: ["/tmp"]
+    mem_limit: 64m
+    pids_limit: 64
+    volumes:
+      - /var/lib/fifa-daily:/data:ro
+      - /etc/fifa-daily/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks: [coolify]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/healthz"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 3s
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=coolify
+      - traefik.http.services.fifa-daily.loadbalancer.server.port=8080
+      - traefik.http.middlewares.fifa-daily-gzip.compress=true
+      - traefik.http.middlewares.fifa-daily-https-redirect.redirectscheme.scheme=https
+      - "traefik.http.routers.fifa-daily-http.rule=Host(`home.linzezhang.com`) && (Path(`/fifa`) || PathPrefix(`/fifa/`))"
+      - traefik.http.routers.fifa-daily-http.priority=1000
+      - traefik.http.routers.fifa-daily-http.entrypoints=http
+      - traefik.http.routers.fifa-daily-http.middlewares=fifa-daily-https-redirect
+      - traefik.http.routers.fifa-daily-http.service=fifa-daily
+      - "traefik.http.routers.fifa-daily-https.rule=Host(`home.linzezhang.com`) && (Path(`/fifa`) || PathPrefix(`/fifa/`))"
+      - traefik.http.routers.fifa-daily-https.priority=1000
+      - traefik.http.routers.fifa-daily-https.entrypoints=https
+      - traefik.http.routers.fifa-daily-https.tls=true
+      - traefik.http.routers.fifa-daily-https.tls.certresolver=letsencrypt
+      - traefik.http.routers.fifa-daily-https.middlewares=fifa-daily-gzip
+      - traefik.http.routers.fifa-daily-https.service=fifa-daily
+networks:
+  coolify:
+    external: true
