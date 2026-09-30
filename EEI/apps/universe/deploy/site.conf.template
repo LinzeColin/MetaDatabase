@@ -46,9 +46,45 @@ server {
   }
 
   # ---- 反代上游（默认旧版 EEI；切主站后仍是这一组路径）----
-  location /v1/    { error_page 418 = @upstream; return 418; }
+  # 数据接口走缓存（@cached）；写入、个人数据、内部发布通道不缓存，原样转发
+  location ~ ^/v1/(internal/|saved-views|watchlists|exploration-log|cloud/) { error_page 418 = @upstream; return 418; }
+  location /v1/    { error_page 418 = @cached; return 418; }
   location = /health { error_page 418 = @upstream; return 418; }
   location /_next/ { error_page 418 = @upstream; return 418; }
+
+  # 只读数据查询：GET 与 POST /v1/explore（查询条件在请求体里，所以缓存键带请求体）。
+  # 1 小时内同一查询直接回缓存；过期后先回旧结果、后台刷新；上游 5xx（例如 D1 额度用完）时继续回旧结果。
+  location @cached {
+    set $eei_upstream "${EEI_UPSTREAM}";
+    proxy_pass $eei_upstream;
+    proxy_http_version 1.1;
+    proxy_set_header Connection "";
+    proxy_set_header Host $eei_host;
+    proxy_ssl_server_name on;
+    proxy_ssl_name $eei_host;
+    proxy_ssl_verify on;
+    proxy_ssl_trusted_certificate /etc/ssl/certs/ca-certificates.crt;
+    proxy_ssl_verify_depth 3;
+    proxy_connect_timeout 5s;
+    proxy_read_timeout 30s;
+
+    client_max_body_size 64k;
+    client_body_buffer_size 64k;            # 请求体必须留在内存里，$request_body 才有值
+    proxy_cache eei_api;
+    proxy_cache_methods GET HEAD POST;
+    proxy_cache_key "$request_method|$request_uri|$request_body";
+    proxy_cache_valid 200 60m;
+    proxy_cache_valid 404 10m;
+    proxy_ignore_headers Cache-Control Expires;
+    proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+    proxy_cache_background_update on;
+    proxy_cache_lock on;
+    proxy_cache_lock_timeout 10s;
+    proxy_cache_bypass $http_authorization $http_cookie;   # 带身份的请求不读也不写缓存
+    proxy_no_cache $http_authorization $http_cookie;
+    include /etc/nginx/snippets/headers.conf;
+    add_header X-EEI-Cache $upstream_cache_status always;
+  }
 
   location @upstream {
     set $eei_upstream "${EEI_UPSTREAM}";
