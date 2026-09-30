@@ -8,6 +8,9 @@
 
 - canonical 仓库是 `LinzeColin/MetaDatabase`，项目路径是 `arxiv-daily-push/`。
   CodexProject 中已删除的旧源目录不得恢复。
+- **2026-09-30 起在迁往服务器自托管**（Cloudflare D1 免费读取额度被读光、Owner 规定 Cloudflare 不再投入）：
+  代码、切换与回滚步骤、验收口径见 [`dev-notes/2026-09-30-ADP自托管.md`](../../dev-notes/2026-09-30-ADP自托管.md)，
+  部署件在 `deploy/selfhost/`。**DNS 切换完成前下一条仍是事实；切完后主线应把它改成自托管。**
 - live 面仍是 Cloudflare Worker `adp-cloud` / `https://adp.linzezhang.com`；当前产品版本
   `0.41.0`，封存 live/git build 为 `c2ccc1fd01ec`。
 - 迁移闭合已由 `e1af471c` 和 PR #68 完成并通过独立 developer_check；当前开发合同是
