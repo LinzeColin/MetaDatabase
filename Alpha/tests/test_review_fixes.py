@@ -98,6 +98,8 @@ def test_dashboard_fresh_shadow_ledger_has_no_deficit_or_exam_card(shadow_env):
     assert 'class="card span2 lossbg"' not in html and "尚未进行任何交易" in html
     assert "<h2>三日模拟盘考核</h2>" not in html and "合格交易日" not in html and "保持 Paper" not in html
     assert "考核不适用" in html or "本模式不适用" in html
+    # owner 验收口径:影子盘看盘页任何位置都不许出现"实盘/券商模拟账户"字样(免得被误读成动真钱)
+    assert "实盘" not in html and "券商模拟账户" not in html
 
 
 def test_strategy_page_uses_mode_wording(shadow_env):
