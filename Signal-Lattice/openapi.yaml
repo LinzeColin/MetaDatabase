@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Signal Lattice V2 Read-only API",
-    "version": "0.0.0.3.5",
+    "version": "0.0.0.4.0",
     "description": "V2 只读研究服务（0.0.0.4 重建）。研究层（signal-lattice research）产出五个分支的收据与 shortlist；实时层每 60 秒只读这些产物，拉候选与 IWM 的批量报价，由中枢发布唯一建议（研究跟进）/ NO_ACTION / SYSTEM_BLOCKED。系统不接收外部行情快照、不自动交易、不下单。DATA_READY = 研究快照未过期 + 分支收据齐全 + 行情源可用；证据不足的收益数字（样本外窗口不足 6、记分簿已结算不足 8）不出现在任何响应里。"
   },
   "paths": {
@@ -102,7 +102,7 @@
       "Liveness": {
         "type": "object",
         "required": ["status", "version"],
-        "properties": {"status": {"const": "alive"}, "version": {"const": "0.0.0.3.5"}},
+        "properties": {"status": {"const": "alive"}, "version": {"const": "0.0.0.4.0"}},
         "additionalProperties": false
       },
       "Readiness": {
@@ -120,7 +120,7 @@
         "type": "object",
         "required": ["application_version", "server_time", "state", "quote_observed_at", "data_cutoff", "automatic_trading", "public_url"],
         "properties": {
-          "application_version": {"const": "0.0.0.3.5"},
+          "application_version": {"const": "0.0.0.4.0"},
           "server_time": {"type": "string", "format": "date-time"},
           "state": {"enum": ["DATA_READY", "SYSTEM_BLOCKED"]},
           "quote_observed_at": {"type": ["string", "null"], "format": "date-time"},
@@ -343,7 +343,7 @@
         "type": "object",
         "required": ["application_version", "generated_at", "state", "automatic_trading", "data_cutoff", "quote_observed_at", "quotes", "freshness_findings", "message", "decision", "receipts", "candidates", "backtest"],
         "properties": {
-          "application_version": {"const": "0.0.0.3.5"},
+          "application_version": {"const": "0.0.0.4.0"},
           "generated_at": {"type": "string", "format": "date-time"},
           "state": {"enum": ["DATA_READY", "SYSTEM_BLOCKED"]},
           "automatic_trading": {"const": false},

@@ -24,6 +24,7 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
+from .. import cache_cap
 from .eventstore import EventStore, iso
 from .prospectus import document_url
 from .sec_client import SecClient, SecFetchError
@@ -202,9 +203,11 @@ class TextCache:
 
     def get(self, accession: str) -> Optional[str]:
         try:
-            return gzip.decompress(self.path(accession).read_bytes()).decode("utf-8")
+            text = gzip.decompress(self.path(accession).read_bytes()).decode("utf-8")
         except (OSError, EOFError):
             return None
+        cache_cap.touch(self.path(accession))
+        return text
 
     def put(self, accession: str, text: str) -> None:
         temporary = self.path(accession).with_suffix(".tmp")

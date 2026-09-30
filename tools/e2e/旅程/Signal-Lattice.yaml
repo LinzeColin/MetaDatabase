@@ -1,0 +1,17 @@
+project: Signal-Lattice 投研中枢
+owner_words: "Signal-Lattice不合格 因为你们和初始目标严重偏离 且长期推荐大盘股 根本不可信（2026-09-30）"
+base_url: https://signal-lattice.linzezhang.com/
+journeys:
+  - name: 打开看本轮结论
+    steps:
+      - goto: ""
+      - expect_any_text: ["本轮不给建议", "研究跟进（看多）", "本轮不出结论"]
+      - expect_text: ["规则自证门"]
+      - expect_no_text: ["沪深300", "usSPY", "usQQQ"]
+      - screenshot: 首屏
+  - name: 看候选比较
+    steps:
+      - goto: ""
+      - click_text: "候选比较"
+      - expect_text: ["SEC 原文"]
+      - screenshot: 候选比较

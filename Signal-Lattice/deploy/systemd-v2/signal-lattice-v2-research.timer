@@ -1,0 +1,15 @@
+[Unit]
+Description=Signal Lattice V2 research layer: after the US close and once intraday (NYSE trading days)
+
+[Timer]
+# 美东 16:40 = 收盘后 40 分钟（悉尼冬令时约 06:40，周二至周六）；按美东时区写，美国与澳洲夏令时切换时不漂移。
+OnCalendar=Mon..Fri 16:40 America/New_York
+# 美东 12:00 盘中增量。
+OnCalendar=Mon..Fri 12:00 America/New_York
+# 节假日 timer 照常触发，由 research --skip-if-market-closed 按 NYSE 日历立即退出（退出码 0）。
+Persistent=true
+AccuracySec=10s
+Unit=signal-lattice-v2-research.service
+
+[Install]
+WantedBy=timers.target

@@ -28,7 +28,7 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 
-from . import branch_entries, hub_inputs
+from . import branch_entries, cache_cap, hub_inputs, nyse_calendar
 from .branch_runner import BranchReceipt, BranchSpec, run_branches
 from .evidence.eventstore import EventStore
 from .evidence.factstore import FactStore
@@ -573,6 +573,10 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--force", action="store_true", help="同一快照已处理过也重新运行分支")
     parser.add_argument("--top", type=int, default=15)
     parser.add_argument("--hub-inputs-only", action="store_true", help="只为已有研究产物补写中枢输入文件，不采集、不重跑分支")
+    parser.add_argument("--skip-if-market-closed", action="store_true",
+                        help="美东当天不是 NYSE 交易日就直接退出（退出码 0，不请求任何数据）；systemd timer 做不了日历判断，由程序自己判")
+    parser.add_argument("--cache-max-bytes", type=int, default=cache_cap.DEFAULT_MAX_BYTES,
+                        help="SEC 原文缓存 + 正文缓存合计上限（字节，默认 1 GiB）；研究层结束时按最近使用淘汰，0 = 不清理")
 
 
 def config_from_args(args: argparse.Namespace, project_root: Path) -> CycleConfig:
@@ -587,10 +591,27 @@ def config_from_args(args: argparse.Namespace, project_root: Path) -> CycleConfi
         max_parallel=args.max_parallel, force=args.force, skip_collect=args.skip_collect)
 
 
+def _prune_caches(cfg: CycleConfig, max_bytes: int) -> None:
+    """结束时把可再生的原文缓存压到上限以内；清理失败不影响研究结果。"""
+    if max_bytes <= 0:
+        return
+    try:
+        stats = cache_cap.prune_lru([cfg.sec_cache_dir, cfg.text_cache_dir], max_bytes)
+    except OSError as exc:
+        print("cache-cap: 清理失败 %s" % exc, file=sys.stderr)
+        return
+    print("cache-cap: 上限 %d 字节；清理前 %d，清理后 %d，删除 %d 个文件" % (max_bytes, stats["before"], stats["after"], stats["removed_files"]))
+
+
 def cli_main(args: argparse.Namespace, project_root: Path) -> int:
     if getattr(args, "hub_inputs_only", False):
         hub_inputs_only(args.out_dir)
         return 0
+    if getattr(args, "skip_if_market_closed", False):
+        today = datetime.now(nyse_calendar.NEW_YORK).date()
+        if not nyse_calendar.is_trading_day(today):
+            print("研究层跳过：美东 %s 是 NYSE 休市日（%s）" % (today, nyse_calendar.holiday_name(today) or "周末"))
+            return 0
     cfg = config_from_args(args, project_root)
     if not cfg.offline:                                      # 要联网就先确认 SEC User-Agent 已配置：缺失就报清楚的错误并退出，不发任何请求
         try:
@@ -603,6 +624,8 @@ def cli_main(args: argparse.Namespace, project_root: Path) -> int:
     except UniverseIncompleteError as exc:
         print("研究层失败：%s" % exc, file=sys.stderr)
         return EXIT_UNIVERSE_INCOMPLETE
+    finally:
+        _prune_caches(cfg, args.cache_max_bytes)
     print(render_report(summary, top=args.top))
     failed = [r["branch_id"] for r in summary["receipts"] if r["status"] == "FAILED"]
     return 2 if failed else 0

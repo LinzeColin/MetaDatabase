@@ -35,7 +35,13 @@ WHEEL_ABS="$(cd "$(dirname "$WHEEL")" && pwd)/$(basename "$WHEEL")"
 WHEEL_SHA="$(sha256sum "$WHEEL_ABS" | awk '{print $1}')"
 RECEIPT="$RELEASE/release.json"
 
+# SIGNAL_LATTICE_STAGE_ONLY=1：只把 release 装好并做冒烟检查，不切 current/previous（先在新版本上跑研究层，成功后再切实时层）。
+STAGE_ONLY="${SIGNAL_LATTICE_STAGE_ONLY:-0}"
+
 activate_current() {
+  if [[ "$STAGE_ONLY" == "1" ]]; then
+    return 0
+  fi
   "$PYTHON" - "$ROOT/current.new" "$ROOT/current" "$ROOT/previous" "$ROOT/releases" <<'PY'
 import os, sys
 from pathlib import Path
@@ -74,6 +80,7 @@ PY
     env -u PYTHONPATH -u PYTHONHOME "$RELEASE/venv/bin/signal-lattice" --help >/dev/null
     ln -sfn "$RELEASE" "$ROOT/current.new"
     activate_current
+    [[ "$STAGE_ONLY" == "1" ]] && rm -f "$ROOT/current.new"
     echo ALREADY_INSTALLED
     exit 0
   fi
@@ -140,6 +147,7 @@ PY
 
 ln -sfn "$RELEASE" "$ROOT/current.new"
 activate_current
+[[ "$STAGE_ONLY" == "1" ]] && rm -f "$ROOT/current.new"
 rm -rf "$SMOKE_STATE"
 trap - EXIT
-echo INSTALLED
+if [[ "$STAGE_ONLY" == "1" ]]; then echo STAGED; else echo INSTALLED; fi

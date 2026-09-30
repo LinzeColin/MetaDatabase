@@ -1,0 +1,11 @@
+[Unit]
+Description=Signal Lattice V2 monthly hub backtest
+
+[Timer]
+# 每月 3 日美东 18:00（回测报告 35 天过期，每月刷新一次）。
+OnCalendar=*-*-03 18:00 America/New_York
+Persistent=true
+Unit=signal-lattice-v2-backtest.service
+
+[Install]
+WantedBy=timers.target

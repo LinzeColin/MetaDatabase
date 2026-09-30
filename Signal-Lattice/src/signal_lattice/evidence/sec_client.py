@@ -17,6 +17,8 @@ import urllib.request
 from pathlib import Path
 from typing import Callable, Optional
 
+from .. import cache_cap
+
 # SEC 要求每个请求在 User-Agent 里声明联系方式。仓库里不放任何真实域名或人名作为默认值：
 # 必须由部署环境配置 SIGNAL_LATTICE_SEC_UA（格式：「项目或公司名 联系邮箱」）；缺失就报清楚的错误，不静默用默认值。
 USER_AGENT_ENV = "SIGNAL_LATTICE_SEC_UA"
@@ -130,9 +132,11 @@ class SecClient:
             body = paths[0].read_bytes()
             if self.compress_cache:
                 body = gzip.decompress(body)
-            return body, json.loads(paths[1].read_text("utf-8"))
+            meta = json.loads(paths[1].read_text("utf-8"))
         except (OSError, ValueError, EOFError):
             return None
+        cache_cap.touch(paths[0])
+        return body, meta
 
     def _save_cache(self, url: str, body: bytes, meta: dict) -> None:
         paths = self._paths(url)
