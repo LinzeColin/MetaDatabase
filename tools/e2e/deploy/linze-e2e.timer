@@ -1,0 +1,12 @@
+[Unit]
+Description=Daily public end-to-end synthetic check (07:30 Sydney + jitter)
+Documentation=https://github.com/LinzeColin/MetaDatabase/tree/main/tools/e2e
+
+[Timer]
+OnCalendar=*-*-* 07:30:00 Australia/Sydney
+RandomizedDelaySec=20min
+Persistent=true
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target
