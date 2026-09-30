@@ -5189,24 +5189,25 @@ dd {
 
 /* 深空主题下证据/收录面板（.graphPolicyPanel）：原来只有浅色主题的底色（#edf8f1），文字却继承深空的浅色，
    证据标题与「N 条摘录」几乎看不见。这里补深空配色（与 .savedViewPanel 同一套）。
-   注意：右栏「所选节点」卡（.selectedNodeCard）有同样的浅底浅字问题，但它在 1440x900 首屏内，
-   改它会让 A167 视觉回归基线（tests/e2e/visual-regression.spec.ts，CI 权威基线）整体变化，本次不动。 */
-:root[data-theme="deep-space"] .graphPolicyPanel {
+   只在云发布面（生产，.workspace[data-cloud-surface="true"]）生效：本地样例工作台的 A167 视觉回归基线
+   （tests/e2e/visual-regression.spec.ts，CI 权威基线）里这块是浅色的，改它要连基线一起重生成。
+   右栏「所选节点」卡（.selectedNodeCard）有同样的浅底浅字问题，它在 1440x900 首屏内，本次不动。 */
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphPolicyPanel {
   border-color: #23345a;
   background: rgba(13, 19, 34, 0.82);
   color: var(--ink);
 }
-:root[data-theme="deep-space"] .graphPolicyPanel header strong,
-:root[data-theme="deep-space"] .graphPolicyPanel dt {
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphPolicyPanel header strong,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphPolicyPanel dt {
   color: var(--ink);
 }
-:root[data-theme="deep-space"] .graphPolicyPanel dd,
-:root[data-theme="deep-space"] .graphPolicyPanel small {
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphPolicyPanel dd,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphPolicyPanel small {
   color: var(--muted);
 }
-:root[data-theme="deep-space"] .graphPolicyPanel dl div {
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphPolicyPanel dl div {
   border-top-color: #23345a;
 }
-:root[data-theme="deep-space"] .graphPolicyPanel .diagDetails > summary {
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphPolicyPanel .diagDetails > summary {
   color: var(--muted);
 }

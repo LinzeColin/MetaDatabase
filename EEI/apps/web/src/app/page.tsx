@@ -3518,6 +3518,7 @@ export default function Home() {
     <WorkspaceContextProvider value={workspaceContextValue}>
     <main
       className="workspace"
+      data-cloud-surface={CLOUD_MODE}
       data-inspector-open={inspectorDrawerOpen}
       data-active-data-snapshot={analysisContext.dataSnapshot}
       data-active-lens={activeLens}
