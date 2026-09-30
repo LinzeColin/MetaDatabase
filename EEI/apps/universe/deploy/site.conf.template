@@ -18,12 +18,14 @@ server {
   resolver_timeout 5s;
 
   # ---- 宇宙页面（静态）----
+# 缓存头写 "private, no-cache"：浏览器每次带 ETag 验证。Cloudflare 的区域设置「浏览器缓存 TTL」会把 .js/.css 的
+# 普通 no-cache 改写成 max-age=14400（实测），改了页面 4 小时内老访客还看旧版；带 private 时 Cloudflare 不缓存也不改写。
   # 首页：无参数返回宇宙页面；带 ?subject= 的请求是旧版「完整图谱」的深链，交给上游
   location = / {
     error_page 418 = @upstream;
     if ($arg_subject != "") { return 418; }
     include /etc/nginx/snippets/headers.conf;
-    add_header Cache-Control "no-cache" always;
+    add_header Cache-Control "private, no-cache" always;
     rewrite ^ /index.html break;
   }
 
@@ -37,7 +39,7 @@ server {
   # 其余静态文件（index.html、app.js、styles.css、version.txt）：每次带 ETag 重新验证，改了立刻生效
   location / {
     include /etc/nginx/snippets/headers.conf;
-    add_header Cache-Control "no-cache" always;
+    add_header Cache-Control "private, no-cache" always;
     try_files $uri =404;
   }
 
