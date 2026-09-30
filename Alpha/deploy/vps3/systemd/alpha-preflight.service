@@ -1,0 +1,28 @@
+[Unit]
+Description=Alpha 盘前自检(心跳/模式/行情连通/刹车;只读探针,永不下单)
+After=network-online.target
+OnFailure=alpha-alert@%n.service
+
+[Service]
+Type=oneshot
+User=alpha
+Group=alpha
+WorkingDirectory=/opt/alpha/app/Alpha
+EnvironmentFile=/opt/alpha/env
+Environment=PYTHONDONTWRITEBYTECODE=1
+StateDirectory=alpha
+StateDirectoryMode=0700
+Slice=alpha.slice
+Nice=10
+TasksMax=64
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ReadWritePaths=/var/lib/alpha
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+MemoryMax=256M
+TimeoutStartSec=300
+ExecStart=/opt/alpha/venv/bin/python scripts/preflight_check.py
+ExecStartPost=-/opt/alpha/venv/bin/python scripts/notify_unit_failure.py --ok %n

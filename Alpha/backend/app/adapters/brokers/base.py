@@ -24,13 +24,14 @@ class TrdEnv(str, Enum):
     SIMULATE = "SIMULATE"
     REAL = "REAL"
     NONE = "NONE"  # 不建交易上下文
+    LOCAL = "LOCAL"  # 本机模拟撮合(影子盘):不建任何券商上下文
 
 
 #: 契约第 3 节环境映射:系统模式 -> (TrdEnv, 是否允许建可下单上下文)
 MODE_TO_TRD_ENV: dict[SystemMode, tuple[TrdEnv, bool]] = {
     SystemMode.DISABLED: (TrdEnv.NONE, False),
     SystemMode.PAPER: (TrdEnv.SIMULATE, True),
-    SystemMode.SHADOW: (TrdEnv.NONE, False),   # 仅行情+账户只读
+    SystemMode.SHADOW: (TrdEnv.LOCAL, True),   # 只允许 SimBroker 接单(网关构造时结构校验)
     SystemMode.MICRO_LIVE: (TrdEnv.REAL, True),  # 十一门禁全过后
     SystemMode.HALTED: (TrdEnv.NONE, False),   # 仅允许撤单与查询(撤单走已有会话)
 }

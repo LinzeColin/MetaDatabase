@@ -221,6 +221,9 @@ def test_supervisor_kills_switch_on_heartbeat_loss(tmp_path):
     hb.beat("trading-worker")
     clock["t"] = NOW + timedelta(seconds=200)  # 心跳停摆
     report = sup.check_once()
-    assert ks.active()                          # 失败关闭:杀开关拍下
-    assert ob.pending_count() == 1              # 告警入队
+    assert ks.active()                          # 失败关闭:第一拍就拍下杀开关
+    assert ob.pending_count() == 0              # 抖动 1 拍不发信
+    clock["t"] += timedelta(seconds=30)
+    sup.check_once()
+    assert ob.pending_count() == 1              # 连续 2 拍失联:告警入队
     assert "trading-worker" in report.stale

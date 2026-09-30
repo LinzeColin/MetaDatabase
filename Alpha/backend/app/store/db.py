@@ -34,6 +34,10 @@ def init_engine(url: str | None = None, echo: bool = False) -> Engine:
         def _fk_on(dbapi_conn, _record):  # pragma: no cover - 驱动回调
             cursor = dbapi_conn.cursor()
             cursor.execute("PRAGMA foreign_keys=ON")
+            # 交易/守护/通知/看盘/定时任务并发读写同一个库:WAL 让读写互不阻塞,
+            # busy_timeout 让偶发写锁排队 5 秒而不是立刻报 database is locked 把 worker 打崩。
+            cursor.execute("PRAGMA journal_mode=WAL")
+            cursor.execute("PRAGMA busy_timeout=5000")
             cursor.close()
 
     Base.metadata.create_all(engine)

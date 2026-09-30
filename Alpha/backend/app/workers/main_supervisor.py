@@ -22,16 +22,21 @@ def _restart_unit(unit: str) -> bool:
         return False
 
 
+def sudo_restart_enabled() -> bool:
+    """受限重启权(sudo 重启服务单元)是否开启。**全项目唯一读取点**;VPS-3 模板为 0。"""
+    return os.environ.get("ALPHA_SUPERVISOR_SUDO_RESTART", "0") == "1"
+
+
 def build_supervisor() -> Supervisor:
     rt = build_runtime()
-    self_heal = os.environ.get("ALPHA_SUPERVISOR_SELF_HEAL", "1") == "1"
     return Supervisor(
         heartbeats=rt["heartbeats"],
         outbox=rt["outbox"],
         kill_switch=rt["kill_switch"],
         expected_workers=("trading-worker", "notify-worker"),
-        restart_fn=_restart_unit if self_heal else None,
-        auto_clear_after_checks=6 if self_heal else None,   # 连续 6 拍(约 3 分钟)健康才收闸
+        restart_fn=_restart_unit if sudo_restart_enabled() else None,
+        # 「恢复后自动解刹车」与 sudo 解耦,始终开启:连续 6 拍(约 3 分钟)健康才收闸
+        auto_clear_after_checks=6,
     )
 
 

@@ -4,7 +4,7 @@
 触发列表完整落审计(风控拒绝路径全部有审计记录的验收要求由 store 层配合)。
 
 规则口径:
-- 总敞口:成交后 现敞口+买单预留+本单 ≤ 3000 AUD;等于线放行,超一分拒。
+- 总敞口:成交后 现敞口+买单预留+本单 ≤ 本金(truth.capital_aud,现为 3000 AUD);等于线放行,超一分拒。
 - 胖手指:单笔 ≤ 总授权×60% = 1800 AUD(买卖都防,防错单不防方向)。
 - 频控:任意滚动 60 分钟窗口内订单数 ≤ 5;第 6 笔拒。
 - 白名单:BUY 仅 US_STOCK/US_ETF;SELL(减仓)不受白名单限制。
@@ -22,6 +22,8 @@ from decimal import ROUND_UP, Decimal
 from enum import Enum
 from typing import Optional, Sequence
 
+from backend.app.marketdata.guard import DEFAULT_FRESHNESS_THRESHOLD_SECONDS
+
 
 class BreakerLevel(str, Enum):
     NONE = "NONE"
@@ -37,6 +39,12 @@ def _authoritative_fat_finger_ratio() -> float:
     """
     from backend.app.truth import fat_finger_ratio
     return fat_finger_ratio()
+
+
+def _authoritative_capital_aud() -> float:
+    """总敞口上限的权威来源(truth.capital_aud,R5 单一真源)。"""
+    from backend.app.truth import capital_aud
+    return capital_aud()
 
 
 @dataclass(frozen=True)
@@ -81,7 +89,8 @@ class RiskContext:
     now: datetime
     current_gross_exposure_aud: Decimal = Decimal("0")
     pending_buy_reserved_aud: Decimal = Decimal("0")
-    max_gross_exposure_aud: Decimal = Decimal("3000")
+    max_gross_exposure_aud: Decimal = field(
+        default_factory=lambda: Decimal(str(_authoritative_capital_aud())))
     # 缺省值从权威配置读(configs/trading_governor_policy.yaml),**不在此写死**——
     # 2026-07-28 教训:比例散落七处,漏改一处即静默出事。
     fat_finger_ratio: Decimal = field(default_factory=lambda: Decimal(str(_authoritative_fat_finger_ratio())))
@@ -90,7 +99,7 @@ class RiskContext:
     rate_limit_window_minutes: int = 60
     allowed_markets: frozenset[str] = frozenset({"US_STOCK", "US_ETF"})
     quote_age_seconds: Optional[float] = None
-    freshness_threshold_seconds: float = 5.0
+    freshness_threshold_seconds: float = DEFAULT_FRESHNESS_THRESHOLD_SECONDS   # 与模拟券商同一常量
     breaker_level: BreakerLevel = BreakerLevel.NONE
     kill_switch_active: bool = False
     reconciliation_open: bool = False

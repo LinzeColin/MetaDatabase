@@ -12,3 +12,15 @@ inbound:
   web_control_page: {enabled: true, capabilities: ["状态查询", "一键停机", "授权确认"], auth: "私有令牌链接 + 基本认证", note: "永远不能下单"}
   email_command_backup: {enabled: true, poll: "IMAP 每 30 秒", commands: ["STOP", "STATUS"], auth: "发件人校验 + 邮件内密码令牌", note: "永远不能下单"}
 optional_alternative: "nitrosend（owner 提及；若提供发信接口可作备用出口，部署日再定，非必需）"
+# 告警去重与限流(按状态变化发信;状态持久化,重启不重发)
+alerting:
+  hourly_cap: 6                 # 每小时最多送出几封(每日在岗摘要不计);超出折叠成一封汇总
+  raise_after_checks: 2         # 心跳连续几拍坏才发(抖动 1 拍不发)
+  clear_after_checks: 6         # 心跳连续几拍好才发「已恢复」
+# 业务健康判据阈值(health.evaluate_health 唯一读取点)
+health:
+  equity_stale_minutes: 45      # 净值快照最后一点超过多久算停更
+  blocked_minutes: 10           # 交易循环卡在 BLOCKED_* 空转超过多久告警
+  quote_fail_threshold: 3       # 行情源连续失败几次告警
+  outbox_stale_minutes: 10      # 发件箱 PENDING 超过多久算发不出去
+  eval_fill_grace_minutes: 5    # 评估完成后多久仍无成交算「评估被拦」

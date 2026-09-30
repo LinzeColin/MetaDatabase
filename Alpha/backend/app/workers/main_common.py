@@ -22,15 +22,17 @@ def build_runtime():
 
 
 def build_smtp_sender() -> SmtpEmailSender:
-    missing = [k for k in ("ALPHA_SMTP_HOST", "ALPHA_SMTP_USERNAME",
-                           "ALPHA_SMTP_APP_PASSWORD", "ALPHA_NOTIFY_RECIPIENT")
+    """邮件出口:主机中继(无认证)或 Gmail(STARTTLS + 应用专用密码),全部从环境读。"""
+    missing = [k for k in ("ALPHA_SMTP_HOST", "ALPHA_SMTP_FROM", "ALPHA_NOTIFY_RECIPIENT")
                if not os.environ.get(k)]
     if missing:
         raise RuntimeError(f"邮件出口缺环境变量(失败关闭,不静默): {missing}")
     return SmtpEmailSender(
         host=os.environ["ALPHA_SMTP_HOST"],
         port=int(os.environ.get("ALPHA_SMTP_PORT", "587")),
-        username=os.environ["ALPHA_SMTP_USERNAME"],
-        app_password=os.environ["ALPHA_SMTP_APP_PASSWORD"],
         recipient=os.environ["ALPHA_NOTIFY_RECIPIENT"],
+        sender=os.environ["ALPHA_SMTP_FROM"],
+        username=os.environ.get("ALPHA_SMTP_USERNAME", ""),
+        password=os.environ.get("ALPHA_SMTP_APP_PASSWORD", ""),
+        starttls=os.environ.get("ALPHA_SMTP_STARTTLS", "0") == "1",
     )
