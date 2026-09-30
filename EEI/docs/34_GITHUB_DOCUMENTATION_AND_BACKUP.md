@@ -28,7 +28,7 @@
 1. 功能变更必须提供 Function ID、用户问题、输入输出、主可视化、对象、表、API、任务、验收、风险。
 2. 模型变更必须提供 Model/Formula/Parameter ID、前后值、影响预览、缺失值语义、版本和回滚。
 3. 数据范围变更必须提供定义、方向、时间、证据门槛、迁移和弃用规则。
-4. 每个 PR 更新 `DEVELOPMENT_STATUS.md` 或明确说明为何无状态变化。
+4. 每个 PR 更新 `文档/归档/DEVELOPMENT_STATUS.md` 或明确说明为何无状态变化。
 5. 任何目录变化触发 `python scripts/validate_task_pack.py`。
 6. 任何目录、模型、任务或验收变更必须通过 `python scripts/validate_governance_consistency.py`。
 

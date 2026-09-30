@@ -4,7 +4,7 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 ROOT=Path(__file__).resolve().parents[1]
-OUT=ROOT/'US_Corporate_Power_Map_Governance_Blueprint_v4.2.pdf'
+OUT=ROOT/'文档/归档/US_Corporate_Power_Map_Governance_Blueprint_v4.2.pdf'
 ART=ROOT/'artifacts'
 ART.mkdir(exist_ok=True)
 HTML_PATH=ART/'governance_blueprint_v42_source.html'

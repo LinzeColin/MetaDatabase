@@ -21,4 +21,4 @@
 - 已通过与未通过 Acceptance ID。
 - 测试命令、环境、数据规模和证据路径。
 - 已解决/未解决、已知风险、控制、停止条件和回滚。
-- 更新后的 `VALIDATION_REPORT.md`、`DEVELOPMENT_STATUS.md`、追踪 CSV 和 release note。
+- 更新后的 `文档/归档/VALIDATION_REPORT.md`、`文档/归档/DEVELOPMENT_STATUS.md`、追踪 CSV 和 release note。

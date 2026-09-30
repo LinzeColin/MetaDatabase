@@ -1,71 +1,21 @@
-# 商域图谱 / Enterprise Ecosystem Intelligence - Codex MVP Task Pack
+# 商域图谱 EEI（Enterprise Ecosystem Intelligence）
 
-副标题：企业商业版图与供应链递归探索系统
+用 SEC、GLEIF 等官方公开数据，把美国上市公司的子公司、董事、股东和申报事件画成可点击的关系图（「商域宇宙」）。
+不登录、不买商业数据；评分只用于研究排序，不是投资建议。出处：`文档/归档/AGENTS_旧版.md`（产品定位）、`.ramify/KERNEL.md`（范围外）。
 
-原始任务包语境：美国企业商业版图与供应链递归探索器。
+## 线上
 
-**规格基线**：v4.2.0 + v5.0 production-blocker sync
-**目标产品版本**：v0.1（当前 pursuing goal 完成后才可发布为 v0.1）
-**基线日期**：2026-06-19  
-**目标仓库**：LinzeColin/CodexProject/EEI
+| 看什么 | 地址 | 2026-09-30 实测 |
+|---|---|---|
+| 商域宇宙（主站） | https://eei.linzezhang.com/ | 200，标题「商域宇宙 · EEI」 |
+| 线上是哪一版 | https://eei.linzezhang.com/version.txt | 返回一个 git commit（页面来源 `apps/universe/`） |
+| 数据总量与增长 | https://eei.linzezhang.com/v1/meta/pulse | 200；实体 14,819 / 关系 20,364 / 事件 990,050 |
+| 数据接口健康 | https://eei.linzezhang.com/health | 时好时坏：20:00 UTC 500，20:17 UTC 200；`/v1/events` 等仍 500（疑为 D1 读额度耗尽，见 `HANDOFF.md`） |
 
-## CodexProject Governance Entry
+主站在服务器 VPS-3 上：静态页面由 nginx 容器直接给，`/v1/*` 等数据接口经 nginx 反代（带缓存）到上游。
+出处：`apps/universe/deploy/README.md`、`apps/universe/deploy/site.conf.template`。
 
-Canonical CodexProject governance sources are maintained under `docs/governance/`:
-`MODEL_SPEC.md`, `model_registry.yaml`, `formula_registry.yaml`,
-`parameter_registry.csv`, `DEVELOPMENT_LEDGER.md`, `development_events.jsonl`,
-`DELIVERY_PLAN.md`, `delivery_tasks.yaml`, `VERSION_MATRIX.yaml` and
-`TRACEABILITY_MATRIX.csv`. Legacy Task Pack files and `data/*.csv` catalogs are
-retained as evidence and compatibility inputs; they must not be edited as an
-independent source of governance counts.
-
-## 结论
-
-本包是一套可直接进入 GitHub 和 Codex G0 的产品、模型、数据、研发与验收基线。默认首页从 Watchlist 当前公司进入可视化商业版图，并允许点击任意对象后递归切换研究中心。
-
-当前生产实现进度：T1300/A201、T1305/A207、T1306/A208 和 T1308/A211 已关闭；T1301/A202、T1302/A203、T1303/A204-A205、T1307/A209 和 T1309/A210 处于进行中，T1304/A206 已关闭。T1301/A202 已具备 reviewed-publication 数据库路径，并通过 GitHub Actions run `27877209505` / job `82498609174` 的 G2 PostgreSQL integration、browser E2E 和 live FastAPI/PostgreSQL E2E 验证；production owner sign-off 合同已覆盖 fixture review 与 production owner sign-off 强制分流、`--allow-production-owner-signoff` 门控、`owner_actor`/`owner_role`/`authority_scope`/`signature` 必填和 `owner_signature_hash` 落库，并通过 GitHub Actions run `27880295243` / job `82506543351` 的 Step 10 G2 PostgreSQL integration、Step 11 browser E2E 和 Step 12 live FastAPI/PostgreSQL E2E 验证；dry-run official-source full-text connector、source_health、retry_policy、attempt metadata、100% expected-token coverage 和 context-only evidence 已通过 GitHub Actions run `27881361500` / job `82509391127` 验证；本轮新增 operator-provided official source capture 合同和 `0011_operator_source_capture_constraints` PostgreSQL 约束迁移，校验 operator provenance、`source_text_sha256`、5 项 usage attestation、最小文本长度 240、token coverage 1.0、`operator_supplied_capture=true`、`release_clearance=false` 和 `relationship_publication=false`，并保持 context-only、零关系事实发布，已通过 GitHub Actions run `27882366565` / job `82512011341` 的 Step 10 G2 PostgreSQL integration、Step 11 browser E2E 和 Step 12 live FastAPI/PostgreSQL E2E 验证；T1302/T1308 已具备首页商业版图 `/v1/explore` API-first production_context hydration、图查询预算、coverage、候选事实 publication gate mock E2E、server-returned nodes/edges 渲染、production_context `sample_candidates`、`/v1/catalogs` inventory hydration、entity/event/industry/source_document/score_result/relationship_fact_candidate/published relationship score explanation hydration、event fixture PostgreSQL loading 和 evidence detail/source snippets hydration，其中 entity score explanation PostgreSQL/browser/live FastAPI 切片已通过 GitHub Actions run `27878398112` / job `82501662399` 验证，event/industry scoring explain 切片已通过 GitHub Actions run `27879503435` / job `82504489377` 的 G2 PostgreSQL integration、browser E2E 和 live FastAPI/PostgreSQL E2E 验证，source_document/score_result scoring explain 切片已通过 GitHub Actions run `27883167817` / job `82514084247` 的 G2 PostgreSQL integration、browser E2E 和 live FastAPI/PostgreSQL E2E 验证；本轮新增 `score_recompute` 对 relationship_fact_candidate、relationship、entity、event、industry 和 source_document 六类 MVP 对象族的 `score_results` 落库合同，已通过 GitHub Actions run `27883953630` / job `82516108840` 的 G2 PostgreSQL integration、browser E2E 和 live FastAPI/PostgreSQL E2E 验证；T1303 已具备服务端事务激活、dedicated rollback endpoint、`POST /v1/scoring/profiles` 在线 draft 创建 API、`POST /v1/scoring/recompute` 入队 API、`POST /v1/data/snapshots/refresh` 入队 API、operation log、active analysis context、refresh token、transactional outbox 事件源、前端 API-first active-context hydration、在线 draft 创建、事务激活、rollback、recompute 控件和 stale refresh mock E2E，并通过 GitHub Actions run `27871752533` / job `82484659437` 的 G2 PostgreSQL/browser/live FastAPI PostgreSQL E2E 验证；T1304 已具备 scheduler job queue、`score_recompute` 入队、真实 `score_recompute` worker handler、`data_snapshot_refresh` worker handler、`curated_ingestion_refresh` worker handler、`calibration_run` worker handler、dry-run source health metadata、score_results 写入、data_snapshots 激活、calibration metrics/drift report 写入、refresh token 推进、stale-context skip、outbox dispatch、lease、heartbeat、retry、dead-letter、graceful release 状态机合同、`apps.worker` health/once/supervise supervisor CLI 和 Docker Compose worker process-manager 绑定；T1305 已具备服务端 saved views、版本历史、乐观锁冲突、恢复合同、`X-EEI-User-Namespace`/`X-EEI-Actor` 命名空间隔离、跨 namespace 404、前端 API-first saved-view adapter mock E2E、409 冲突恢复 UI、live FastAPI/PostgreSQL 多会话 E2E harness、trusted_gateway HMAC 身份模式和 fail-closed 网关签名校验，并通过 GitHub Actions run `27875473970` / job `82494131119` 验证；T1306 已具备确定性规模 benchmark smoke harness、10k/100k/1m operator_full、Chromium browser runtime 和 pass/fail JSON 证据；T1307 已具备 browser+worker soak smoke harness；T1308 已具备 WorkspaceContext、16 个 EEI 导航模块状态、route/lens/section/planned 控件、禁用未完成功能、模型中心控件、URL/session/local persistence、server graph render、production data panel、Objects and Scope/Industries/System Status live route coverage，并通过 GitHub Actions run `27876091338` / job `82495713946` 的 browser/live FastAPI PostgreSQL E2E 验证。但 live official retrieval、真实 operator-supplied owner 决策或第二独立来源闭环、A209 24h soak operator evidence、生产批准关系事实发布、完整图谱证据抽屉语义和品牌清权仍阻断 v0.1。
-
-本轮新增 A202/A210 signed release decision bundle 合同：`scripts/validate_release_decision_bundle.py` 和 `artifacts/tests/a202/t1301_a202_a210_release_decision_bundle_contract.json` 明确 source-license、passage-level relationship review、production owner sign-off、legal release clearance/risk waiver、brand clearance/risk waiver 的签核输入；即使真实签核包完整，CLI 仍保持 `release_ready=false`，直到 A209 24h soak 与 release-manager activation 独立完成。
-
-本轮新增 T904/A026-A027 gold-quality evaluation 与 production gold-label intake template 合同：`scripts/validate_gold_quality_evaluation.py`、`tests/fixtures/gold_quality/golden_vertical_gold_labels_sample.json`、`artifacts/tests/a026/t904_a026_a027_production_gold_label_intake_template.json`、`artifacts/tests/a026/t904_entity_resolution_gold_evaluation_contract.json` 和 `artifacts/tests/a027/t904_relationship_gold_evaluation_contract.json` 记录实体解析与关系抽取的 precision、recall、confusion counts、source coverage、生产标签必填元数据、case schema 和填报命令。当前 repository fixture 和 template 都不是生产 gold set，因此 A026/A027 保持 `IN_PROGRESS`；v0.1 仍需要真实人工标注 gold set 达到实体 50 条/95% precision、关系 100 条/90% precision 和 source coverage 1.0。
-
-最新验证：GitHub Actions run `27885349105` / job `82519730263` 已通过 Step 10 G2 PostgreSQL integration、Step 11 browser E2E 和 Step 12 live FastAPI PostgreSQL E2E，覆盖 `POST /v1/scoring/profiles` 在线 draft 创建、invalid-weight fail-closed、draft activation target handoff、active-context preservation、A204/A205 mock/live 路径，以及 T1306/A208 benchmark hardening。A204/A205 仍因 process-manager wake 和 4h/24h refresh stability 未完成而保持进行中。
-
-| 入口 | 用途 |
-|---|---|
-| `prototype/standalone.html` | 离线可交互高保真原型 |
-| `GOVERNANCE_INDEX.md` | 治理总入口 |
-| `GITHUB_REPOSITORY_BACKUP_INDEX.md` | GitHub 文档/代码备份与防漂移 |
-| `FUNCTION_CATALOG.md` | 17 个功能和导航架构 |
-| `data/product_navigation_catalog.csv` | 16 个用户侧导航模块冻结源 |
-| `MODEL_MANAGEMENT.md` | 11 个模型、11 个公式、84 个参数、17 个阈值 |
-| `DOMAIN_DATA_CATALOG.md` | 关系、上下游、供应链、行业、板块、业务、资本和公司范围 |
-| `DEVELOPMENT_STATUS.md` | 已解决/未解决、130 个任务和四轴状态 |
-| `RISK_AND_ACCEPTANCE.md` | 53 项风险、211 条验收和 Gate |
-| `REVIEW_AND_ITERATION_INDEX.md` | v5 审查、品牌、测试和迭代入口 |
-| `docs/phase/V5_TASK_PACK_SYNCHRONIZATION.md` | v5 生产阻塞项到 EEI 任务/验收/参数的同步映射 |
-| `TEST_STRATEGY.md` | 静态、单元、契约、集成、E2E、规模和 soak 测试策略 |
-| `US_Corporate_Power_Map_Governance_Blueprint_v4.2.pdf` | 可审阅 PDF 总蓝图 |
-
-## 数据与模型规模
-
-- 10 个关系家族、52 种关系、16 个供应链阶段、24 类上下游/使能角色。
-- 26 个行业分类、13 个板块、20 类业务板块、30 类资本对象、140 个研究对象。
-- 首页可视化验收目标 `>=90%`；核心系统平均 `>=80%`。
-
-## Codex 启动
-
-```bash
-python scripts/validate_catalog_integrity.py
-python scripts/validate_task_pack.py
-python scripts/validate_visual_coverage.py
-bash scripts/preflight.sh
-codex exec --sandbox read-only - < prompts/01_PLAN_ONLY.md | tee artifacts/01_plan_output.txt
-```
-
-## Operator clean-start rehearsal
-
-新 operator 按以下顺序从干净 checkout 复现 MVP 关键路径；`make verify-g2-db` 会启动 PostgreSQL 验证链并覆盖 integration、browser E2E 和 live FastAPI/PostgreSQL E2E，`make db-down` 用于结束本地数据库服务。
+## 怎么跑
 
 ```bash
 make bootstrap
@@ -83,6 +33,37 @@ make validate-release-artifacts
 make db-down
 ```
 
-该 clean-start rehearsal 只关闭 README 可复现运行与关键 demo 证据路径；它不替代 A202 source/license/owner/legal sign-off、不替代 A209 24h operator soak，也不替代 A210 正式品牌法律与市场清权。
+以上是本机从干净 checkout 复现的完整顺序（需要 Docker 与 Python 3.12；本机没有 `python` 命令时用 `make bootstrap PYTHON=python3`）。
+它只用于开发验证；线上数据不是这样跑出来的。出处：`Makefile`、`docker-compose.yml`、`pyproject.toml`、`dev-notes/经验-202608.md`（仓根）。
 
-先审查 G0 只读计划，再允许 workspace-write。原型使用 fixture；T1300 PostgreSQL 可回滚迁移与 fact/evidence/time/version 分层已实现。T1301 已开始：NVIDIA/ASML 官方来源快照可写入 raw snapshot、实体解析候选、Golden Vertical 关系事实候选、复核队列和证据链；`scripts/publish_reviewed_relationship_facts.py` 可在显式审核决策文件驱动下事务性写入 reviewed `relationships`、`relationship_evidence`、`data_snapshots`、`fact_versions` 和 `fact_version_evidence`，目前覆盖 fixture review 合同，并新增 production owner sign-off 合同：未带 `--allow-production-owner-signoff` 会 fail closed，owner 决策必须包含 `owner_actor`、`owner_role`、`authority_scope` 和 `signature`，且签名哈希写入关系、证据和 fact-version payload；该 owner 合同已通过 GitHub Actions run `27880295243` / job `82506543351` 远端 PostgreSQL/browser/live FastAPI 验证；dry-run full-text connector 已通过 GitHub Actions run `27881361500` / job `82509391127` 验证；本轮新增 `scripts/load_operator_source_captures.py` operator capture 合同和 `0011_operator_source_capture_constraints` 迁移，要求 `source_text_sha256`、5 项 usage attestation、最小文本长度 240、token coverage 1.0，并明确 `operator_supplied_capture=true`、`release_clearance=false`、`relationship_publication=false`，已通过 GitHub Actions run `27882366565` / job `82512011341` 远端 PostgreSQL/browser/live FastAPI 验证；但仍待真实 operator-supplied owner 决策或第二独立来源闭环，A202 仍未关闭。T1302 已开始：生产上下文、递归图/路径 publication policy、entity/event/industry/source_document/score_result/relationship_fact_candidate/published relationship 评分解释合同、event fixture PostgreSQL loading、`/v1/evidence/{objectType}/{objectId}` 证据 detail/source snippets、production_context `sample_candidates`、首页 `/v1/explore` production_context hydration、server-returned graph rendering、`/v1/catalogs` inventory、score explanation 和 evidence detail hydration 已接入，entity score explanation PostgreSQL/browser/live FastAPI 切片已通过 GitHub Actions run `27878398112` / job `82501662399` 验证，event/industry 切片已通过 GitHub Actions run `27879503435` / job `82504489377` 的 G2 PostgreSQL integration、browser E2E 和 live FastAPI/PostgreSQL E2E 验证，source_document/score_result 切片已通过 GitHub Actions run `27883167817` / job `82514084247` 的 G2 PostgreSQL integration、browser E2E 和 live FastAPI/PostgreSQL E2E 验证；full MVP object-family score_results recompute persistence 已通过 GitHub Actions run `27883953630` / job `82516108840` 的 G2 PostgreSQL integration、browser E2E 和 live FastAPI/PostgreSQL E2E 验证；A203 仍未关闭。T1303 已开始：`/v1/scoring/active-context`、`/v1/scoring/profiles/{profileVersionId}/activate`、`/v1/scoring/profiles/{profileVersionId}/rollback`、`/v1/scoring/recompute`、`/v1/data/snapshots/refresh`、inactive `supply-chain-v3` model profile、前端模型中心 API-first hydration、事务激活、dedicated rollback、score recompute 入队控件、data snapshot refresh 入队控件合同、transactional outbox 事件写入、stale refresh mock E2E 和 live FastAPI/PostgreSQL model activation/stale-refresh/rollback harness 已接入；`score_recompute` worker handler 已能创建 scoring_runs、写入 relationship_fact_candidate、relationship、entity、event、industry 和 source_document 六类 MVP 对象族 score_results、发出 `score.snapshot.activated` outbox event 并推进 active context refresh token；`data_snapshot_refresh` worker handler 已能创建 active data_snapshots、supersede 同 scope/mode 旧快照、发出 `data.snapshot.activated` outbox event 并推进 active context refresh token，在线 draft 创建已接入，但 refresh soak 未关闭。T1304 已开始：后台 job queue、`score_recompute` 入队、`data_snapshot_refresh` 入队、`curated_ingestion_refresh` 入队/执行、`calibration_run` 入队/执行、真实 `score_recompute`/`data_snapshot_refresh`/`curated_ingestion_refresh`/`calibration_run` handlers、outbox dispatch、lease、heartbeat、retry、dead-letter、graceful release、`apps.worker` health/once/supervise 和 Docker Compose `postgres`/`migrate`/`worker` process-manager 绑定已具备合同，但 4h/24h soak 未关闭。T1305 已关闭：`/v1/saved-views` 支持 version history、expected_version 409、restore、`X-EEI-User-Namespace`/`X-EEI-Actor` header namespace 隔离和跨 namespace 404，前端保存/恢复控件已具备 API-first adapter、显式 local fallback、mock server E2E、409 获取最新冲突恢复 UI、live FastAPI/PostgreSQL 双 browser context E2E harness、GitHub Actions `verify-g2-db` run `27862471613` job `82460665725` 历史证据和 GitHub Actions run `27875473970` job `82494131119` trusted_gateway 证据；生产环境默认 `trusted_gateway` 身份模式，必须通过 `EEI_SAVED_VIEW_GATEWAY_SECRET` 签名 `X-EEI-User-Namespace`、`X-EEI-Actor` 和时间戳，缺 secret、缺签名、坏签名或过期签名均 fail-closed。T1306 已关闭：`scripts/run_scale_benchmarks.py` 与 `scripts/run_browser_scale_benchmarks.mjs` 输出 API、layout、render、memory、frame、long-task 预算 smoke、10k/100k/1m operator_full 和 Chromium browser runtime JSON。T1307 已开始：`scripts/run_soak_smoke.mjs` 输出 browser+worker heap、DOM、listener、timer、CPU、retry 和 recovery smoke JSON，并引用 Docker Compose worker 绑定作为 operator soak 运行前提，但 4h/24h operator evidence 未完成。T1308 已关闭：`WorkspaceContext`、组件化导航 rail、真实 route/lens/section/planned 控件、禁用未完成功能、模型中心控件、live model activation/stale-refresh/rollback harness、首页商业版图 `/v1/explore` context hydration、server graph rendering、catalog/score/evidence production data panel、Objects and Scope/Industries/System Status live route coverage 和持久化查询合同已通过 GitHub Actions run `27876091338` / job `82495713946` 的 browser/live FastAPI PostgreSQL E2E 验证。live/full-text 采集、真实 operator-supplied owner 决策或第二独立来源闭环、生产批准关系事实发布、4h/24h soak 和正式品牌清权仍是 v0.1 阻断项。
+- 宇宙页面单独看：它是纯静态页（`apps/universe/`），默认读 `https://eei.linzezhang.com` 的接口，可用 `?api=` 换接口。
+- 线上代码更新：服务器每 10 分钟从 GitHub `main` 拉取，`EEI/apps/universe/` 有变化才重建，健康检查过才切流量。
+  不需要任何人登录服务器或推送。出处：`apps/universe/deploy/README.md`。
+- 线上数据采集：服务器上的容器 `eei-refresh`（每小时一轮补全）与 `eei-watch`（每分钟看 SEC 最新申报）写 Postgres `eei-db`，
+  再增量发布到 Cloudflare D1（公开接口的查询副本，计划淘汰）。出处：`docker-compose.ovh.yml`、`infra/ovh/RUNBOOK_OVH_EEI.md`。
+
+## 怎么验证
+
+```bash
+make verify                      # 静态校验 + 合同 + lint + typecheck + 单测（CI 同款）
+make test-integration            # 需要 make db-up
+make test-e2e && make test-e2e-live
+```
+
+CI：仓根 `.github/workflows/eei-validation.yml`（`EEI/**` 有改动就跑）与 `.github/workflows/dual-plane.yml`（`文档/` 七份文件必须与 `machine/facts/` 渲染一致）。
+改了 `EEI/` 下被 git 跟踪的文件（`apps/universe/` 除外），要重新生成清洁室 ZIP 与校验清单，顺序见 `AGENTS.md`。
+
+## 目录
+
+| 目录 / 文件 | 是什么 |
+|---|---|
+| `apps/universe/` | 线上主页「商域宇宙」（静态页 + 服务器部署件 `deploy/`） |
+| `apps/cloudflare-public/` | 公开接口的 Cloudflare Worker（读 D1） |
+| `apps/api/`、`apps/worker/`、`apps/web/` | FastAPI 接口、后台任务、Next.js 前端（本机验证链路用） |
+| `scripts/authoritative/` | SEC/GLEIF 采集、刷新、发布（`refresh_cycle`、`watch_recent_filings`） |
+| `docker-compose.ovh.yml`、`infra/` | 服务器采集容器（`eei-db`/`eei-refresh`/`eei-watch`）与迁移、部署手册 |
+| `data/`、`config/`、`models/` | 目录、模型与参数的机器可读源 |
+| `reviews/`、`brand/`、`specs/`、`prototype/` | v5 审查记录、品牌调研、接口与库表规格、离线高保真原型（治理校验会读取） |
+| `docs/` | 规格、ADR、治理账本（`docs/governance/development_events.jsonl` 只追加） |
+| `文档/` | 七份由 `machine/facts/` 渲染的文档，不要手改；`文档/归档/` 是 2026-10 瘦身时搬走的旧根目录文档，带索引表 |
+| `HANDOFF.md` | 现在的真实状态、已知问题、下一步 |
