@@ -1,3 +1,6 @@
+> **2026-09-30：本页是历史记录。** ADP 已迁往服务器自托管（见 `../selfhost/` 与 `dev-notes/2026-09-30-ADP自托管.md`）；
+> 下文的 Mac 常驻（LaunchAgent / Tunnel）早已停用，对应的两个 plist 已删除。Cloudflare 这一侧的代码保留到切换稳定后再清理。
+
 # R6 · Cloudflare 部署（完整系统直连 + 镜像兜底）运维一页
 
 部署日期：2026-07-15 · Worker：`adp-mirror` · Tunnel：`adp`（3bc9d50e） · 账户：linzezhang35@gmail.com（本机 wrangler 会话）

@@ -1,0 +1,25 @@
+[Unit]
+Description=ADP arXiv history backfill (one OAI page per run; cursor only moves forward)
+Documentation=https://github.com/LinzeColin/MetaDatabase/tree/main/arxiv-daily-push/deploy/selfhost
+After=network-online.target docker.service
+Wants=network-online.target docker.service
+OnFailure=adp-failure@%n.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/adp-daily-run.sh backfill
+# 回填只有 1 次 OAI 请求 + 入库，单次尝试；总时长上限 30 分钟
+TimeoutStartSec=30min
+Nice=15
+IOSchedulingClass=idle
+CPUQuota=100%
+MemoryMax=128M
+TasksMax=64
+ExecStopPost=-/usr/bin/docker rm -f adp-job-backfill
+StateDirectory=linze-pull-deploy
+Environment=DOCKER_CONFIG=/var/lib/linze-pull-deploy/docker-config
+Environment=ADP_JOB_TIMEOUT_SECONDS=1500
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
