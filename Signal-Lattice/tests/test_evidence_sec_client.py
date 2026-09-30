@@ -12,7 +12,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from signal_lattice.evidence import (
-    DEFAULT_USER_AGENT,
+    SecUserAgentMissing,
     MAX_ATTEMPTS,
     MAX_REQUESTS_PER_SECOND,
     RateLimiter,
@@ -68,13 +68,47 @@ def client_with(script, cache_dir=None, clock=None):
 
 
 class SecClientTests(unittest.TestCase):
-    def test_default_user_agent_and_env_override(self):
-        with patch.dict(os.environ, {}, clear=False):
-            os.environ.pop("SIGNAL_LATTICE_SEC_UA", None)
-            self.assertEqual(SecClient().user_agent, "SignalLattice research ops@linzezhang.com")
-            self.assertEqual(SecClient().user_agent, DEFAULT_USER_AGENT)
+    def test_the_user_agent_comes_only_from_the_environment_and_the_repo_has_no_default(self):
+        """缺陷 #11：以前仓库里写死了一个真实域名的 UA；现在没有任何默认值，必须由部署环境配置。"""
         with patch.dict(os.environ, {"SIGNAL_LATTICE_SEC_UA": "Tester test@example.com"}):
             self.assertEqual(SecClient().user_agent, "Tester test@example.com")
+            self.assertEqual(SecClient(user_agent="Explicit explicit@example.com").user_agent, "Explicit explicit@example.com")
+        import signal_lattice.evidence as evidence
+        import signal_lattice.evidence.sec_client as module
+        self.assertFalse(hasattr(module, "DEFAULT_USER_AGENT"))
+        self.assertFalse(hasattr(evidence, "DEFAULT_USER_AGENT"))
+        source = Path(module.__file__).read_text("utf-8")
+        for real in ("linzezhang", "zhanglinze", "@gmail"):
+            self.assertNotIn(real, source)
+
+    def test_a_missing_or_blank_user_agent_is_a_clear_error_not_a_silent_default(self):
+        for value in (None, "", "   "):
+            with self.subTest(value=value):
+                env = {k: v for k, v in os.environ.items() if k != "SIGNAL_LATTICE_SEC_UA"}
+                if value is not None:
+                    env["SIGNAL_LATTICE_SEC_UA"] = value
+                with patch.dict(os.environ, env, clear=True):
+                    with self.assertRaises(SecUserAgentMissing) as raised:
+                        SecClient()
+                    self.assertIn("SIGNAL_LATTICE_SEC_UA", str(raised.exception))
+                    self.assertIn("联系邮箱", str(raised.exception))
+
+    def test_the_research_command_exits_with_the_clear_error_when_the_user_agent_is_missing(self):
+        import argparse
+        import contextlib
+        import io
+        from signal_lattice import research_cycle as RC
+        parser = argparse.ArgumentParser()
+        RC.add_arguments(parser)
+        with tempfile.TemporaryDirectory() as tmp:
+            args = parser.parse_args(["--work-dir", tmp + "/w", "--out-dir", tmp + "/o"])
+            env = {k: v for k, v in os.environ.items() if k != "SIGNAL_LATTICE_SEC_UA"}
+            err = io.StringIO()
+            with patch.dict(os.environ, env, clear=True), contextlib.redirect_stderr(err):
+                code = RC.cli_main(args, Path(__file__).resolve().parents[1])
+        self.assertEqual(code, 4)
+        self.assertIn("SIGNAL_LATTICE_SEC_UA", err.getvalue())
+        self.assertFalse((Path(tmp) / "w" / "snapshots").exists())
 
     def test_every_request_carries_the_user_agent(self):
         client, opener, _ = client_with([FakeResponse(b"{}"), FakeResponse(b"{}")])

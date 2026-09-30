@@ -75,3 +75,10 @@ def limits_branch(snapshot, log):
 
 def bad_status_branch(snapshot, log):
     return {"branch_status": "MAYBE", "branch_reasons": [], "verdicts": [], "meta": {}}
+
+
+def flaky_branch(snapshot, log):
+    """第一次崩溃、快照目录里出现 flaky-ok.flag 之后正常：验证「FAILED 的收据不缓存，同快照再跑要重跑」。"""
+    if not (Path(snapshot.path).parent / "flaky-ok.flag").is_file():
+        raise RuntimeError("flaky: not yet")
+    return ok_branch(snapshot, log)

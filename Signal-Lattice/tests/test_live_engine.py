@@ -156,6 +156,20 @@ class SessionRunTests(EngineCase):
         self.assertEqual(report["collection_request_accounting"]["consecutive_failure_count"], 0)     # 研究层的问题不让行情源退避
         self.assertEqual(report["message"], report["decision"]["message"])
 
+    def test_a_shrunk_candidate_pool_blocks_with_the_plain_message_before_any_quote_request(self):
+        """缺陷 #6：研究层发现候选池缩水、拒绝产出快照并留下失败标记；实时层据此 SYSTEM_BLOCKED，不拿旧快照出结论。"""
+        (self.research / "research-failure.json").write_text(json.dumps({"code": "UNIVERSE_INCOMPLETE", "count": 37}), "utf-8")
+        gateway = FakeGateway(SESSION)
+        report = self.engine(gateway).run_once(SESSION)
+        self.assertEqual(report["state"], "SYSTEM_BLOCKED")
+        self.assertEqual(report["decision"]["blocked_reason"], "UNIVERSE_INCOMPLETE")
+        self.assertEqual(report["decision"]["message"], "候选池数据不完整（只取到 37 只），本轮不出结论。")
+        self.assertEqual(report["message"], report["decision"]["message"])
+        self.assertIsNone(report["decision"]["action"])
+        self.assertEqual(gateway.quote_calls, 0)
+        (self.research / "research-failure.json").unlink()                                   # 研究层下一次正常跑完会撤掉标记
+        self.assertEqual(self.engine(FakeGateway(SESSION)).run_once(SESSION + timedelta(minutes=1))["state"], "DATA_READY")
+
     def test_missing_research_directory_blocks_with_a_plain_message(self):
         settings = replace(self.settings, research_dir=self.root / "nowhere")
         engine = LiveEngine(settings)

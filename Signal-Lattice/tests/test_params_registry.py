@@ -148,12 +148,31 @@ class ResolverTests(unittest.TestCase):
         self.assertEqual((skill.source, skill.params_version), (PR.SOURCE_LOCAL, B.DEFAULT_PARAMS["params_version"]))
         self.assertIn("PARAMS_UPDATED", [f["code"] for f in skill.findings])
 
-    def test_content_change_without_version_bump_is_flagged(self):
-        self.resolver(fetcher=None).resolve()
+    def test_content_change_without_version_bump_is_rejected_and_the_lkg_stays_in_force(self):
+        # 缺陷 #5：以前只记一条 finding、新内容照样生效；改动没走版本管理就不该生效。
+        first = self.resolver(fetcher=None).resolve().skills[BN]
         self.gh.set(PARAMS_URL % "main", params_bytes(B.DEFAULT_PARAMS["params_version"], lambda p: p["gates"].update(constraint_min=61)), '"c"')
         skill = self.resolver().resolve().skills[BN]
-        self.assertEqual(skill.source, PR.SOURCE_REMOTE)
-        self.assertIn("PARAMS_CONTENT_CHANGED_WITHOUT_VERSION_BUMP", [f["code"] for f in skill.findings])
+        self.assertEqual(skill.source, PR.SOURCE_LKG)                                    # 拒绝远端，继续用 LKG
+        self.assertEqual(skill.params_sha256, first.params_sha256)                       # 生效的仍是原来那份字节
+        self.assertEqual(Path(skill.active_path).read_bytes(), self.local_bytes())
+        found = [f for f in skill.findings if f["code"] == "PARAMS_CONTENT_CHANGED_WITHOUT_VERSION_BUMP"]
+        self.assertEqual([f["action"] for f in found], ["REJECTED_KEEPING_LKG"])
+        self.assertIn(BN, found[0]["skill"])
+
+    def test_the_same_content_change_with_a_version_bump_is_adopted(self):
+        self.resolver(fetcher=None).resolve()
+        self.gh.set(PARAMS_URL % "main", params_bytes("0.0.0.9", lambda p: p["gates"].update(constraint_min=61)), '"c"')
+        skill = self.resolver().resolve().skills[BN]
+        self.assertEqual((skill.source, skill.params_version), (PR.SOURCE_REMOTE, "0.0.0.9"))
+        self.assertNotIn("PARAMS_CONTENT_CHANGED_WITHOUT_VERSION_BUMP", [f["code"] for f in skill.findings])
+
+    def test_without_an_lkg_a_changed_remote_with_the_same_version_falls_back_to_the_local_file(self):
+        self.gh.set(PARAMS_URL % "main", params_bytes(B.DEFAULT_PARAMS["params_version"], lambda p: p["gates"].update(constraint_min=61)), '"c"')
+        skill = self.resolver().resolve().skills[BN]
+        self.assertEqual(skill.source, PR.SOURCE_LOCAL)
+        self.assertEqual(skill.params_sha256, PR.sha256_hex(self.local_bytes()))
+        self.assertIn("REJECTED_KEEPING_LOCAL", [f["action"] for f in skill.findings])
 
     def test_invalid_remote_registry_falls_back_to_local_and_no_registry_blocks(self):
         self.gh.set(REGISTRY_URL % "main", b'{"skills": []}', '"r"')
@@ -230,6 +249,87 @@ class HttpFetcherTests(unittest.TestCase):
         with self.assertRaises(PR.FetchError):
             PR.http_fetcher(REGISTRY_URL % "main", '"old"', opener=opener)
         self.assertEqual(seen["inm"], '"old"')
+
+
+class RemoteCannotLoosenTests(unittest.TestCase):
+    """缺陷 #5：远端参数只许收紧、不许放宽——各分支 validate_params 给关键门槛加硬下限（= 仓库内默认值）。"""
+
+    def branches(self):
+        from signal_lattice.branches import bottleneck, commercial, event_atlas, foresight
+        event_default = json.loads((ROOT / "Stock_Skill" / "equity-event-atlas" / "runtime" / "params.json").read_text("utf-8"))
+        return {"bottleneck": (bottleneck.validate_params, copy.deepcopy(bottleneck.DEFAULT_PARAMS), bottleneck.ParamsError),
+                "commercial": (commercial.validate_params, copy.deepcopy(commercial.DEFAULT_PARAMS), commercial.ParamsError),
+                "foresight": (foresight.validate_params, copy.deepcopy(foresight.DEFAULT_PARAMS), foresight.ParamsError),
+                "event-atlas": (event_atlas.validate_params, event_default, event_atlas.ParamsError)}
+
+    def test_the_defaults_themselves_pass(self):
+        for name, (validate, params, _error) in self.branches().items():
+            with self.subTest(name):
+                validate(params)
+
+    def test_every_key_threshold_rejects_a_looser_value_and_accepts_a_tighter_one(self):
+        cases = {
+            "bottleneck": [("gates", "candidate_min_final", 10), ("gates", "constraint_min", 59), ("gates", "priority_min_final", 62),
+                           ("coverage", "min_by_dimension.evidence", 0.1), ("duration", "hard_gate_runway_months", 1)],
+            "commercial": [("decision", "advance_min_score", 70), ("decision", "advance_min_confidence", 30), ("decision", "diligence_min_confidence", 10),
+                           ("decision", "watchlist_below", 60), ("coverage", "base_min_coverage", 0.1)],
+            "foresight": [("decision", "min_oos_rows", 10), ("decision", "min_oos_dates", 2), ("decision", "pass_min_probability_lift", 0.0),
+                          ("decision", "pass_min_efs", 10), ("label", "round_trip_cost", 0.0), ("walk_forward", "min_train_dates", 2)],
+            "event-atlas": [("insider", "min_purchase_usd", 1000), ("insider", "pass_min_total_usd", 1), ("insider", "cluster_min_insiders", 1),
+                            ("insider", "window_days", 365), ("insider", "offering_like_min_buyers", 9), ("dilution", "lookback_days", 30),
+                            ("dilution", "share_growth_yoy_threshold", 0.3), ("study", "min_sample", 2)],
+        }
+        for name, rows in cases.items():
+            validate, default, error = self.branches()[name]
+            for section, key, loose in rows:
+                with self.subTest("%s.%s.%s 放宽" % (name, section, key)):
+                    params = copy.deepcopy(default)
+                    target = params[section]
+                    *parents, leaf = key.split(".")
+                    for part in parents:
+                        target = target[part]
+                    target[leaf] = loose
+                    with self.assertRaises(error) as raised:
+                        validate(params)
+                    self.assertIn("只允许收紧", str(raised.exception))
+        # 收紧是允许的
+        for name, section, key, tight in (("bottleneck", "gates", "candidate_min_final", 70), ("commercial", "decision", "advance_min_score", 80),
+                                          ("foresight", "decision", "min_oos_rows", 800), ("event-atlas", "insider", "min_purchase_usd", 50000),
+                                          ("event-atlas", "dilution", "share_growth_yoy_threshold", 0.05)):
+            validate, default, _error = self.branches()[name]
+            params = copy.deepcopy(default)
+            params[section][key] = tight
+            validate(params)
+
+    def test_event_atlas_may_not_add_positive_event_kinds(self):
+        validate, default, error = self.branches()["event-atlas"]
+        params = copy.deepcopy(default)
+        params["verdict"]["positive_kinds"] = ["INSIDER_BUY_OPPORTUNISTIC", "INSIDER_CLUSTER"]
+        with self.assertRaises(error):
+            validate(params)
+        params["verdict"]["positive_kinds"] = []
+        validate(params)                                                                  # 少认是收紧
+
+    def test_the_event_atlas_floors_equal_the_repo_params_file(self):
+        from signal_lattice.branches import event_atlas
+        default = json.loads((ROOT / "Stock_Skill" / "equity-event-atlas" / "runtime" / "params.json").read_text("utf-8"))
+        for path, (kind, limit) in event_atlas.FLOORS.items():
+            value = default
+            for part in path.split("."):
+                value = value[part]
+            self.assertEqual(value, limit, path)
+
+    def test_a_looser_remote_file_is_refused_by_the_resolver_and_the_lkg_stays(self):
+        tmp = Path(tempfile.mkdtemp(prefix="sl-params-floor-"))
+        self.addCleanup(shutil.rmtree, tmp, True)
+        gh = FakeGitHub()
+        resolver = PR.ParamsResolver(ROOT, tmp / "state", fetcher=None)
+        first = resolver.resolve().skills[BN]
+        gh.set(PARAMS_URL % "main", params_bytes("0.0.0.9", lambda p: p["gates"].update(candidate_min_final=10)), '"x"')
+        skill = PR.ParamsResolver(ROOT, tmp / "state", fetcher=gh).resolve().skills[BN]
+        self.assertEqual((skill.source, skill.params_sha256), (PR.SOURCE_LKG, first.params_sha256))
+        self.assertIn("REMOTE_PARAMS_INVALID", [f["code"] for f in skill.findings])
+        self.assertTrue(any("只允许收紧" in f["detail"] for f in skill.findings))
 
 
 if __name__ == "__main__":

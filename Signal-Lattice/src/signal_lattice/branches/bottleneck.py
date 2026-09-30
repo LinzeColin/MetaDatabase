@@ -35,6 +35,7 @@ from .scoring_support import (KIND_MARKET, NO_EVIDENCE, DimensionResult, Evidenc
                               geometric_mean, load_params, no_evidence, table_rating, clamp, _check_weights)
 from .structure_factors import StructureEvidence
 from . import structure_factors as SF
+from .param_floors import enforce_not_looser, floors_from_defaults
 from .textmarkers import TextMarkers
 
 SKILL_ID = "bottleneck-serenity-skill"
@@ -189,6 +190,10 @@ FACTOR_SOURCES: Dict[str, str] = {
 }
 
 
+# 远端参数只许收紧：这些关键门槛不得低于仓库默认（阈值越高越严）。
+FLOOR_RULES = {"gates.*": "min", "coverage.min_by_dimension.*": "min", "duration.hard_gate_runway_months": "min"}
+
+
 def validate_params(params: Any) -> None:
     from .scoring_support import _require_keys, check_shape
     check_shape(DEFAULT_PARAMS, params, "params")
@@ -217,6 +222,7 @@ def validate_params(params: Any) -> None:
     claims = params["evidence_factors"]["critical_claims"]
     if set(claims) - set(params["dimension_weights"]["constraint"]) - set(params["dimension_weights"]["capture"]):
         raise ParamsError("evidence_factors.critical_claims 含未知因子")
+    enforce_not_looser(params, floors_from_defaults(DEFAULT_PARAMS, FLOOR_RULES), ParamsError, SKILL_ID)
 
 
 def load_bottleneck_params(path: Optional[Path] = DEFAULT_PARAMS_PATH) -> Tuple[dict, List[dict]]:

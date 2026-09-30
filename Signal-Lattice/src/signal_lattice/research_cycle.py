@@ -11,6 +11,9 @@
  6. shortlist：任一分支 PASS 的并集，加各分支非 FAILED、分数 > 0 的前 30 名，最多 60 只，供实时层使用；
     同时写中枢输入 hubinputs-<hash>.json（候选池全表 + shortlist 的营收同比与最新定期报告），实时层只读这些产物。
 幂等：同一份快照（内容 hash 相同）已经跑完就直接复用结果，不再启动分支、不再重复计数；同一天数据没变，采集阶段的 SEC 请求数为 0。
+  例外：上次收据是 FAILED 的分支不缓存——同一份快照再跑时只重跑这些分支（PASS / ABSTAIN 的原样复用）。
+候选池守门：候选池（universe）只取到不足 600 只、或不足最近 5 次成功运行中位数的 70%，说明上游取数不全——拒绝产出快照，
+研究层报失败（退出码 3），并写 <out_dir>/research-failure.json，实时层据此 SYSTEM_BLOCKED；下一次正常跑完会撤掉这个标记。
 全球联动分支沿用 lead_lag.py，只提供市场环境（风险偏好），不选股。
 """
 
@@ -30,10 +33,11 @@ from .branch_runner import BranchReceipt, BranchSpec, run_branches
 from .evidence.eventstore import EventStore
 from .evidence.factstore import FactStore
 from .evidence.history_prices import BENCHMARK, BarStore
-from .evidence.sec_client import RateLimiter, SecClient
+from .evidence.sec_client import RateLimiter, SecClient, SecUserAgentMissing, user_agent_from_env
 from .evidence.structure_text import FilingExtraction
 from .evidence_snapshot import BENCHMARK_SYMBOL, build_body, load_snapshot, write_snapshot, write_structure_file
 from .params_registry import ParamsResolver, Resolution, http_fetcher
+from .research_view import FAILURE_FILE
 
 SEC_MAX_REQUESTS_PER_SECOND = 4
 SEC_INTERVAL_SECONDS = 1.0 / SEC_MAX_REQUESTS_PER_SECOND
@@ -41,6 +45,19 @@ SHORTLIST_TOP_N = 30
 SHORTLIST_MAX = 60
 STOCK_BRANCHES = ("bottleneck-serenity-skill", "stock-commercial-opportunities", "equity-event-atlas", "equity-foresight-signal")
 MARKET_ENV_SYMBOLS = ("usSPY", "sh000300", "hk02800")
+UNIVERSE_MIN_COUNT = 600                    # 线上候选池约 1200 只；低于这个绝对值一定是取数不全
+UNIVERSE_MIN_RATIO_OF_RECENT_MEDIAN = 0.7
+UNIVERSE_HISTORY_RUNS = 5
+EXIT_UNIVERSE_INCOMPLETE = 3
+EXIT_SEC_USER_AGENT_MISSING = 4
+
+
+class UniverseIncompleteError(RuntimeError):
+    """候选池缩水或为空：这一轮不产出快照。"""
+
+    def __init__(self, count: int, minimum: int, reason: str) -> None:
+        self.count, self.minimum, self.reason = count, minimum, reason
+        super().__init__("候选池数据不完整（只取到 %d 只），本轮不出结论：%s" % (count, reason))
 
 
 @dataclass
@@ -68,6 +85,7 @@ class CycleConfig:
     min_insider_purchase_usd: float = 25_000.0
     branch_specs: Optional[List[BranchSpec]] = None
     python: Optional[str] = None
+    universe_min_count: int = UNIVERSE_MIN_COUNT
 
 
 @dataclass
@@ -135,7 +153,7 @@ class LiveHooks(Hooks):
         as_of = date.fromisoformat(universe["as_of_date"])
         entries = universe["entries"]
         pool = [int(e["cik"]) for e in entries]
-        client = SecClient(cfg.sec_cache_dir, limiter=RateLimiter(min_interval=cfg.sec_interval), compress_cache=True)
+        client = None if cfg.offline else SecClient(cfg.sec_cache_dir, limiter=RateLimiter(min_interval=cfg.sec_interval), compress_cache=True)
         stats: Dict[str, Any] = {"as_of": as_of.isoformat(), "pool": len(pool)}
         facts, events = FactStore(cfg.facts_db), EventStore(cfg.events_db)
         bar_store = BarStore(cfg.bars_dir)
@@ -156,7 +174,7 @@ class LiveHooks(Hooks):
         finally:
             facts.close()
             events.close()
-        stats["sec_requests_total"] = client.requests_sent
+        stats["sec_requests_total"] = client.requests_sent if client is not None else 0
         stats["sec_max_requests_per_second"] = SEC_MAX_REQUESTS_PER_SECOND
         return Collected(universe_path, universe, by_cik, _load_text_similarity(cfg, log), market_env, stats)
 
@@ -298,6 +316,53 @@ def shortlist_from_records(records_by_branch: Mapping[str, Sequence[dict]], top_
     return ordered[:cap]
 
 
+# ---- 候选池守门 --------------------------------------------------------------------------
+def recent_universe_counts(out_dir: Path, runs: int = UNIVERSE_HISTORY_RUNS) -> List[int]:
+    """最近 runs 次成功运行（有 cycle-*.json 的）的候选池大小，按时间先后。"""
+    files = sorted(Path(out_dir).glob("*/cycle-*.json"), key=lambda p: (p.stat().st_mtime, p.name))
+    counts: List[int] = []
+    for path in reversed(files):
+        try:
+            value = json.loads(path.read_text("utf-8")).get("universe_count")
+        except (OSError, ValueError):
+            continue
+        if isinstance(value, int) and value > 0:
+            counts.append(value)
+        if len(counts) >= runs:
+            break
+    return list(reversed(counts))
+
+
+def check_universe_size(count: int, history: Sequence[int], minimum: int) -> Optional[str]:
+    """候选池够大返回 None；否则返回人话原因。"""
+    if count < minimum:
+        return "低于绝对下限 %d 只" % minimum
+    if history:
+        ordered = sorted(history)
+        middle = len(ordered) // 2
+        median = ordered[middle] if len(ordered) % 2 else (ordered[middle - 1] + ordered[middle]) / 2.0
+        if count < UNIVERSE_MIN_RATIO_OF_RECENT_MEDIAN * median:
+            return "低于近 %d 次成功运行中位数 %.0f 只的 %d%%" % (len(history), median, int(UNIVERSE_MIN_RATIO_OF_RECENT_MEDIAN * 100))
+    return None
+
+
+def _failure_path(out_dir: Path) -> Path:
+    return Path(out_dir) / FAILURE_FILE
+
+
+def _record_universe_failure(out_dir: Path, error: UniverseIncompleteError) -> None:
+    Path(out_dir).mkdir(parents=True, exist_ok=True)
+    _write_json(_failure_path(out_dir), {"code": "UNIVERSE_INCOMPLETE", "count": error.count, "minimum": error.minimum, "reason": error.reason,
+                                         "message": str(error), "recorded_at": datetime.now(timezone.utc).isoformat()})
+
+
+def _clear_failure(out_dir: Path) -> None:
+    try:
+        _failure_path(out_dir).unlink()
+    except OSError:
+        pass
+
+
 # ---- 主流程 ----------------------------------------------------------------------------
 def _strip_findings(params: dict) -> dict:
     """进入快照 hash 的只有版本与内容 hash；findings 与 source（本轮参数来自 REMOTE/LKG/LOCAL）是运行事件，
@@ -320,6 +385,13 @@ def run_cycle(cfg: CycleConfig, hooks: Optional[Hooks] = None, log: Callable[[st
     active = resolution.active_skills()
     log("registry: %s ref=%s active skills %s" % (resolution.registry_source, cfg.ref, active))
     universe_path, universe = hooks.universe(cfg, log)
+    pool_size = len(universe.get("entries") or [])
+    reason = check_universe_size(pool_size, recent_universe_counts(cfg.out_dir), cfg.universe_min_count)
+    if reason is not None:                                   # 不采集、不建快照、不启动分支
+        error = UniverseIncompleteError(pool_size, cfg.universe_min_count, reason)
+        _record_universe_failure(cfg.out_dir, error)
+        log("cycle: REFUSED %s" % error)
+        raise error
     collected = hooks.collect(cfg, universe_path, universe, log)
     as_of = universe["as_of_date"]
 
@@ -334,28 +406,42 @@ def run_cycle(cfg: CycleConfig, hooks: Optional[Hooks] = None, log: Callable[[st
     day_dir = Path(cfg.out_dir) / as_of
     day_dir.mkdir(parents=True, exist_ok=True)
     cycle_file = day_dir / ("cycle-%s.json" % digest12)
-    if cycle_file.is_file() and not cfg.force:
-        summary = json.loads(cycle_file.read_text("utf-8"))
-        shortlist_file = day_dir / ("shortlist-%s.json" % digest12)
-        _ensure_hub_inputs(day_dir, digest12, snapshot, json.loads(shortlist_file.read_text("utf-8"))["entries"])
-        _write_json(day_dir / "latest.json", _latest_pointer(as_of, snapshot.sha256, cycle_file.name, digest12))
-        summary["reused"] = True
-        summary["branch_runs_this_invocation"] = 0
-        summary["collection_this_invocation"] = collected.stats
-        log("cycle: snapshot %s already processed -> reused (no branch re-run, no double counting)" % digest12)
-        return summary
-
     specs = cfg.branch_specs or branch_entries.default_specs()
     specs = [s for s in specs if s.branch_id in active]
-    receipts = run_branches(snapshot_path, specs, day_dir / "branches", work_root=cfg.work_dir / "tmp", python=cfg.python,
-                            max_parallel=cfg.max_parallel, log=log)
+    kept: List[BranchReceipt] = []
+    rerun_only = False
+    if cycle_file.is_file() and not cfg.force:
+        summary = json.loads(cycle_file.read_text("utf-8"))
+        failed = {r["branch_id"] for r in summary["receipts"] if r["status"] == "FAILED"}
+        if not failed:
+            shortlist_file = day_dir / ("shortlist-%s.json" % digest12)
+            _ensure_hub_inputs(day_dir, digest12, snapshot, json.loads(shortlist_file.read_text("utf-8"))["entries"])
+            _write_json(day_dir / "latest.json", _latest_pointer(as_of, snapshot.sha256, cycle_file.name, digest12))
+            _clear_failure(cfg.out_dir)
+            summary["reused"] = True
+            summary["branch_runs_this_invocation"] = 0
+            summary["collection_this_invocation"] = collected.stats
+            log("cycle: snapshot %s already processed -> reused (no branch re-run, no double counting)" % digest12)
+            return summary
+        # FAILED 的收据不缓存：只重跑失败的分支，PASS / ABSTAIN 的收据与结论原样保留
+        log("cycle: snapshot %s processed but %s FAILED -> rerun only those (others reused)" % (digest12, sorted(failed)))
+        rerun_only = True
+        kept = [BranchReceipt(**r) for r in summary["receipts"] if r["branch_id"] not in failed]
+        specs = [s for s in specs if s.branch_id in failed]
+    rerun = run_branches(snapshot_path, specs, day_dir / "branches", work_root=cfg.work_dir / "tmp", python=cfg.python,
+                         max_parallel=cfg.max_parallel, log=log)
+    order = {spec.branch_id: index for index, spec in enumerate(cfg.branch_specs or branch_entries.default_specs())}
+    receipts = sorted(kept + rerun, key=lambda r: order.get(r.branch_id, len(order)))
     shortlist = build_shortlist(receipts)
     shortlist_doc = {"schema": "signal-lattice-shortlist/1", "as_of": as_of, "snapshot_sha256": snapshot.sha256,
                      "generated_at": datetime.now(timezone.utc).isoformat(), "count": len(shortlist), "cap": SHORTLIST_MAX,
                      "rule": "任一分支 PASS 的并集 + 各分支（非 FAILED、分数>0）前 %d 名，最多 %d 只" % (SHORTLIST_TOP_N, SHORTLIST_MAX),
                      "entries": shortlist}
     _write_json(day_dir / ("shortlist-%s.json" % digest12), shortlist_doc)
-    _ensure_hub_inputs(day_dir, digest12, snapshot, shortlist)
+    if rerun_only:                                           # 重跑过分支：shortlist 变了，中枢输入要跟着重写
+        hub_inputs.write(day_dir / ("hubinputs-%s.json" % digest12), hub_inputs.build(snapshot, shortlist))
+    else:
+        _ensure_hub_inputs(day_dir, digest12, snapshot, shortlist)
     summary = {
         "as_of": as_of, "snapshot": str(snapshot_path), "snapshot_sha256": snapshot.sha256, "universe_count": universe["count"],
         "params": {sid: {"registry_version": s.registry_version, "params_version": s.params_version, "params_sha256": s.params_sha256,
@@ -364,10 +450,11 @@ def run_cycle(cfg: CycleConfig, hooks: Optional[Hooks] = None, log: Callable[[st
         "receipts": [r.to_dict() for r in receipts],
         "shortlist_file": str(day_dir / ("shortlist-%s.json" % digest12)), "shortlist_count": len(shortlist),
         "collection": collected.stats, "elapsed_seconds": round(time.time() - started, 1), "reused": False,
-        "branch_runs_this_invocation": len(receipts), "collection_this_invocation": collected.stats,
+        "branch_runs_this_invocation": len(rerun), "collection_this_invocation": collected.stats,
     }
     _write_json(cycle_file, summary)
     _write_json(day_dir / "latest.json", _latest_pointer(as_of, snapshot.sha256, cycle_file.name, digest12))
+    _clear_failure(cfg.out_dir)
     return summary
 
 
@@ -505,7 +592,17 @@ def cli_main(args: argparse.Namespace, project_root: Path) -> int:
         hub_inputs_only(args.out_dir)
         return 0
     cfg = config_from_args(args, project_root)
-    summary = run_cycle(cfg)
+    if not cfg.offline:                                      # 要联网就先确认 SEC User-Agent 已配置：缺失就报清楚的错误并退出，不发任何请求
+        try:
+            user_agent_from_env()
+        except SecUserAgentMissing as exc:
+            print("研究层失败：%s" % exc, file=sys.stderr)
+            return EXIT_SEC_USER_AGENT_MISSING
+    try:
+        summary = run_cycle(cfg)
+    except UniverseIncompleteError as exc:
+        print("研究层失败：%s" % exc, file=sys.stderr)
+        return EXIT_UNIVERSE_INCOMPLETE
     print(render_report(summary, top=args.top))
     failed = [r["branch_id"] for r in summary["receipts"] if r["status"] == "FAILED"]
     return 2 if failed else 0

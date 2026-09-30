@@ -17,7 +17,8 @@ import urllib.request
 from pathlib import Path
 from typing import Callable, Optional
 
-DEFAULT_USER_AGENT = "SignalLattice research ops@linzezhang.com"
+# SEC 要求每个请求在 User-Agent 里声明联系方式。仓库里不放任何真实域名或人名作为默认值：
+# 必须由部署环境配置 SIGNAL_LATTICE_SEC_UA（格式：「项目或公司名 联系邮箱」）；缺失就报清楚的错误，不静默用默认值。
 USER_AGENT_ENV = "SIGNAL_LATTICE_SEC_UA"
 MAX_REQUESTS_PER_SECOND = 5
 # 间隔取 0.21 秒：任意闭区间 1 秒内最多 5 次（5×0.21>1）。
@@ -71,8 +72,16 @@ class RateLimiter:
 GLOBAL_LIMITER = RateLimiter()
 
 
+class SecUserAgentMissing(RuntimeError):
+    """没有配置 SEC User-Agent：研究层不能向 SEC 发请求。"""
+
+
 def user_agent_from_env() -> str:
-    return os.environ.get(USER_AGENT_ENV, "").strip() or DEFAULT_USER_AGENT
+    value = os.environ.get(USER_AGENT_ENV, "").strip()
+    if not value:
+        raise SecUserAgentMissing("缺少 SEC User-Agent：请设置环境变量 %s（格式：「项目或公司名 联系邮箱」，SEC 要求每个请求声明联系方式）。"
+                                  "仓库不内置任何默认值。" % USER_AGENT_ENV)
+    return value
 
 
 def form4_raw_xml_name(primary_document: str) -> str:

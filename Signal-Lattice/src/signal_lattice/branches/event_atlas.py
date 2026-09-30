@@ -31,6 +31,7 @@ from ..evidence.insiders import (OPPORTUNISTIC, ROUTINE, UNCLASSIFIABLE, classif
                                  opportunistic_summary)
 from ..evidence.prospectus import ATM, EQUITY_OFFERING, OTHER, UNVERIFIED, document_url
 from . import event_study
+from .param_floors import enforce_not_looser
 
 DEFAULT_PARAMS_PATH = (Path(__file__).resolve().parents[3] / "Stock_Skill" / "equity-event-atlas" / "runtime" / "params.json")
 PARAMS_SCHEMA = "equity-event-atlas/params-v1"
@@ -69,8 +70,22 @@ class ParamsError(ValueError):
     pass
 
 
+# 远端参数只许收紧、不许放宽：下面是仓库内 Stock_Skill/equity-event-atlas/runtime/params.json 的门槛（写死在代码里，
+# 远端文件改不了它；tests 里有一条核对它与仓库参数文件一致）。
+FLOORS = {
+    "insider.min_purchase_usd": ("min", 25000), "insider.pass_min_opportunistic_insiders": ("min", 1),
+    "insider.pass_min_total_usd": ("min", 25000), "insider.cluster_min_insiders": ("min", 2),
+    "insider.offering_like_min_buyers": ("max", 4),       # 同日买家 >= 这个数按增发参与处理：数越小越严
+    "insider.window_days": ("max", 90),                    # 买入落在窗口内才算正向事件：窗口越短越严
+    "dilution.lookback_days": ("min", 90),                 # 增发回看越长越严
+    "dilution.share_growth_yoy_threshold": ("max", 0.10),  # 股数同比阈值越低越严
+    "study.min_sample": ("min", 30), "study.entry_lag_trading_days": ("min", 1),
+    "verdict.positive_kinds": ("subset", ["INSIDER_BUY_OPPORTUNISTIC"]),
+}
+
+
 def validate_params(params: Mapping) -> Mapping:
-    """简单 schema 校验：必需字段、类型、取值范围。不合格就抛 ParamsError，调用方沿用上一份好参数。"""
+    """简单 schema 校验：必需字段、类型、取值范围，再核对关键门槛不比仓库默认宽松。不合格就抛 ParamsError，调用方沿用上一份好参数。"""
     def need(block: Mapping, key: str, kind, where: str):
         if key not in block or not isinstance(block[key], kind) or isinstance(block[key], bool) and kind is not bool:
             raise ParamsError("%s.%s 缺失或类型不对" % (where, key))
@@ -128,6 +143,7 @@ def validate_params(params: Mapping) -> Mapping:
     need(verdict, "score", dict, "verdict")
     if need(verdict, "top_n", int, "verdict") < 1:
         raise ParamsError("verdict.top_n 需 >= 1")
+    enforce_not_looser(params, FLOORS, ParamsError, "equity-event-atlas")
     return params
 
 

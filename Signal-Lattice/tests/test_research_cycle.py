@@ -119,7 +119,7 @@ class CycleTests(unittest.TestCase):
         cls.hooks = FakeHooks(cls.universe)
         cls.cfg = RC.CycleConfig(project_root=ROOT, work_dir=cls.tmp / "work", out_dir=cls.tmp / "out", facts_db=cls.facts, events_db=cls.events,
                                  bars_dir=cls.bars, text_cache_dir=cls.tmp / "tc", structure_cache_dir=cls.tmp / "sc", sec_cache_dir=cls.tmp / "sec",
-                                 offline=True, python=sys.executable)
+                                 offline=True, python=sys.executable, universe_min_count=10)       # 合成候选池只有 14 只，绝对下限按它放低（线上默认 600）
         cls.first = RC.run_cycle(cls.cfg, cls.hooks, log=lambda m: None)
 
     @classmethod
@@ -260,11 +260,156 @@ class CycleTests(unittest.TestCase):
         for branch_id in a:
             self.assertEqual(a[branch_id]["verdicts_sha256"], b[branch_id]["verdicts_sha256"], branch_id)
 
+    def test_a_successful_cycle_clears_a_leftover_universe_failure_marker(self):
+        """缺陷 #6：候选池缩水时研究层写 research-failure.json，实时层据此 SYSTEM_BLOCKED；下一次正常跑完要把它撤掉。"""
+        marker = self.cfg.out_dir / RC.FAILURE_FILE
+        marker.write_text(json.dumps({"code": "UNIVERSE_INCOMPLETE", "count": 5}), "utf-8")
+        RC.run_cycle(self.cfg, self.hooks, log=lambda m: None)
+        self.assertFalse(marker.exists())
+
     def test_report_prints_counts_receipts_shortlist_and_brier_block(self):
         text = RC.render_report(self.first, top=5)
         for needle in ("PASS", "snapshot_hash=", "params_version=", "shortlist 前 5", "所有收据的 snapshot_hash 相同：是", "样本外 Brier"):
             self.assertIn(needle, text)
         self.assertNotIn("UNIMPLEMENTED", text)
+
+
+class StubHooks(RC.Hooks):
+    """只给候选池，不采集：采集被调用就说明候选池检查没拦住。"""
+
+    def __init__(self, count, name="stub"):
+        self.count, self.collected = count, False
+        self.path = Path("/synthetic/%s.json" % name)
+
+    def universe(self, cfg, log):
+        entries = [{"symbol": "S%04d" % i, "cik": 1000 + i, "name": "S%d" % i, "exchange": "Nasdaq", "market_cap_usd": 5e8} for i in range(self.count)]
+        return self.path, {"schema": "signal-lattice-universe/1", "as_of_date": AS_OF, "count": self.count, "entries": entries, "rules": {},
+                           "content_sha256": "u" * 64, "generated_at": datetime.now(timezone.utc).isoformat()}
+
+    def collect(self, cfg, universe_path, universe, log):
+        self.collected = True
+        raise RuntimeError("STOP_AFTER_UNIVERSE_CHECK")
+
+
+class UniverseShrinkTests(unittest.TestCase):
+    """缺陷 #6：候选池缩水或为空（上游取数不全）不能悄悄产出一份「更干净」的快照。"""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp(prefix="sl-universe-shrink-"))
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+        self.cfg = RC.CycleConfig(project_root=ROOT, work_dir=self.tmp / "work", out_dir=self.tmp / "out", facts_db=self.tmp / "f.sqlite",
+                                  events_db=self.tmp / "e.sqlite", bars_dir=self.tmp / "b", text_cache_dir=self.tmp / "t", structure_cache_dir=self.tmp / "s",
+                                  sec_cache_dir=self.tmp / "c", offline=True, python=sys.executable)
+
+    def seed_history(self, counts):
+        for index, count in enumerate(counts):
+            day = self.tmp / "out" / ("2026-09-%02d" % (index + 1))
+            day.mkdir(parents=True, exist_ok=True)
+            (day / ("cycle-%02d.json" % index)).write_text(json.dumps({"universe_count": count, "receipts": []}), "utf-8")
+            os.utime(day / ("cycle-%02d.json" % index), (1_700_000_000 + index, 1_700_000_000 + index))
+
+    def test_a_pool_below_the_absolute_floor_is_refused_before_anything_is_collected_or_snapshotted(self):
+        hooks = StubHooks(599)
+        with self.assertRaises(RC.UniverseIncompleteError) as raised:
+            RC.run_cycle(self.cfg, hooks, log=lambda m: None)
+        self.assertEqual(raised.exception.count, 599)
+        self.assertFalse(hooks.collected)
+        self.assertFalse((self.cfg.work_dir / "snapshots").exists())                     # 没有产出任何快照
+        marker = json.loads((self.cfg.out_dir / RC.FAILURE_FILE).read_text("utf-8"))
+        self.assertEqual((marker["code"], marker["count"], marker["minimum"]), ("UNIVERSE_INCOMPLETE", 599, 600))
+
+    def test_an_empty_pool_is_refused_too(self):
+        with self.assertRaises(RC.UniverseIncompleteError):
+            RC.run_cycle(self.cfg, StubHooks(0), log=lambda m: None)
+        self.assertEqual(json.loads((self.cfg.out_dir / RC.FAILURE_FILE).read_text("utf-8"))["count"], 0)
+
+    def test_a_pool_at_the_floor_passes_the_check(self):
+        hooks = StubHooks(600)
+        with self.assertRaises(RuntimeError) as raised:
+            RC.run_cycle(self.cfg, hooks, log=lambda m: None)
+        self.assertEqual(str(raised.exception), "STOP_AFTER_UNIVERSE_CHECK")            # 过了检查，走到采集
+        self.assertTrue(hooks.collected)
+
+    def test_a_pool_below_70_percent_of_the_median_of_the_last_five_is_refused(self):
+        self.seed_history([1000, 1010, 990, 1005, 995, 4000])                           # 只看最近 5 次：1010 990 1005 995 4000 -> 中位 1005
+        self.assertEqual(RC.recent_universe_counts(self.cfg.out_dir), [1010, 990, 1005, 995, 4000])
+        with self.assertRaises(RC.UniverseIncompleteError) as raised:
+            RC.run_cycle(self.cfg, StubHooks(703), log=lambda m: None)                   # 703 < 0.7 * 1005 = 703.5
+        self.assertIn("近 5 次", str(raised.exception.reason))
+        hooks = StubHooks(704)
+        with self.assertRaises(RuntimeError):
+            RC.run_cycle(self.cfg, hooks, log=lambda m: None)
+        self.assertTrue(hooks.collected)
+
+    def test_the_live_hooks_path_enforces_it_as_well(self):
+        snapshot = self.tmp / "universe-small.json"
+        entries = [{"symbol": "S%d" % i, "cik": i, "name": "S", "exchange": "Nasdaq"} for i in range(40)]
+        snapshot.write_text(json.dumps({"as_of_date": AS_OF, "count": 40, "entries": entries, "generated_at": datetime.now(timezone.utc).isoformat()}), "utf-8")
+        import dataclasses
+        cfg = dataclasses.replace(self.cfg, universe_snapshot=snapshot)
+        with self.assertRaises(RC.UniverseIncompleteError):
+            RC.run_cycle(cfg, RC.LiveHooks(), log=lambda m: None)                        # LiveHooks：候选池文件只有 40 只，没发起任何网络请求
+
+    def test_the_cli_reports_a_clear_failure_and_a_nonzero_exit(self):
+        import argparse
+        import contextlib
+        import io
+        snapshot = self.tmp / "universe-small.json"
+        snapshot.write_text(json.dumps({"as_of_date": AS_OF, "count": 3, "entries": [{"symbol": "A", "cik": 1, "name": "A", "exchange": "Nasdaq"}] * 3,
+                                        "generated_at": datetime.now(timezone.utc).isoformat()}), "utf-8")
+        parser = argparse.ArgumentParser()
+        RC.add_arguments(parser)
+        args = parser.parse_args(["--work-dir", str(self.tmp / "w"), "--out-dir", str(self.tmp / "o"), "--offline", "--universe-snapshot", str(snapshot)])
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            code = RC.cli_main(args, ROOT)
+        self.assertEqual(code, 3)
+        self.assertIn("候选池数据不完整（只取到 3 只）", err.getvalue())
+
+
+class FailedBranchIsNotCachedTests(unittest.TestCase):
+    """缺陷 #7：同一份快照再跑时，上次 FAILED 的分支要重跑（PASS / ABSTAIN 的可以复用）。"""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = Path(tempfile.mkdtemp(prefix="sl-failed-rerun-"))
+        cls.facts, cls.events, cls.bars, cls.universe = build_world(cls.tmp)
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.tmp, ignore_errors=True)
+
+    def test_a_failed_branch_reruns_while_the_abstained_one_is_reused(self):
+        from unittest.mock import patch
+        from signal_lattice.branch_runner import BranchSpec
+        import signal_lattice as package
+        specs = [BranchSpec("equity-event-atlas", "_fake_branches:flaky_branch", (), 1024, 60, 60),
+                 BranchSpec("bottleneck-serenity-skill", "_fake_branches:abstain_branch", (), 1024, 60, 60)]
+        cfg = RC.CycleConfig(project_root=ROOT, work_dir=self.tmp / "work", out_dir=self.tmp / "out", facts_db=self.facts, events_db=self.events,
+                             bars_dir=self.bars, text_cache_dir=self.tmp / "tc", structure_cache_dir=self.tmp / "sc", sec_cache_dir=self.tmp / "sec",
+                             offline=True, python=sys.executable, universe_min_count=10, branch_specs=specs)
+        hooks = FakeHooks(self.universe)
+        tests_dir = str(Path(__file__).resolve().parent)
+        with patch.dict(os.environ, {"PYTHONPATH": os.pathsep.join([tests_dir, str(Path(package.__file__).resolve().parents[1])])}):
+            first = RC.run_cycle(cfg, hooks, log=lambda m: None)
+            status = {r["branch_id"]: r["status"] for r in first["receipts"]}
+            self.assertEqual(status, {"equity-event-atlas": "FAILED", "bottleneck-serenity-skill": "ABSTAIN"})
+            abstain_file = Path(next(r for r in first["receipts"] if r["branch_id"] == "bottleneck-serenity-skill")["verdicts_file"])
+            abstain_before = (abstain_file.read_bytes(), abstain_file.stat().st_mtime_ns)
+            (self.tmp / "work" / "snapshots" / "flaky-ok.flag").write_text("ok", "utf-8")       # 之后这个分支恢复正常
+            second = RC.run_cycle(cfg, hooks, log=lambda m: None)
+            self.assertFalse(second["reused"])
+            self.assertEqual(second["branch_runs_this_invocation"], 1)                           # 只重跑了失败的那一个
+            status = {r["branch_id"]: r["status"] for r in second["receipts"]}
+            self.assertEqual(status, {"equity-event-atlas": "PASS", "bottleneck-serenity-skill": "ABSTAIN"})
+            self.assertEqual((abstain_file.read_bytes(), abstain_file.stat().st_mtime_ns), abstain_before)   # ABSTAIN 的产物原样复用，没动
+            shortlist = json.loads(Path(second["shortlist_file"]).read_text("utf-8"))
+            self.assertEqual(second["shortlist_count"], shortlist["count"])
+            third = RC.run_cycle(cfg, hooks, log=lambda m: None)
+            self.assertTrue(third["reused"])                                                     # 现在全部不是 FAILED：复用
+            self.assertEqual(third["branch_runs_this_invocation"], 0)
+            day = self.tmp / "out" / AS_OF
+            self.assertEqual(len(list(day.glob("cycle-*.json"))), 1)
 
 
 if __name__ == "__main__":

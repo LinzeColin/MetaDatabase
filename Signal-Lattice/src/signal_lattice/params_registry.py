@@ -6,6 +6,8 @@
 - 拉下来的内容先按各分支自己的 validate_params 做 schema 校验，通过才写入 LKG 与本轮的 active 目录；
 - 优先级：远端（校验通过）> LKG > 本地仓库文件（校验通过）> 分支内置默认（源码里的 DEFAULT_PARAMS）；
 - 网络失败 / 非 JSON / 超过 1 MB / 校验失败 -> 用 LKG，并把原因写进 findings（不吞、不静默）；
+- 校验里含「只许收紧、不许放宽」：各分支 validate_params 会核对关键门槛不低于仓库内默认值；
+- 参数内容 sha256 变了而 params_version 没变 -> 改动没走版本管理，拒绝采纳、继续用 LKG，并记 PARAMS_CONTENT_CHANGED_WITHOUT_VERSION_BUMP；
 - 每轮输出每个 Skill 的 registry 版本、params_version、params 内容 sha256、来源（REMOTE/LKG/LOCAL/BUILTIN），
   写进证据快照，中枢和页面能看到「这一轮用的是哪一版参数」。
 """
@@ -326,10 +328,20 @@ class ParamsResolver:
         remote_payload, fetch_error = self._fetch("params-" + skill_id, self.remote_url(project_dir, "runtime/params.json"))
         if remote_payload is not None:
             remote, remote_error = self._load_valid(remote_payload, spec.validator)
-            if remote is not None:
-                chosen = (remote_payload, remote, SOURCE_REMOTE)
-            else:
+            # 「之前」= LKG；首次运行没有 LKG 时以本地仓库文件为参照
+            reference_payload, reference = (lkg[0], lkg[1]) if lkg else (local_payload, local)
+            if remote is None:
                 result.findings.append(_finding("REMOTE_PARAMS_INVALID", remote_error or "", "KEEPING_LKG", skill_id))
+            elif (reference is not None and remote["params_version"] == reference["params_version"]
+                  and sha256_hex(remote_payload) != sha256_hex(reference_payload)):
+                # 内容变了、版本号没变：改动没有走版本管理，不采纳；继续用 LKG（没有 LKG 用本地仓库文件）
+                result.findings.append(_finding("PARAMS_CONTENT_CHANGED_WITHOUT_VERSION_BUMP",
+                                                "%s：远端内容 sha256 %s 与已采纳的 %s 不同，但版本号仍是 %s" % (
+                                                    skill_id, sha256_hex(remote_payload)[:12], sha256_hex(reference_payload)[:12],
+                                                    reference["params_version"]),
+                                                "REJECTED_KEEPING_LKG" if lkg else "REJECTED_KEEPING_LOCAL", skill_id))
+            else:
+                chosen = (remote_payload, remote, SOURCE_REMOTE)
         elif fetch_error != "NETWORK_DISABLED":
             result.findings.append(_finding("REMOTE_PARAMS_UNAVAILABLE", fetch_error or "", "KEEPING_LKG", skill_id))
 
@@ -356,9 +368,6 @@ class ParamsResolver:
             if digest != reference_sha or lkg is None:
                 if previous is not None and previous != parsed["params_version"]:
                     result.findings.append(_finding("PARAMS_UPDATED", "%s -> %s（%s）" % (previous, parsed["params_version"], source),
-                                                    "NEW_PARAMS_ACTIVE", skill_id))
-                elif previous is not None and digest != reference_sha:
-                    result.findings.append(_finding("PARAMS_CONTENT_CHANGED_WITHOUT_VERSION_BUMP", "%s（%s）" % (previous, source),
                                                     "NEW_PARAMS_ACTIVE", skill_id))
             if lkg is None or digest != sha256_hex(lkg[0]):
                 self._save_lkg(spec, payload, parsed, source)

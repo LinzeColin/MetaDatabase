@@ -75,6 +75,9 @@ PROOF_GATE_RULE = ("规则自证门：满足任一才允许发布唯一建议。
                    % (PROOF_MIN_OOS_WINDOWS, PROOF_MIN_PLACEBO_WINDOWS, PROOF_BACKTEST_MAX_AGE_DAYS, PROOF_FORWARD_MIN_SETTLED,
                       int(PROOF_FORWARD_MIN_HIT_RATE * 100)))
 
+# 候选比较里，因为规则自证门没开而排除的行，「差在哪」只写这一句：门的完整依据在首屏，不在每一行重复。
+PROOF_GATE_SHORT_SENTENCE = "规则自证门未开（见首屏）"
+
 ACTION_FOLLOW = "研究跟进（看多）"
 # 展示层按这个机器码上色；颜色只绑机器码，不绑中文文案（改文案不会让颜色静默失效）。
 ACTION_CODES: Dict[str, str] = {
@@ -422,6 +425,7 @@ _PROBLEM_TEXT = {
     "HUBINPUTS_MISSING": "研究产物缺少中枢输入文件",
     "HUBINPUTS_MISMATCH": "中枢输入与快照不是同一份",
     "HUBINPUTS_UNREADABLE": "中枢输入文件读不出来",
+    "UNIVERSE_INCOMPLETE": "候选池数据不完整",
 }
 
 
@@ -466,6 +470,11 @@ def data_chain(research: ResearchView, now: datetime) -> dict:
 def system_block(research: ResearchView, now: datetime, *, quotes_available: bool = True) -> Optional[dict]:
     """数据链不完整：返回阻断决策；完整返回 None。"""
     chain = data_chain(research, now)
+    shrunk = next((p for p in research.problems if p.startswith("UNIVERSE_INCOMPLETE")), None)
+    if shrunk is not None:
+        count = shrunk.partition(":")[2] or "未知"
+        message = "候选池数据不完整（只取到 %s 只），本轮不出结论。" % count
+        return blocked_decision("UNIVERSE_INCOMPLETE", message, details=chain)
     if research.problems:
         message = "数据链不完整：" + humanize_problems(research.problems) + "。本轮不出结论。"
         return blocked_decision("RESEARCH_CHAIN_INCOMPLETE", message, details=chain)
@@ -993,7 +1002,8 @@ def _candidate_view(research: ResearchView, summary: dict, row: dict, market: Ma
         "passes_all_gates": all(g["ok"] for g in row["gates"].values()),
         "passes_candidate_gates": all(row["gates"][k]["ok"] for k in CANDIDATE_GATES),
         "branch_kinds": {i["branch_id"]: i["kind"] for i in summary["all"]},
-        "failed_gate": failed_name, "gate_summary": ("差在【%s】：%s%s" % (failed_name, failed_detail, "；这只股本身的其余门都过了" if failed_name == "规则自证门" else "")) if failed_name else "全部门通过（与唯一建议同分，平局按事件新近度排在后面）",
+        "failed_gate": failed_name, "gate_summary": (PROOF_GATE_SHORT_SENTENCE if failed_name == "规则自证门" else "差在【%s】：%s" % (failed_name, failed_detail)) if failed_name
+        else "全部门通过（与唯一建议同分，平局按事件新近度排在后面）",
         "links": [x["url"] for i in summary["counted"] for x in i["links"][:1]] or _any_sec_link(research, symbol),
         "latest_event_date": summary["latest_event_date"],
     }

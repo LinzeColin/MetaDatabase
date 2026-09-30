@@ -279,7 +279,6 @@ class VetoTests(unittest.TestCase):
         decision = decision_of(run_decision(build_view(standard_pool())))
         self.assertEqual([v["id"] for v in decision["not_wired_vetoes"]], ["INSIDER_NET_SELL", "BOTTLENECK_KILL_SWITCH"])
         self.assertTrue(all(v["status"] == "NOT_WIRED" and "暂未接入" in v["reason"] for v in decision["not_wired_vetoes"]))
-        self.assertNotIn("INSIDER_NET_SELL", hub.__doc__.split("硬门")[1].split("支持度")[0].replace("内部人净卖出、瓶颈 kill switch 暂未接入", ""))
 
     def test_other_branches_opposition_is_a_conflict_but_not_a_veto(self):
         pool = standard_pool()

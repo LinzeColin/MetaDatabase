@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional
 
 from . import branch_notes
+from .names import pretty_name
 
 STOCK_BRANCHES = ("equity-event-atlas", "bottleneck-serenity-skill", "stock-commercial-opportunities", "equity-foresight-signal")
 ENVIRONMENT_BRANCH = "global-equity-lead-lag-atlas"
@@ -31,6 +32,7 @@ BRANCH_LABELS = {
     "global-equity-lead-lag-atlas": "全球联动",
 }
 RANK_TOP_FRACTION = 0.10
+FAILURE_FILE = "research-failure.json"      # 研究层拒绝产出快照（候选池缩水）时写在 out_dir 根目录的失败标记
 
 
 @dataclass
@@ -96,7 +98,7 @@ def _slim(record: Mapping) -> dict:
             keep[key] = evidence[key]
     return {"verdict": record["verdict"], "label": record.get("label"), "score": record.get("score"),
             "rank_key": record.get("rank_key"), "reasons": list(record.get("reasons") or []),
-            "links": [dict(x) for x in (record.get("links") or [])], "name": record.get("name"),
+            "links": [dict(x) for x in (record.get("links") or [])], "name": pretty_name(record.get("name")),
             "market_cap_usd": record.get("market_cap_usd"), "evidence": keep}
 
 
@@ -120,6 +122,13 @@ def _rank_table(records: Mapping[str, Mapping]) -> dict:
 
 def load_research(out_dir: Path) -> ResearchView:
     view = ResearchView(directory=Path(out_dir))
+    failure = Path(out_dir) / FAILURE_FILE
+    if failure.is_file():
+        try:
+            count = int(_read(failure).get("count"))
+        except (OSError, ValueError, TypeError, AttributeError):
+            count = -1
+        view.problems.append("UNIVERSE_INCOMPLETE:%s" % ("未知" if count < 0 else count))
     day = latest_day_dir(Path(out_dir))
     if day is None:
         view.problems.append("RESEARCH_MISSING:研究层还没有产出任何结果")
@@ -135,7 +144,7 @@ def load_research(out_dir: Path) -> ResearchView:
     view.snapshot_sha256 = latest.get("snapshot_sha256") or ""
     view.generated_at = _parse(shortlist_doc.get("generated_at"))
     view.checked_at = _parse(latest.get("checked_at"))
-    view.shortlist = list(shortlist_doc.get("entries") or [])
+    view.shortlist = [{**item, "name": pretty_name(item.get("name"))} for item in shortlist_doc.get("entries") or []]
     view.universe_count = int(cycle.get("universe_count") or 0)
     if shortlist_doc.get("snapshot_sha256") != view.snapshot_sha256:
         view.problems.append("SNAPSHOT_MISMATCH:shortlist 与 latest 指向的快照不是同一份")
@@ -176,7 +185,7 @@ def load_research(out_dir: Path) -> ResearchView:
         try:
             inputs = _read(day / hub_file)
             if inputs.get("snapshot_sha256") == view.snapshot_sha256:
-                view.pool = {row["symbol"]: row for row in inputs.get("pool", [])}
+                view.pool = {row["symbol"]: {**row, "name": pretty_name(row.get("name"))} for row in inputs.get("pool", [])}
                 view.fundamentals = dict(inputs.get("fundamentals") or {})
             else:
                 view.problems.append("HUBINPUTS_MISMATCH:中枢输入与快照不是同一份")

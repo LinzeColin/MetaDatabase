@@ -3,7 +3,6 @@
 from .collector import collect_company
 from .factstore import Fact, FactStore
 from .sec_client import (
-    DEFAULT_USER_AGENT,
     GLOBAL_LIMITER,
     MAX_ATTEMPTS,
     MAX_REQUESTS_PER_SECOND,
@@ -11,11 +10,11 @@ from .sec_client import (
     SecClient,
     SecFetchError,
     SecNotFound,
+    SecUserAgentMissing,
     form4_raw_xml_name,
 )
 
 __all__ = [
-    "DEFAULT_USER_AGENT",
     "GLOBAL_LIMITER",
     "MAX_ATTEMPTS",
     "MAX_REQUESTS_PER_SECOND",
@@ -25,6 +24,7 @@ __all__ = [
     "SecClient",
     "SecFetchError",
     "SecNotFound",
+    "SecUserAgentMissing",
     "collect_company",
     "form4_raw_xml_name",
 ]

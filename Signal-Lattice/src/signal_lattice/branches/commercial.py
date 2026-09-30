@@ -28,6 +28,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 
 from ..evidence.factstore import FactStore
+from .param_floors import enforce_not_looser, floors_from_defaults
 from .fundamentals import CHINA_HK_CODES, US_STATE_CODES, Fundamentals, MarketInput, PeerContext, compute_fundamentals
 from .scoring_support import (NO_EVIDENCE, EvidenceRef, FactorResult, ParamsError, Receipt, _check_weights,
                               check_shape, check_table, check_unit_interval, clamp, dedupe_refs, load_params,
@@ -131,6 +132,12 @@ FACTOR_SOURCES: Dict[str, str] = {
 }
 
 
+# 远端参数只许收紧：发布/证据门槛不得低于仓库默认（阈值越高越严）。
+FLOOR_RULES = {"decision.reject_below": "min", "decision.screen_flag_below": "min", "decision.watchlist_below": "min",
+               "decision.diligence_min_confidence": "min", "decision.advance_min_score": "min", "decision.advance_min_confidence": "min",
+               "decision.uncertainty_coefficient": "min", "coverage.base_min_coverage": "min"}
+
+
 def validate_params(params: Any) -> None:
     check_shape(DEFAULT_PARAMS, params, "params")
     _check_weights(params["base_weights"], "base_weights", 100.0, BASE_DIMENSIONS)
@@ -146,6 +153,7 @@ def validate_params(params: Any) -> None:
         raise ParamsError("coverage.required_dimensions 含未知维度")
     for name, table in params["tables"].items():
         check_table(table, "tables." + name)
+    enforce_not_looser(params, floors_from_defaults(DEFAULT_PARAMS, FLOOR_RULES), ParamsError, SKILL_ID)
 
 
 def load_commercial_params(path: Optional[Path] = DEFAULT_PARAMS_PATH) -> Tuple[dict, List[dict]]:

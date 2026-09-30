@@ -99,6 +99,7 @@ function renderDecisionHero(report){
   const kicker=node('div',undefined,{class:'hero-kicker'});
   kicker.append(node('span','实时运行',{class:'live-pill pass'}));
   kicker.append(node('span',`本轮 ${time(report.generated_at)}`));
+  if(report.us_market&&report.us_market.text)kicker.append(node('span',report.us_market.text,{class:`live-pill ${report.us_market.state==='OPEN'?'pass':''}`,'data-market-state':report.us_market.state}));
   main.append(kicker);
   main.append(node('p','最终研究结论',{class:'eyebrow'}));
   main.append(node('h1',statusText(decision),{id:'decision-title','data-action':decision.action_code||'NONE'}));
@@ -200,7 +201,7 @@ function branchCard(r){
   return card;
 }
 function renderBranches(report){
-  const section=panel('分支独立判断','每个分支在独立子进程里只读同一份不可变快照，互相看不到对方的输出。「通过 / 弃权 / 失败」是它对全池每家公司各自的结论数；一句话说明取自它自己的收据与逐股原因。');
+  const section=panel('分支独立判断','每个分支在独立子进程里只读同一份不可变快照，本轮运行时互相看不到对方的输出（同一系统用户下，这是防误读，不是安全边界）。「通过 / 弃权 / 失败」是它对全池每家公司各自的结论数；一句话说明取自它自己的收据与逐股原因。');
   section.setAttribute('id','skills');
   const grid=node('div',undefined,{class:'skill-grid'});
   list(report.receipts).forEach(r=>grid.append(branchCard(r)));
@@ -287,7 +288,7 @@ function backtestBlock(bt){
   if(assumptions.length){const details=node('details',undefined,{class:'assumptions'});details.append(node('summary','回测假设与局限（点开）'));const ul=node('ul',undefined,{class:'plain-list bullets'});assumptions.forEach(a=>ul.append(node('li',a)));details.append(ul);box.append(details)}
   return box;
 }
-const GATE_ROWS=[['pool','候选池','在研究层候选池内（市值 3–50 亿美元、美国本土申报人等）'],['quote','实时报价','报价按交易时间口径新鲜'],['liquidity','流动性','价格 ≥ 3 美元、20 日成交额中位数 ≥ 300 万美元、按最新价市值 ≤ 50 亿'],['veto','一票否决','没有增发/ATM、内部人净卖出、瓶颈 kill switch 等失效条件'],['support','支持度','加权支持度 ≥ 1.3'],['proof','规则自证门','规则先用回测或前向成绩证明自己有信息量']];
+const GATE_ROWS=[['pool','候选池','在研究层候选池内（市值 3–50 亿美元、美国本土申报人等）'],['quote','实时报价','报价按交易时间口径新鲜'],['liquidity','流动性','价格 ≥ 3 美元、20 日成交额中位数 ≥ 300 万美元、按最新价市值 ≤ 50 亿'],['veto','一票否决','没有生效的失效条件：事件航图 FAILED（近 90 天增发/ATM 或股数大增）、此前发布后已失效的建议'],['support','支持度','加权支持度 ≥ 1.3'],['proof','规则自证门','规则先用回测或前向成绩证明自己有信息量']];
 function hardGateBlock(report){
   const box=node('div',undefined,{class:'ledger-block'});
   box.append(node('h3','六道硬门（候选逐一过，全过才可能发布）'));
@@ -305,6 +306,13 @@ function hardGateBlock(report){
     ul.append(li);
   });
   box.append(ul);
+  const notWired=list((report.decision||{}).not_wired_vetoes);
+  if(notWired.length){
+    const small=node('ul',undefined,{class:'plain-list bullets'});
+    notWired.forEach(v=>small.append(node('li',`${txt(v.text)}：暂未接入（${txt(v.reason)}）`)));
+    box.append(node('p','以下否决项暂未接入，不在硬门里，也不会生效：'));
+    box.append(small);
+  }
   return box;
 }
 function renderQuant(report){

@@ -31,6 +31,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 
 from . import event_study
+from .param_floors import enforce_not_looser, floors_from_defaults
 from .scoring_support import ParamsError, check_shape
 
 SKILL_ID = "equity-foresight-signal"
@@ -61,6 +62,12 @@ DEFAULT_PARAMS: Dict[str, Any] = {
 }
 
 
+# 远端参数只许收紧：判定线与成本假设不得比仓库默认更宽松（阈值越高越严；成本越高越保守）。
+FLOOR_RULES = {"decision.min_oos_rows": "min", "decision.min_oos_dates": "min", "decision.pass_min_probability_lift": "min",
+               "decision.pass_min_efs": "min", "decision.min_train_rows": "min", "label.round_trip_cost": "min",
+               "label.entry_lag_trading_days": "min", "walk_forward.min_train_dates": "min", "walk_forward.min_calibration_dates": "min"}
+
+
 def validate_params(params: Any) -> Any:
     check_shape(DEFAULT_PARAMS, params, "params")
     if params["schema"] != PARAMS_SCHEMA or params["skill_id"] != SKILL_ID:
@@ -88,6 +95,7 @@ def validate_params(params: Any) -> Any:
     d = params["decision"]
     if d["min_oos_dates"] < 2 or d["min_oos_rows"] < 1 or not 0 <= d["pass_min_probability_lift"] < 1 or not 0 <= d["pass_min_efs"] <= 100:
         raise ParamsError("decision 参数不合法")
+    enforce_not_looser(params, floors_from_defaults(DEFAULT_PARAMS, FLOOR_RULES), ParamsError, SKILL_ID)
     return params
 
 

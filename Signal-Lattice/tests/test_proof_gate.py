@@ -255,7 +255,11 @@ class ClosedGateDecisionTests(unittest.TestCase):
         self.assertTrue(watch[0]["is_shadow_candidate"])
         self.assertEqual(watch[0]["failed_gate"], "规则自证门")
         for item in watch:
-            self.assertTrue(item["sentence"].startswith("差在【"), item["sentence"])
+            # 缺陷 #13：因规则自证门没开而排除的行（其余门都过了）只写一句短话；其余行仍写差在哪道门
+            if item["failed_gate"] == "规则自证门":
+                self.assertEqual(item["sentence"], "规则自证门未开（见首屏）")
+            else:
+                self.assertTrue(item["sentence"].startswith("差在【"), item["sentence"])
             self.assertTrue(item["links"] and item["links"][0].startswith("https://www.sec.gov/"))
             self.assertIn("support_branches", item)
         self.assertEqual([b["label"] for b in watch[0]["support_branches"]], ["事件航图", "商业机会"])
@@ -285,6 +289,10 @@ class ClosedGateDecisionTests(unittest.TestCase):
         self.assertTrue(alpha["passes_candidate_gates"])
         self.assertFalse(alpha["passes_all_gates"])
         self.assertIn("规则自证门", alpha["gate_summary"])
+        self.assertEqual(alpha["gate_summary"], "规则自证门未开（见首屏）")                # 缺陷 #13：一句短话，不再重复整条依据
+        self.assertNotIn("其余门都过了", alpha["gate_summary"])
+        beta = next(c for c in outcome["candidates"] if c["symbol"] == "BETA")
+        self.assertTrue(beta["gate_summary"].startswith("差在【支持度】"), beta["gate_summary"])      # 别的原因没过的行不受影响
         self.assertEqual(alpha["branch_kinds"][EVENT], "PASS")
         self.assertEqual(decision_of(outcome)["qualifying_candidates"], 1)
 
