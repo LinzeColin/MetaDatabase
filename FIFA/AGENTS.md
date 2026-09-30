@@ -8,7 +8,7 @@ Continue development of the TAB FIFA research-only reporting system with high ac
 
 ## First Files To Read
 
-0. `daily-research/README.md`（当前运行中的每日研究日报，GitHub Actions + GitHub Pages；只研究不下注）
+0. `daily-research/README.md`（当前运行中的每日研究日报，云服务器 VPS-3 定时运行并公网提供；服务器部署件在 `deploy/vps/`；只研究不下注）
 1. `docs/HANDOFF.md`（世界杯时期 TAB 流水线的历史交接）
 2. `docs/DEVELOPMENT_STATUS.md`
 3. `docs/FILE_RETENTION_POLICY.md`

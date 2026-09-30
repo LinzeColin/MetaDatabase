@@ -1,0 +1,35 @@
+[Unit]
+Description=FIFA daily research report (fetch -> build -> validate -> atomic publish)
+Documentation=https://github.com/LinzeColin/MetaDatabase/tree/main/FIFA/deploy/vps
+After=network-online.target
+Wants=network-online.target
+OnFailure=fifa-daily-failed@%n.service
+
+[Service]
+Type=oneshot
+User=fifa-daily
+Group=fifa-daily
+UMask=0022
+ExecStart=/usr/local/bin/fifa-daily-run.sh run
+ExecStopPost=/usr/local/bin/fifa-daily-notify.sh
+TimeoutStartSec=20min
+# 资源限额：日报是「一分钟的批处理」，不许挤占同机其它服务
+MemoryMax=768M
+CPUQuota=200%
+TasksMax=128
+Nice=10
+IOSchedulingClass=idle
+# 沙箱：下载来的代码只在这个无特权用户下跑，只能写自己的目录
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+ReadWritePaths=/var/lib/fifa-daily
+ReadOnlyPaths=/opt/fifa-daily /etc/fifa-daily
