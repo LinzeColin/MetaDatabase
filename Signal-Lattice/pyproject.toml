@@ -19,4 +19,4 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-signal_lattice = ["schema.sql"]
+signal_lattice = ["schema.sql", "evidence_cards/*.yaml", "evidence_cards/verification.json"]

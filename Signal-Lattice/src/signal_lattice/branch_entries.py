@@ -16,6 +16,7 @@ from .branches import foresight as F
 from .branches import lead_lag as LL
 from .branches.fundamentals import Fundamentals, MarketInput, PeerContext, compute_fundamentals
 from .branches.structure_factors import StructureEvidence
+from .evidence.cards import CardBook
 
 BOTTLENECK, COMMERCIAL, EVENT_ATLAS, FORESIGHT, LEAD_LAG = (
     "bottleneck-serenity-skill", "stock-commercial-opportunities", "equity-event-atlas", "equity-foresight-signal",
@@ -69,13 +70,13 @@ def _branch_envelope(verdicts: List[dict], meta: Mapping, params_findings: Seque
 
 
 def bottleneck_receipts(facts: Any, funds: Mapping[str, Fundamentals], structure: Mapping[int, Sequence[Any]], params: Mapping,
-                        findings: Sequence[Mapping], as_of: str) -> Dict[str, Any]:
+                        findings: Sequence[Mapping], as_of: str, cards: Optional[CardBook] = None) -> Dict[str, Any]:
     peers = PeerContext.build(funds.values(), C.DEFAULT_PARAMS["peers"]["min_group"])
     receipts: Dict[str, Any] = {}
     for symbol, f in funds.items():
         filings = [x for x in structure.get(f.cik, []) if x.filed <= as_of]     # 结构性原文只用 as_of 之前已申报的
         receipts[symbol] = B.score_bottleneck(facts, f.market, as_of, params, findings, peers, None, f,
-                                              StructureEvidence(filings) if filings else None)
+                                              StructureEvidence(filings) if filings else None, cards)
     return receipts
 
 
@@ -88,7 +89,9 @@ def bottleneck_records(receipts: Mapping[str, Any]) -> List[dict]:
                 "gates": d["gates"], "hard_flags": d["hard_flags"], "core_quality": d["core_quality"],
                 "dimensions": {k: {"score": v["score"], "coverage": v["coverage"], "verifiable": v["verifiable"]} for k, v in d["dimensions"].items()},
                 "no_evidence_ratio": d["no_evidence_ratio"], "duration": d["duration"]["status"],
-                "structure": None if d["structure_text"] is None else {"counts": d["structure_text"]["counts"], "risks": d["structure_text"]["risks"]}}
+                "structure": None if d["structure_text"] is None else {"counts": d["structure_text"]["counts"], "risks": d["structure_text"]["risks"]},
+                "evidence_cards": {"used": [{"factor": u["factor"], "rating": u["rating"], "cards": u["cards"]} for u in d["evidence_cards"]["used"]],
+                                   "rejected": [{k: r[k] for k in ("card", "factor", "reason")} for r in d["evidence_cards"]["rejected"]]}}
         verdicts.append(_receipt_verdict(r, score, slim))
     return verdicts
 
@@ -98,15 +101,33 @@ def run_bottleneck(snapshot: Any, log: Callable[[str], None]) -> dict:
     params, findings = B.load_bottleneck_params(params_path)
     funds = compute_pool_fundamentals(snapshot, log)
     structure = snapshot.structure()
+    cards = CardBook.from_payload(snapshot.evidence_cards())      # 随快照钉住的证据卡，不读源码树/安装目录
     facts = snapshot.facts()
-    receipts = bottleneck_receipts(facts, funds, structure, params, findings, snapshot.as_of)
+    receipts = bottleneck_receipts(facts, funds, structure, params, findings, snapshot.as_of, cards)
     facts.close()
     verdicts = bottleneck_records(receipts)
     _attach_full_detail(verdicts, receipts)
     meta = {"params_version": params["params_version"], "params_findings": findings, "universe": len(funds),
             "structure_companies": len([1 for f in funds.values() if structure.get(f.cik)]),
+            "evidence_cards": _card_meta(cards, receipts),
             "factor_no_evidence": _factor_no_evidence(receipts)}
     return _branch_envelope(verdicts, meta, findings)
+
+
+def _card_meta(cards: CardBook, receipts: Mapping[str, Any]) -> dict:
+    """证据卡用了多少、填了哪些因子、为什么被拒（分母 = 全池）。"""
+    filled: Dict[str, int] = {}
+    companies = 0
+    rejected: Dict[str, int] = {}
+    for r in receipts.values():
+        report = r.detail["evidence_cards"]
+        companies += bool(report["used"])
+        for item in report["used"]:
+            filled[item["factor"]] = filled.get(item["factor"], 0) + 1
+        for item in report["rejected"]:
+            rejected[item["reason"]] = rejected.get(item["reason"], 0) + 1
+    return {"summary": cards.summary(), "companies_with_card_factors": companies, "factors_filled": filled,
+            "rejections_by_reason": rejected}
 
 
 def _factor_no_evidence(receipts: Mapping[str, Any]) -> dict:

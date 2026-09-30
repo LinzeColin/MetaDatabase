@@ -30,6 +30,7 @@ from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 
 from . import branch_entries, cache_cap, hub_inputs, nyse_calendar
 from .branch_runner import BranchReceipt, BranchSpec, run_branches
+from .evidence import cards as evidence_cards
 from .evidence.eventstore import EventStore
 from .evidence.factstore import FactStore
 from .evidence.history_prices import BENCHMARK, BarStore
@@ -86,6 +87,7 @@ class CycleConfig:
     branch_specs: Optional[List[BranchSpec]] = None
     python: Optional[str] = None
     universe_min_count: int = UNIVERSE_MIN_COUNT
+    evidence_cards_dir: Optional[Path] = None      # 产业瓶颈证据卡目录；None = 随安装包发布的那一份（evidence/cards.CARDS_DIR）
 
 
 @dataclass
@@ -419,7 +421,8 @@ def run_cycle(cfg: CycleConfig, hooks: Optional[Hooks] = None, log: Callable[[st
     bar_store = BarStore(cfg.bars_dir)
     body = build_body(as_of=as_of, universe=universe, facts_db=cfg.facts_db, events_db=cfg.events_db, bar_store=bar_store,
                       structure=structure_info, text_similarity=collected.text_similarity, market_environment=collected.market_environment,
-                      params=_strip_findings(resolution.to_dict()), collection={"event_start": cfg.event_start})
+                      params=_strip_findings(resolution.to_dict()), collection={"event_start": cfg.event_start},
+                      evidence_cards=evidence_cards.load_payload(cfg.evidence_cards_dir or evidence_cards.CARDS_DIR))
     snapshot_path = write_snapshot(body, cfg.work_dir / "snapshots", run_info={"collect_stats": collected.stats, "params_findings": resolution.to_dict()})
     snapshot = load_snapshot(snapshot_path)
     digest12 = snapshot.sha256[:12]
@@ -595,6 +598,8 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--hub-inputs-only", action="store_true", help="只为已有研究产物补写中枢输入文件，不采集、不重跑分支")
     parser.add_argument("--skip-if-market-closed", action="store_true",
                         help="美东当天不是 NYSE 交易日就直接退出（退出码 0，不请求任何数据）；systemd timer 做不了日历判断，由程序自己判")
+    parser.add_argument("--evidence-cards", type=Path, default=None,
+                        help="产业瓶颈证据卡目录（默认：随安装包发布的 evidence_cards；只读，钉进证据快照）")
     parser.add_argument("--cache-max-bytes", type=int, default=cache_cap.DEFAULT_MAX_BYTES,
                         help="SEC 原文缓存 + 正文缓存合计上限（字节，默认 1 GiB）；研究层结束时按最近使用淘汰，0 = 不清理")
 
@@ -608,7 +613,7 @@ def config_from_args(args: argparse.Namespace, project_root: Path) -> CycleConfi
         structure_cache_dir=args.structure_cache or work / "structure-cache", sec_cache_dir=args.sec_cache or work / "sec-cache",
         text_similarity_path=args.text_similarity, universe_snapshot=args.universe_snapshot,
         universe_max_age_hours=args.universe_max_age_hours, ref=args.ref, offline=args.offline, event_start=args.event_start,
-        max_parallel=args.max_parallel, force=args.force, skip_collect=args.skip_collect)
+        max_parallel=args.max_parallel, force=args.force, skip_collect=args.skip_collect, evidence_cards_dir=args.evidence_cards)
 
 
 def _prune_caches(cfg: CycleConfig, max_bytes: int) -> None:

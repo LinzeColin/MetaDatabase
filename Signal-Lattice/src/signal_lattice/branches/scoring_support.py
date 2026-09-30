@@ -23,6 +23,7 @@ KIND_XBRL = "xbrl"
 KIND_TEXT = "text"
 KIND_MARKET = "market"
 KIND_ESTIMATE = "estimate"
+KIND_CARD = "card"   # 产业瓶颈证据卡（evidence/cards.py）：一手来源但不是 SEC 申报，不计入「SEC 原文链接」
 PRIMARY_KINDS = (KIND_XBRL, KIND_TEXT)  # 一手：来自 SEC 申报
 
 
