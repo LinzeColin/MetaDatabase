@@ -3,7 +3,7 @@
   "info": {
     "title": "Signal Lattice V2 Read-only API",
     "version": "0.0.0.3.5",
-    "description": "V2 只读研究服务。行情只由 marketdata provider 采集；系统不接收外部行情快照、不自动交易。DATA_READY 只在全部新鲜度和时间边界通过时出现。"
+    "description": "V2 只读研究服务（0.0.0.4 重建）。研究层（signal-lattice research）产出五个分支的收据与 shortlist；实时层每 60 秒只读这些产物，拉候选与 IWM 的批量报价，由中枢发布唯一建议（研究跟进）/ NO_ACTION / SYSTEM_BLOCKED。系统不接收外部行情快照、不自动交易、不下单。DATA_READY = 研究快照未过期 + 分支收据齐全 + 行情源可用；证据不足的收益数字（样本外窗口不足 6、记分簿已结算不足 8）不出现在任何响应里。"
   },
   "paths": {
     "/": {
@@ -58,7 +58,7 @@
       "get": {
         "operationId": "getLatestReport",
         "summary": "最新公共研究报告",
-        "description": "SYSTEM_BLOCKED 时不发布行动；样本外收益历史不足时返回脱敏后的收益证据形状。",
+        "description": "内容：中枢决策（唯一建议或 NO_ACTION 与观察名单前 5）、各分支收据（snapshot_hash、params_version、PASS/ABSTAIN/FAILED 计数）、候选比较（shortlist 表）、前向记分簿摘要、回测摘要、数据时效。SYSTEM_BLOCKED 时不发布行动；证据不足时返回脱敏后的收益证据形状。",
         "responses": {
           "200": {"description": "DATA_READY 公共报告", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PublicReport"}}}},
           "503": {"description": "数据链路阻断或采集循环失联", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/BlockedReport"}}}}
@@ -132,12 +132,25 @@
       },
       "Decision": {
         "type": "object",
-        "required": ["state", "action"],
+        "required": ["state", "action", "action_code"],
         "properties": {
-          "state": {"type": "string"},
-          "action": {"type": ["string", "null"]},
+          "state": {"enum": ["RECOMMENDATION", "NO_ACTION", "SYSTEM_BLOCKED"]},
+          "action": {"type": ["string", "null"], "description": "只有 RECOMMENDATION 时为「研究跟进（看多）」；系统不写「买入」"},
+          "action_code": {"enum": ["RESEARCH_FOLLOW_LONG", "NO_ACTION", "SYSTEM_BLOCKED"]},
           "primary_symbol": {"type": ["string", "null"]},
-          "conviction": {"type": ["number", "null"]},
+          "primary_name": {"type": ["string", "null"]},
+          "market_cap_usd": {"type": ["number", "null"]},
+          "price": {"type": ["number", "null"]},
+          "rationale": {"type": "string"},
+          "support": {"type": "object", "description": "加权支持度合计、门槛 1.3、各计分分支（PASS 1.0 / 排序支持 0.3 x 权重）与证据根去重结果", "additionalProperties": true},
+          "reasons": {"type": "array", "description": "每个支持分支一句话理由与一条 SEC 原文链接", "items": {"type": "object", "additionalProperties": true}},
+          "sources": {"type": "array", "description": "SEC 一手原文清单", "items": {"type": "object", "additionalProperties": true}},
+          "conflicts": {"type": "array", "items": {"type": "object", "additionalProperties": true}},
+          "invalidation": {"type": ["object", "null"], "description": "发布时写死的失效条件、每轮核对结果、status_text（生效中 / 已失效）", "additionalProperties": true},
+          "invalidated_recommendations": {"type": "array", "items": {"type": "object", "additionalProperties": true}},
+          "watchlist": {"type": "array", "description": "NO_ACTION（及有建议时）的观察名单前 5，每只一句话说明差在哪一道门", "maxItems": 5, "items": {"type": "object", "additionalProperties": true}},
+          "data_chain": {"type": "object", "description": "研究快照日期、hash、年龄（小时）、过期上限 36 小时、链路问题", "additionalProperties": true},
+          "blocked_reason": {"type": "string"},
           "sample_sufficiency": {"type": "string"},
           "sample_sufficiency_message": {"type": "string"}
         },
@@ -170,7 +183,8 @@
             "properties": {
               "status": {"const": "INSUFFICIENT"},
               "minimum_oos_windows_for_profitability": {"type": ["integer", "null"]},
-              "message": {"type": "string"}
+              "message": {"type": "string"},
+              "why_not_published": {"type": "string", "description": "样本外窗口不足时，为什么不公布收益数字（人话）"}
             },
             "additionalProperties": false
           },
@@ -184,7 +198,8 @@
                 "sample_sufficiency": {"type": "string"},
                 "sample_sufficiency_message": {"type": "string"},
                 "profitability_evidence": {"type": "string"},
-                "profitability_evidence_note": {"type": "string"}
+                "profitability_evidence_note": {"type": "string"},
+                "oos_windows": {"type": "integer", "minimum": 0}
               },
               "additionalProperties": false
             }
@@ -203,27 +218,78 @@
         },
         "additionalProperties": true
       },
+      "BranchReceipt": {
+        "type": "object",
+        "required": ["branch_id", "status", "snapshot_hash", "verdict_counts"],
+        "properties": {
+          "branch_id": {"type": "string"},
+          "label": {"type": "string"},
+          "status": {"enum": ["PASS", "ABSTAIN", "FAILED"]},
+          "role": {"enum": ["STOCK_SELECTION", "MARKET_ENVIRONMENT"]},
+          "snapshot_hash": {"type": "string", "description": "五个分支收据必须是同一份研究快照"},
+          "params_version": {"type": ["string", "null"]},
+          "params_sha256": {"type": ["string", "null"]},
+          "skill_version": {"type": ["string", "null"]},
+          "verdict_counts": {"type": "object", "required": ["PASS", "ABSTAIN", "FAILED"], "properties": {"PASS": {"type": "integer"}, "ABSTAIN": {"type": "integer"}, "FAILED": {"type": "integer"}}},
+          "reason": {"type": ["string", "null"]}
+        },
+        "additionalProperties": true
+      },
+      "Candidate": {
+        "type": "object",
+        "required": ["rank", "symbol", "support_total", "gates"],
+        "properties": {
+          "rank": {"type": "integer"},
+          "symbol": {"type": "string"},
+          "name": {"type": ["string", "null"]},
+          "market_cap_usd": {"type": ["number", "null"]},
+          "price": {"type": ["number", "null"]},
+          "quote_status": {"type": ["string", "null"]},
+          "support_total": {"type": "number"},
+          "gates": {"type": "object", "description": "pool / quote / liquidity / veto / support 五道门各自的 ok 与说明", "additionalProperties": true},
+          "gate_summary": {"type": "string"}
+        },
+        "additionalProperties": true
+      },
+      "LedgerSummary": {
+        "type": "object",
+        "description": "前向记分簿摘要。已结算样本 < 8 的周期不含任何收益/命中率数字，只有样本数与「样本不足，暂不下结论」。",
+        "required": ["recorded_days", "sample_status", "message", "settled"],
+        "properties": {
+          "sample_status": {"enum": ["SAMPLE_INSUFFICIENT", "SUFFICIENT"]},
+          "message": {"type": "string"},
+          "recorded_days": {"type": "integer"},
+          "settled": {"type": "object", "additionalProperties": {"type": "integer"}},
+          "horizons": {"type": "object", "additionalProperties": true},
+          "recent": {"type": "array", "items": {"type": "object", "additionalProperties": true}}
+        },
+        "additionalProperties": true
+      },
       "PublicReport": {
         "type": "object",
-        "required": ["application_version", "generated_at", "state", "automatic_trading", "data_cutoff", "data_cutoff_by_symbol", "instruments", "bar_sources", "quote_observed_at", "quote_sources", "quotes", "market_fingerprint", "freshness_findings", "message", "backtest"],
+        "required": ["application_version", "generated_at", "state", "automatic_trading", "data_cutoff", "quote_observed_at", "quotes", "freshness_findings", "message", "decision", "receipts", "candidates", "backtest"],
         "properties": {
           "application_version": {"const": "0.0.0.3.5"},
           "generated_at": {"type": "string", "format": "date-time"},
           "state": {"enum": ["DATA_READY", "SYSTEM_BLOCKED"]},
           "automatic_trading": {"const": false},
-          "data_cutoff": {"type": ["string", "null"], "format": "date"},
-          "data_cutoff_by_symbol": {"type": "object", "additionalProperties": {"type": "string", "format": "date"}},
+          "data_cutoff": {"type": ["string", "null"], "format": "date", "description": "研究快照日期"},
           "instruments": {"type": "object", "additionalProperties": {"type": "object", "additionalProperties": true}},
-          "bar_sources": {"type": "object", "additionalProperties": {"type": "object", "additionalProperties": true}},
           "quote_observed_at": {"type": ["string", "null"], "format": "date-time"},
           "quote_sources": {"type": "object", "additionalProperties": {"type": "string"}},
           "quotes": {"type": "object", "additionalProperties": {"type": "object", "additionalProperties": true}},
+          "quote_freshness": {"type": "object", "additionalProperties": {"type": "object", "additionalProperties": true}},
           "market_fingerprint": {"type": "object", "additionalProperties": true},
           "freshness_findings": {"type": "array", "items": {"type": "string"}},
+          "degraded_symbols": {"type": "object", "additionalProperties": {"type": "array", "items": {"type": "string"}}},
           "message": {"type": "string"},
-          "backtest": {"oneOf": [{"$ref": "#/components/schemas/ProfitabilityLimitedBacktest"}, {"type": "object", "additionalProperties": true}]},
           "decision": {"$ref": "#/components/schemas/Decision"},
-          "branches": {"type": "array", "items": {"type": "object", "additionalProperties": true}},
+          "receipts": {"type": "array", "items": {"$ref": "#/components/schemas/BranchReceipt"}},
+          "branches": {"type": "array", "items": {"$ref": "#/components/schemas/BranchReceipt"}},
+          "candidates": {"type": "array", "maxItems": 60, "items": {"$ref": "#/components/schemas/Candidate"}},
+          "research": {"type": "object", "additionalProperties": true},
+          "ledger": {"oneOf": [{"$ref": "#/components/schemas/LedgerSummary"}, {"type": "null"}]},
+          "backtest": {"oneOf": [{"$ref": "#/components/schemas/ProfitabilityLimitedBacktest"}, {"type": "object", "additionalProperties": true}]},
           "contribution_weights": {"$ref": "#/components/schemas/ContributionWeights"},
           "profitability_status": {"type": "string"},
           "profitability_disclosure": {"type": "object", "additionalProperties": true}

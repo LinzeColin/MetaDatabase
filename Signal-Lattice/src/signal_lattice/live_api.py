@@ -10,7 +10,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 
-from .aggregate import blocked_decision
+from .hub import blocked_decision
 from .live_config import APP_VERSION, LiveSettings
 from .live_runtime import LiveStore
 from .serialization import JsonSerializationConstraintError, strict_json_dumps
@@ -37,21 +37,21 @@ def readiness_ttl_seconds(loop_seconds: int) -> int:
 
 
 def blocked_report() -> dict:
+    message = "数据链路不完整，不出结论"
     return {
         "state": "SYSTEM_BLOCKED",
-        "message": "数据链路不完整，不出结论",
-        "decision": blocked_decision(),
+        "message": message,
+        "decision": blocked_decision("SYSTEM_BLOCKED", message),
     }
 
 
 def collection_loop_unreachable_report(liveness: dict) -> dict:
-    decision = blocked_decision()
+    decision = blocked_decision("COLLECTION_LOOP_UNREACHABLE", "采集循环失联，结论已过期；不把旧报告作为实时结论。")
     decision.update(
         {
-            "rationale": "采集循环失联，结论已过期；不把旧报告作为实时结论。",
-            "internal_coordination": "采集循环心跳或最新报告超过时效窗口，未复用旧方向性结论。",
+            "internal_coordination": "采集循环心跳或最新报告超过时效窗口，未复用旧结论。",
             "counter_evidence": "最后一份报告已超过就绪时效，无法证明当前行情与历史结论一致。",
-            "invalidation": "采集循环恢复心跳，并写入通过数据新鲜度门的新报告后，才恢复实时结论。",
+            "recovery": "采集循环恢复心跳，并写入通过数据新鲜度门的新报告后，才恢复实时结论。",
         }
     )
     return {
@@ -97,6 +97,7 @@ PUBLIC_BRANCH_ALWAYS_KEYS = (
     "sample_sufficiency_message",
     "profitability_evidence",
     "profitability_evidence_note",
+    "oos_windows",
     "active_config",
     "config_as_of",
     "config_source_window",
@@ -156,6 +157,8 @@ def _public_backtest_view(backtest: Mapping[str, object], sufficiency: str) -> d
             "status": "INSUFFICIENT",
             "minimum_oos_windows_for_profitability": minimum_windows,
             "message": "样本外历史不足，仅供研究参考，不构成收益证据。",
+            # 窗口数与「为什么不公布」不是收益数字：照实给出，页面才能解释清楚为什么没有数字
+            **({"why_not_published": backtest["why_not_published"]} if isinstance(backtest.get("why_not_published"), str) else {}),
         },
         "branches": public_branches,
     }
@@ -202,9 +205,37 @@ def _public_contribution_weights(weights: object) -> object:
     return result
 
 
+def _public_ledger_view(ledger: object) -> object:
+    """记分簿摘要本身已按「已结算 < 8 不含数字」构造；这里再兜一层：任何一个样本不足的周期，
+    只留样本数与状态，逐条建议的超额收益也一并去掉。"""
+    if not isinstance(ledger, Mapping):
+        return ledger
+    result = deepcopy(dict(ledger))
+    horizons = result.get("horizons")
+    insufficient: set = set()
+    if isinstance(horizons, Mapping):
+        for horizon, block in list(horizons.items()):
+            if isinstance(block, Mapping) and block.get("status") != "SUFFICIENT":
+                horizons[horizon] = {key: block[key] for key in ("settled", "status", "message") if key in block}
+                insufficient.add(str(horizon))
+    else:
+        insufficient = {"20", "60"}
+    if result.get("sample_status") != "SUFFICIENT":
+        insufficient = {"20", "60"}
+    recent = result.get("recent")
+    if isinstance(recent, list):
+        for item in recent:
+            if isinstance(item, dict):
+                for horizon in insufficient:
+                    item.pop("excess_vs_iwm_%s" % horizon, None)
+    return result
+
+
 def public_report_view(report: Mapping[str, object]) -> dict:
     """生成公开 API 视图；运行期完整报告始终留在私有 state_dir。"""
     public = deepcopy(dict(report))
+    if "ledger" in public:
+        public["ledger"] = _public_ledger_view(public["ledger"])
     sufficiency = _profitability_sufficiency(public)
     if sufficiency is None:
         return public

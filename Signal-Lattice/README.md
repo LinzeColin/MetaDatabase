@@ -1,5 +1,7 @@
 # Signal Lattice
 
+> 0.0.0.4 重建进行中：选股分支/中枢/记分簿/回测以 `重建/` 目录与 `src/signal_lattice/{hub,ledger,research_view}.py`、`backtest/hub_backtest.py` 为准；下文关于 `s1_momentum`、`s2_meanrev`、按贡献度加权的描述是旧版（已从决策路径移除），B5/B6 整理文档时一并改写。
+
 ## 做什么
 
 永久只读的投研看板。每 60 秒从新浪 / 腾讯 / 天天基金免密钥接口取行情与日线，各分支独立给方向，按贡献度加权汇总成一个投资结论；行情超过 180 秒（按交易时段计）未推进即阻断，不拿旧结论冒充实时。不下单、不登录券商，`SIGNAL_LATTICE_ENABLE_TRADING=1` 会直接报错。

@@ -27,17 +27,25 @@ def _links(detail_links: Sequence[Mapping], limit: int = 6) -> List[dict]:
     return [dict(link) for link in list(detail_links)[:limit]]
 
 
-def compute_pool_fundamentals(snapshot: Any, log: Callable[[str], None]) -> Dict[str, Fundamentals]:
-    facts, bar_store, as_of = snapshot.facts(), snapshot.bar_store(), snapshot.as_of
+def fundamentals_for_entries(facts: Any, bar_store: Any, entries: Sequence[Mapping], as_of: str,
+                             log: Callable[[str], None] = lambda message: None) -> Dict[str, Fundamentals]:
+    """逐只算 as_of 那一天可见的基本面。实盘（as_of = 快照日）与回测（as_of = 历史月末）走同一个函数。"""
     funds: Dict[str, Fundamentals] = {}
-    for index, entry in enumerate(snapshot.entries, 1):
+    for index, entry in enumerate(entries, 1):
         rows = bar_store.load(entry["symbol"]) or []
         history = [(row[0], float(row[1])) for row in rows if row[0] <= as_of]
         funds[entry["symbol"]] = compute_fundamentals(facts, MarketInput.from_entry(entry, history), as_of)
         if index % 300 == 0:
-            log("fundamentals %d/%d" % (index, len(snapshot.entries)))
-    facts.close()
+            log("fundamentals %d/%d" % (index, len(entries)))
     return funds
+
+
+def compute_pool_fundamentals(snapshot: Any, log: Callable[[str], None]) -> Dict[str, Fundamentals]:
+    facts = snapshot.facts()
+    try:
+        return fundamentals_for_entries(facts, snapshot.bar_store(), snapshot.entries, snapshot.as_of, log)
+    finally:
+        facts.close()
 
 
 def _receipt_verdict(receipt: Any, score: Optional[float], slim: Mapping) -> dict:
@@ -60,19 +68,18 @@ def _branch_envelope(verdicts: List[dict], meta: Mapping, params_findings: Seque
     return {"branch_status": "PASS", "branch_reasons": reasons, "verdicts": verdicts, "meta": dict(meta)}
 
 
-def run_bottleneck(snapshot: Any, log: Callable[[str], None]) -> dict:
-    params_path = snapshot.params_file(BOTTLENECK)
-    params, findings = B.load_bottleneck_params(params_path)
-    funds = compute_pool_fundamentals(snapshot, log)
+def bottleneck_receipts(facts: Any, funds: Mapping[str, Fundamentals], structure: Mapping[int, Sequence[Any]], params: Mapping,
+                        findings: Sequence[Mapping], as_of: str) -> Dict[str, Any]:
     peers = PeerContext.build(funds.values(), C.DEFAULT_PARAMS["peers"]["min_group"])
-    structure = snapshot.structure()
-    facts = snapshot.facts()
     receipts: Dict[str, Any] = {}
     for symbol, f in funds.items():
-        filings = [x for x in structure.get(f.cik, []) if x.filed <= snapshot.as_of]
-        receipts[symbol] = B.score_bottleneck(facts, f.market, snapshot.as_of, params, findings, peers, None, f,
+        filings = [x for x in structure.get(f.cik, []) if x.filed <= as_of]     # 结构性原文只用 as_of 之前已申报的
+        receipts[symbol] = B.score_bottleneck(facts, f.market, as_of, params, findings, peers, None, f,
                                               StructureEvidence(filings) if filings else None)
-    facts.close()
+    return receipts
+
+
+def bottleneck_records(receipts: Mapping[str, Any]) -> List[dict]:
     verdicts = []
     for symbol, r in receipts.items():
         d = r.detail
@@ -83,6 +90,18 @@ def run_bottleneck(snapshot: Any, log: Callable[[str], None]) -> dict:
                 "no_evidence_ratio": d["no_evidence_ratio"], "duration": d["duration"]["status"],
                 "structure": None if d["structure_text"] is None else {"counts": d["structure_text"]["counts"], "risks": d["structure_text"]["risks"]}}
         verdicts.append(_receipt_verdict(r, score, slim))
+    return verdicts
+
+
+def run_bottleneck(snapshot: Any, log: Callable[[str], None]) -> dict:
+    params_path = snapshot.params_file(BOTTLENECK)
+    params, findings = B.load_bottleneck_params(params_path)
+    funds = compute_pool_fundamentals(snapshot, log)
+    structure = snapshot.structure()
+    facts = snapshot.facts()
+    receipts = bottleneck_receipts(facts, funds, structure, params, findings, snapshot.as_of)
+    facts.close()
+    verdicts = bottleneck_records(receipts)
     _attach_full_detail(verdicts, receipts)
     meta = {"params_version": params["params_version"], "params_findings": findings, "universe": len(funds),
             "structure_companies": len([1 for f in funds.values() if structure.get(f.cik)]),
@@ -102,14 +121,13 @@ def _factor_no_evidence(receipts: Mapping[str, Any]) -> dict:
     return {dim: {name: round(count / n, 4) for name, count in factors.items()} for dim, factors in table.items()}
 
 
-def run_commercial(snapshot: Any, log: Callable[[str], None]) -> dict:
-    params_path = snapshot.params_file(COMMERCIAL)
-    params, findings = C.load_commercial_params(params_path)
-    funds = compute_pool_fundamentals(snapshot, log)
+def commercial_receipts(facts: Any, funds: Mapping[str, Fundamentals], params: Mapping, findings: Sequence[Mapping],
+                        as_of: str) -> Dict[str, Any]:
     peers = PeerContext.build(funds.values(), params["peers"]["min_group"])
-    facts = snapshot.facts()
-    receipts = {symbol: C.score_commercial(facts, f.market, snapshot.as_of, params, findings, peers, f) for symbol, f in funds.items()}
-    facts.close()
+    return {symbol: C.score_commercial(facts, f.market, as_of, params, findings, peers, f) for symbol, f in funds.items()}
+
+
+def commercial_records(receipts: Mapping[str, Any]) -> List[dict]:
     verdicts = []
     for symbol, r in receipts.items():
         d = r.detail
@@ -117,20 +135,26 @@ def run_commercial(snapshot: Any, log: Callable[[str], None]) -> dict:
                 "risk_deduction": d["risk_deduction"], "maturity_code": d["maturity_code"], "status": d["status"],
                 "no_evidence_ratio": d["no_evidence_ratio"], "falsifiers": d["falsifiers"]}
         verdicts.append(_receipt_verdict(r, d["decision_score"], slim))
+    return verdicts
+
+
+def run_commercial(snapshot: Any, log: Callable[[str], None]) -> dict:
+    params_path = snapshot.params_file(COMMERCIAL)
+    params, findings = C.load_commercial_params(params_path)
+    funds = compute_pool_fundamentals(snapshot, log)
+    facts = snapshot.facts()
+    receipts = commercial_receipts(facts, funds, params, findings, snapshot.as_of)
+    facts.close()
+    verdicts = commercial_records(receipts)
     _attach_full_detail(verdicts, receipts)
     meta = {"params_version": params["params_version"], "params_findings": findings, "universe": len(funds)}
     return _branch_envelope(verdicts, meta, findings)
 
 
-def run_event_atlas(snapshot: Any, log: Callable[[str], None]) -> dict:
-    params_path = snapshot.params_file(EVENT_ATLAS)
-    params = EA.load_params(params_path) if params_path else EA.load_params()
-    store, bar_store = snapshot.events(), snapshot.bar_store()
-    event_start = snapshot.document.get("collection", {}).get("event_start", "2024-10-01")
-    result = EA.run(store, snapshot.entries, bar_store, snapshot.as_of, params, event_start)
-    store.close()
+def event_atlas_records(company_verdicts: Sequence[Mapping]) -> List[dict]:
+    """事件航图 evaluate_company 的结果 -> 分支统一的逐股结论。实盘与回测共用。"""
     verdicts = []
-    for v in result["verdicts"]:
+    for v in company_verdicts:
         links = [{"url": e["url"], "supports": e["kind"], "published_date": e["published_date"], "summary": e["summary"]}
                  for e in v["evidence"] if e.get("url")]
         seen, unique = set(), []
@@ -150,6 +174,17 @@ def run_event_atlas(snapshot: Any, log: Callable[[str], None]) -> dict:
                                       "insider_window": v["insider_window"], "baseline": v["baseline"],
                                       "positive_events": [{"kind": e["kind"], "summary": e["summary"], "url": e["url"]} for e in positives],
                                       "events_recent": v["events_recent"]}})
+    return verdicts
+
+
+def run_event_atlas(snapshot: Any, log: Callable[[str], None]) -> dict:
+    params_path = snapshot.params_file(EVENT_ATLAS)
+    params = EA.load_params(params_path) if params_path else EA.load_params()
+    store, bar_store = snapshot.events(), snapshot.bar_store()
+    event_start = snapshot.document.get("collection", {}).get("event_start", "2024-10-01")
+    result = EA.run(store, snapshot.entries, bar_store, snapshot.as_of, params, event_start)
+    store.close()
+    verdicts = event_atlas_records(result["verdicts"])
     meta = {"params_version": params["params_version"], "event_start": event_start, "events": len(result["events"]),
             "events_by_kind": EA.counts_by_family(result["events"], event_start)["by_kind"],
             "study": result["study"], "bars_loaded": result["bars_loaded"], "benchmark_available": result["benchmark_available"]}

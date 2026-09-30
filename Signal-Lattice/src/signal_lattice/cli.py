@@ -33,6 +33,13 @@ def parser() -> argparse.ArgumentParser:
     research = sub.add_parser("research", help="研究层：候选池 -> 增量采集 -> 证据快照 -> 五个分支（隔离子进程）-> shortlist")
     from .research_cycle import add_arguments as add_research_arguments
     add_research_arguments(research)
+    backtest = sub.add_parser("backtest", help="中枢回测：按月末重放线上规则（时点正确、扣成本、安慰剂），落盘 hub-backtest.json")
+    backtest.add_argument("--research-dir", type=Path, required=True, help="研究层产物目录（含 <as_of>/latest.json），取其证据快照")
+    backtest.add_argument("--out-dir", type=Path, required=True, help="回测产物目录；实时层读 SIGNAL_LATTICE_BACKTEST_DIR 下的 hub-backtest.json")
+    backtest.add_argument("--cache-dir", type=Path, required=True, help="每个月末的重建结果缓存（重跑不重算）")
+    backtest.add_argument("--start", default="2024-12-31")
+    backtest.add_argument("--end", default="2026-08-31")
+    backtest.add_argument("--workers", type=int, default=6)
     return root
 
 
@@ -45,7 +52,7 @@ def verify_runtime(settings: LiveSettings) -> dict:
         "state_dir_exists": settings.state_dir.is_dir(),
         "web_dir": str(settings.web_dir),
         "web_index_exists": web_index.is_file(),
-        "commands": ["once", "loop", "serve", "print-latest", "verify-runtime", "research"],
+        "commands": ["once", "loop", "serve", "print-latest", "verify-runtime", "research", "backtest"],
     }
     return {
         "state": "PASS" if checks["state_dir_exists"] and checks["web_index_exists"] else "FAIL",
@@ -64,11 +71,30 @@ def run_outcome(report: dict) -> dict:
     }
 
 
+def backtest_main(args: argparse.Namespace) -> int:
+    import json
+    from .backtest import hub_backtest
+    from .research_view import latest_day_dir
+    day = latest_day_dir(args.research_dir)
+    if day is None:
+        print("找不到研究产物：%s" % args.research_dir)
+        return 2
+    latest = json.loads((day / "latest.json").read_text("utf-8"))
+    cycle = json.loads((day / latest["cycle"]).read_text("utf-8"))
+    report = hub_backtest.run(hub_backtest.BacktestConfig(
+        snapshot_path=Path(cycle["snapshot"]), out_dir=args.out_dir, cache_dir=args.cache_dir,
+        start=args.start, end=args.end, workers=args.workers))
+    print(hub_backtest.render_summary(report))
+    return 0
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     args = parser().parse_args(argv)
     if args.command == "research":
         from .research_cycle import cli_main as research_main
         return research_main(args, project_root())
+    if args.command == "backtest":
+        return backtest_main(args)
     settings = LiveSettings.from_env(project_root())
     if args.command == "once":
         # 定时器每分钟跑一次 once。整份报告已落盘（print-latest / API 可读），

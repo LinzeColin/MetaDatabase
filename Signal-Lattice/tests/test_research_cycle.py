@@ -227,6 +227,29 @@ class CycleTests(unittest.TestCase):
         self.assertEqual(second["collection_this_invocation"]["sec_requests_total"], 0)             # 第二次采集 0 请求
         self.assertEqual(json.loads((self.cfg.out_dir / AS_OF / "latest.json").read_text("utf-8"))["snapshot_sha256"], self.first["snapshot_sha256"])
 
+    def test_hub_inputs_are_written_and_a_reused_run_refreshes_checked_at_without_rerunning(self):
+        day = self.cfg.out_dir / AS_OF
+        latest = json.loads((day / "latest.json").read_text("utf-8"))
+        hub_file = day / latest["hubinputs"]
+        self.assertTrue(hub_file.is_file())
+        inputs = json.loads(hub_file.read_text("utf-8"))
+        self.assertEqual(inputs["snapshot_sha256"], self.first["snapshot_sha256"])
+        self.assertEqual(len(inputs["pool"]), self.first["universe_count"])                       # 候选池全表
+        self.assertTrue(set(inputs["fundamentals"]) <= {e["symbol"] for e in inputs["pool"]})
+        first_check = latest["checked_at"]
+        RC.run_cycle(self.cfg, self.hooks, log=lambda m: None)                                     # 数据没变：复用
+        again = json.loads((day / "latest.json").read_text("utf-8"))
+        self.assertGreaterEqual(again["checked_at"], first_check)
+        self.assertEqual(again["snapshot_sha256"], latest["snapshot_sha256"])
+        hub_file.unlink()                                                                          # 旧版产物缺文件：复用时补写
+        RC.run_cycle(self.cfg, self.hooks, log=lambda m: None)
+        self.assertTrue(hub_file.is_file())
+
+    def test_shortlist_from_records_is_the_same_function_the_cycle_uses(self):
+        records = {"equity-event-atlas": [{"symbol": "A", "cik": 1, "name": "A", "market_cap_usd": 1e9, "verdict": "PASS", "score": 5.0,
+                                           "rank_key": 5.0, "links": []}]}
+        self.assertEqual([e["symbol"] for e in RC.shortlist_from_records(records)], ["A"])
+
     def test_forced_rerun_reproduces_every_verdict_file_byte_for_byte(self):
         import dataclasses
         forced_cfg = dataclasses.replace(self.cfg, force=True, out_dir=self.tmp / "out-forced")

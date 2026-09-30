@@ -3,6 +3,7 @@
 import json
 import tempfile
 import unittest
+from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from io import BytesIO
 from pathlib import Path
@@ -11,9 +12,8 @@ from signal_lattice.version import VERSION
 from signal_lattice.live_api import HEADERS, blocked_report, handler, latest_for_api, public_report_view, v2_get_route_responses
 from signal_lattice.live_config import LiveSettings, default_universe
 from signal_lattice.live_runtime import LiveEngine, LiveStore
-from signal_lattice.marketdata.base import MarketDataError
-from signal_lattice.marketdata.models import Bar
-from signal_lattice.marketdata.tencent import TencentQuoteProvider
+from signal_lattice.marketdata.sina import SinaQuoteProvider
+from hub_fixtures import standard_pool, write_research_dir
 
 
 class LiveApiTests(unittest.TestCase):
@@ -249,39 +249,25 @@ class LiveApiTests(unittest.TestCase):
             self.assertIn("5.4753", json.dumps(store.latest(), ensure_ascii=False, sort_keys=True))
             self.assertIn("-78.5628", json.dumps(store.latest(), ensure_ascii=False, sort_keys=True))
 
-    def test_non_gbk_tencent_fallback_replaces_ready_report_with_blocked_report(self):
+    def test_non_gbk_quote_payload_replaces_ready_report_with_blocked_report(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            settings = self._settings(root)
-            engine = LiveEngine(settings)
             now = datetime.now(timezone.utc)
+            write_research_dir(root / "research", standard_pool(), generated_at=now - timedelta(hours=1))
+            settings = replace(self._settings(root), research_dir=root / "research")
+            engine = LiveEngine(settings)
             engine.store.save({
                 "state": "DATA_READY",
                 "generated_at": (now - timedelta(seconds=1)).isoformat(),
-                "decision": {"state": "LONG", "action": "研究观察"},
+                "decision": {"state": "RECOMMENDATION", "action": "研究跟进（看多）"},
             })
             engine.store.write_heartbeat(now)
-
-            class UnavailableSina:
-                def fetch(self, instruments):
-                    raise MarketDataError("SINA_UPSTREAM_UNAVAILABLE")
 
             class NonGbkClient:
                 def get(self, url, headers=None, *, provider=None):
                     return b"\xff\xfe"
 
-            class FreshBars:
-                def fetch(self, instrument):
-                    return [Bar(
-                        instrument.symbol, now.date(), 1, 1, 1, 1, 1,
-                        instrument.timezone, "fixture", now,
-                    )]
-
-            engine.gateway.sina = UnavailableSina()
-            engine.gateway.tencent_quote = TencentQuoteProvider(NonGbkClient(), "https://fixture/")
-            engine.gateway.sina_bars = FreshBars()
-            engine.gateway.tencent_bars = FreshBars()
-            engine.gateway.fund_bars = FreshBars()
+            engine.gateway.sina = SinaQuoteProvider(NonGbkClient(), "https://fixture/")
 
             report = engine.run_once()
             persisted = engine.store.latest()
@@ -291,9 +277,65 @@ class LiveApiTests(unittest.TestCase):
             self.assertEqual(report["state"], "SYSTEM_BLOCKED")
             self.assertEqual(persisted["state"], "SYSTEM_BLOCKED")
             self.assertIsNone(persisted["decision"]["action"])
-            self.assertIn("TENCENT_QUOTE:TENCENT_QUOTE_DECODE_FAILED", report["freshness_findings"])
+            self.assertIn("SINA_QUOTE:SINA_GBK_DECODE_FAILED", report["freshness_findings"])
             self.assertEqual(ready_status, 503)
             self.assertEqual(ready["state"], "SYSTEM_BLOCKED")
+
+    def test_insufficient_ledger_numbers_never_appear_in_any_public_response(self):
+        """记分簿摘要已按「样本不足不含数字」构造；即使私有报告里混进了数字，公开视图也要把它们去掉。"""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            settings = self._settings(root)
+            store = LiveStore(settings.state_dir)
+            now = datetime.now(timezone.utc)
+            store.save({
+                "state": "DATA_READY", "generated_at": now.isoformat(),
+                "decision": {"state": "NO_ACTION", "action": None, "action_code": "NO_ACTION"},
+                "ledger": {
+                    "sample_status": "SAMPLE_INSUFFICIENT", "message": "样本不足，暂不下结论", "settled": {"20": 3, "60": 0},
+                    "horizons": {"20": {"settled": 3, "status": "SAMPLE_INSUFFICIENT", "message": "样本不足，暂不下结论",
+                                        "hit_rate": 0.987654, "mean_excess_vs_iwm": 0.123456},
+                                 "60": {"settled": 0, "status": "SAMPLE_INSUFFICIENT", "message": "样本不足，暂不下结论"}},
+                    "recent": [{"trading_day": "2026-10-01", "state": "RECOMMENDATION", "symbol": "ALPHA", "settled_20": True,
+                                "excess_vs_iwm_20": 0.777777}],
+                },
+            })
+            store.write_heartbeat(now)
+            request_handler = handler(settings, store)
+            for path in ("/api/v1/report/latest", "/api/v1/whitebox/summary", "/api/v1/whitebox/skills", "/api/v1/whitebox/backtest/latest",
+                         "/api/v1/heartbeat", "/api/v1/metadata", "/api/v1/system/status"):
+                with self.subTest(path=path):
+                    _status, payload = self._get_without_tcp(request_handler, path)
+                    text = json.dumps(payload, ensure_ascii=False)
+                    for number in ("0.987654", "0.123456", "0.777777"):
+                        self.assertNotIn(number, text)
+            _status, report = self._get_without_tcp(request_handler, "/api/v1/report/latest")
+            self.assertIn("样本不足，暂不下结论", report["ledger"]["message"])
+            self.assertNotIn("hit_rate", json.dumps(report["ledger"]))
+
+    def test_sufficient_ledger_numbers_including_losses_are_public(self):
+        report = {"state": "DATA_READY", "ledger": {
+            "sample_status": "SUFFICIENT", "settled": {"20": 9, "60": 0},
+            "horizons": {"20": {"settled": 9, "status": "SUFFICIENT", "hit_rate": 0.222, "mean_excess_vs_iwm": -0.05},
+                         "60": {"settled": 0, "status": "SAMPLE_INSUFFICIENT", "message": "样本不足，暂不下结论"}},
+            "recent": [{"trading_day": "2026-10-01", "excess_vs_iwm_20": -0.11, "excess_vs_iwm_60": 0.9}]}}
+        public = public_report_view(report)
+        self.assertEqual(public["ledger"]["horizons"]["20"]["mean_excess_vs_iwm"], -0.05)
+        self.assertEqual(public["ledger"]["recent"][0]["excess_vs_iwm_20"], -0.11)
+        self.assertNotIn("excess_vs_iwm_60", public["ledger"]["recent"][0])             # 60 日样本 0 条，仍然不出数字
+
+    def test_backtest_below_six_windows_shows_the_window_count_and_why_but_no_returns(self):
+        from signal_lattice.backtest import hub_backtest as H
+        summary = {"actual": {"pick_20": {"windows": 3, "excess_vs_iwm": {"mean": 0.31337}}, "pick_60": {"windows": 0},
+                              "basket_20": {"windows": 5}, "basket_60": {"windows": 0}},
+                   "placebo": {"pick_20": {"windows": 2, "excess_vs_iwm": {"mean": -0.27182}}}}
+        public = H.public_view(summary, 3)
+        served = public_report_view({"state": "DATA_READY", "backtest": public, "profitability_status": public["profitability_status"]})
+        text = json.dumps(served, ensure_ascii=False)
+        self.assertNotIn("0.31337", text)
+        self.assertNotIn("0.27182", text)
+        self.assertEqual(served["backtest"]["branches"][0]["oos_windows"], 3)
+        self.assertIn("窗口 3 < 6", served["backtest"]["profitability_disclosure"]["why_not_published"])
 
 
 class ProfitabilityDisclosureIsPerBranchTests(unittest.TestCase):

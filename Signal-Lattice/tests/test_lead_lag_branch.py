@@ -12,8 +12,6 @@ import unittest
 from datetime import date, timedelta
 
 from signal_lattice.branches.lead_lag import BRANCH_ID, evaluate_lead_lag_verdicts, paired_samples
-from signal_lattice.branches.runtime import DECISION_INPUT_SYMBOLS, build_branch_report
-from signal_lattice.live_config import default_universe
 from signal_lattice.marketdata.models import Bar
 
 
@@ -104,15 +102,6 @@ class LeadLagBranchTests(unittest.TestCase):
         self.assertEqual(verdict.evidence["status"], "CONFIRMED")
         self.assertEqual(verdict.participation_status, "NO_FRESH_SOURCE_SESSION")
         self.assertEqual(verdict.weight, 0.0)
-
-    def test_branch_is_part_of_the_report_and_targets_are_decision_inputs(self):
-        data = market(300, beta=0.6)
-        report = build_branch_report(default_universe(), data)
-        ids = {item["branch_id"] for item in report["branches"] if item["implemented"]}
-        self.assertIn(BRANCH_ID, ids)
-        self.assertTrue({"usSPY", "sh000300", "hk02800"} <= DECISION_INPUT_SYMBOLS)
-        others = [item for item in report["branches"] if item["branch_id"] == BRANCH_ID and item["symbol"] == "hk00700"]
-        self.assertEqual(others[0]["participation_status"], "OUT_OF_STRATEGY_UNIVERSE")
 
 
 if __name__ == "__main__":

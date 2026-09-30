@@ -1,5 +1,1 @@
-"""Stage 4 回测、滚动前推与样本外 Alpha 度量。"""
-
-from .runner import ContributionSample, run_backtest
-
-__all__ = ["ContributionSample", "run_backtest"]
+"""中枢回测：时点正确、按月滚动、扣成本、安慰剂对照（见 hub_backtest.py）。"""

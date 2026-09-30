@@ -8,7 +8,8 @@
  3. 增量采集（只取上次之后新出现的申报/Form 4/正文，全程 SEC <= 4 次/秒、请求数打进日志）；
  4. 生成不可变证据快照 evidence-<日期>-<hash>.json（候选池、Lazy Prices、市场环境日线、参数版本与 hash、数据文件 hash）；
  5. 向所有 Active Skill 分发同一份快照，每个分支独立子进程（branch_runner），收集 PASS/ABSTAIN/FAILED 收据；
- 6. shortlist：任一分支 PASS 的并集，加各分支非 FAILED、分数 > 0 的前 30 名，最多 60 只，供实时层使用。
+ 6. shortlist：任一分支 PASS 的并集，加各分支非 FAILED、分数 > 0 的前 30 名，最多 60 只，供实时层使用；
+    同时写中枢输入 hubinputs-<hash>.json（候选池全表 + shortlist 的营收同比与最新定期报告），实时层只读这些产物。
 幂等：同一份快照（内容 hash 相同）已经跑完就直接复用结果，不再启动分支、不再重复计数；同一天数据没变，采集阶段的 SEC 请求数为 0。
 全球联动分支沿用 lead_lag.py，只提供市场环境（风险偏好），不选股。
 """
@@ -24,7 +25,7 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 
-from . import branch_entries
+from . import branch_entries, hub_inputs
 from .branch_runner import BranchReceipt, BranchSpec, run_branches
 from .evidence.eventstore import EventStore
 from .evidence.factstore import FactStore
@@ -263,11 +264,14 @@ def _load_verdicts(receipt: BranchReceipt) -> List[dict]:
 def build_shortlist(receipts: Sequence[BranchReceipt], top_n: int = SHORTLIST_TOP_N, cap: int = SHORTLIST_MAX) -> List[dict]:
     """任一分支 PASS 的并集，加各分支（非 FAILED、分数 > 0）的前 top_n；按「PASS 分支数、名次分位之和」排序，最多 cap 只。
     全球联动只提供市场环境，不进 shortlist；分支整体 ABSTAIN/FAILED 时它不贡献任何名字。"""
+    records = {r.branch_id: _load_verdicts(r) for r in receipts if r.branch_id in STOCK_BRANCHES and r.status == "PASS"}
+    return shortlist_from_records(records, top_n, cap)
+
+
+def shortlist_from_records(records_by_branch: Mapping[str, Sequence[dict]], top_n: int = SHORTLIST_TOP_N, cap: int = SHORTLIST_MAX) -> List[dict]:
+    """纯函数版：输入是「整体 PASS 的选股分支 -> 它的逐股结论」。回测按历史月末重建 shortlist 时调用同一个函数。"""
     by_symbol: Dict[str, dict] = {}
-    for receipt in receipts:
-        if receipt.branch_id not in STOCK_BRANCHES or receipt.status != "PASS":
-            continue
-        verdicts = _load_verdicts(receipt)
+    for branch_id, verdicts in records_by_branch.items():
         ranked = sorted((v for v in verdicts if v["verdict"] != "FAILED" and (v.get("score") or 0) > 0),
                         key=lambda v: (-(v["score"] or 0), -v["rank_key"], v["symbol"]))
         percentile = {v["symbol"]: 1.0 - i / max(len(ranked), 1) for i, v in enumerate(ranked)}
@@ -280,13 +284,13 @@ def build_shortlist(receipts: Sequence[BranchReceipt], top_n: int = SHORTLIST_TO
                                                       "market_cap_usd": v["market_cap_usd"], "passed_by": [], "top_in": [],
                                                       "scores": {}, "links": {}, "rank_percentile_sum": 0.0})
             if passed:
-                item["passed_by"].append(receipt.branch_id)
+                item["passed_by"].append(branch_id)
             if v["symbol"] in top:
-                item["top_in"].append(receipt.branch_id)
+                item["top_in"].append(branch_id)
                 item["rank_percentile_sum"] += percentile[v["symbol"]]
-            item["scores"][receipt.branch_id] = v.get("score")
+            item["scores"][branch_id] = v.get("score")
             if v.get("links"):
-                item["links"][receipt.branch_id] = v["links"][0]
+                item["links"][branch_id] = v["links"][0]
     ordered = sorted(by_symbol.values(), key=lambda i: (-len(i["passed_by"]), -i["rank_percentile_sum"], i["symbol"]))
     for rank, item in enumerate(ordered[:cap], 1):
         item["rank"] = rank
@@ -332,6 +336,9 @@ def run_cycle(cfg: CycleConfig, hooks: Optional[Hooks] = None, log: Callable[[st
     cycle_file = day_dir / ("cycle-%s.json" % digest12)
     if cycle_file.is_file() and not cfg.force:
         summary = json.loads(cycle_file.read_text("utf-8"))
+        shortlist_file = day_dir / ("shortlist-%s.json" % digest12)
+        _ensure_hub_inputs(day_dir, digest12, snapshot, json.loads(shortlist_file.read_text("utf-8"))["entries"])
+        _write_json(day_dir / "latest.json", _latest_pointer(as_of, snapshot.sha256, cycle_file.name, digest12))
         summary["reused"] = True
         summary["branch_runs_this_invocation"] = 0
         summary["collection_this_invocation"] = collected.stats
@@ -348,6 +355,7 @@ def run_cycle(cfg: CycleConfig, hooks: Optional[Hooks] = None, log: Callable[[st
                      "rule": "任一分支 PASS 的并集 + 各分支（非 FAILED、分数>0）前 %d 名，最多 %d 只" % (SHORTLIST_TOP_N, SHORTLIST_MAX),
                      "entries": shortlist}
     _write_json(day_dir / ("shortlist-%s.json" % digest12), shortlist_doc)
+    _ensure_hub_inputs(day_dir, digest12, snapshot, shortlist)
     summary = {
         "as_of": as_of, "snapshot": str(snapshot_path), "snapshot_sha256": snapshot.sha256, "universe_count": universe["count"],
         "params": {sid: {"registry_version": s.registry_version, "params_version": s.params_version, "params_sha256": s.params_sha256,
@@ -359,9 +367,41 @@ def run_cycle(cfg: CycleConfig, hooks: Optional[Hooks] = None, log: Callable[[st
         "branch_runs_this_invocation": len(receipts), "collection_this_invocation": collected.stats,
     }
     _write_json(cycle_file, summary)
-    _write_json(day_dir / "latest.json", {"as_of": as_of, "snapshot_sha256": snapshot.sha256, "cycle": cycle_file.name,
-                                            "shortlist": "shortlist-%s.json" % digest12})
+    _write_json(day_dir / "latest.json", _latest_pointer(as_of, snapshot.sha256, cycle_file.name, digest12))
     return summary
+
+
+def _latest_pointer(as_of: str, sha256: str, cycle_name: str, digest12: str) -> dict:
+    """latest.json 是实时层找研究产物的唯一入口。checked_at = 研究层最后一次确认「这份快照就是当前数据」的时刻：
+    周末没有新申报时快照内容不变（hash 相同、分支不重跑），但研究层仍在按时运行，数据并没有过期——
+    实时层用 max(生成时间, checked_at) 判断研究快照是否过期，不会在周末误报 SYSTEM_BLOCKED。"""
+    return {"as_of": as_of, "snapshot_sha256": sha256, "cycle": cycle_name, "shortlist": "shortlist-%s.json" % digest12,
+            "hubinputs": "hubinputs-%s.json" % digest12, "checked_at": datetime.now(timezone.utc).isoformat()}
+
+
+def _ensure_hub_inputs(day_dir: Path, digest12: str, snapshot: Any, shortlist: Sequence[Mapping]) -> Path:
+    path = day_dir / ("hubinputs-%s.json" % digest12)
+    if not path.is_file():
+        hub_inputs.write(path, hub_inputs.build(snapshot, shortlist))
+    return path
+
+
+def hub_inputs_only(out_dir: Path, log: Callable[[str], None] = print) -> Path:
+    """不重跑任何分支：为已有的研究产物补写中枢输入文件（旧版研究层产物升级用）。"""
+    days = sorted(p for p in Path(out_dir).iterdir() if (p / "latest.json").is_file())
+    if not days:
+        raise RuntimeError("找不到研究产物：%s" % out_dir)
+    day_dir = days[-1]
+    latest = json.loads((day_dir / "latest.json").read_text("utf-8"))
+    cycle = json.loads((day_dir / latest["cycle"]).read_text("utf-8"))
+    from .evidence_snapshot import load_snapshot
+    snapshot = load_snapshot(Path(cycle["snapshot"]))
+    shortlist = json.loads((day_dir / latest["shortlist"]).read_text("utf-8"))["entries"]
+    digest12 = snapshot.sha256[:12]
+    path = _ensure_hub_inputs(day_dir, digest12, snapshot, shortlist)
+    _write_json(day_dir / "latest.json", _latest_pointer(latest["as_of"], snapshot.sha256, latest["cycle"], digest12))
+    log("hub inputs: %s" % path)
+    return path
 
 
 def _write_json(path: Path, payload: Any) -> None:
@@ -445,6 +485,7 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--max-parallel", type=int, default=1, help="同时运行的分支数（默认 1：任一分支运行时磁盘上没有别的分支输出）")
     parser.add_argument("--force", action="store_true", help="同一快照已处理过也重新运行分支")
     parser.add_argument("--top", type=int, default=15)
+    parser.add_argument("--hub-inputs-only", action="store_true", help="只为已有研究产物补写中枢输入文件，不采集、不重跑分支")
 
 
 def config_from_args(args: argparse.Namespace, project_root: Path) -> CycleConfig:
@@ -460,6 +501,9 @@ def config_from_args(args: argparse.Namespace, project_root: Path) -> CycleConfi
 
 
 def cli_main(args: argparse.Namespace, project_root: Path) -> int:
+    if getattr(args, "hub_inputs_only", False):
+        hub_inputs_only(args.out_dir)
+        return 0
     cfg = config_from_args(args, project_root)
     summary = run_cycle(cfg)
     print(render_report(summary, top=args.top))
