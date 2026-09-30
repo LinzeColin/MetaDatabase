@@ -10,6 +10,7 @@ from ..aggregate import build_aggregate_report
 from ..weighting import build_weighting_from_state
 from .bars import closes, highs, lows
 from .indicators import atr, ibs, rsi_wilder, sma
+from .lead_lag import DECISION_SYMBOLS as LEAD_LAG_DECISION_SYMBOLS, evaluate_lead_lag_verdicts
 from .models import BranchVerdict
 from .s1_momentum import DEFAULT_S1_CONFIG, default_s1_config, evaluate_s1
 from .s2_meanrev import DEFAULT_S2_CONFIG, default_s2_config, evaluate_s2_entries, s2_enabled, volatility_floor_ratio
@@ -30,7 +31,7 @@ S2_LIVE_TO_ALPHA = {"usSPY": "SPY", "usQQQ": "QQQ"}
 
 # 已实现分支真正读取的标的。不在这一份集合里的标的，数据再脏也改变不了结论——
 # 它们只进覆盖面展示，对方向、置信度、权重的贡献恒为零（OUT_OF_STRATEGY_UNIVERSE）。
-DECISION_INPUT_SYMBOLS: frozenset = frozenset(S1_LIVE_TO_ALPHA) | frozenset(S2_LIVE_TO_ALPHA)
+DECISION_INPUT_SYMBOLS: frozenset = frozenset(S1_LIVE_TO_ALPHA) | frozenset(S2_LIVE_TO_ALPHA) | LEAD_LAG_DECISION_SYMBOLS
 
 UNIMPLEMENTED_BRANCHES: tuple[dict[str, str], ...] = (
     {
@@ -47,11 +48,6 @@ UNIMPLEMENTED_BRANCHES: tuple[dict[str, str], ...] = (
         "branch_id": "equity-foresight-signal",
         "reason": "该技能要求冻结的点时数据集、训练配置和宿主信任上下文；当前行情网关只提供日线。",
         "required_input": "合格的点时训练数据集与宿主信任上下文",
-    },
-    {
-        "branch_id": "global-equity-lead-lag-atlas",
-        "reason": "该技能要求标准化现金指数、交易会话与收盘时点；当前观察宇宙不具备这些跨市场输入。",
-        "required_input": "带会话时间的多市场现金指数数据集",
     },
     {
         "branch_id": "equity-event-atlas",
@@ -448,6 +444,7 @@ def build_branch_report(
             config_status=s2_backtest.get("config_status"),
             require_active_config=strict_runtime_config,
         )
+        + evaluate_lead_lag_verdicts(ordered_bars)
     )
     for branch in UNIMPLEMENTED_BRANCHES:
         verdicts.extend(_unimplemented_verdict(branch, symbol, len(ordered_bars[symbol])) for symbol in symbols)
