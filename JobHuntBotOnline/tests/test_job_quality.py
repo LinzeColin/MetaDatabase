@@ -240,3 +240,29 @@ def test_fetch_sources_merges_duplicates_across_providers(settings, monkeypatch)
     credit = [(name, j.url) for name, (_s, jobs, _d) in rows.items() for j in jobs if j.title == "Credit Analyst"]
     assert len(credit) == 1, credit
     assert credit[0][0] == "au-greenhouse"
+
+
+# ---------------------------------------------------------------- 取数：限流/错误响应不能当成「没有岗位」
+
+class _RateLimited(Internet):
+    def __call__(self, request: httpx.Request) -> httpx.Response:
+        if request.url.host in {"api.lever.co", "remotive.com"}:
+            return httpx.Response(429, text="error code: 1015")
+        if request.url.host == "api.ashbyhq.com":
+            return httpx.Response(404, json={"jobs": [{"id": "x", "title": "Financial Analyst"}]})
+        return super().__call__(request)
+
+
+def test_http_errors_are_reported_as_failures_not_as_empty_or_fake_results(settings, monkeypatch):
+    fake = _RateLimited()
+    real = httpx.Client
+    monkeypatch.setattr(httpx, "Client", lambda *a, **k: real(*a, **{**k, "transport": httpx.MockTransport(fake)}))
+    monkeypatch.setattr(discovery, "BOARD_REQUEST_GAP_SECONDS", 0)
+    monkeypatch.setattr(discovery, "load_au_boards", lambda: {"lever": ["acme"], "ashby": ["acme"]})
+    discovery._FEED_CACHE.clear()
+    cfg = replace(settings, discovery_fixture_path="", enable_remotive=True, enable_arbeitnow=False,
+                  enable_jobicy=False, enable_au_boards=True)
+    rows = {name: (status, jobs, detail) for name, status, jobs, detail in discovery.fetch_sources(cfg, PROFILE)}
+    assert rows["remotive"][0] == "failed" and "HTTP 429" in rows["remotive"][2]
+    assert rows["au-lever"][0] == "failed" and "HTTP 429" in rows["au-lever"][2]
+    assert rows["au-ashby"][0] == "failed" and "HTTP 404" in rows["au-ashby"][2]   # 404 的 JSON 体不能被当成岗位

@@ -231,7 +231,7 @@ def _fixture(settings: Settings) -> list[NormalizedJob]:
 
 
 def _remotive(client: httpx.Client, limit: int) -> list[NormalizedJob]:
-    data = client.get("https://remotive.com/api/remote-jobs", params={"limit": limit}).json()
+    data = _get(client, "https://remotive.com/api/remote-jobs", params={"limit": limit}).json()
     out = []
     for row in data.get("jobs", [])[:limit]:
         out.append(enrich(NormalizedJob(
@@ -251,7 +251,7 @@ def _remotive(client: httpx.Client, limit: int) -> list[NormalizedJob]:
 
 
 def _arbeitnow(client: httpx.Client, limit: int) -> list[NormalizedJob]:
-    data = client.get("https://www.arbeitnow.com/api/job-board-api").json()
+    data = _get(client, "https://www.arbeitnow.com/api/job-board-api").json()
     out = []
     for row in data.get("data", [])[:limit]:
         out.append(enrich(NormalizedJob(
@@ -274,7 +274,7 @@ def _jobicy(client: httpx.Client, limit: int, profile: dict | None = None) -> li
     tag = role_search_tag(profile or {})
     if tag:
         params["tag"] = tag
-    data = client.get("https://jobicy.com/api/v2/remote-jobs", params=params).json()
+    data = _get(client, "https://jobicy.com/api/v2/remote-jobs", params=params).json()
     out = []
     for row in data.get("jobs", [])[:limit]:
         out.append(enrich(NormalizedJob(
@@ -296,7 +296,7 @@ def _jobicy(client: httpx.Client, limit: int, profile: dict | None = None) -> li
 def _adzuna(client: httpx.Client, settings: Settings, profile: dict) -> list[NormalizedJob]:
     query = " OR ".join(profile.get("primary_role_families", [])[:2]) or "analyst"
     location = next((x for x in profile.get("target_locations", []) if "remote" not in x.casefold()), "Australia")
-    data = client.get(
+    data = _get(client,
         "https://api.adzuna.com/v1/api/jobs/au/search/1",
         params={
             "app_id": settings.adzuna_app_id,
@@ -325,7 +325,7 @@ def _adzuna(client: httpx.Client, settings: Settings, profile: dict) -> list[Nor
 def _greenhouse(client: httpx.Client, boards: list[str], limit: int) -> list[NormalizedJob]:
     out = []
     for board in boards:
-        data = client.get(f"https://boards-api.greenhouse.io/v1/boards/{board}/jobs", params={"content": "true"}).json()
+        data = _get(client, f"https://boards-api.greenhouse.io/v1/boards/{board}/jobs", params={"content": "true"}).json()
         for row in data.get("jobs", [])[:limit]:
             out.append(enrich(NormalizedJob(
                 source=f"greenhouse:{board}",
@@ -343,7 +343,7 @@ def _greenhouse(client: httpx.Client, boards: list[str], limit: int) -> list[Nor
 def _lever(client: httpx.Client, companies: list[str], limit: int) -> list[NormalizedJob]:
     out = []
     for company in companies:
-        rows = client.get(f"https://api.lever.co/v0/postings/{company}", params={"mode": "json"}).json()
+        rows = _get(client, f"https://api.lever.co/v0/postings/{company}", params={"mode": "json"}).json()
         for row in rows[:limit]:
             cats = row.get("categories") or {}
             out.append(enrich(NormalizedJob(
@@ -363,7 +363,7 @@ def _lever(client: httpx.Client, companies: list[str], limit: int) -> list[Norma
 def _ashby(client: httpx.Client, boards: list[str], limit: int) -> list[NormalizedJob]:
     out = []
     for board in boards:
-        data = client.get(f"https://api.ashbyhq.com/posting-api/job-board/{board}").json()
+        data = _get(client, f"https://api.ashbyhq.com/posting-api/job-board/{board}").json()
         for row in data.get("jobs", [])[:limit]:
             out.append(enrich(NormalizedJob(
                 source=f"ashby:{board}",
@@ -382,7 +382,7 @@ def _ashby(client: httpx.Client, boards: list[str], limit: int) -> list[Normaliz
 
 def _freehire(client: httpx.Client, base: str, profile: dict, limit: int) -> list[NormalizedJob]:
     query = " ".join(profile.get("primary_role_families", [])[:2])
-    data = client.get(
+    data = _get(client,
         f"{base}/api/v1/agent/jobs/search",
         params={"q": query, "limit": limit, "description_format": "text", "sort": "posted_at", "order": "desc"},
     ).json()
@@ -445,8 +445,14 @@ _FEED_CACHE: dict[str, tuple[float, httpx.Response]] = {}
 
 def _get(client, url: str, params: dict | None = None, ttl: int | None = None):
     if isinstance(client, CachedClient):
-        return client.get(url, params=params, ttl=ttl)
-    return client.get(url, params=params)
+        response = client.get(url, params=params, ttl=ttl)
+    else:
+        response = client.get(url, params=params)
+    if (getattr(response, "status_code", 200) or 200) >= 400:
+        # 限流（429）、下线（404）、服务错误不能当成「这个源没有岗位」，
+        # 也不能落到 .json() 上变成一句看不懂的 "Expecting value"。
+        raise RuntimeError(f"HTTP {response.status_code} {urlsplit(url).netloc}")
+    return response
 
 
 def load_au_boards() -> dict[str, list[str]]:
