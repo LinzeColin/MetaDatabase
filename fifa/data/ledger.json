@@ -1,0 +1,1657 @@
+{
+ "entries": {
+  "de.1|2026-10-09|borussia dortmund|werder bremen": {
+   "away": "werder bremen",
+   "away_name": "云达不来梅",
+   "comp": "de.1",
+   "date": "2026-10-09",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "borussia dortmund",
+   "home_name": "多特蒙德",
+   "kickoff_utc": "2026-10-09T18:30Z",
+   "lam": [
+    2.421,
+    0.9009
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.70549,
+    0.17674,
+    0.11777
+   ],
+   "p_base": [
+    0.41821,
+    0.24537,
+    0.33642
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "de.1|2026-10-10|1899 hoffenheim|hamburger": {
+   "away": "hamburger",
+   "away_name": "汉堡",
+   "comp": "de.1",
+   "date": "2026-10-10",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "1899 hoffenheim",
+   "home_name": "霍芬海姆",
+   "kickoff_utc": "2026-10-10T13:30Z",
+   "lam": [
+    2.0908,
+    1.3453
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.54199,
+    0.21837,
+    0.23964
+   ],
+   "p_base": [
+    0.41821,
+    0.24537,
+    0.33642
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "de.1|2026-10-10|augsburg|bayern munchen": {
+   "away": "bayern munchen",
+   "away_name": "拜仁慕尼黑",
+   "comp": "de.1",
+   "date": "2026-10-10",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "augsburg",
+   "home_name": "奥格斯堡",
+   "kickoff_utc": "2026-10-10T13:30Z",
+   "lam": [
+    1.0681,
+    2.8855
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.10837,
+    0.14824,
+    0.74339
+   ],
+   "p_base": [
+    0.41821,
+    0.24537,
+    0.33642
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "de.1|2026-10-10|mainz 05|bayer 04 leverkusen": {
+   "away": "bayer 04 leverkusen",
+   "away_name": "勒沃库森",
+   "comp": "de.1",
+   "date": "2026-10-10",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "mainz 05",
+   "home_name": "美因茨",
+   "kickoff_utc": "2026-10-10T13:30Z",
+   "lam": [
+    1.3645,
+    1.5907
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.32324,
+    0.25356,
+    0.4232
+   ],
+   "p_base": [
+    0.41821,
+    0.24537,
+    0.33642
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "de.1|2026-10-10|paderborn 07|stuttgart": {
+   "away": "stuttgart",
+   "away_name": "斯图加特",
+   "comp": "de.1",
+   "date": "2026-10-10",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "paderborn 07",
+   "home_name": "帕德博恩",
+   "kickoff_utc": "2026-10-10T13:30Z",
+   "lam": [
+    1.3679,
+    1.6492
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.3137,
+    0.24958,
+    0.43672
+   ],
+   "p_base": [
+    0.41821,
+    0.24537,
+    0.33642
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "de.1|2026-10-10|rb leipzig|eintracht frankfurt": {
+   "away": "eintracht frankfurt",
+   "away_name": "法兰克福",
+   "comp": "de.1",
+   "date": "2026-10-10",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "rb leipzig",
+   "home_name": "RB 莱比锡",
+   "kickoff_utc": "2026-10-10T16:30Z",
+   "lam": [
+    2.2268,
+    1.4695
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.54381,
+    0.20956,
+    0.24663
+   ],
+   "p_base": [
+    0.41821,
+    0.24537,
+    0.33642
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "de.1|2026-10-10|union berlin|07 elversberg": {
+   "away": "07 elversberg",
+   "away_name": "埃尔弗斯贝格",
+   "comp": "de.1",
+   "date": "2026-10-10",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "union berlin",
+   "home_name": "柏林联合",
+   "kickoff_utc": "2026-10-10T13:30Z",
+   "lam": [
+    1.2886,
+    1.7136
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.28379,
+    0.24691,
+    0.46931
+   ],
+   "p_base": [
+    0.41821,
+    0.24537,
+    0.33642
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "de.1|2026-10-11|freiburg|schalke 04": {
+   "away": "schalke 04",
+   "away_name": "沙尔克 04",
+   "comp": "de.1",
+   "date": "2026-10-11",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "freiburg",
+   "home_name": "弗赖堡",
+   "kickoff_utc": "2026-10-11T15:30Z",
+   "lam": [
+    1.7418,
+    1.0276
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.53616,
+    0.24643,
+    0.2174
+   ],
+   "p_base": [
+    0.41821,
+    0.24537,
+    0.33642
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "de.1|2026-10-11|koln|borussia monchengladbach": {
+   "away": "borussia monchengladbach",
+   "away_name": "门兴格拉德巴赫",
+   "comp": "de.1",
+   "date": "2026-10-11",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "koln",
+   "home_name": "科隆",
+   "kickoff_utc": "2026-10-11T13:30Z",
+   "lam": [
+    1.7289,
+    1.4203
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.44468,
+    0.24296,
+    0.31236
+   ],
+   "p_base": [
+    0.41821,
+    0.24537,
+    0.33642
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "en.1|2026-10-10|arsenal|leeds united": {
+   "away": "leeds united",
+   "away_name": "利兹联",
+   "comp": "en.1",
+   "date": "2026-10-10",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "arsenal",
+   "home_name": "阿森纳",
+   "kickoff_utc": "2026-10-10T11:30Z",
+   "lam": [
+    1.6316,
+    0.6967
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.59385,
+    0.25398,
+    0.15216
+   ],
+   "p_base": [
+    0.41358,
+    0.26296,
+    0.32346
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "en.1|2026-10-10|aston villa|brentford": {
+   "away": "brentford",
+   "away_name": "布伦特福德",
+   "comp": "en.1",
+   "date": "2026-10-10",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "aston villa",
+   "home_name": "阿斯顿维拉",
+   "kickoff_utc": "2026-10-10T14:00Z",
+   "lam": [
+    1.5323,
+    1.3651
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.40867,
+    0.25731,
+    0.33402
+   ],
+   "p_base": [
+    0.41358,
+    0.26296,
+    0.32346
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "en.1|2026-10-10|chelsea|bournemouth": {
+   "away": "bournemouth",
+   "away_name": "伯恩茅斯",
+   "comp": "en.1",
+   "date": "2026-10-10",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "chelsea",
+   "home_name": "切尔西",
+   "kickoff_utc": "2026-10-10T14:00Z",
+   "lam": [
+    1.6549,
+    1.4098
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.42929,
+    0.24795,
+    0.32276
+   ],
+   "p_base": [
+    0.41358,
+    0.26296,
+    0.32346
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "en.1|2026-10-10|ipswich town|fulham": {
+   "away": "fulham",
+   "away_name": "富勒姆",
+   "comp": "en.1",
+   "date": "2026-10-10",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "ipswich town",
+   "home_name": "伊普斯维奇",
+   "kickoff_utc": "2026-10-10T14:00Z",
+   "lam": [
+    1.2547,
+    1.4138
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.32815,
+    0.27006,
+    0.40179
+   ],
+   "p_base": [
+    0.41358,
+    0.26296,
+    0.32346
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "en.1|2026-10-10|manchester united|tottenham hotspur": {
+   "away": "tottenham hotspur",
+   "away_name": "热刺",
+   "comp": "en.1",
+   "date": "2026-10-10",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "manchester united",
+   "home_name": "曼联",
+   "kickoff_utc": "2026-10-10T16:30Z",
+   "lam": [
+    1.9803,
+    1.1493
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.56198,
+    0.22543,
+    0.21259
+   ],
+   "p_base": [
+    0.41358,
+    0.26296,
+    0.32346
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "en.1|2026-10-10|sunderland|brighton and hove albion": {
+   "away": "brighton and hove albion",
+   "away_name": "布莱顿",
+   "comp": "en.1",
+   "date": "2026-10-10",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "sunderland",
+   "home_name": "桑德兰",
+   "kickoff_utc": "2026-10-10T14:00Z",
+   "lam": [
+    1.0836,
+    1.4977
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.26872,
+    0.26933,
+    0.46195
+   ],
+   "p_base": [
+    0.41358,
+    0.26296,
+    0.32346
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "en.1|2026-10-11|crystal palace|nottingham forest": {
+   "away": "nottingham forest",
+   "away_name": "诺丁汉森林",
+   "comp": "en.1",
+   "date": "2026-10-11",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "crystal palace",
+   "home_name": "水晶宫",
+   "kickoff_utc": "2026-10-11T13:00Z",
+   "lam": [
+    1.2035,
+    1.2358
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.34943,
+    0.28561,
+    0.36496
+   ],
+   "p_base": [
+    0.41358,
+    0.26296,
+    0.32346
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "en.1|2026-10-11|hull city|everton": {
+   "away": "everton",
+   "away_name": "埃弗顿",
+   "comp": "en.1",
+   "date": "2026-10-11",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "hull city",
+   "home_name": "赫尔城",
+   "kickoff_utc": "2026-10-11T13:00Z",
+   "lam": [
+    0.8969,
+    1.2775
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.25534,
+    0.29806,
+    0.4466
+   ],
+   "p_base": [
+    0.41358,
+    0.26296,
+    0.32346
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "en.1|2026-10-11|liverpool|manchester city": {
+   "away": "manchester city",
+   "away_name": "曼城",
+   "comp": "en.1",
+   "date": "2026-10-11",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "liverpool",
+   "home_name": "利物浦",
+   "kickoff_utc": "2026-10-11T15:30Z",
+   "lam": [
+    1.5122,
+    1.4472
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.3869,
+    0.25497,
+    0.35813
+   ],
+   "p_base": [
+    0.41358,
+    0.26296,
+    0.32346
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "en.1|2026-10-12|coventry city|newcastle united": {
+   "away": "newcastle united",
+   "away_name": "纽卡斯尔联",
+   "comp": "en.1",
+   "date": "2026-10-12",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "coventry city",
+   "home_name": "考文垂",
+   "kickoff_utc": "2026-10-12T19:00Z",
+   "lam": [
+    1.3403,
+    1.5905
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.31734,
+    0.25439,
+    0.42827
+   ],
+   "p_base": [
+    0.41358,
+    0.26296,
+    0.32346
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "es.1|2026-10-09|malaga|espanyol barcelona": {
+   "away": "espanyol barcelona",
+   "away_name": "西班牙人",
+   "comp": "es.1",
+   "date": "2026-10-09",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "malaga",
+   "home_name": "马拉加",
+   "kickoff_utc": "2026-10-09T19:00Z",
+   "lam": [
+    1.0266,
+    1.2245
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.30204,
+    0.29742,
+    0.40054
+   ],
+   "p_base": [
+    0.46642,
+    0.24908,
+    0.28449
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "es.1|2026-10-10|barcelona|getafe": {
+   "away": "getafe",
+   "away_name": "赫塔菲",
+   "comp": "es.1",
+   "date": "2026-10-10",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "barcelona",
+   "home_name": "巴塞罗那",
+   "kickoff_utc": "2026-10-10T16:30Z",
+   "lam": [
+    2.2101,
+    0.6392
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.73014,
+    0.18085,
+    0.089
+   ],
+   "p_base": [
+    0.46642,
+    0.24908,
+    0.28449
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "es.1|2026-10-10|deportivo alaves|atletico madrid": {
+   "away": "atletico madrid",
+   "away_name": "马德里竞技",
+   "comp": "es.1",
+   "date": "2026-10-10",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "deportivo alaves",
+   "home_name": "阿拉维斯",
+   "kickoff_utc": "2026-10-10T14:15Z",
+   "lam": [
+    1.1091,
+    1.5625
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.26453,
+    0.26282,
+    0.47265
+   ],
+   "p_base": [
+    0.46642,
+    0.24908,
+    0.28449
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "es.1|2026-10-10|rayo vallecano madrid|athletic": {
+   "away": "athletic",
+   "away_name": "毕尔巴鄂竞技",
+   "comp": "es.1",
+   "date": "2026-10-10",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "rayo vallecano madrid",
+   "home_name": "巴列卡诺",
+   "kickoff_utc": "2026-10-10T12:00Z",
+   "lam": [
+    1.2247,
+    1.0741
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.38985,
+    0.29463,
+    0.31552
+   ],
+   "p_base": [
+    0.46642,
+    0.24908,
+    0.28449
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "es.1|2026-10-10|real madrid|villarreal": {
+   "away": "villarreal",
+   "away_name": "比利亚雷亚尔",
+   "comp": "es.1",
+   "date": "2026-10-10",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "real madrid",
+   "home_name": "皇家马德里",
+   "kickoff_utc": "2026-10-10T19:00Z",
+   "lam": [
+    2.3972,
+    1.1452
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.64695,
+    0.18992,
+    0.16313
+   ],
+   "p_base": [
+    0.46642,
+    0.24908,
+    0.28449
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "es.1|2026-10-11|elche|celta vigo": {
+   "away": "celta vigo",
+   "away_name": "塞尔塔",
+   "comp": "es.1",
+   "date": "2026-10-11",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "elche",
+   "home_name": "埃尔切",
+   "kickoff_utc": "2026-10-11T12:00Z",
+   "lam": [
+    1.3649,
+    1.4057
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.35816,
+    0.26511,
+    0.37674
+   ],
+   "p_base": [
+    0.46642,
+    0.24908,
+    0.28449
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "es.1|2026-10-11|real betis balompie|osasuna": {
+   "away": "osasuna",
+   "away_name": "奥萨苏纳",
+   "comp": "es.1",
+   "date": "2026-10-11",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "real betis balompie",
+   "home_name": "皇家贝蒂斯",
+   "kickoff_utc": "2026-10-11T16:30Z",
+   "lam": [
+    1.7955,
+    0.9786
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.5607,
+    0.24061,
+    0.19869
+   ],
+   "p_base": [
+    0.46642,
+    0.24908,
+    0.28449
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "es.1|2026-10-11|real racing santander|valencia": {
+   "away": "valencia",
+   "away_name": "瓦伦西亚",
+   "comp": "es.1",
+   "date": "2026-10-11",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "real racing santander",
+   "home_name": "桑坦德竞技",
+   "kickoff_utc": "2026-10-11T19:00Z",
+   "lam": [
+    1.7493,
+    1.6962
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.39437,
+    0.2332,
+    0.37244
+   ],
+   "p_base": [
+    0.46642,
+    0.24908,
+    0.28449
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "es.1|2026-10-11|real sociedad futbol|deportivo la coruna": {
+   "away": "deportivo la coruna",
+   "away_name": "拉科鲁尼亚",
+   "comp": "es.1",
+   "date": "2026-10-11",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "real sociedad futbol",
+   "home_name": "皇家社会",
+   "kickoff_utc": "2026-10-11T14:15Z",
+   "lam": [
+    1.7292,
+    1.2907
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.47259,
+    0.24569,
+    0.28172
+   ],
+   "p_base": [
+    0.46642,
+    0.24908,
+    0.28449
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "es.1|2026-10-12|levante|sevilla": {
+   "away": "sevilla",
+   "away_name": "塞维利亚",
+   "comp": "es.1",
+   "date": "2026-10-12",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "levante",
+   "home_name": "莱万特",
+   "kickoff_utc": "2026-10-12T19:00Z",
+   "lam": [
+    1.5429,
+    1.2664
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.43231,
+    0.2602,
+    0.30749
+   ],
+   "p_base": [
+    0.46642,
+    0.24908,
+    0.28449
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "fr.1|2026-10-09|racing lens|olympique lyonnais": {
+   "away": "olympique lyonnais",
+   "away_name": "里昂",
+   "comp": "fr.1",
+   "date": "2026-10-09",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "racing lens",
+   "home_name": "朗斯",
+   "kickoff_utc": "2026-10-09T18:45Z",
+   "lam": [
+    1.5771,
+    1.326
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.42801,
+    0.25578,
+    0.31621
+   ],
+   "p_base": [
+    0.46037,
+    0.22713,
+    0.3125
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "fr.1|2026-10-10|lille osc|le havre": {
+   "away": "le havre",
+   "away_name": "勒阿弗尔",
+   "comp": "fr.1",
+   "date": "2026-10-10",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "lille osc",
+   "home_name": "里尔",
+   "kickoff_utc": "2026-10-10T15:15Z",
+   "lam": [
+    1.7097,
+    0.7589
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.59615,
+    0.24572,
+    0.15813
+   ],
+   "p_base": [
+    0.46037,
+    0.22713,
+    0.3125
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "fr.1|2026-10-10|lorient|paris": {
+   "away": "paris",
+   "away_name": "巴黎 FC",
+   "comp": "fr.1",
+   "date": "2026-10-10",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "lorient",
+   "home_name": "洛里昂",
+   "kickoff_utc": "2026-10-10T18:45Z",
+   "lam": [
+    1.3824,
+    1.1826
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.40914,
+    0.27573,
+    0.31513
+   ],
+   "p_base": [
+    0.46037,
+    0.22713,
+    0.3125
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "fr.1|2026-10-10|monaco|toulouse": {
+   "away": "toulouse",
+   "away_name": "图卢兹",
+   "comp": "fr.1",
+   "date": "2026-10-10",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "monaco",
+   "home_name": "摩纳哥",
+   "kickoff_utc": "2026-10-10T18:45Z",
+   "lam": [
+    1.8517,
+    1.1813
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.52583,
+    0.23674,
+    0.23743
+   ],
+   "p_base": [
+    0.46037,
+    0.22713,
+    0.3125
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "fr.1|2026-10-10|paris saint germain|le mans": {
+   "away": "le mans",
+   "away_name": "勒芒",
+   "comp": "fr.1",
+   "date": "2026-10-10",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "paris saint germain",
+   "home_name": "巴黎圣日耳曼",
+   "kickoff_utc": "2026-10-10T18:45Z",
+   "lam": [
+    2.8722,
+    0.7898
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.79647,
+    0.13187,
+    0.07166
+   ],
+   "p_base": [
+    0.46037,
+    0.22713,
+    0.3125
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "fr.1|2026-10-10|stade brestois 29|angers sco": {
+   "away": "angers sco",
+   "away_name": "昂热",
+   "comp": "fr.1",
+   "date": "2026-10-10",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "stade brestois 29",
+   "home_name": "布雷斯特",
+   "kickoff_utc": "2026-10-10T18:45Z",
+   "lam": [
+    1.4384,
+    1.0027
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.46544,
+    0.27716,
+    0.25739
+   ],
+   "p_base": [
+    0.46037,
+    0.22713,
+    0.3125
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "fr.1|2026-10-11|es troyes|olympique marseille": {
+   "away": "olympique marseille",
+   "away_name": "马赛",
+   "comp": "fr.1",
+   "date": "2026-10-11",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "es troyes",
+   "home_name": "特鲁瓦",
+   "kickoff_utc": "2026-10-11T18:45Z",
+   "lam": [
+    1.2769,
+    1.9635
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.2428,
+    0.22777,
+    0.52943
+   ],
+   "p_base": [
+    0.46037,
+    0.22713,
+    0.3125
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "fr.1|2026-10-11|nice|strasbourg alsace": {
+   "away": "strasbourg alsace",
+   "away_name": "斯特拉斯堡",
+   "comp": "fr.1",
+   "date": "2026-10-11",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "nice",
+   "home_name": "尼斯",
+   "kickoff_utc": "2026-10-11T13:00Z",
+   "lam": [
+    1.398,
+    1.6063
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.32861,
+    0.25141,
+    0.41999
+   ],
+   "p_base": [
+    0.46037,
+    0.22713,
+    0.3125
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "fr.1|2026-10-11|stade rennais 1901|aj auxerre": {
+   "away": "aj auxerre",
+   "away_name": "欧塞尔",
+   "comp": "fr.1",
+   "date": "2026-10-11",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "stade rennais 1901",
+   "home_name": "雷恩",
+   "kickoff_utc": "2026-10-11T15:15Z",
+   "lam": [
+    1.8742,
+    1.1688
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.53382,
+    0.23479,
+    0.2314
+   ],
+   "p_base": [
+    0.46037,
+    0.22713,
+    0.3125
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "it.1|2026-10-10|genoa|acf fiorentina": {
+   "away": "acf fiorentina",
+   "away_name": "佛罗伦萨",
+   "comp": "it.1",
+   "date": "2026-10-10",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "genoa",
+   "home_name": "热那亚",
+   "kickoff_utc": "2026-10-10T13:00Z",
+   "lam": [
+    1.2129,
+    1.1815
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.36326,
+    0.28873,
+    0.34801
+   ],
+   "p_base": [
+    0.39875,
+    0.27,
+    0.33125
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "it.1|2026-10-10|internazionale milano|parma calcio 1913": {
+   "away": "parma calcio 1913",
+   "away_name": "帕尔马",
+   "comp": "it.1",
+   "date": "2026-10-10",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "internazionale milano",
+   "home_name": "国际米兰",
+   "kickoff_utc": "2026-10-10T16:00Z",
+   "lam": [
+    2.3608,
+    0.6719
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.7478,
+    0.16772,
+    0.08449
+   ],
+   "p_base": [
+    0.39875,
+    0.27,
+    0.33125
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "it.1|2026-10-10|napoli|frosinone calcio": {
+   "away": "frosinone calcio",
+   "away_name": "弗罗西诺内",
+   "comp": "it.1",
+   "date": "2026-10-10",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "napoli",
+   "home_name": "那不勒斯",
+   "kickoff_utc": "2026-10-10T18:45Z",
+   "lam": [
+    1.7313,
+    0.811
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.58769,
+    0.24451,
+    0.1678
+   ],
+   "p_base": [
+    0.39875,
+    0.27,
+    0.33125
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "it.1|2026-10-11|cagliari calcio|juventus": {
+   "away": "juventus",
+   "away_name": "尤文图斯",
+   "comp": "it.1",
+   "date": "2026-10-11",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "cagliari calcio",
+   "home_name": "卡利亚里",
+   "kickoff_utc": "2026-10-11T18:45Z",
+   "lam": [
+    0.9323,
+    1.3787
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.24825,
+    0.28539,
+    0.46636
+   ],
+   "p_base": [
+    0.39875,
+    0.27,
+    0.33125
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "it.1|2026-10-11|como 1907|roma": {
+   "away": "roma",
+   "away_name": "罗马",
+   "comp": "it.1",
+   "date": "2026-10-11",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "como 1907",
+   "home_name": "科莫",
+   "kickoff_utc": "2026-10-11T10:30Z",
+   "lam": [
+    1.3114,
+    1.2045
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.38535,
+    0.28006,
+    0.33459
+   ],
+   "p_base": [
+    0.39875,
+    0.27,
+    0.33125
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "it.1|2026-10-11|lecce|bologna 1909": {
+   "away": "bologna 1909",
+   "away_name": "博洛尼亚",
+   "comp": "it.1",
+   "date": "2026-10-11",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "lecce",
+   "home_name": "莱切",
+   "kickoff_utc": "2026-10-11T13:00Z",
+   "lam": [
+    0.9079,
+    1.2262
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.26749,
+    0.30351,
+    0.42901
+   ],
+   "p_base": [
+    0.39875,
+    0.27,
+    0.33125
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "it.1|2026-10-11|sassuolo calcio|milan": {
+   "away": "milan",
+   "away_name": "AC 米兰",
+   "comp": "it.1",
+   "date": "2026-10-11",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "sassuolo calcio",
+   "home_name": "萨索洛",
+   "kickoff_utc": "2026-10-11T16:00Z",
+   "lam": [
+    1.2087,
+    1.4296
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.31324,
+    0.27091,
+    0.41586
+   ],
+   "p_base": [
+    0.39875,
+    0.27,
+    0.33125
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "it.1|2026-10-11|ss lazio|monza": {
+   "away": "monza",
+   "away_name": "蒙扎",
+   "comp": "it.1",
+   "date": "2026-10-11",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "ss lazio",
+   "home_name": "拉齐奥",
+   "kickoff_utc": "2026-10-11T13:00Z",
+   "lam": [
+    1.7551,
+    0.831
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.58817,
+    0.24222,
+    0.16962
+   ],
+   "p_base": [
+    0.39875,
+    0.27,
+    0.33125
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "it.1|2026-10-12|atalanta bc|venezia": {
+   "away": "venezia",
+   "away_name": "威尼斯",
+   "comp": "it.1",
+   "date": "2026-10-12",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "atalanta bc",
+   "home_name": "亚特兰大",
+   "kickoff_utc": "2026-10-12T16:30Z",
+   "lam": [
+    1.963,
+    0.8762
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.62334,
+    0.22056,
+    0.1561
+   ],
+   "p_base": [
+    0.39875,
+    0.27,
+    0.33125
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "it.1|2026-10-12|torino|udinese calcio": {
+   "away": "udinese calcio",
+   "away_name": "乌迪内斯",
+   "comp": "it.1",
+   "date": "2026-10-12",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "torino",
+   "home_name": "都灵",
+   "kickoff_utc": "2026-10-12T18:45Z",
+   "lam": [
+    1.3783,
+    1.2636
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.39061,
+    0.27212,
+    0.33726
+   ],
+   "p_base": [
+    0.39875,
+    0.27,
+    0.33125
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "uefa.cl|2026-10-13|arsenal|lille osc": {
+   "away": "lille osc",
+   "away_name": "里尔",
+   "comp": "uefa.cl",
+   "date": "2026-10-13",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "arsenal",
+   "home_name": "阿森纳",
+   "kickoff_utc": "2026-10-13T19:00Z",
+   "lam": [
+    1.8789,
+    0.6665
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.65881,
+    0.2209,
+    0.1203
+   ],
+   "p_base": [
+    0.50288,
+    0.17083,
+    0.3263
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "uefa.cl|2026-10-13|atletico madrid|manchester united": {
+   "away": "manchester united",
+   "away_name": "曼联",
+   "comp": "uefa.cl",
+   "date": "2026-10-13",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "atletico madrid",
+   "home_name": "马德里竞技",
+   "kickoff_utc": "2026-10-13T19:00Z",
+   "lam": [
+    1.6528,
+    1.5731
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.3958,
+    0.24231,
+    0.36188
+   ],
+   "p_base": [
+    0.50288,
+    0.17083,
+    0.3263
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "uefa.cl|2026-10-13|galatasaray|barcelona": {
+   "away": "barcelona",
+   "away_name": "巴塞罗那",
+   "comp": "uefa.cl",
+   "date": "2026-10-13",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "galatasaray",
+   "home_name": "加拉塔萨雷",
+   "kickoff_utc": "2026-10-13T19:00Z",
+   "lam": [
+    1.4301,
+    2.6259
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.19006,
+    0.18174,
+    0.6282
+   ],
+   "p_base": [
+    0.50288,
+    0.17083,
+    0.3263
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "uefa.cl|2026-10-13|internazionale milano|brugge": {
+   "away": "brugge",
+   "away_name": "布鲁日",
+   "comp": "uefa.cl",
+   "date": "2026-10-13",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "internazionale milano",
+   "home_name": "国际米兰",
+   "kickoff_utc": "2026-10-13T19:00Z",
+   "lam": [
+    2.6703,
+    1.2354
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.67586,
+    0.17208,
+    0.15205
+   ],
+   "p_base": [
+    0.50288,
+    0.17083,
+    0.3263
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "uefa.cl|2026-10-13|racing lens|sporting clube portugal": {
+   "away": "sporting clube portugal",
+   "away_name": "葡萄牙体育",
+   "comp": "uefa.cl",
+   "date": "2026-10-13",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "racing lens",
+   "home_name": "朗斯",
+   "kickoff_utc": "2026-10-13T16:45Z",
+   "lam": [
+    1.7157,
+    1.3513
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.45622,
+    0.24547,
+    0.29831
+   ],
+   "p_base": [
+    0.50288,
+    0.17083,
+    0.3263
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "uefa.cl|2026-10-13|rb leipzig|psv": {
+   "away": "psv",
+   "away_name": "埃因霍温",
+   "comp": "uefa.cl",
+   "date": "2026-10-13",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "rb leipzig",
+   "home_name": "RB 莱比锡",
+   "kickoff_utc": "2026-10-13T19:00Z",
+   "lam": [
+    2.2723,
+    1.8964
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.46809,
+    0.20544,
+    0.32647
+   ],
+   "p_base": [
+    0.50288,
+    0.17083,
+    0.3263
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "uefa.cl|2026-10-13|sabah|slavia praha": {
+   "away": "slavia praha",
+   "away_name": "布拉格斯拉维亚",
+   "comp": "uefa.cl",
+   "date": "2026-10-13",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "sabah",
+   "home_name": "沙巴",
+   "kickoff_utc": "2026-10-13T16:45Z",
+   "lam": [
+    1.7641,
+    1.5374
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.42881,
+    0.2377,
+    0.33349
+   ],
+   "p_base": [
+    0.50288,
+    0.17083,
+    0.3263
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "uefa.cl|2026-10-13|viking|bayern munchen": {
+   "away": "bayern munchen",
+   "away_name": "拜仁慕尼黑",
+   "comp": "uefa.cl",
+   "date": "2026-10-13",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "viking",
+   "home_name": "维京",
+   "kickoff_utc": "2026-10-13T19:00Z",
+   "lam": [
+    1.018,
+    3.7355
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.05696,
+    0.09251,
+    0.85052
+   ],
+   "p_base": [
+    0.50288,
+    0.17083,
+    0.3263
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  },
+  "uefa.cl|2026-10-13|villarreal|napoli": {
+   "away": "napoli",
+   "away_name": "那不勒斯",
+   "comp": "uefa.cl",
+   "date": "2026-10-13",
+   "first_predicted_at": "2026-09-30T10:07Z",
+   "frozen": false,
+   "home": "villarreal",
+   "home_name": "比利亚雷亚尔",
+   "kickoff_utc": "2026-10-13T19:00Z",
+   "lam": [
+    1.6703,
+    1.3201
+   ],
+   "model": "poisson-ridge-1",
+   "p": [
+    0.45207,
+    0.2494,
+    0.29853
+   ],
+   "p_base": [
+    0.50288,
+    0.17083,
+    0.3263
+   ],
+   "predicted_at": "2026-09-30T10:07Z",
+   "result": null,
+   "score": null
+  }
+ }
+}

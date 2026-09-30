@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark"><meta name="robots" content="noindex">
+<title>FIFA 足球研究日报</title><style>
+:root{--bg:#f6f8fc;--card:#fff;--fg:#0f1b33;--mute:#5b677f;--line:#dbe3f0;--pri:#1d4ed8;--pri-soft:#e6eefc;
+--home:#1d4ed8;--draw:#94a3b8;--away:#c2410c;--ok:#047857;--ok-bg:#e3f6ee;--warn:#92400e;--warn-bg:#fdf1d6;
+--bad:#b91c1c;--bad-bg:#fde8e8;--low:#047857;--mid:#92400e;--high:#b91c1c;--r:12px}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0b1220;--card:#121c31;--fg:#e6ecf8;--mute:#9aa8c2;
+--line:#243252;--pri:#7aa2ff;--pri-soft:#182a52;--home:#6d97ff;--draw:#64748b;--away:#f59e5b;--ok:#4ade9d;--ok-bg:#0f2e25;
+--warn:#f8c66d;--warn-bg:#33270c;--bad:#ff8a8a;--bad-bg:#3a1414;--low:#4ade9d;--mid:#f8c66d;--high:#ff8a8a}}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB",
+"Microsoft YaHei","Noto Sans CJK SC",system-ui,sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:0 16px 56px}
+header.top{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;padding:18px 0 8px}
+h1{font-size:20px;margin:0;letter-spacing:.2px}h2{font-size:18px;margin:34px 0 10px}h3{font-size:15px;margin:0 0 6px}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;background:var(--pri-soft);color:var(--pri);font-size:13px;font-weight:600}
+.hero{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-top:8px}
+.hero .state{display:flex;gap:10px;align-items:flex-start}
+.dot{flex:none;width:12px;height:12px;border-radius:50%;margin-top:9px}
+.hero.fresh .dot{background:var(--ok)}.hero.failed .dot,.hero.stale .dot{background:var(--bad)}.hero.archive .dot{background:var(--warn)}
+.hero .big{font-size:22px;font-weight:700;line-height:1.35;margin:0}
+.hero .sub{color:var(--mute);margin:4px 0 0}
+.banner{margin-top:12px;padding:10px 12px;border-radius:8px;font-size:14px}
+.banner.warn{background:var(--warn-bg);color:var(--warn)}.banner.bad{background:var(--bad-bg);color:var(--bad)}
+.banner.ok{background:var(--ok-bg);color:var(--ok)}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:14px}
+.fact{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.fact dt{font-size:12px;color:var(--mute);margin:0}.fact dd{margin:2px 0 0;font-weight:600;font-variant-numeric:tabular-nums}
+.fact small{display:block;color:var(--mute);font-weight:400}
+.strip{display:flex;gap:4px;margin-top:12px;flex-wrap:wrap}
+.strip i{width:18px;height:18px;border-radius:4px;background:var(--line)}
+.strip i.ok{background:var(--ok)}.strip i.fail{background:var(--bad)}.strip i.miss{background:var(--warn)}
+.strip-label{font-size:12px;color:var(--mute);margin-top:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.chip{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12.5px;border:1px solid var(--line);color:var(--mute);background:transparent}
+button.chip{cursor:pointer;font:inherit;font-size:13px;padding:4px 12px;min-height:32px;color:var(--fg)}
+button.chip[aria-pressed=true]{background:var(--pri);color:#fff;border-color:var(--pri)}
+button:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+.day{font-size:15px;font-weight:700;margin:20px 0 8px;color:var(--mute)}
+.fx{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:0 0 10px}
+.fx-top{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:13px;color:var(--mute)}
+.fx-top time{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--fg);font-weight:600}
+.teams{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin:10px 0}
+.team{font-weight:700;font-size:17px;line-height:1.3}.team small{display:block;font-weight:400;font-size:12px;color:var(--mute)}
+.team.r{text-align:right}.vs{color:var(--mute);font-size:13px}
+.bar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--line)}
+.bar i{display:block;height:100%}.bar .h{background:var(--home)}.bar .d{background:var(--draw)}.bar .a{background:var(--away)}
+.nums{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px;text-align:center;font-variant-numeric:tabular-nums}
+.nums b{display:block;font-size:20px;line-height:1.2}.nums span{font-size:12px;color:var(--mute)}
+.nums .h b{color:var(--home)}.nums .a b{color:var(--away)}
+.mini{font-size:13px;color:var(--mute);margin-top:8px;font-variant-numeric:tabular-nums}
+.risk{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
+.g-低{color:var(--low);border-color:var(--low)}.g-中{color:var(--mid);border-color:var(--mid)}.g-高{color:var(--high);border-color:var(--high)}
+details{margin-top:8px}summary{cursor:pointer;font-size:13px;color:var(--pri);min-height:28px}
+details ul{margin:6px 0 0;padding-left:20px;font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:12px;color:var(--mute);font-weight:600}
+.tw{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:4px 8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}
+.muted{color:var(--mute);font-size:14px}.hit{color:var(--ok);font-weight:700}.miss{color:var(--bad);font-weight:700}
+.empty{padding:16px;border:1px dashed var(--line);border-radius:var(--r);color:var(--mute)}
+footer{margin-top:40px;color:var(--mute);font-size:13px}
+.fact.wide{grid-column:1/-1}
+@media (max-width:520px){.facts{grid-template-columns:1fr 1fr;gap:8px}.fact{padding:8px 10px}.fact dd{font-size:15px}.fact small{font-size:12px}.hero{padding:14px}
+.team{font-size:15px}.hero .big{font-size:19px}.fx-top time{margin-left:0;width:100%}}
+@media (prefers-reduced-motion:no-preference){.bar i{transition:width .3s}}
+</style></head>
+<body><div class="wrap">
+<header class="top"><h1>FIFA 足球研究日报</h1><span class="pill">只研究 · 不下注 · 零付费</span></header>
+<section class="hero archive" aria-live="polite">
+<div class="state"><span class="dot"></span><div><p class="big">这是 2026-09-30 的存档报告</p><p class="sub">存档只用于回看当时的预测，赛程与概率不再更新。最新报告见首页。</p></div></div>
+<div id="stale" class="banner bad" hidden></div><div class="banner ok">这不是系统坏了：覆盖的赛事最近没有比赛（通常是国际比赛日/赛程空窗），下一个比赛日在 10 天后。报告照常生成，先给出赛前预测。</div><dl class="facts">
+<div class="fact"><dt>报告日（悉尼）</dt><dd>2026-09-30<small>生成于 2026-09-30 20:07</small></dd></div>
+<div class="fact"><dt>今天有没有新报告</dt><dd>存档<small>今天（悉尼）覆盖的赛事没有比赛</small></dd></div>
+<div class="fact wide"><dt>数据截至（最新已收录赛果）</dt><dd>2026-09-20<small>德甲、英超、西甲、法甲、意甲 09-20；欧冠 09-10；联赛数据每周更新一次，赛果最多滞后约一周；欧冠上游修订 2026-09-18 07:34</small></dd></div>
+<div class="fact"><dt>下一场</dt><dd>10-10 周六 05:30<small>德甲：多特蒙德 对 云达不来梅</small><small data-kick="2026-10-09T18:30Z"></small></dd></div>
+</dl><div class="strip" aria-hidden="true"><i class="none" title="2026-09-17：更早，无记录"></i><i class="none" title="2026-09-18：更早，无记录"></i><i class="none" title="2026-09-19：更早，无记录"></i><i class="none" title="2026-09-20：更早，无记录"></i><i class="none" title="2026-09-21：更早，无记录"></i><i class="none" title="2026-09-22：更早，无记录"></i><i class="none" title="2026-09-23：更早，无记录"></i><i class="none" title="2026-09-24：更早，无记录"></i><i class="none" title="2026-09-25：更早，无记录"></i><i class="none" title="2026-09-26：更早，无记录"></i><i class="none" title="2026-09-27：更早，无记录"></i><i class="none" title="2026-09-28：更早，无记录"></i><i class="none" title="2026-09-29：更早，无记录"></i><i class="ok" title="2026-09-30：成功"></i></div><div class="strip-label">最近 14 天运行记录：绿=成功，红=失败，黄=缺跑，灰=更早/无记录</div>
+<span id="gen" data-utc="2026-09-30T10:07:54Z" data-stale-h="30" data-archive="1" hidden></span>
+</section>
+<h2>未来 14 天的比赛与模型概率</h2>
+<p class="muted">概率来自带时间衰减的泊松进球模型；每个概率下面的「区间」是参数不确定度的 10%–90% 范围。
+时间为悉尼时间（自动处理夏令时切换）。</p>
+<div class="chips" role="group" aria-label="按赛事筛选"><button class="chip" type="button" data-comp="all" aria-pressed="true">全部 57 场</button><button class="chip" type="button" data-comp="de.1" aria-pressed="false">德甲 9</button><button class="chip" type="button" data-comp="en.1" aria-pressed="false">英超 10</button><button class="chip" type="button" data-comp="es.1" aria-pressed="false">西甲 10</button><button class="chip" type="button" data-comp="fr.1" aria-pressed="false">法甲 9</button><button class="chip" type="button" data-comp="it.1" aria-pressed="false">意甲 10</button><button class="chip" type="button" data-comp="uefa.cl" aria-pressed="false">欧冠 9</button></div><div class="daygroup"><div class="day">2026-10-10 周六（悉尼）· 10 天后 · 5 场</div><article class="fx" data-comp="de.1">
+<div class="fx-top"><span class="pill">德甲</span><span>第 5 轮</span><span data-kick="2026-10-09T18:30Z"></span><time>周六 05:30 悉尼</time></div>
+<div class="teams"><div class="team">多特蒙德<small>Borussia Dortmund</small></div><div class="vs">对</div><div class="team r">云达不来梅<small>SV Werder Bremen</small></div></div>
+<div class="bar" role="img" aria-label="主胜 71%，平 17%，客胜 12%"><i class="h" style="width:71%"></i><i class="d" style="width:17%"></i><i class="a" style="width:12%"></i></div>
+<div class="nums"><div class="h"><b>71%</b><span>主胜 · 区间 59–81%</span></div><div><b>17%</b><span>平 · 区间 12–22%</span></div><div class="a"><b>12%</b><span>客胜 · 区间 6–18%</span></div></div>
+<div class="mini">预期进球 2.4 : 0.9 · 大于 2.5 球 64% · 双方进球 54% · 最可能比分 2-0（11%） / 2-1（10%） / 3-0（9%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span><span class="chip">一边倒</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>一边倒：热门胜率约 71%，剩下 29% 属于冷门/平局空间</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 41.3 场，客队约 30.6 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="fr.1">
+<div class="fx-top"><span class="pill">法甲</span><span>第 6 轮</span><span data-kick="2026-10-09T18:45Z"></span><time>周六 05:45 悉尼</time></div>
+<div class="teams"><div class="team">朗斯<small>Lens</small></div><div class="vs">对</div><div class="team r">里昂<small>Olympique Lyonnais</small></div></div>
+<div class="bar" role="img" aria-label="主胜 43%，平 25%，客胜 32%"><i class="h" style="width:43%"></i><i class="d" style="width:25%"></i><i class="a" style="width:32%"></i></div>
+<div class="nums"><div class="h"><b>43%</b><span>主胜 · 区间 32–54%</span></div><div><b>25%</b><span>平 · 区间 22–28%</span></div><div class="a"><b>32%</b><span>客胜 · 区间 22–42%</span></div></div>
+<div class="mini">预期进球 1.6 : 1.3 · 大于 2.5 球 55% · 双方进球 59% · 最可能比分 1-1（12%） / 2-1（9%） / 1-0（8%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 32.7 场，客队约 31.2 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="es.1">
+<div class="fx-top"><span class="pill">西甲</span><span>第 8 轮</span><span data-kick="2026-10-09T19:00Z"></span><time>周六 06:00 悉尼</time></div>
+<div class="teams"><div class="team">马拉加<small>Málaga CF</small></div><div class="vs">对</div><div class="team r">西班牙人<small>RCD Espanyol de Barcelona</small></div></div>
+<div class="bar" role="img" aria-label="主胜 30%，平 30%，客胜 40%"><i class="h" style="width:30%"></i><i class="d" style="width:30%"></i><i class="a" style="width:40%"></i></div>
+<div class="nums"><div class="h"><b>30%</b><span>主胜 · 区间 20–41%</span></div><div><b>30%</b><span>平 · 区间 25–33%</span></div><div class="a"><b>40%</b><span>客胜 · 区间 30–53%</span></div></div>
+<div class="mini">预期进球 1.0 : 1.2 · 大于 2.5 球 39% · 双方进球 46% · 最可能比分 1-1（14%） / 0-1（12%） / 0-0（11%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span><span class="chip">跨级别</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>主队马拉加：上赛季在西乙，评级部分来自下级/其他联赛，跨级别有偏差</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 21.3 场，客队约 36.3 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="en.1">
+<div class="fx-top"><span class="pill">英超</span><span>第 6 轮</span><span data-kick="2026-10-10T11:30Z"></span><time>周六 22:30 悉尼</time></div>
+<div class="teams"><div class="team">阿森纳<small>Arsenal</small></div><div class="vs">对</div><div class="team r">利兹联<small>Leeds United</small></div></div>
+<div class="bar" role="img" aria-label="主胜 59%，平 26%，客胜 15%"><i class="h" style="width:59%"></i><i class="d" style="width:26%"></i><i class="a" style="width:15%"></i></div>
+<div class="nums"><div class="h"><b>59%</b><span>主胜 · 区间 49–69%</span></div><div><b>26%</b><span>平 · 区间 20–30%</span></div><div class="a"><b>15%</b><span>客胜 · 区间 10–22%</span></div></div>
+<div class="mini">预期进球 1.6 : 0.7 · 大于 2.5 球 41% · 双方进球 41% · 最可能比分 1-0（15%） / 2-0（13%） / 1-1（12%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 48.3 场，客队约 36.0 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="es.1">
+<div class="fx-top"><span class="pill">西甲</span><span>第 8 轮</span><span data-kick="2026-10-10T12:00Z"></span><time>周六 23:00 悉尼</time></div>
+<div class="teams"><div class="team">巴列卡诺<small>Rayo Vallecano de Madrid</small></div><div class="vs">对</div><div class="team r">毕尔巴鄂竞技<small>Athletic Club</small></div></div>
+<div class="bar" role="img" aria-label="主胜 39%，平 29%，客胜 32%"><i class="h" style="width:39%"></i><i class="d" style="width:29%"></i><i class="a" style="width:32%"></i></div>
+<div class="nums"><div class="h"><b>39%</b><span>主胜 · 区间 29–50%</span></div><div><b>29%</b><span>平 · 区间 26–32%</span></div><div class="a"><b>32%</b><span>客胜 · 区间 22–41%</span></div></div>
+<div class="mini">预期进球 1.2 : 1.1 · 大于 2.5 球 40% · 双方进球 47% · 最可能比分 1-1（14%） / 1-0（12%） / 0-0（11%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 36.3 场，客队约 39.1 场（越大越稳）。</li></ul></details>
+</article></div><div class="daygroup"><div class="day">2026-10-11 周日（悉尼）· 11 天后 · 24 场</div><article class="fx" data-comp="it.1">
+<div class="fx-top"><span class="pill">意甲</span><span>第 6 轮</span><span data-kick="2026-10-10T13:00Z"></span><time>周日 00:00 悉尼</time></div>
+<div class="teams"><div class="team">热那亚<small>Genoa CFC</small></div><div class="vs">对</div><div class="team r">佛罗伦萨<small>ACF Fiorentina</small></div></div>
+<div class="bar" role="img" aria-label="主胜 36%，平 29%，客胜 35%"><i class="h" style="width:36%"></i><i class="d" style="width:29%"></i><i class="a" style="width:35%"></i></div>
+<div class="nums"><div class="h"><b>36%</b><span>主胜 · 区间 27–47%</span></div><div><b>29%</b><span>平 · 区间 25–32%</span></div><div class="a"><b>35%</b><span>客胜 · 区间 25–46%</span></div></div>
+<div class="mini">预期进球 1.2 : 1.2 · 大于 2.5 球 43% · 双方进球 49% · 最可能比分 1-1（14%） / 1-0（10%） / 0-1（10%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 34.4 场，客队约 34.4 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="de.1">
+<div class="fx-top"><span class="pill">德甲</span><span>第 5 轮</span><span data-kick="2026-10-10T13:30Z"></span><time>周日 00:30 悉尼</time></div>
+<div class="teams"><div class="team">美因茨<small>Mainz 05</small></div><div class="vs">对</div><div class="team r">勒沃库森<small>Bayer 04 Leverkusen</small></div></div>
+<div class="bar" role="img" aria-label="主胜 32%，平 26%，客胜 42%"><i class="h" style="width:32%"></i><i class="d" style="width:26%"></i><i class="a" style="width:42%"></i></div>
+<div class="nums"><div class="h"><b>32%</b><span>主胜 · 区间 23–43%</span></div><div><b>26%</b><span>平 · 区间 22–27%</span></div><div class="a"><b>42%</b><span>客胜 · 区间 32–54%</span></div></div>
+<div class="mini">预期进球 1.4 : 1.6 · 大于 2.5 球 57% · 双方进球 60% · 最可能比分 1-1（12%） / 1-2（9%） / 0-1（8%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 30.6 场，客队约 39.2 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="de.1">
+<div class="fx-top"><span class="pill">德甲</span><span>第 5 轮</span><span data-kick="2026-10-10T13:30Z"></span><time>周日 00:30 悉尼</time></div>
+<div class="teams"><div class="team">帕德博恩<small>SC Paderborn 07</small></div><div class="vs">对</div><div class="team r">斯图加特<small>VfB Stuttgart</small></div></div>
+<div class="bar" role="img" aria-label="主胜 31%，平 25%，客胜 44%"><i class="h" style="width:31%"></i><i class="d" style="width:25%"></i><i class="a" style="width:44%"></i></div>
+<div class="nums"><div class="h"><b>31%</b><span>主胜 · 区间 19–47%</span></div><div><b>25%</b><span>平 · 区间 20–28%</span></div><div class="a"><b>44%</b><span>客胜 · 区间 28–59%</span></div></div>
+<div class="mini">预期进球 1.4 : 1.6 · 大于 2.5 球 58% · 双方进球 61% · 最可能比分 1-1（12%） / 1-2（9%） / 0-1（8%）</div>
+<div class="risk"><span class="chip g-中">风险 中</span><span class="chip">跨级别</span><span class="chip">不确定度高</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>主队帕德博恩：上赛季在德乙，评级部分来自下级/其他联赛，跨级别有偏差</li><li>模型不确定度高：某一结果的 10%-90% 区间宽达 31 个百分点</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 16.3 场，客队约 33.2 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="de.1">
+<div class="fx-top"><span class="pill">德甲</span><span>第 5 轮</span><span data-kick="2026-10-10T13:30Z"></span><time>周日 00:30 悉尼</time></div>
+<div class="teams"><div class="team">柏林联合<small>Union Berlin</small></div><div class="vs">对</div><div class="team r">埃尔弗斯贝格<small>SV 07 Elversberg</small></div></div>
+<div class="bar" role="img" aria-label="主胜 28%，平 25%，客胜 47%"><i class="h" style="width:28%"></i><i class="d" style="width:25%"></i><i class="a" style="width:47%"></i></div>
+<div class="nums"><div class="h"><b>28%</b><span>主胜 · 区间 16–41%</span></div><div><b>25%</b><span>平 · 区间 19–27%</span></div><div class="a"><b>47%</b><span>客胜 · 区间 34–64%</span></div></div>
+<div class="mini">预期进球 1.3 : 1.7 · 大于 2.5 球 58% · 双方进球 60% · 最可能比分 1-1（11%） / 1-2（9%） / 0-1（8%）</div>
+<div class="risk"><span class="chip g-中">风险 中</span><span class="chip">跨级别</span><span class="chip">不确定度高</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>客队埃尔弗斯贝格：上赛季在德乙，评级部分来自下级/其他联赛，跨级别有偏差</li><li>模型不确定度高：某一结果的 10%-90% 区间宽达 30 个百分点</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 31.1 场，客队约 16.3 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="de.1">
+<div class="fx-top"><span class="pill">德甲</span><span>第 5 轮</span><span data-kick="2026-10-10T13:30Z"></span><time>周日 00:30 悉尼</time></div>
+<div class="teams"><div class="team">霍芬海姆<small>TSG 1899 Hoffenheim</small></div><div class="vs">对</div><div class="team r">汉堡<small>Hamburger SV</small></div></div>
+<div class="bar" role="img" aria-label="主胜 54%，平 22%，客胜 24%"><i class="h" style="width:54%"></i><i class="d" style="width:22%"></i><i class="a" style="width:24%"></i></div>
+<div class="nums"><div class="h"><b>54%</b><span>主胜 · 区间 43–66%</span></div><div><b>22%</b><span>平 · 区间 18–25%</span></div><div class="a"><b>24%</b><span>客胜 · 区间 16–33%</span></div></div>
+<div class="mini">预期进球 2.1 : 1.3 · 大于 2.5 球 67% · 双方进球 65% · 最可能比分 2-1（9%） / 1-1（9%） / 2-0（7%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 30.6 场，客队约 30.5 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="de.1">
+<div class="fx-top"><span class="pill">德甲</span><span>第 5 轮</span><span data-kick="2026-10-10T13:30Z"></span><time>周日 00:30 悉尼</time></div>
+<div class="teams"><div class="team">奥格斯堡<small>Augsburg</small></div><div class="vs">对</div><div class="team r">拜仁慕尼黑<small>Bayern Munich</small></div></div>
+<div class="bar" role="img" aria-label="主胜 11%，平 15%，客胜 74%"><i class="h" style="width:11%"></i><i class="d" style="width:15%"></i><i class="a" style="width:74%"></i></div>
+<div class="nums"><div class="h"><b>11%</b><span>主胜 · 区间 6–18%</span></div><div><b>15%</b><span>平 · 区间 10–19%</span></div><div class="a"><b>74%</b><span>客胜 · 区间 64–83%</span></div></div>
+<div class="mini">预期进球 1.1 : 2.9 · 大于 2.5 球 75% · 双方进球 62% · 最可能比分 1-2（9%） / 1-3（8%） / 0-2（8%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span><span class="chip">一边倒</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>一边倒：热门胜率约 74%，剩下 26% 属于冷门/平局空间</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 30.6 场，客队约 44.0 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="en.1">
+<div class="fx-top"><span class="pill">英超</span><span>第 6 轮</span><span data-kick="2026-10-10T14:00Z"></span><time>周日 01:00 悉尼</time></div>
+<div class="teams"><div class="team">桑德兰<small>Sunderland</small></div><div class="vs">对</div><div class="team r">布莱顿<small>Brighton &amp; Hove Albion</small></div></div>
+<div class="bar" role="img" aria-label="主胜 27%，平 27%，客胜 46%"><i class="h" style="width:27%"></i><i class="d" style="width:27%"></i><i class="a" style="width:46%"></i></div>
+<div class="nums"><div class="h"><b>27%</b><span>主胜 · 区间 19–37%</span></div><div><b>27%</b><span>平 · 区间 23–30%</span></div><div class="a"><b>46%</b><span>客胜 · 区间 35–57%</span></div></div>
+<div class="mini">预期进球 1.1 : 1.5 · 大于 2.5 球 48% · 双方进球 52% · 最可能比分 1-1（13%） / 0-1（11%） / 1-2（9%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 37.0 场，客队约 34.4 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="en.1">
+<div class="fx-top"><span class="pill">英超</span><span>第 6 轮</span><span data-kick="2026-10-10T14:00Z"></span><time>周日 01:00 悉尼</time></div>
+<div class="teams"><div class="team">切尔西<small>Chelsea</small></div><div class="vs">对</div><div class="team r">伯恩茅斯<small>Bournemouth</small></div></div>
+<div class="bar" role="img" aria-label="主胜 43%，平 25%，客胜 32%"><i class="h" style="width:43%"></i><i class="d" style="width:25%"></i><i class="a" style="width:32%"></i></div>
+<div class="nums"><div class="h"><b>43%</b><span>主胜 · 区间 32–55%</span></div><div><b>25%</b><span>平 · 区间 21–27%</span></div><div class="a"><b>32%</b><span>客胜 · 区间 22–43%</span></div></div>
+<div class="mini">预期进球 1.7 : 1.4 · 大于 2.5 球 59% · 双方进球 62% · 最可能比分 1-1（11%） / 2-1（9%） / 1-2（8%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 39.6 场，客队约 34.4 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="en.1">
+<div class="fx-top"><span class="pill">英超</span><span>第 6 轮</span><span data-kick="2026-10-10T14:00Z"></span><time>周日 01:00 悉尼</time></div>
+<div class="teams"><div class="team">伊普斯维奇<small>Ipswich Town</small></div><div class="vs">对</div><div class="team r">富勒姆<small>Fulham</small></div></div>
+<div class="bar" role="img" aria-label="主胜 33%，平 27%，客胜 40%"><i class="h" style="width:33%"></i><i class="d" style="width:27%"></i><i class="a" style="width:40%"></i></div>
+<div class="nums"><div class="h"><b>33%</b><span>主胜 · 区间 24–43%</span></div><div><b>27%</b><span>平 · 区间 24–30%</span></div><div class="a"><b>40%</b><span>客胜 · 区间 30–51%</span></div></div>
+<div class="mini">预期进球 1.3 : 1.4 · 大于 2.5 球 50% · 双方进球 55% · 最可能比分 1-1（13%） / 0-1（9%） / 1-2（9%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span><span class="chip">跨级别</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>主队伊普斯维奇：上赛季在英冠，评级部分来自下级/其他联赛，跨级别有偏差</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 38.5 场，客队约 34.4 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="en.1">
+<div class="fx-top"><span class="pill">英超</span><span>第 6 轮</span><span data-kick="2026-10-10T14:00Z"></span><time>周日 01:00 悉尼</time></div>
+<div class="teams"><div class="team">阿斯顿维拉<small>Aston Villa</small></div><div class="vs">对</div><div class="team r">布伦特福德<small>Brentford</small></div></div>
+<div class="bar" role="img" aria-label="主胜 41%，平 26%，客胜 33%"><i class="h" style="width:41%"></i><i class="d" style="width:26%"></i><i class="a" style="width:33%"></i></div>
+<div class="nums"><div class="h"><b>41%</b><span>主胜 · 区间 30–51%</span></div><div><b>26%</b><span>平 · 区间 23–28%</span></div><div class="a"><b>33%</b><span>客胜 · 区间 24–44%</span></div></div>
+<div class="mini">预期进球 1.5 : 1.4 · 大于 2.5 球 55% · 双方进球 59% · 最可能比分 1-1（12%） / 2-1（9%） / 1-0（8%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 38.1 场，客队约 34.4 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="es.1">
+<div class="fx-top"><span class="pill">西甲</span><span>第 8 轮</span><span data-kick="2026-10-10T14:15Z"></span><time>周日 01:15 悉尼</time></div>
+<div class="teams"><div class="team">阿拉维斯<small>Deportivo Alavés</small></div><div class="vs">对</div><div class="team r">马德里竞技<small>Atlético Madrid</small></div></div>
+<div class="bar" role="img" aria-label="主胜 26%，平 27%，客胜 47%"><i class="h" style="width:26%"></i><i class="d" style="width:27%"></i><i class="a" style="width:47%"></i></div>
+<div class="nums"><div class="h"><b>26%</b><span>主胜 · 区间 19–36%</span></div><div><b>27%</b><span>平 · 区间 23–29%</span></div><div class="a"><b>47%</b><span>客胜 · 区间 36–58%</span></div></div>
+<div class="mini">预期进球 1.1 : 1.6 · 大于 2.5 球 50% · 双方进球 54% · 最可能比分 1-1（13%） / 0-1（10%） / 1-2（9%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 36.2 场，客队约 49.4 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="fr.1">
+<div class="fx-top"><span class="pill">法甲</span><span>第 6 轮</span><span data-kick="2026-10-10T15:15Z"></span><time>周日 02:15 悉尼</time></div>
+<div class="teams"><div class="team">里尔<small>Lille</small></div><div class="vs">对</div><div class="team r">勒阿弗尔<small>Le Havre AC</small></div></div>
+<div class="bar" role="img" aria-label="主胜 60%，平 24%，客胜 16%"><i class="h" style="width:60%"></i><i class="d" style="width:24%"></i><i class="a" style="width:16%"></i></div>
+<div class="nums"><div class="h"><b>60%</b><span>主胜 · 区间 49–70%</span></div><div><b>24%</b><span>平 · 区间 19–30%</span></div><div class="a"><b>16%</b><span>客胜 · 区间 10–23%</span></div></div>
+<div class="mini">预期进球 1.7 : 0.8 · 大于 2.5 球 45% · 双方进球 44% · 最可能比分 1-0（14%） / 2-0（12%） / 1-1（11%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 34.4 场，客队约 31.3 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="it.1">
+<div class="fx-top"><span class="pill">意甲</span><span>第 6 轮</span><span data-kick="2026-10-10T16:00Z"></span><time>周日 03:00 悉尼</time></div>
+<div class="teams"><div class="team">国际米兰<small>Inter Milan</small></div><div class="vs">对</div><div class="team r">帕尔马<small>Parma Calcio 1913</small></div></div>
+<div class="bar" role="img" aria-label="主胜 75%，平 17%，客胜 8%"><i class="h" style="width:75%"></i><i class="d" style="width:17%"></i><i class="a" style="width:8%"></i></div>
+<div class="nums"><div class="h"><b>75%</b><span>主胜 · 区间 65–84%</span></div><div><b>17%</b><span>平 · 区间 11–22%</span></div><div class="a"><b>8%</b><span>客胜 · 区间 5–13%</span></div></div>
+<div class="mini">预期进球 2.4 : 0.7 · 大于 2.5 球 58% · 双方进球 45% · 最可能比分 2-0（13%） / 1-0（11%） / 3-0（11%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span><span class="chip">一边倒</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>一边倒：热门胜率约 75%，剩下 25% 属于冷门/平局空间</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 44.9 场，客队约 34.4 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="de.1">
+<div class="fx-top"><span class="pill">德甲</span><span>第 5 轮</span><span data-kick="2026-10-10T16:30Z"></span><time>周日 03:30 悉尼</time></div>
+<div class="teams"><div class="team">RB 莱比锡<small>RB Leipzig</small></div><div class="vs">对</div><div class="team r">法兰克福<small>Eintracht Frankfurt</small></div></div>
+<div class="bar" role="img" aria-label="主胜 54%，平 21%，客胜 25%"><i class="h" style="width:54%"></i><i class="d" style="width:21%"></i><i class="a" style="width:25%"></i></div>
+<div class="nums"><div class="h"><b>54%</b><span>主胜 · 区间 42–66%</span></div><div><b>21%</b><span>平 · 区间 17–23%</span></div><div class="a"><b>25%</b><span>客胜 · 区间 16–35%</span></div></div>
+<div class="mini">预期进球 2.2 : 1.5 · 大于 2.5 球 71% · 双方进球 69% · 最可能比分 2-1（9%） / 1-1（8%） / 3-1（7%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 34.0 场，客队约 34.5 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="en.1">
+<div class="fx-top"><span class="pill">英超</span><span>第 6 轮</span><span data-kick="2026-10-10T16:30Z"></span><time>周日 03:30 悉尼</time></div>
+<div class="teams"><div class="team">曼联<small>Manchester United</small></div><div class="vs">对</div><div class="team r">热刺<small>Tottenham Hotspur</small></div></div>
+<div class="bar" role="img" aria-label="主胜 56%，平 23%，客胜 21%"><i class="h" style="width:56%"></i><i class="d" style="width:23%"></i><i class="a" style="width:21%"></i></div>
+<div class="nums"><div class="h"><b>56%</b><span>主胜 · 区间 45–67%</span></div><div><b>23%</b><span>平 · 区间 18–25%</span></div><div class="a"><b>21%</b><span>客胜 · 区间 14–30%</span></div></div>
+<div class="mini">预期进球 2.0 : 1.1 · 大于 2.5 球 61% · 双方进球 59% · 最可能比分 1-1（10%） / 2-1（10%） / 2-0（9%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 35.9 场，客队约 39.6 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="es.1">
+<div class="fx-top"><span class="pill">西甲</span><span>第 8 轮</span><span data-kick="2026-10-10T16:30Z"></span><time>周日 03:30 悉尼</time></div>
+<div class="teams"><div class="team">巴塞罗那<small>Barcelona</small></div><div class="vs">对</div><div class="team r">赫塔菲<small>Getafe CF</small></div></div>
+<div class="bar" role="img" aria-label="主胜 73%，平 18%，客胜 9%"><i class="h" style="width:73%"></i><i class="d" style="width:18%"></i><i class="a" style="width:9%"></i></div>
+<div class="nums"><div class="h"><b>73%</b><span>主胜 · 区间 63–81%</span></div><div><b>18%</b><span>平 · 区间 13–23%</span></div><div class="a"><b>9%</b><span>客胜 · 区间 5–14%</span></div></div>
+<div class="mini">预期进球 2.2 : 0.6 · 大于 2.5 球 54% · 双方进球 42% · 最可能比分 2-0（14%） / 1-0（12%） / 3-0（10%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span><span class="chip">一边倒</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>一边倒：热门胜率约 73%，剩下 27% 属于冷门/平局空间</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 48.0 场，客队约 36.3 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="fr.1">
+<div class="fx-top"><span class="pill">法甲</span><span>第 6 轮</span><span data-kick="2026-10-10T18:45Z"></span><time>周日 05:45 悉尼</time></div>
+<div class="teams"><div class="team">布雷斯特<small>Stade Brestois 29</small></div><div class="vs">对</div><div class="team r">昂热<small>Angers SCO</small></div></div>
+<div class="bar" role="img" aria-label="主胜 47%，平 27%，客胜 26%"><i class="h" style="width:47%"></i><i class="d" style="width:27%"></i><i class="a" style="width:26%"></i></div>
+<div class="nums"><div class="h"><b>47%</b><span>主胜 · 区间 36–57%</span></div><div><b>27%</b><span>平 · 区间 24–31%</span></div><div class="a"><b>26%</b><span>客胜 · 区间 18–36%</span></div></div>
+<div class="mini">预期进球 1.4 : 1.0 · 大于 2.5 球 44% · 双方进球 49% · 最可能比分 1-1（13%） / 1-0（12%） / 0-0（9%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 33.5 场，客队约 31.2 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="fr.1">
+<div class="fx-top"><span class="pill">法甲</span><span>第 6 轮</span><span data-kick="2026-10-10T18:45Z"></span><time>周日 05:45 悉尼</time></div>
+<div class="teams"><div class="team">洛里昂<small>Lorient</small></div><div class="vs">对</div><div class="team r">巴黎 FC<small>Paris</small></div></div>
+<div class="bar" role="img" aria-label="主胜 41%，平 27%，客胜 32%"><i class="h" style="width:41%"></i><i class="d" style="width:27%"></i><i class="a" style="width:32%"></i></div>
+<div class="nums"><div class="h"><b>41%</b><span>主胜 · 区间 31–51%</span></div><div><b>27%</b><span>平 · 区间 24–31%</span></div><div class="a"><b>32%</b><span>客胜 · 区间 23–40%</span></div></div>
+<div class="mini">预期进球 1.4 : 1.2 · 大于 2.5 球 47% · 双方进球 53% · 最可能比分 1-1（13%） / 1-0（10%） / 2-1（9%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 31.1 场，客队约 31.1 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="fr.1">
+<div class="fx-top"><span class="pill">法甲</span><span>第 6 轮</span><span data-kick="2026-10-10T18:45Z"></span><time>周日 05:45 悉尼</time></div>
+<div class="teams"><div class="team">巴黎圣日耳曼<small>Paris Saint-Germain</small></div><div class="vs">对</div><div class="team r">勒芒<small>Le Mans</small></div></div>
+<div class="bar" role="img" aria-label="主胜 80%，平 13%，客胜 7%"><i class="h" style="width:80%"></i><i class="d" style="width:13%"></i><i class="a" style="width:7%"></i></div>
+<div class="nums"><div class="h"><b>80%</b><span>主胜 · 区间 64–90%</span></div><div><b>13%</b><span>平 · 区间 7–21%</span></div><div class="a"><b>7%</b><span>客胜 · 区间 3–15%</span></div></div>
+<div class="mini">预期进球 2.9 : 0.8 · 大于 2.5 球 71% · 双方进球 52% · 最可能比分 2-0（11%） / 3-0（10%） / 2-1（8%）</div>
+<div class="risk"><span class="chip g-中">风险 中</span><span class="chip">样本少</span><span class="chip">跨级别</span><span class="chip">一边倒</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>客队勒芒：历史样本少（加权约 10 场），评级偏保守</li><li>客队勒芒：上赛季在法乙，评级部分来自下级/其他联赛，跨级别有偏差</li><li>一边倒：热门胜率约 80%，剩下 20% 属于冷门/平局空间</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 47.6 场，客队约 10.2 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="fr.1">
+<div class="fx-top"><span class="pill">法甲</span><span>第 6 轮</span><span data-kick="2026-10-10T18:45Z"></span><time>周日 05:45 悉尼</time></div>
+<div class="teams"><div class="team">摩纳哥<small>AS Monaco</small></div><div class="vs">对</div><div class="team r">图卢兹<small>Toulouse</small></div></div>
+<div class="bar" role="img" aria-label="主胜 53%，平 23%，客胜 24%"><i class="h" style="width:53%"></i><i class="d" style="width:23%"></i><i class="a" style="width:24%"></i></div>
+<div class="nums"><div class="h"><b>53%</b><span>主胜 · 区间 41–63%</span></div><div><b>23%</b><span>平 · 区间 20–27%</span></div><div class="a"><b>24%</b><span>客胜 · 区间 17–34%</span></div></div>
+<div class="mini">预期进球 1.9 : 1.2 · 大于 2.5 球 58% · 双方进球 59% · 最可能比分 1-1（11%） / 2-1（10%） / 1-0（8%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 38.5 场，客队约 30.5 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="it.1">
+<div class="fx-top"><span class="pill">意甲</span><span>第 6 轮</span><span data-kick="2026-10-10T18:45Z"></span><time>周日 05:45 悉尼</time></div>
+<div class="teams"><div class="team">那不勒斯<small>Napoli</small></div><div class="vs">对</div><div class="team r">弗罗西诺内<small>Frosinone Calcio</small></div></div>
+<div class="bar" role="img" aria-label="主胜 59%，平 24%，客胜 17%"><i class="h" style="width:59%"></i><i class="d" style="width:24%"></i><i class="a" style="width:17%"></i></div>
+<div class="nums"><div class="h"><b>59%</b><span>主胜 · 区间 46–72%</span></div><div><b>24%</b><span>平 · 区间 18–30%</span></div><div class="a"><b>17%</b><span>客胜 · 区间 10–25%</span></div></div>
+<div class="mini">预期进球 1.7 : 0.8 · 大于 2.5 球 47% · 双方进球 46% · 最可能比分 1-0（13%） / 2-0（12%） / 1-1（12%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span><span class="chip">跨级别</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>客队弗罗西诺内：上赛季在意乙，评级部分来自下级/其他联赛，跨级别有偏差</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 40.0 场，客队约 29.5 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="es.1">
+<div class="fx-top"><span class="pill">西甲</span><span>第 8 轮</span><span data-kick="2026-10-10T19:00Z"></span><time>周日 06:00 悉尼</time></div>
+<div class="teams"><div class="team">皇家马德里<small>Real Madrid</small></div><div class="vs">对</div><div class="team r">比利亚雷亚尔<small>Villarreal</small></div></div>
+<div class="bar" role="img" aria-label="主胜 65%，平 19%，客胜 16%"><i class="h" style="width:65%"></i><i class="d" style="width:19%"></i><i class="a" style="width:16%"></i></div>
+<div class="nums"><div class="h"><b>65%</b><span>主胜 · 区间 54–74%</span></div><div><b>19%</b><span>平 · 区间 15–23%</span></div><div class="a"><b>16%</b><span>客胜 · 区间 11–24%</span></div></div>
+<div class="mini">预期进球 2.4 : 1.1 · 大于 2.5 球 69% · 双方进球 62% · 最可能比分 2-1（10%） / 2-0（8%） / 1-1（8%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 49.5 场，客队约 41.2 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="it.1">
+<div class="fx-top"><span class="pill">意甲</span><span>第 6 轮</span><span data-kick="2026-10-11T10:30Z"></span><time>周日 21:30 悉尼</time></div>
+<div class="teams"><div class="team">科莫<small>Como</small></div><div class="vs">对</div><div class="team r">罗马<small>Roma</small></div></div>
+<div class="bar" role="img" aria-label="主胜 39%，平 28%，客胜 33%"><i class="h" style="width:39%"></i><i class="d" style="width:28%"></i><i class="a" style="width:33%"></i></div>
+<div class="nums"><div class="h"><b>39%</b><span>主胜 · 区间 28–50%</span></div><div><b>28%</b><span>平 · 区间 25–31%</span></div><div class="a"><b>33%</b><span>客胜 · 区间 24–45%</span></div></div>
+<div class="mini">预期进球 1.3 : 1.2 · 大于 2.5 球 46% · 双方进球 52% · 最可能比分 1-1（13%） / 1-0（10%） / 0-1（9%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 35.4 场，客队约 35.4 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="es.1">
+<div class="fx-top"><span class="pill">西甲</span><span>第 8 轮</span><span data-kick="2026-10-11T12:00Z"></span><time>周日 23:00 悉尼</time></div>
+<div class="teams"><div class="team">埃尔切<small>Elche CF</small></div><div class="vs">对</div><div class="team r">塞尔塔<small>RC Celta de Vigo</small></div></div>
+<div class="bar" role="img" aria-label="主胜 36%，平 26%，客胜 38%"><i class="h" style="width:36%"></i><i class="d" style="width:26%"></i><i class="a" style="width:38%"></i></div>
+<div class="nums"><div class="h"><b>36%</b><span>主胜 · 区间 26–47%</span></div><div><b>26%</b><span>平 · 区间 23–29%</span></div><div class="a"><b>38%</b><span>客胜 · 区间 27–49%</span></div></div>
+<div class="mini">预期进球 1.4 : 1.4 · 大于 2.5 球 52% · 双方进球 57% · 最可能比分 1-1（13%） / 1-2（8%） / 0-1（8%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 37.2 场，客队约 36.2 场（越大越稳）。</li></ul></details>
+</article></div><div class="daygroup"><div class="day">2026-10-12 周一（悉尼）· 12 天后 · 15 场</div><article class="fx" data-comp="en.1">
+<div class="fx-top"><span class="pill">英超</span><span>第 6 轮</span><span data-kick="2026-10-11T13:00Z"></span><time>周一 00:00 悉尼</time></div>
+<div class="teams"><div class="team">赫尔城<small>Hull City</small></div><div class="vs">对</div><div class="team r">埃弗顿<small>Everton</small></div></div>
+<div class="bar" role="img" aria-label="主胜 26%，平 29%，客胜 45%"><i class="h" style="width:26%"></i><i class="d" style="width:29%"></i><i class="a" style="width:45%"></i></div>
+<div class="nums"><div class="h"><b>26%</b><span>主胜 · 区间 18–35%</span></div><div><b>29%</b><span>平 · 区间 25–33%</span></div><div class="a"><b>45%</b><span>客胜 · 区间 33–57%</span></div></div>
+<div class="mini">预期进球 0.9 : 1.3 · 大于 2.5 球 37% · 双方进球 43% · 最可能比分 0-1（14%） / 1-1（14%） / 0-0（12%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span><span class="chip">跨级别</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>主队赫尔城：上赛季在英冠，评级部分来自下级/其他联赛，跨级别有偏差</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 42.1 场，客队约 34.5 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="en.1">
+<div class="fx-top"><span class="pill">英超</span><span>第 6 轮</span><span data-kick="2026-10-11T13:00Z"></span><time>周一 00:00 悉尼</time></div>
+<div class="teams"><div class="team">水晶宫<small>Crystal Palace</small></div><div class="vs">对</div><div class="team r">诺丁汉森林<small>Nottingham Forest</small></div></div>
+<div class="bar" role="img" aria-label="主胜 35%，平 29%，客胜 36%"><i class="h" style="width:35%"></i><i class="d" style="width:29%"></i><i class="a" style="width:36%"></i></div>
+<div class="nums"><div class="h"><b>35%</b><span>主胜 · 区间 25–46%</span></div><div><b>29%</b><span>平 · 区间 25–31%</span></div><div class="a"><b>36%</b><span>客胜 · 区间 27–48%</span></div></div>
+<div class="mini">预期进球 1.2 : 1.2 · 大于 2.5 球 44% · 双方进球 50% · 最可能比分 1-1（14%） / 0-1（10%） / 1-0（10%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 34.5 场，客队约 34.4 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="fr.1">
+<div class="fx-top"><span class="pill">法甲</span><span>第 6 轮</span><span data-kick="2026-10-11T13:00Z"></span><time>周一 00:00 悉尼</time></div>
+<div class="teams"><div class="team">尼斯<small>OGC Nice</small></div><div class="vs">对</div><div class="team r">斯特拉斯堡<small>RC Strasbourg Alsace</small></div></div>
+<div class="bar" role="img" aria-label="主胜 33%，平 25%，客胜 42%"><i class="h" style="width:33%"></i><i class="d" style="width:25%"></i><i class="a" style="width:42%"></i></div>
+<div class="nums"><div class="h"><b>33%</b><span>主胜 · 区间 23–45%</span></div><div><b>25%</b><span>平 · 区间 22–27%</span></div><div class="a"><b>42%</b><span>客胜 · 区间 31–53%</span></div></div>
+<div class="mini">预期进球 1.4 : 1.6 · 大于 2.5 球 58% · 双方进球 61% · 最可能比分 1-1（12%） / 1-2（9%） / 2-1（8%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 31.2 场，客队约 31.3 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="it.1">
+<div class="fx-top"><span class="pill">意甲</span><span>第 6 轮</span><span data-kick="2026-10-11T13:00Z"></span><time>周一 00:00 悉尼</time></div>
+<div class="teams"><div class="team">莱切<small>US Lecce</small></div><div class="vs">对</div><div class="team r">博洛尼亚<small>Bologna FC 1909</small></div></div>
+<div class="bar" role="img" aria-label="主胜 27%，平 30%，客胜 43%"><i class="h" style="width:27%"></i><i class="d" style="width:30%"></i><i class="a" style="width:43%"></i></div>
+<div class="nums"><div class="h"><b>27%</b><span>主胜 · 区间 18–35%</span></div><div><b>30%</b><span>平 · 区间 26–33%</span></div><div class="a"><b>43%</b><span>客胜 · 区间 33–53%</span></div></div>
+<div class="mini">预期进球 0.9 : 1.2 · 大于 2.5 球 36% · 双方进球 43% · 最可能比分 0-1（14%） / 1-1（14%） / 0-0（12%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 34.4 场，客队约 36.2 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="it.1">
+<div class="fx-top"><span class="pill">意甲</span><span>第 6 轮</span><span data-kick="2026-10-11T13:00Z"></span><time>周一 00:00 悉尼</time></div>
+<div class="teams"><div class="team">拉齐奥<small>SS Lazio</small></div><div class="vs">对</div><div class="team r">蒙扎<small>AC Monza</small></div></div>
+<div class="bar" role="img" aria-label="主胜 59%，平 24%，客胜 17%"><i class="h" style="width:59%"></i><i class="d" style="width:24%"></i><i class="a" style="width:17%"></i></div>
+<div class="nums"><div class="h"><b>59%</b><span>主胜 · 区间 46–71%</span></div><div><b>24%</b><span>平 · 区间 19–29%</span></div><div class="a"><b>17%</b><span>客胜 · 区间 10–26%</span></div></div>
+<div class="mini">预期进球 1.8 : 0.8 · 大于 2.5 球 48% · 双方进球 47% · 最可能比分 1-0（13%） / 2-0（12%） / 1-1（11%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span><span class="chip">跨级别</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>客队蒙扎：上赛季在意乙，评级部分来自下级/其他联赛，跨级别有偏差</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 35.1 场，客队约 29.3 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="de.1">
+<div class="fx-top"><span class="pill">德甲</span><span>第 5 轮</span><span data-kick="2026-10-11T13:30Z"></span><time>周一 00:30 悉尼</time></div>
+<div class="teams"><div class="team">科隆<small>Köln</small></div><div class="vs">对</div><div class="team r">门兴格拉德巴赫<small>Borussia Mönchengladbach</small></div></div>
+<div class="bar" role="img" aria-label="主胜 44%，平 25%，客胜 31%"><i class="h" style="width:44%"></i><i class="d" style="width:25%"></i><i class="a" style="width:31%"></i></div>
+<div class="nums"><div class="h"><b>44%</b><span>主胜 · 区间 33–56%</span></div><div><b>25%</b><span>平 · 区间 21–27%</span></div><div class="a"><b>31%</b><span>客胜 · 区间 22–43%</span></div></div>
+<div class="mini">预期进球 1.7 : 1.4 · 大于 2.5 球 61% · 双方进球 63% · 最可能比分 1-1（11%） / 2-1（9%） / 1-2（7%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 30.4 场，客队约 30.6 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="es.1">
+<div class="fx-top"><span class="pill">西甲</span><span>第 8 轮</span><span data-kick="2026-10-11T14:15Z"></span><time>周一 01:15 悉尼</time></div>
+<div class="teams"><div class="team">皇家社会<small>Real Sociedad de Fútbol</small></div><div class="vs">对</div><div class="team r">拉科鲁尼亚<small>Deportivo La Coruña</small></div></div>
+<div class="bar" role="img" aria-label="主胜 47%，平 25%，客胜 28%"><i class="h" style="width:47%"></i><i class="d" style="width:25%"></i><i class="a" style="width:28%"></i></div>
+<div class="nums"><div class="h"><b>47%</b><span>主胜 · 区间 34–62%</span></div><div><b>25%</b><span>平 · 区间 20–28%</span></div><div class="a"><b>28%</b><span>客胜 · 区间 17–40%</span></div></div>
+<div class="mini">预期进球 1.7 : 1.3 · 大于 2.5 球 58% · 双方进球 60% · 最可能比分 1-1（11%） / 2-1（9%） / 1-0（8%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span><span class="chip">跨级别</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>客队拉科鲁尼亚：上赛季在西乙，评级部分来自下级/其他联赛，跨级别有偏差</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 37.0 场，客队约 21.3 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="fr.1">
+<div class="fx-top"><span class="pill">法甲</span><span>第 6 轮</span><span data-kick="2026-10-11T15:15Z"></span><time>周一 02:15 悉尼</time></div>
+<div class="teams"><div class="team">雷恩<small>Stade Rennais FC 1901</small></div><div class="vs">对</div><div class="team r">欧塞尔<small>AJ Auxerre</small></div></div>
+<div class="bar" role="img" aria-label="主胜 53%，平 24%，客胜 23%"><i class="h" style="width:53%"></i><i class="d" style="width:24%"></i><i class="a" style="width:23%"></i></div>
+<div class="nums"><div class="h"><b>53%</b><span>主胜 · 区间 41–65%</span></div><div><b>24%</b><span>平 · 区间 19–27%</span></div><div class="a"><b>23%</b><span>客胜 · 区间 15–33%</span></div></div>
+<div class="mini">预期进球 1.9 : 1.2 · 大于 2.5 球 59% · 双方进球 59% · 最可能比分 1-1（11%） / 2-1（10%） / 1-0（8%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 31.2 场，客队约 31.2 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="de.1">
+<div class="fx-top"><span class="pill">德甲</span><span>第 5 轮</span><span data-kick="2026-10-11T15:30Z"></span><time>周一 02:30 悉尼</time></div>
+<div class="teams"><div class="team">弗赖堡<small>SC Freiburg</small></div><div class="vs">对</div><div class="team r">沙尔克 04<small>Schalke 04</small></div></div>
+<div class="bar" role="img" aria-label="主胜 54%，平 24%，客胜 22%"><i class="h" style="width:54%"></i><i class="d" style="width:24%"></i><i class="a" style="width:22%"></i></div>
+<div class="nums"><div class="h"><b>54%</b><span>主胜 · 区间 38–69%</span></div><div><b>24%</b><span>平 · 区间 18–29%</span></div><div class="a"><b>22%</b><span>客胜 · 区间 12–34%</span></div></div>
+<div class="mini">预期进球 1.7 : 1.0 · 大于 2.5 球 52% · 双方进球 53% · 最可能比分 1-1（12%） / 1-0（10%） / 2-1（10%）</div>
+<div class="risk"><span class="chip g-中">风险 中</span><span class="chip">跨级别</span><span class="chip">不确定度高</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>客队沙尔克 04：上赛季在德乙，评级部分来自下级/其他联赛，跨级别有偏差</li><li>模型不确定度高：某一结果的 10%-90% 区间宽达 31 个百分点</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 30.6 场，客队约 16.3 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="en.1">
+<div class="fx-top"><span class="pill">英超</span><span>第 6 轮</span><span data-kick="2026-10-11T15:30Z"></span><time>周一 02:30 悉尼</time></div>
+<div class="teams"><div class="team">利物浦<small>Liverpool</small></div><div class="vs">对</div><div class="team r">曼城<small>Manchester City</small></div></div>
+<div class="bar" role="img" aria-label="主胜 39%，平 25%，客胜 36%"><i class="h" style="width:39%"></i><i class="d" style="width:25%"></i><i class="a" style="width:36%"></i></div>
+<div class="nums"><div class="h"><b>39%</b><span>主胜 · 区间 29–50%</span></div><div><b>25%</b><span>平 · 区间 23–28%</span></div><div class="a"><b>36%</b><span>客胜 · 区间 26–46%</span></div></div>
+<div class="mini">预期进球 1.5 : 1.4 · 大于 2.5 球 57% · 双方进球 60% · 最可能比分 1-1（12%） / 2-1（9%） / 1-2（8%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 44.1 场，客队约 43.8 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="it.1">
+<div class="fx-top"><span class="pill">意甲</span><span>第 6 轮</span><span data-kick="2026-10-11T16:00Z"></span><time>周一 03:00 悉尼</time></div>
+<div class="teams"><div class="team">萨索洛<small>Sassuolo Calcio</small></div><div class="vs">对</div><div class="team r">AC 米兰<small>AC Milan</small></div></div>
+<div class="bar" role="img" aria-label="主胜 31%，平 27%，客胜 42%"><i class="h" style="width:31%"></i><i class="d" style="width:27%"></i><i class="a" style="width:42%"></i></div>
+<div class="nums"><div class="h"><b>31%</b><span>主胜 · 区间 22–41%</span></div><div><b>27%</b><span>平 · 区间 24–30%</span></div><div class="a"><b>42%</b><span>客胜 · 区间 31–53%</span></div></div>
+<div class="mini">预期进球 1.2 : 1.4 · 大于 2.5 球 49% · 双方进球 54% · 最可能比分 1-1（13%） / 0-1（10%） / 1-2（9%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 34.5 场，客队约 37.2 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="es.1">
+<div class="fx-top"><span class="pill">西甲</span><span>第 8 轮</span><span data-kick="2026-10-11T16:30Z"></span><time>周一 03:30 悉尼</time></div>
+<div class="teams"><div class="team">皇家贝蒂斯<small>Real Betis</small></div><div class="vs">对</div><div class="team r">奥萨苏纳<small>CA Osasuna</small></div></div>
+<div class="bar" role="img" aria-label="主胜 56%，平 24%，客胜 20%"><i class="h" style="width:56%"></i><i class="d" style="width:24%"></i><i class="a" style="width:20%"></i></div>
+<div class="nums"><div class="h"><b>56%</b><span>主胜 · 区间 46–68%</span></div><div><b>24%</b><span>平 · 区间 19–28%</span></div><div class="a"><b>20%</b><span>客胜 · 区间 13–28%</span></div></div>
+<div class="mini">预期进球 1.8 : 1.0 · 大于 2.5 球 52% · 双方进球 53% · 最可能比分 1-1（11%） / 1-0（11%） / 2-0（10%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 37.2 场，客队约 36.3 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="fr.1">
+<div class="fx-top"><span class="pill">法甲</span><span>第 6 轮</span><span data-kick="2026-10-11T18:45Z"></span><time>周一 05:45 悉尼</time></div>
+<div class="teams"><div class="team">特鲁瓦<small>ES Troyes AC</small></div><div class="vs">对</div><div class="team r">马赛<small>Olympique de Marseille</small></div></div>
+<div class="bar" role="img" aria-label="主胜 24%，平 23%，客胜 53%"><i class="h" style="width:24%"></i><i class="d" style="width:23%"></i><i class="a" style="width:53%"></i></div>
+<div class="nums"><div class="h"><b>24%</b><span>主胜 · 区间 11–42%</span></div><div><b>23%</b><span>平 · 区间 16–27%</span></div><div class="a"><b>53%</b><span>客胜 · 区间 34–74%</span></div></div>
+<div class="mini">预期进球 1.3 : 2.0 · 大于 2.5 球 63% · 双方进球 62% · 最可能比分 1-1（10%） / 1-2（10%） / 0-2（8%）</div>
+<div class="risk"><span class="chip g-中">风险 中</span><span class="chip">样本少</span><span class="chip">不确定度高</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>主队特鲁瓦：历史样本少（加权约 5 场），评级偏保守</li><li>模型不确定度高：某一结果的 10%-90% 区间宽达 40 个百分点</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 4.7 场，客队约 35.1 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="it.1">
+<div class="fx-top"><span class="pill">意甲</span><span>第 6 轮</span><span data-kick="2026-10-11T18:45Z"></span><time>周一 05:45 悉尼</time></div>
+<div class="teams"><div class="team">卡利亚里<small>Cagliari Calcio</small></div><div class="vs">对</div><div class="team r">尤文图斯<small>Juventus</small></div></div>
+<div class="bar" role="img" aria-label="主胜 25%，平 28%，客胜 47%"><i class="h" style="width:25%"></i><i class="d" style="width:28%"></i><i class="a" style="width:47%"></i></div>
+<div class="nums"><div class="h"><b>25%</b><span>主胜 · 区间 17–33%</span></div><div><b>28%</b><span>平 · 区间 24–32%</span></div><div class="a"><b>47%</b><span>客胜 · 区间 37–59%</span></div></div>
+<div class="mini">预期进球 0.9 : 1.4 · 大于 2.5 球 41% · 双方进球 46% · 最可能比分 1-1（13%） / 0-1（13%） / 0-0（10%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 34.4 场，客队约 41.6 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="es.1">
+<div class="fx-top"><span class="pill">西甲</span><span>第 8 轮</span><span data-kick="2026-10-11T19:00Z"></span><time>周一 06:00 悉尼</time></div>
+<div class="teams"><div class="team">桑坦德竞技<small>Real Racing Club de Santander</small></div><div class="vs">对</div><div class="team r">瓦伦西亚<small>Valencia CF</small></div></div>
+<div class="bar" role="img" aria-label="主胜 39%，平 24%，客胜 37%"><i class="h" style="width:39%"></i><i class="d" style="width:24%"></i><i class="a" style="width:37%"></i></div>
+<div class="nums"><div class="h"><b>39%</b><span>主胜 · 区间 24–59%</span></div><div><b>24%</b><span>平 · 区间 18–26%</span></div><div class="a"><b>37%</b><span>客胜 · 区间 21–55%</span></div></div>
+<div class="mini">预期进球 1.7 : 1.7 · 大于 2.5 球 67% · 双方进球 68% · 最可能比分 1-1（10%） / 2-1（8%） / 1-2（8%）</div>
+<div class="risk"><span class="chip g-中">风险 中</span><span class="chip">样本少</span><span class="chip">不确定度高</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>主队桑坦德竞技：历史样本少（加权约 7 场），评级偏保守</li><li>模型不确定度高：某一结果的 10%-90% 区间宽达 35 个百分点</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 6.6 场，客队约 36.3 场（越大越稳）。</li></ul></details>
+</article></div><div class="daygroup"><div class="day">2026-10-13 周二（悉尼）· 13 天后 · 4 场</div><article class="fx" data-comp="it.1">
+<div class="fx-top"><span class="pill">意甲</span><span>第 6 轮</span><span data-kick="2026-10-12T16:30Z"></span><time>周二 03:30 悉尼</time></div>
+<div class="teams"><div class="team">亚特兰大<small>Atalanta BC</small></div><div class="vs">对</div><div class="team r">威尼斯<small>Venezia</small></div></div>
+<div class="bar" role="img" aria-label="主胜 62%，平 22%，客胜 16%"><i class="h" style="width:62%"></i><i class="d" style="width:22%"></i><i class="a" style="width:16%"></i></div>
+<div class="nums"><div class="h"><b>62%</b><span>主胜 · 区间 50–74%</span></div><div><b>22%</b><span>平 · 区间 16–27%</span></div><div class="a"><b>16%</b><span>客胜 · 区间 9–24%</span></div></div>
+<div class="mini">预期进球 2.0 : 0.9 · 大于 2.5 球 54% · 双方进球 51% · 最可能比分 2-0（11%） / 1-0（11%） / 1-1（11%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span><span class="chip">跨级别</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>客队威尼斯：上赛季在意乙，评级部分来自下级/其他联赛，跨级别有偏差</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 42.9 场，客队约 29.3 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="it.1">
+<div class="fx-top"><span class="pill">意甲</span><span>第 6 轮</span><span data-kick="2026-10-12T18:45Z"></span><time>周二 05:45 悉尼</time></div>
+<div class="teams"><div class="team">都灵<small>Torino</small></div><div class="vs">对</div><div class="team r">乌迪内斯<small>Udinese Calcio</small></div></div>
+<div class="bar" role="img" aria-label="主胜 39%，平 27%，客胜 34%"><i class="h" style="width:39%"></i><i class="d" style="width:27%"></i><i class="a" style="width:34%"></i></div>
+<div class="nums"><div class="h"><b>39%</b><span>主胜 · 区间 30–51%</span></div><div><b>27%</b><span>平 · 区间 24–30%</span></div><div class="a"><b>34%</b><span>客胜 · 区间 24–43%</span></div></div>
+<div class="mini">预期进球 1.4 : 1.3 · 大于 2.5 球 49% · 双方进球 54% · 最可能比分 1-1（13%） / 1-0（9%） / 2-1（9%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 34.4 场，客队约 34.4 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="en.1">
+<div class="fx-top"><span class="pill">英超</span><span>第 6 轮</span><span data-kick="2026-10-12T19:00Z"></span><time>周二 06:00 悉尼</time></div>
+<div class="teams"><div class="team">考文垂<small>Coventry City</small></div><div class="vs">对</div><div class="team r">纽卡斯尔联<small>Newcastle United</small></div></div>
+<div class="bar" role="img" aria-label="主胜 32%，平 25%，客胜 43%"><i class="h" style="width:32%"></i><i class="d" style="width:25%"></i><i class="a" style="width:43%"></i></div>
+<div class="nums"><div class="h"><b>32%</b><span>主胜 · 区间 21–43%</span></div><div><b>25%</b><span>平 · 区间 22–28%</span></div><div class="a"><b>43%</b><span>客胜 · 区间 32–55%</span></div></div>
+<div class="mini">预期进球 1.3 : 1.6 · 大于 2.5 球 56% · 双方进球 59% · 最可能比分 1-1（12%） / 1-2（9%） / 0-1（8%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span><span class="chip">跨级别</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>主队考文垂：上赛季在英冠，评级部分来自下级/其他联赛，跨级别有偏差</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 40.4 场，客队约 41.3 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="es.1">
+<div class="fx-top"><span class="pill">西甲</span><span>第 8 轮</span><span data-kick="2026-10-12T19:00Z"></span><time>周二 06:00 悉尼</time></div>
+<div class="teams"><div class="team">莱万特<small>Levante UD</small></div><div class="vs">对</div><div class="team r">塞维利亚<small>Sevilla</small></div></div>
+<div class="bar" role="img" aria-label="主胜 43%，平 26%，客胜 31%"><i class="h" style="width:43%"></i><i class="d" style="width:26%"></i><i class="a" style="width:31%"></i></div>
+<div class="nums"><div class="h"><b>43%</b><span>主胜 · 区间 32–54%</span></div><div><b>26%</b><span>平 · 区间 22–28%</span></div><div class="a"><b>31%</b><span>客胜 · 区间 22–42%</span></div></div>
+<div class="mini">预期进球 1.5 : 1.3 · 大于 2.5 球 53% · 双方进球 57% · 最可能比分 1-1（12%） / 2-1（9%） / 1-0（9%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 36.3 场，客队约 36.8 场（越大越稳）。</li></ul></details>
+</article></div><div class="daygroup"><div class="day">2026-10-14 周三（悉尼）· 14 天后 · 9 场</div><article class="fx" data-comp="uefa.cl">
+<div class="fx-top"><span class="pill">欧冠</span><span>第 2 轮</span><span data-kick="2026-10-13T16:45Z"></span><time>周三 03:45 悉尼</time></div>
+<div class="teams"><div class="team">朗斯<small>Lens</small></div><div class="vs">对</div><div class="team r">葡萄牙体育<small>Sporting CP</small></div></div>
+<div class="bar" role="img" aria-label="主胜 46%，平 24%，客胜 30%"><i class="h" style="width:46%"></i><i class="d" style="width:24%"></i><i class="a" style="width:30%"></i></div>
+<div class="nums"><div class="h"><b>46%</b><span>主胜 · 区间 28–62%</span></div><div><b>24%</b><span>平 · 区间 19–28%</span></div><div class="a"><b>30%</b><span>客胜 · 区间 18–46%</span></div></div>
+<div class="mini">预期进球 1.7 : 1.4 · 大于 2.5 球 59% · 双方进球 61% · 最可能比分 1-1（11%） / 2-1（9%） / 1-0（8%）</div>
+<div class="risk"><span class="chip g-中">风险 中</span><span class="chip">跨联赛</span><span class="chip">不确定度高</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>跨联赛对阵：强弱只能靠欧冠交手间接估计，比国内联赛更不稳</li><li>模型不确定度高：某一结果的 10%-90% 区间宽达 34 个百分点</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 32.7 场，客队约 42.7 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="uefa.cl">
+<div class="fx-top"><span class="pill">欧冠</span><span>第 2 轮</span><span data-kick="2026-10-13T16:45Z"></span><time>周三 03:45 悉尼</time></div>
+<div class="teams"><div class="team">沙巴<small>Sabah</small></div><div class="vs">对</div><div class="team r">布拉格斯拉维亚<small>Slavia Prague</small></div></div>
+<div class="bar" role="img" aria-label="主胜 43%，平 24%，客胜 33%"><i class="h" style="width:43%"></i><i class="d" style="width:24%"></i><i class="a" style="width:33%"></i></div>
+<div class="nums"><div class="h"><b>43%</b><span>主胜 · 区间 20–70%</span></div><div><b>24%</b><span>平 · 区间 14–28%</span></div><div class="a"><b>33%</b><span>客胜 · 区间 13–59%</span></div></div>
+<div class="mini">预期进球 1.8 : 1.5 · 大于 2.5 球 64% · 双方进球 66% · 最可能比分 1-1（10%） / 2-1（9%） / 1-2（8%）</div>
+<div class="risk"><span class="chip g-高">风险 高</span><span class="chip">样本少</span><span class="chip">样本少</span><span class="chip">跨联赛</span><span class="chip">不确定度高</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>主队沙巴：历史样本少（加权约 1 场），评级偏保守</li><li>客队布拉格斯拉维亚：历史样本少（加权约 5 场），评级偏保守</li><li>跨联赛对阵：强弱只能靠欧冠交手间接估计，比国内联赛更不稳</li><li>模型不确定度高：某一结果的 10%-90% 区间宽达 51 个百分点</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 1.0 场，客队约 4.8 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="uefa.cl">
+<div class="fx-top"><span class="pill">欧冠</span><span>第 2 轮</span><span data-kick="2026-10-13T19:00Z"></span><time>周三 06:00 悉尼</time></div>
+<div class="teams"><div class="team">阿森纳<small>Arsenal</small></div><div class="vs">对</div><div class="team r">里尔<small>Lille</small></div></div>
+<div class="bar" role="img" aria-label="主胜 66%，平 22%，客胜 12%"><i class="h" style="width:66%"></i><i class="d" style="width:22%"></i><i class="a" style="width:12%"></i></div>
+<div class="nums"><div class="h"><b>66%</b><span>主胜 · 区间 55–79%</span></div><div><b>22%</b><span>平 · 区间 15–28%</span></div><div class="a"><b>12%</b><span>客胜 · 区间 6–18%</span></div></div>
+<div class="mini">预期进球 1.9 : 0.7 · 大于 2.5 球 47% · 双方进球 42% · 最可能比分 1-0（14%） / 2-0（14%） / 1-1（10%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span><span class="chip">跨联赛</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>跨联赛对阵：强弱只能靠欧冠交手间接估计，比国内联赛更不稳</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 48.3 场，客队约 34.4 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="uefa.cl">
+<div class="fx-top"><span class="pill">欧冠</span><span>第 2 轮</span><span data-kick="2026-10-13T19:00Z"></span><time>周三 06:00 悉尼</time></div>
+<div class="teams"><div class="team">马德里竞技<small>Atlético Madrid</small></div><div class="vs">对</div><div class="team r">曼联<small>Manchester United</small></div></div>
+<div class="bar" role="img" aria-label="主胜 40%，平 24%，客胜 36%"><i class="h" style="width:40%"></i><i class="d" style="width:24%"></i><i class="a" style="width:36%"></i></div>
+<div class="nums"><div class="h"><b>40%</b><span>主胜 · 区间 26–53%</span></div><div><b>24%</b><span>平 · 区间 20–27%</span></div><div class="a"><b>36%</b><span>客胜 · 区间 24–49%</span></div></div>
+<div class="mini">预期进球 1.7 : 1.6 · 大于 2.5 球 63% · 双方进球 65% · 最可能比分 1-1（11%） / 2-1（9%） / 1-2（8%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span><span class="chip">跨联赛</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>跨联赛对阵：强弱只能靠欧冠交手间接估计，比国内联赛更不稳</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 49.4 场，客队约 35.9 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="uefa.cl">
+<div class="fx-top"><span class="pill">欧冠</span><span>第 2 轮</span><span data-kick="2026-10-13T19:00Z"></span><time>周三 06:00 悉尼</time></div>
+<div class="teams"><div class="team">国际米兰<small>Inter Milan</small></div><div class="vs">对</div><div class="team r">布鲁日<small>Club Brugge</small></div></div>
+<div class="bar" role="img" aria-label="主胜 68%，平 17%，客胜 15%"><i class="h" style="width:68%"></i><i class="d" style="width:17%"></i><i class="a" style="width:15%"></i></div>
+<div class="nums"><div class="h"><b>68%</b><span>主胜 · 区间 51–81%</span></div><div><b>17%</b><span>平 · 区间 11–22%</span></div><div class="a"><b>15%</b><span>客胜 · 区间 8–28%</span></div></div>
+<div class="mini">预期进球 2.7 : 1.2 · 大于 2.5 球 75% · 双方进球 66% · 最可能比分 2-1（9%） / 3-1（8%） / 2-0（7%）</div>
+<div class="risk"><span class="chip g-低">风险 低</span><span class="chip">跨联赛</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>跨联赛对阵：强弱只能靠欧冠交手间接估计，比国内联赛更不稳</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 44.9 场，客队约 23.5 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="uefa.cl">
+<div class="fx-top"><span class="pill">欧冠</span><span>第 2 轮</span><span data-kick="2026-10-13T19:00Z"></span><time>周三 06:00 悉尼</time></div>
+<div class="teams"><div class="team">加拉塔萨雷<small>Galatasaray</small></div><div class="vs">对</div><div class="team r">巴塞罗那<small>Barcelona</small></div></div>
+<div class="bar" role="img" aria-label="主胜 19%，平 18%，客胜 63%"><i class="h" style="width:19%"></i><i class="d" style="width:18%"></i><i class="a" style="width:63%"></i></div>
+<div class="nums"><div class="h"><b>19%</b><span>主胜 · 区间 7–33%</span></div><div><b>18%</b><span>平 · 区间 11–23%</span></div><div class="a"><b>63%</b><span>客胜 · 区间 45–82%</span></div></div>
+<div class="mini">预期进球 1.4 : 2.6 · 大于 2.5 球 77% · 双方进球 71% · 最可能比分 1-2（9%） / 1-3（7%） / 1-1（7%）</div>
+<div class="risk"><span class="chip g-中">风险 中</span><span class="chip">跨联赛</span><span class="chip">不确定度高</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>跨联赛对阵：强弱只能靠欧冠交手间接估计，比国内联赛更不稳</li><li>模型不确定度高：某一结果的 10%-90% 区间宽达 37 个百分点</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 21.0 场，客队约 48.0 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="uefa.cl">
+<div class="fx-top"><span class="pill">欧冠</span><span>第 2 轮</span><span data-kick="2026-10-13T19:00Z"></span><time>周三 06:00 悉尼</time></div>
+<div class="teams"><div class="team">RB 莱比锡<small>RB Leipzig</small></div><div class="vs">对</div><div class="team r">埃因霍温<small>PSV Eindhoven</small></div></div>
+<div class="bar" role="img" aria-label="主胜 47%，平 20%，客胜 33%"><i class="h" style="width:47%"></i><i class="d" style="width:20%"></i><i class="a" style="width:33%"></i></div>
+<div class="nums"><div class="h"><b>47%</b><span>主胜 · 区间 31–67%</span></div><div><b>20%</b><span>平 · 区间 16–23%</span></div><div class="a"><b>33%</b><span>客胜 · 区间 17–49%</span></div></div>
+<div class="mini">预期进球 2.3 : 1.9 · 大于 2.5 球 79% · 双方进球 77% · 最可能比分 2-1（8%） / 2-2（7%） / 1-1（7%）</div>
+<div class="risk"><span class="chip g-中">风险 中</span><span class="chip">跨联赛</span><span class="chip">不确定度高</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>跨联赛对阵：强弱只能靠欧冠交手间接估计，比国内联赛更不稳</li><li>模型不确定度高：某一结果的 10%-90% 区间宽达 36 个百分点</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 34.0 场，客队约 41.0 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="uefa.cl">
+<div class="fx-top"><span class="pill">欧冠</span><span>第 2 轮</span><span data-kick="2026-10-13T19:00Z"></span><time>周三 06:00 悉尼</time></div>
+<div class="teams"><div class="team">维京<small>Viking</small></div><div class="vs">对</div><div class="team r">拜仁慕尼黑<small>Bayern Munich</small></div></div>
+<div class="bar" role="img" aria-label="主胜 6%，平 9%，客胜 85%"><i class="h" style="width:6%"></i><i class="d" style="width:9%"></i><i class="a" style="width:85%"></i></div>
+<div class="nums"><div class="h"><b>6%</b><span>主胜 · 区间 1–18%</span></div><div><b>9%</b><span>平 · 区间 3–18%</span></div><div class="a"><b>85%</b><span>客胜 · 区间 64–96%</span></div></div>
+<div class="mini">预期进球 1.0 : 3.7 · 大于 2.5 球 85% · 双方进球 62% · 最可能比分 1-3（8%） / 0-3（8%） / 1-4（7%）</div>
+<div class="risk"><span class="chip g-高">风险 高</span><span class="chip">样本少</span><span class="chip">跨联赛</span><span class="chip">不确定度高</span><span class="chip">一边倒</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>主队维京：历史样本少（加权约 1 场），评级偏保守</li><li>跨联赛对阵：强弱只能靠欧冠交手间接估计，比国内联赛更不稳</li><li>模型不确定度高：某一结果的 10%-90% 区间宽达 32 个百分点</li><li>一边倒：热门胜率约 85%，剩下 15% 属于冷门/平局空间</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 1.0 场，客队约 44.0 场（越大越稳）。</li></ul></details>
+</article><article class="fx" data-comp="uefa.cl">
+<div class="fx-top"><span class="pill">欧冠</span><span>第 2 轮</span><span data-kick="2026-10-13T19:00Z"></span><time>周三 06:00 悉尼</time></div>
+<div class="teams"><div class="team">比利亚雷亚尔<small>Villarreal</small></div><div class="vs">对</div><div class="team r">那不勒斯<small>Napoli</small></div></div>
+<div class="bar" role="img" aria-label="主胜 45%，平 25%，客胜 30%"><i class="h" style="width:45%"></i><i class="d" style="width:25%"></i><i class="a" style="width:30%"></i></div>
+<div class="nums"><div class="h"><b>45%</b><span>主胜 · 区间 31–62%</span></div><div><b>25%</b><span>平 · 区间 20–28%</span></div><div class="a"><b>30%</b><span>客胜 · 区间 18–44%</span></div></div>
+<div class="mini">预期进球 1.7 : 1.3 · 大于 2.5 球 57% · 双方进球 60% · 最可能比分 1-1（12%） / 2-1（9%） / 1-0（8%）</div>
+<div class="risk"><span class="chip g-中">风险 中</span><span class="chip">跨联赛</span><span class="chip">不确定度高</span></div>
+<details><summary>风险提示与盘口对比</summary><ul><li>跨联赛对阵：强弱只能靠欧冠交手间接估计，比国内联赛更不稳</li><li>模型不确定度高：某一结果的 10%-90% 区间宽达 31 个百分点</li><li>伤病、首发、天气、动机等模型看不到的信息不在其中</li><li>盘口对比：暂无合法盘口源，本场不做盘口对比、不算期望值与凯利。</li>
+<li>模型样本量：主队加权约 41.2 场，客队约 40.0 场（越大越稳）。</li></ul></details>
+</article></div>
+<h2>盘口对比</h2>
+<div class="empty"><b>暂无合法盘口源。</b>唯一免费的赔率数据集禁止自动化访问，其他要么要注册 key、要么是 TAB 官网（被判定拒绝 AI 受控访问，按硬边界失败关闭）。
+所以本页不做盘口对比，也不计算期望值、凯利比例和任何投注金额。详见页尾的数据源审查。</div>
+<h2>最近赛果与模型当时怎么说</h2>
+<div class="tw"><table><thead><tr><th>日期</th><th>赛事</th><th>比分</th><th>结果</th><th>赛前预测 主/平/客</th></tr></thead><tbody><tr><td>2026-09-20</td><td>英超</td><td>伯恩茅斯 0–1 利物浦</td><td>客胜</td><td><span class="muted">当时没有赛前预测（开球后才收录或系统尚未运行）</span></td></tr><tr><td>2026-09-20</td><td>英超</td><td>利兹联 0–0 水晶宫</td><td>平</td><td><span class="muted">当时没有赛前预测（开球后才收录或系统尚未运行）</span></td></tr><tr><td>2026-09-20</td><td>英超</td><td>曼城 5–3 桑德兰</td><td>主胜</td><td><span class="muted">当时没有赛前预测（开球后才收录或系统尚未运行）</span></td></tr><tr><td>2026-09-20</td><td>英超</td><td>富勒姆 1–1 曼联</td><td>平</td><td><span class="muted">当时没有赛前预测（开球后才收录或系统尚未运行）</span></td></tr><tr><td>2026-09-20</td><td>西甲</td><td>赫塔菲 1–0 马拉加</td><td>主胜</td><td><span class="muted">当时没有赛前预测（开球后才收录或系统尚未运行）</span></td></tr><tr><td>2026-09-20</td><td>西甲</td><td>马德里竞技 2–1 皇家马德里</td><td>主胜</td><td><span class="muted">当时没有赛前预测（开球后才收录或系统尚未运行）</span></td></tr><tr><td>2026-09-20</td><td>西甲</td><td>拉科鲁尼亚 1–1 皇家贝蒂斯</td><td>平</td><td><span class="muted">当时没有赛前预测（开球后才收录或系统尚未运行）</span></td></tr><tr><td>2026-09-20</td><td>西甲</td><td>比利亚雷亚尔 3–1 莱万特</td><td>主胜</td><td><span class="muted">当时没有赛前预测（开球后才收录或系统尚未运行）</span></td></tr><tr><td>2026-09-20</td><td>西甲</td><td>瓦伦西亚 2–3 皇家社会</td><td>客胜</td><td><span class="muted">当时没有赛前预测（开球后才收录或系统尚未运行）</span></td></tr><tr><td>2026-09-20</td><td>德甲</td><td>勒沃库森 2–0 RB 莱比锡</td><td>主胜</td><td><span class="muted">当时没有赛前预测（开球后才收录或系统尚未运行）</span></td></tr><tr><td>2026-09-20</td><td>德甲</td><td>沙尔克 04 0–0 埃尔弗斯贝格</td><td>平</td><td><span class="muted">当时没有赛前预测（开球后才收录或系统尚未运行）</span></td></tr><tr><td>2026-09-20</td><td>德甲</td><td>帕德博恩 3–1 霍芬海姆</td><td>主胜</td><td><span class="muted">当时没有赛前预测（开球后才收录或系统尚未运行）</span></td></tr><tr><td>2026-09-20</td><td>意甲</td><td>佛罗伦萨 1–1 那不勒斯</td><td>平</td><td><span class="muted">当时没有赛前预测（开球后才收录或系统尚未运行）</span></td></tr><tr><td>2026-09-20</td><td>意甲</td><td>弗罗西诺内 2–0 科莫</td><td>主胜</td><td><span class="muted">当时没有赛前预测（开球后才收录或系统尚未运行）</span></td></tr><tr><td>2026-09-20</td><td>意甲</td><td>帕尔马 2–1 热那亚</td><td>主胜</td><td><span class="muted">当时没有赛前预测（开球后才收录或系统尚未运行）</span></td></tr><tr><td>2026-09-20</td><td>意甲</td><td>尤文图斯 2–0 亚特兰大</td><td>主胜</td><td><span class="muted">当时没有赛前预测（开球后才收录或系统尚未运行）</span></td></tr><tr><td>2026-09-20</td><td>意甲</td><td>AC 米兰 3–0 莱切</td><td>主胜</td><td><span class="muted">当时没有赛前预测（开球后才收录或系统尚未运行）</span></td></tr><tr><td>2026-09-20</td><td>法甲</td><td>欧塞尔 2–1 布雷斯特</td><td>主胜</td><td><span class="muted">当时没有赛前预测（开球后才收录或系统尚未运行）</span></td></tr><tr><td>2026-09-20</td><td>法甲</td><td>尼斯 2–1 里尔</td><td>主胜</td><td><span class="muted">当时没有赛前预测（开球后才收录或系统尚未运行）</span></td></tr><tr><td>2026-09-20</td><td>法甲</td><td>马赛 1–2 巴黎圣日耳曼</td><td>客胜</td><td><span class="muted">当时没有赛前预测（开球后才收录或系统尚未运行）</span></td></tr></tbody></table></div>
+
+<h2>模型成绩单</h2>
+<div class="grid2"><div class="card"><h3>回测：拿过去的比赛考模型</h3>
+<p class="muted">每隔 14 天设一个截止日，只用截止日之前的数据拟合，再预测其后已经踢完的比赛；共 1020 场（近 240 天，覆盖赛事）。
+对照基线 = 什么都不看、只按该赛事历史主胜/平/客胜频率给概率。</p>
+<table><tbody><tr><th>对数损失（越低越好）</th><td>模型 1.000 ／ 基线 1.071</td></tr>
+<tr><th>Brier 分数（越低越好）</th><td>模型 0.597 ／ 基线 0.647</td></tr>
+<tr><th>模型比基线好多少</th><td>对数损失每场少 0.071（标准误 0.011，约 6.5 倍）</td></tr>
+<tr><th>最可能结果命中率</th><td>51%</td></tr></tbody></table>
+<details><summary>校准表：说 X% 的事，实际发生了多少</summary><table><thead><tr><th>预测档</th><th>样本</th><th>平均预测</th><th>实际发生</th></tr></thead><tbody><tr><td>0-20%</td><td>389</td><td>15%</td><td>15%</td></tr><tr><td>20-40%</td><td>1823</td><td>28%</td><td>27%</td></tr><tr><td>40-60%</td><td>651</td><td>48%</td><td>50%</td></tr><tr><td>60-80%</td><td>176</td><td>67%</td><td>68%</td></tr><tr><td>80-100%</td><td>21</td><td>85%</td><td>86%</td></tr></tbody></table></details></div><div class="card"><h3>实战：每天真实发出去的预测，事后对不对</h3>
+<p class="muted">还没有已经踢完的赛前预测可打分（当前等赛果 57 场）。从第一份报告起每场赛前预测都会冻结存档，赛果收录后自动打分。上游赛果每周更新一次，所以打分会滞后几天。</p></div></div>
+<h2>实力榜</h2>
+<p class="muted">实力值 = 对「本页覆盖球队的平均水平」、中立场、每场预期净胜球；由同一个模型估出，欧冠比赛把各国联赛连在一起。样本 = 时间加权后的有效场数。</p><details><summary>英超（20 队）</summary><div class="tw"><table><thead><tr><th>#</th><th>球队</th><th>实力值</th><th>预期进球</th><th>预期失球</th><th>样本</th></tr></thead><tbody><tr><td>1</td><td>阿森纳</td><td>+1.21</td><td>1.75</td><td>0.54</td><td>48</td></tr><tr><td>2</td><td>曼城</td><td>+1.17</td><td>1.94</td><td>0.77</td><td>44</td></tr><tr><td>3</td><td>利物浦</td><td>+0.93</td><td>1.74</td><td>0.81</td><td>44</td></tr><tr><td>4</td><td>布莱顿</td><td>+0.88</td><td>1.74</td><td>0.86</td><td>34</td></tr><tr><td>5</td><td>曼联</td><td>+0.75</td><td>1.67</td><td>0.92</td><td>36</td></tr><tr><td>6</td><td>布伦特福德</td><td>+0.72</td><td>1.61</td><td>0.89</td><td>34</td></tr><tr><td>7</td><td>纽卡斯尔联</td><td>+0.67</td><td>1.64</td><td>0.97</td><td>41</td></tr><tr><td>8</td><td>伯恩茅斯</td><td>+0.63</td><td>1.52</td><td>0.89</td><td>34</td></tr><tr><td>9</td><td>切尔西</td><td>+0.63</td><td>1.63</td><td>1.00</td><td>40</td></tr><tr><td>10</td><td>阿斯顿维拉</td><td>+0.60</td><td>1.52</td><td>0.92</td><td>38</td></tr><tr><td>11</td><td>利兹联</td><td>+0.58</td><td>1.40</td><td>0.82</td><td>36</td></tr><tr><td>12</td><td>诺丁汉森林</td><td>+0.52</td><td>1.36</td><td>0.84</td><td>34</td></tr><tr><td>13</td><td>埃弗顿</td><td>+0.46</td><td>1.27</td><td>0.81</td><td>34</td></tr><tr><td>14</td><td>富勒姆</td><td>+0.38</td><td>1.30</td><td>0.92</td><td>34</td></tr><tr><td>15</td><td>热刺</td><td>+0.31</td><td>1.36</td><td>1.05</td><td>40</td></tr><tr><td>16</td><td>水晶宫</td><td>+0.28</td><td>1.26</td><td>0.98</td><td>34</td></tr><tr><td>17</td><td>桑德兰</td><td>+0.17</td><td>1.11</td><td>0.94</td><td>37</td></tr><tr><td>18</td><td>考文垂</td><td>+0.16</td><td>1.21</td><td>1.05</td><td>40</td></tr><tr><td>19</td><td>伊普斯维奇</td><td>+0.02</td><td>1.20</td><td>1.18</td><td>38</td></tr><tr><td>20</td><td>赫尔城</td><td>-0.12</td><td>0.97</td><td>1.09</td><td>42</td></tr></tbody></table></div></details><details><summary>欧冠（36 队）</summary><div class="tw"><table><thead><tr><th>#</th><th>球队</th><th>实力值</th><th>预期进球</th><th>预期失球</th><th>样本</th></tr></thead><tbody><tr><td>1</td><td>拜仁慕尼黑</td><td>+1.46</td><td>2.43</td><td>0.97</td><td>44</td></tr><tr><td>2</td><td>巴塞罗那</td><td>+1.40</td><td>2.50</td><td>1.09</td><td>48</td></tr><tr><td>3</td><td>巴黎圣日耳曼</td><td>+1.30</td><td>2.18</td><td>0.89</td><td>48</td></tr><tr><td>4</td><td>阿森纳</td><td>+1.21</td><td>1.75</td><td>0.54</td><td>48</td></tr><tr><td>5</td><td>曼城</td><td>+1.17</td><td>1.94</td><td>0.77</td><td>44</td></tr><tr><td>6</td><td>皇家马德里</td><td>+0.98</td><td>2.00</td><td>1.02</td><td>50</td></tr><tr><td>7</td><td>利物浦</td><td>+0.93</td><td>1.74</td><td>0.81</td><td>44</td></tr><tr><td>8</td><td>曼联</td><td>+0.75</td><td>1.67</td><td>0.92</td><td>36</td></tr><tr><td>9</td><td>国际米兰</td><td>+0.64</td><td>1.65</td><td>1.01</td><td>45</td></tr><tr><td>10</td><td>阿斯顿维拉</td><td>+0.60</td><td>1.52</td><td>0.92</td><td>38</td></tr><tr><td>11</td><td>马德里竞技</td><td>+0.60</td><td>1.70</td><td>1.10</td><td>49</td></tr><tr><td>12</td><td>多特蒙德</td><td>+0.51</td><td>1.59</td><td>1.07</td><td>41</td></tr><tr><td>13</td><td>朗斯</td><td>+0.49</td><td>1.64</td><td>1.15</td><td>33</td></tr><tr><td>14</td><td>里尔</td><td>+0.42</td><td>1.44</td><td>1.01</td><td>34</td></tr><tr><td>15</td><td>罗马</td><td>+0.40</td><td>1.29</td><td>0.88</td><td>35</td></tr><tr><td>16</td><td>葡萄牙体育</td><td>+0.38</td><td>1.37</td><td>0.99</td><td>43</td></tr><tr><td>17</td><td>科莫</td><td>+0.28</td><td>1.28</td><td>1.00</td><td>35</td></tr><tr><td>18</td><td>波尔图</td><td>+0.24</td><td>1.08</td><td>0.84</td><td>35</td></tr><tr><td>19</td><td>皇家贝蒂斯</td><td>+0.23</td><td>1.47</td><td>1.24</td><td>37</td></tr><tr><td>20</td><td>比利亚雷亚尔</td><td>+0.22</td><td>1.61</td><td>1.39</td><td>41</td></tr><tr><td>21</td><td>那不勒斯</td><td>+0.13</td><td>1.11</td><td>0.98</td><td>40</td></tr><tr><td>22</td><td>斯图加特</td><td>+0.10</td><td>1.48</td><td>1.37</td><td>33</td></tr><tr><td>23</td><td>埃因霍温</td><td>+0.08</td><td>1.66</td><td>1.58</td><td>41</td></tr><tr><td>24</td><td>RB 莱比锡</td><td>+0.03</td><td>1.36</td><td>1.33</td><td>34</td></tr><tr><td>25</td><td>加拉塔萨雷</td><td>+0.01</td><td>1.24</td><td>1.23</td><td>21</td></tr><tr><td>26</td><td>布鲁日</td><td>-0.11</td><td>1.42</td><td>1.53</td><td>24</td></tr><tr><td>27</td><td>博德闪耀</td><td>-0.12</td><td>1.32</td><td>1.45</td><td>7</td></tr><tr><td>28</td><td>费内巴切</td><td>-0.19</td><td>1.19</td><td>1.38</td><td>14</td></tr><tr><td>29</td><td>费耶诺德</td><td>-0.27</td><td>1.26</td><td>1.53</td><td>37</td></tr><tr><td>30</td><td>AEK 雅典</td><td>-0.38</td><td>0.71</td><td>1.09</td><td>12</td></tr><tr><td>31</td><td>顿涅茨克矿工</td><td>-0.46</td><td>0.99</td><td>1.45</td><td>3</td></tr><tr><td>32</td><td>维京</td><td>-0.80</td><td>0.99</td><td>1.79</td><td>1</td></tr><tr><td>33</td><td>布拉格斯拉维亚</td><td>-0.85</td><td>0.95</td><td>1.79</td><td>5</td></tr><tr><td>34</td><td>沙巴</td><td>-0.96</td><td>0.93</td><td>1.89</td><td>1</td></tr><tr><td>35</td><td>林茨竞技</td><td>-1.06</td><td>0.56</td><td>1.62</td><td>14</td></tr><tr><td>36</td><td>布拉迪斯拉发斯洛文</td><td>-1.11</td><td>0.99</td><td>2.10</td><td>3</td></tr></tbody></table></div></details><details><summary>西甲（20 队）</summary><div class="tw"><table><thead><tr><th>#</th><th>球队</th><th>实力值</th><th>预期进球</th><th>预期失球</th><th>样本</th></tr></thead><tbody><tr><td>1</td><td>巴塞罗那</td><td>+1.40</td><td>2.50</td><td>1.09</td><td>48</td></tr><tr><td>2</td><td>皇家马德里</td><td>+0.98</td><td>2.00</td><td>1.02</td><td>50</td></tr><tr><td>3</td><td>马德里竞技</td><td>+0.60</td><td>1.70</td><td>1.10</td><td>49</td></tr><tr><td>4</td><td>皇家贝蒂斯</td><td>+0.23</td><td>1.47</td><td>1.24</td><td>37</td></tr><tr><td>5</td><td>比利亚雷亚尔</td><td>+0.22</td><td>1.61</td><td>1.39</td><td>41</td></tr><tr><td>6</td><td>塞尔塔</td><td>+0.04</td><td>1.31</td><td>1.27</td><td>36</td></tr><tr><td>7</td><td>毕尔巴鄂竞技</td><td>-0.05</td><td>1.18</td><td>1.22</td><td>39</td></tr><tr><td>8</td><td>巴列卡诺</td><td>-0.14</td><td>1.16</td><td>1.31</td><td>36</td></tr><tr><td>9</td><td>阿拉维斯</td><td>-0.15</td><td>1.17</td><td>1.32</td><td>36</td></tr><tr><td>10</td><td>皇家社会</td><td>-0.16</td><td>1.33</td><td>1.49</td><td>37</td></tr><tr><td>11</td><td>赫塔菲</td><td>-0.19</td><td>0.84</td><td>1.03</td><td>36</td></tr><tr><td>12</td><td>塞维利亚</td><td>-0.23</td><td>1.17</td><td>1.40</td><td>37</td></tr><tr><td>13</td><td>西班牙人</td><td>-0.26</td><td>1.12</td><td>1.39</td><td>36</td></tr><tr><td>14</td><td>拉科鲁尼亚</td><td>-0.27</td><td>1.24</td><td>1.50</td><td>21</td></tr><tr><td>15</td><td>莱万特</td><td>-0.27</td><td>1.28</td><td>1.55</td><td>36</td></tr><tr><td>16</td><td>奥萨苏纳</td><td>-0.28</td><td>1.13</td><td>1.42</td><td>36</td></tr><tr><td>17</td><td>埃尔切</td><td>-0.29</td><td>1.25</td><td>1.54</td><td>37</td></tr><tr><td>18</td><td>瓦伦西亚</td><td>-0.31</td><td>1.11</td><td>1.43</td><td>36</td></tr><tr><td>19</td><td>马拉加</td><td>-0.70</td><td>0.86</td><td>1.56</td><td>21</td></tr><tr><td>20</td><td>桑坦德竞技</td><td>-0.76</td><td>1.42</td><td>2.18</td><td>7</td></tr></tbody></table></div></details><details><summary>德甲（18 队）</summary><div class="tw"><table><thead><tr><th>#</th><th>球队</th><th>实力值</th><th>预期进球</th><th>预期失球</th><th>样本</th></tr></thead><tbody><tr><td>1</td><td>拜仁慕尼黑</td><td>+1.46</td><td>2.43</td><td>0.97</td><td>44</td></tr><tr><td>2</td><td>多特蒙德</td><td>+0.51</td><td>1.59</td><td>1.07</td><td>41</td></tr><tr><td>3</td><td>勒沃库森</td><td>+0.32</td><td>1.48</td><td>1.16</td><td>39</td></tr><tr><td>4</td><td>斯图加特</td><td>+0.10</td><td>1.48</td><td>1.37</td><td>33</td></tr><tr><td>5</td><td>RB 莱比锡</td><td>+0.03</td><td>1.36</td><td>1.33</td><td>34</td></tr><tr><td>6</td><td>埃尔弗斯贝格</td><td>-0.04</td><td>1.28</td><td>1.32</td><td>16</td></tr><tr><td>7</td><td>弗赖堡</td><td>-0.13</td><td>1.25</td><td>1.38</td><td>31</td></tr><tr><td>8</td><td>美因茨</td><td>-0.15</td><td>1.17</td><td>1.32</td><td>31</td></tr><tr><td>9</td><td>霍芬海姆</td><td>-0.26</td><td>1.31</td><td>1.57</td><td>31</td></tr><tr><td>10</td><td>法兰克福</td><td>-0.27</td><td>1.35</td><td>1.63</td><td>34</td></tr><tr><td>11</td><td>奥格斯堡</td><td>-0.36</td><td>1.10</td><td>1.45</td><td>31</td></tr><tr><td>12</td><td>帕德博恩</td><td>-0.38</td><td>0.99</td><td>1.37</td><td>16</td></tr><tr><td>13</td><td>沙尔克 04</td><td>-0.48</td><td>0.91</td><td>1.39</td><td>16</td></tr><tr><td>14</td><td>云达不来梅</td><td>-0.49</td><td>1.03</td><td>1.52</td><td>31</td></tr><tr><td>15</td><td>门兴格拉德巴赫</td><td>-0.53</td><td>1.09</td><td>1.61</td><td>31</td></tr><tr><td>16</td><td>汉堡</td><td>-0.54</td><td>1.05</td><td>1.59</td><td>30</td></tr><tr><td>17</td><td>科隆</td><td>-0.54</td><td>1.06</td><td>1.60</td><td>30</td></tr><tr><td>18</td><td>柏林联合</td><td>-0.67</td><td>0.97</td><td>1.64</td><td>31</td></tr></tbody></table></div></details><details><summary>意甲（20 队）</summary><div class="tw"><table><thead><tr><th>#</th><th>球队</th><th>实力值</th><th>预期进球</th><th>预期失球</th><th>样本</th></tr></thead><tbody><tr><td>1</td><td>国际米兰</td><td>+0.64</td><td>1.65</td><td>1.01</td><td>45</td></tr><tr><td>2</td><td>罗马</td><td>+0.40</td><td>1.29</td><td>0.88</td><td>35</td></tr><tr><td>3</td><td>科莫</td><td>+0.28</td><td>1.28</td><td>1.00</td><td>35</td></tr><tr><td>4</td><td>尤文图斯</td><td>+0.26</td><td>1.21</td><td>0.95</td><td>42</td></tr><tr><td>5</td><td>那不勒斯</td><td>+0.13</td><td>1.11</td><td>0.98</td><td>40</td></tr><tr><td>6</td><td>AC 米兰</td><td>+0.12</td><td>1.13</td><td>1.01</td><td>37</td></tr><tr><td>7</td><td>亚特兰大</td><td>+0.11</td><td>1.15</td><td>1.04</td><td>43</td></tr><tr><td>8</td><td>拉齐奥</td><td>-0.08</td><td>0.99</td><td>1.07</td><td>35</td></tr><tr><td>9</td><td>博洛尼亚</td><td>-0.20</td><td>0.96</td><td>1.16</td><td>36</td></tr><tr><td>10</td><td>萨索洛</td><td>-0.32</td><td>1.03</td><td>1.35</td><td>34</td></tr><tr><td>11</td><td>佛罗伦萨</td><td>-0.36</td><td>0.95</td><td>1.31</td><td>34</td></tr><tr><td>12</td><td>卡利亚里</td><td>-0.37</td><td>0.85</td><td>1.22</td><td>34</td></tr><tr><td>13</td><td>乌迪内斯</td><td>-0.37</td><td>0.95</td><td>1.32</td><td>34</td></tr><tr><td>14</td><td>弗罗西诺内</td><td>-0.47</td><td>0.88</td><td>1.35</td><td>30</td></tr><tr><td>15</td><td>都灵</td><td>-0.52</td><td>0.90</td><td>1.42</td><td>34</td></tr><tr><td>16</td><td>热那亚</td><td>-0.53</td><td>0.80</td><td>1.33</td><td>34</td></tr><tr><td>17</td><td>帕尔马</td><td>-0.53</td><td>0.71</td><td>1.24</td><td>34</td></tr><tr><td>18</td><td>威尼斯</td><td>-0.58</td><td>0.89</td><td>1.47</td><td>29</td></tr><tr><td>19</td><td>莱切</td><td>-0.69</td><td>0.68</td><td>1.37</td><td>34</td></tr><tr><td>20</td><td>蒙扎</td><td>-0.70</td><td>0.83</td><td>1.53</td><td>29</td></tr></tbody></table></div></details><details><summary>法甲（18 队）</summary><div class="tw"><table><thead><tr><th>#</th><th>球队</th><th>实力值</th><th>预期进球</th><th>预期失球</th><th>样本</th></tr></thead><tbody><tr><td>1</td><td>巴黎圣日耳曼</td><td>+1.30</td><td>2.18</td><td>0.89</td><td>48</td></tr><tr><td>2</td><td>里昂</td><td>+0.52</td><td>1.60</td><td>1.09</td><td>31</td></tr><tr><td>3</td><td>朗斯</td><td>+0.49</td><td>1.64</td><td>1.15</td><td>33</td></tr><tr><td>4</td><td>里尔</td><td>+0.42</td><td>1.44</td><td>1.01</td><td>34</td></tr><tr><td>5</td><td>摩纳哥</td><td>+0.39</td><td>1.60</td><td>1.22</td><td>38</td></tr><tr><td>6</td><td>马赛</td><td>+0.39</td><td>1.65</td><td>1.27</td><td>35</td></tr><tr><td>7</td><td>斯特拉斯堡</td><td>+0.32</td><td>1.64</td><td>1.31</td><td>31</td></tr><tr><td>8</td><td>雷恩</td><td>+0.23</td><td>1.59</td><td>1.36</td><td>31</td></tr><tr><td>9</td><td>巴黎 FC</td><td>+0.14</td><td>1.31</td><td>1.17</td><td>31</td></tr><tr><td>10</td><td>洛里昂</td><td>+0.08</td><td>1.33</td><td>1.26</td><td>31</td></tr><tr><td>11</td><td>图卢兹</td><td>+0.05</td><td>1.35</td><td>1.30</td><td>30</td></tr><tr><td>12</td><td>欧塞尔</td><td>-0.13</td><td>1.19</td><td>1.33</td><td>31</td></tr><tr><td>13</td><td>尼斯</td><td>-0.16</td><td>1.20</td><td>1.36</td><td>31</td></tr><tr><td>14</td><td>布雷斯特</td><td>-0.18</td><td>1.27</td><td>1.46</td><td>34</td></tr><tr><td>15</td><td>勒芒</td><td>-0.25</td><td>1.24</td><td>1.48</td><td>10</td></tr><tr><td>16</td><td>勒阿弗尔</td><td>-0.30</td><td>1.04</td><td>1.34</td><td>31</td></tr><tr><td>17</td><td>昂热</td><td>-0.32</td><td>0.96</td><td>1.27</td><td>31</td></tr><tr><td>18</td><td>特鲁瓦</td><td>-0.52</td><td>1.14</td><td>1.65</td><td>5</td></tr></tbody></table></div></details>
+<h2>覆盖范围与数据源</h2>
+<h3>数据新鲜度</h3><div class="tw"><table><thead><tr><th>来源</th><th>状态</th><th>最新赛果日</th><th>本次抓取（悉尼）</th><th>备注</th></tr></thead><tbody><tr><td>openfootball 联赛赛程赛果（CC0）</td><td>正常</td><td>2026-09-20</td><td>2026-09-30 20:07</td><td>9 个文件上游尚未发布（不算故障）</td></tr><tr><td>openfootball 欧冠历史赛果（CC0）</td><td>正常</td><td>2026-05-30</td><td>2026-09-30 20:07</td><td>—</td></tr><tr><td>Wikipedia 欧冠当季赛程赛果（CC BY-SA 4.0）</td><td>正常</td><td>2026-09-10</td><td>2026-09-30 20:07</td><td>上游最近修订 2026-09-18 07:34（悉尼）</td></tr></tbody></table></div>
+<h3 style="margin-top:16px">覆盖哪些赛事、为什么</h3><ul><li><b>英超</b>：澳洲最受关注的联赛，赛程覆盖澳洲的凌晨到上午时段。</li><li><b>欧冠</b>：跨联赛的最高水平赛事，也是把各国联赛强度连起来的唯一桥梁。</li><li><b>西甲</b>：五大联赛之一，欧冠球队主要来源。</li><li><b>德甲</b>：五大联赛之一，欧冠球队主要来源。</li><li><b>意甲</b>：五大联赛之一，欧冠球队主要来源。</li><li><b>法甲</b>：五大联赛之一，欧冠球队主要来源。</li></ul>
+<p class="muted">只用来估计球队实力、不出预测：英冠、西乙、德乙、意乙、法乙、荷甲、葡超、土超、比甲、希腊超、奥甲、苏超（让刚升级的球队和欧冠里的外围球队有历史可依）。</p>
+<h3>没有覆盖</h3><ul><li><b>澳超（A-League）</b>：2026-27 赛季 10-16 才开赛；openfootball 的澳超数据只到 2024-25；FixtureDownload 条款禁止转存再发布、TheSportsDB 免费档只给零星几场，都不满足「条款允许自动访问 + 数据完整」，不拿不合规来源凑数。开季后再评估。</li></ul>
+<h3>数据源合规审查（2026-09-30 实测）</h3><div class="tw"><table><thead><tr><th>来源</th><th>结论</th><th>依据</th></tr></thead><tbody><tr><td>openfootball（GitHub）</td><td><b>采用</b></td><td>CC0 公有领域，明确允许任意使用；联赛赛程赛果与欧冠历史。每周自动更新，赛果通常滞后不超过一周。</td></tr><tr><td>Wikipedia 官方 API</td><td><b>采用</b></td><td>CC BY-SA 4.0，官方 API 允许带说明性 User-Agent 的程序读取；用于当季欧冠（openfootball 尚未收录）。页面要署名。</td></tr><tr><td>football-data.co.uk（含多家博彩公司赔率）</td><td><b>不用</b></td><td>站点声明仅限个人使用，禁止用于商业或「自动化 bot/爬虫/AI 的数据产品」，robots.txt 也屏蔽 AI 爬虫。它是唯一免费的赔率来源，所以盘口对比因此为空。</td></tr><tr><td>The Odds API</td><td><b>不用</b></td><td>需要注册取得 API key；仓库 Secrets 与服务器上都没有可复用的 key，不注册、不付费。</td></tr><tr><td>TAB 官网公开盘口</td><td><b>不用</b></td><td>被判定为 ai_controlled_access_rejected（拒绝 AI 受控访问），按硬边界失败关闭，不绕过。</td></tr><tr><td>FixtureDownload</td><td><b>不用</b></td><td>条款禁止把内容转存到其他网站或再发布，本页是公开网页，会违反。</td></tr><tr><td>TheSportsDB 免费档</td><td><b>不用</b></td><td>免费 key 只面向开发测试，实测欧冠「下一场」只返回 1 条、赛季接口最多返回 5 条，数据不完整。</td></tr><tr><td>ClubElo API</td><td><b>不用</b></td><td>2026-09-30 实测 Fixtures 接口返回「已停用」，按日期取评级的接口返回 502。</td></tr></tbody></table></div>
+<footer>
+<p><b>硬边界</b>：只研究，不下注；不点赔率、不改投注单、不绕过任何网站的访问控制（TAB 公共盘口保持失败关闭）；零付费、不注册账号。
+本页内容不构成投注建议；模型看不到伤病、首发、天气和动机。</p>
+<p>数据：openfootball（CC0）、Wikipedia（CC BY-SA 4.0，页面：2026–27 UEFA Champions League league phase）。
+模型 poisson-ridge-1，训练 10626 场，时间半衰期 300 天，主场优势系数 1.233。</p>
+<p>机器可读：<a href="status.json">status.json</a> · <a href="latest.json">latest.json</a> · 代码：仓库 LinzeColin/MetaDatabase 的 FIFA/daily-research。</p>
+</footer></div><script>
+(function(){
+  var g=document.getElementById('gen');if(!g)return;
+  var t=Date.parse(g.getAttribute('data-utc'));var lim=parseFloat(g.getAttribute('data-stale-h'))||30;
+  var b=document.getElementById('stale');
+  if(b&&t){var h=(Date.now()-t)/36e5;
+    if(h>lim&&g.getAttribute('data-archive')!=='1'){b.hidden=false;
+      b.textContent='注意：这份报告生成于约 '+Math.round(h)+' 小时前，超过 '+lim+' 小时没有更新。定时任务可能没跑成，请以「今天有没有新报告」一栏和下面的数据截至时间为准，不要把它当成最新。';}}
+  document.querySelectorAll('[data-kick]').forEach(function(el){
+    var k=Date.parse(el.getAttribute('data-kick'));if(!k)return;var m=Math.round((k-Date.now())/6e4);
+    if(m<-180){el.textContent='已开球';return}if(m<0){el.textContent='进行中或刚结束';return}
+    var d=Math.floor(m/1440),hh=Math.floor(m%1440/60);
+    el.textContent='距开球 '+(d?d+' 天 ':'')+hh+' 小时'+(d?'':' '+(m%60)+' 分');});
+  var btns=document.querySelectorAll('button[data-comp]');
+  btns.forEach(function(bt){bt.addEventListener('click',function(){
+    btns.forEach(function(x){x.setAttribute('aria-pressed',x===bt?'true':'false')});
+    var c=bt.getAttribute('data-comp');
+    document.querySelectorAll('article.fx').forEach(function(a){a.hidden=!(c==='all'||a.getAttribute('data-comp')===c)});
+    document.querySelectorAll('.daygroup').forEach(function(d){d.hidden=!d.querySelector('article.fx:not([hidden])')});});});
+})();
+</script></body></html>
