@@ -580,15 +580,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return _redirect("/login", message="密码已重置，请使用新密码登录。")
 
     def _run_summary(db: Session, user_id: int) -> dict[str, Any]:
-        """Latest aggregation plus how many candidates-qualified jobs it produced."""
+        """Latest aggregation plus how many qualified jobs it produced.
+
+        "合格" means the hard requirements pass AND the role is at least medium
+        relevance; a qualified but unrelated job is not a useful recommendation."""
         latest = db.scalar(select(DiscoveryRun).where(DiscoveryRun.user_id == user_id).order_by(DiscoveryRun.created_at.desc()))
         qualified_total = db.scalar(select(func.count(Recommendation.id)).where(
-            Recommendation.user_id == user_id, Recommendation.qualification == "pass")) or 0
+            Recommendation.user_id == user_id, Recommendation.qualification == "pass",
+            Recommendation.relevance.in_(["high", "medium"]))) or 0
         qualified_new = 0
         if latest and (latest.started_at or latest.created_at):
             qualified_new = db.scalar(select(func.count(Recommendation.id)).where(
                 Recommendation.user_id == user_id,
                 Recommendation.qualification == "pass",
+                Recommendation.relevance.in_(["high", "medium"]),
                 Recommendation.first_recommended_at >= (latest.started_at or latest.created_at),
             )) or 0
         return {"run": latest, "qualified_total": qualified_total, "qualified_new": qualified_new}

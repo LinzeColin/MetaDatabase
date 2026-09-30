@@ -220,3 +220,15 @@ def test_run_does_not_recommend_jobs_outside_the_confirmed_region(client):
             assert location_fit(profile["target_locations"], {
                 "location": job.location, "city": job.city, "country": job.country, "work_mode": job.work_mode,
             }) != "mismatch"
+
+
+def test_pages_show_last_aggregation_time_and_qualified_count(client):
+    from .conftest import register_verify, complete_onboarding
+
+    register_verify(client, "dash@example.com")
+    complete_onboarding(client)
+    for path in ("/dashboard", "/recommendations"):
+        html = client.get(path).text
+        assert 'data-testid="last-aggregation-time"' in html
+        assert " UTC" in html
+        assert 'data-testid="qualified-count"' in html
