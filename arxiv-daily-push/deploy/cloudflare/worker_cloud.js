@@ -9,7 +9,7 @@
 // Build identity (ADP-S1-P01-T010): read-only /build.json + footer build id. No secret.
 // build_id/source_sha256 are a self-excluding hash: reset both values back to their
 // zero-placeholders ('0'*12 and '0'*64) and sha256 the file to reproduce source_sha256.
-const BUILD = { build_id: 'd6d4d0471597', source_sha256: 'd6d4d0471597c507326d0b2fa8f421fd3add06c1e0bb19c9314d06c27027c1c1', schema_version: 'cn_v0_3', built_at: '2026-08-12' };
+const BUILD = { build_id: 'e1015cc0c1c9', source_sha256: 'e1015cc0c1c9377c1b55c40b5d3a5437f83d480684be57cc5598f9b1f6e725c8', schema_version: 'cn_v0_3', built_at: '2026-09-30' };
 
 // ── S3-P03-T040 Board 3 官方视图 A0 canary 切换（Owner S3 Exit 已批准 A0 晋级）──
 // 默认关 = 部署即基线（生产 Board 3 与六主题不变）。开=Board 3 只把 A0 官方原文作默认证据、媒体降为 discovery。
@@ -1356,7 +1356,12 @@ async function todayPage(env) {
   const review = await env.DB.prepare('SELECT * FROM cn_reviews WHERE item_id=?').bind(sel.item_id).first();
   // ★「今天」必须真的是今天，否则明说不是★：这一页标题写「今天」，而 cn_selections 取的是最新一行 ——
   // 当日 cron 还没跑（或跑挂了）时，页面会把昨天的选择当成今天的推给 Owner，且一个字都不提。
-  const day = localDay(), stale = sel.as_of_date !== day;
+  // 「选出来的是哪一天」要按【这次选择实际产生的本地日】(run_at) 判，不能拿 as_of_date(UTC 日) 去比本地日：
+  // cron 在 20:30 UTC 跑，as_of_date 记的是 UTC 日 D，而那一刻本地日(UTC+8)已经是 D+1 ——
+  // 直接比较就永远不相等，每天刚跑完的精选都被误标成「今天还没选出来」。
+  const day = localDay();
+  const ranDay = sel.run_at && !Number.isNaN(Date.parse(sel.run_at)) ? localDay(sel.run_at) : sel.as_of_date;
+  const stale = ranDay !== day;
   const staleNote = stale
     ? `<p class="mt"><b>今天（${esc(day)}）还没选出来。</b>下面是最近一次 ${esc(sel.as_of_date)} 的选择 —— 不是今天的。运行情况见 <a href="/system">系统页</a>。</p>`
     : '';
