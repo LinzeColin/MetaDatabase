@@ -1,0 +1,105 @@
+schema: "signal-lattice-evidence-card/1"
+id: "nuclear-fuel-cycle"
+bottleneck: "核燃料循环：美国电厂的天然铀与浓缩服务绝大部分依赖进口（浓缩服务中俄罗斯来源占 26%），俄罗斯低浓铀进口被立法禁止但豁免最晚 2028-01-01 到期，新矿从决策到投产常需 10 年以上。"
+retrieved: "2026-09-30"
+valid_until: "2027-09-30"
+factors:
+  funded_demand:
+    rating: 3
+    valid_until: "2027-03-31"
+    basis: "EIA 年度统计显示美国电厂已签合同的 2026-2035 年铀交付量为 1.74 亿磅 U3O8e，另有 1.86 亿磅尚未签约；需求有合同锁定但只覆盖约一半，且不含价格承诺，因此只给 3。"
+    sources:
+      - url: "https://www.eia.gov/uranium/marketing/pdf/umar.pdf"
+        kind: "government_statistics"
+        publisher: "U.S. Energy Information Administration"
+        title: "Uranium Marketing Annual Report (2025 data)"
+        excerpt: "deliveries for 2026 through 2035 under existing purchase contracts for COOs totaled 174 million pounds U3O8e (Table 10). Also at the end of 2025, unfilled uranium market requirements for 2025 through 2035 totaled 186 million pounds U3O8e (Table 11)."
+  current_tightness:
+    rating: 3
+    valid_until: "2027-03-31"
+    basis: "EIA 2025 年数据：浓缩服务（SWU）均价同比上涨 11%，为近一年的官方数字；但这是价格信号而非短缺清单或交期，且只覆盖美国电厂采购，故 3 分。"
+    sources:
+      - url: "https://www.eia.gov/uranium/marketing/pdf/umar.pdf"
+        kind: "government_statistics"
+        publisher: "U.S. Energy Information Administration"
+        title: "Uranium Marketing Annual Report (2025 data)"
+        excerpt: "The average price paid by the COOs for the 13 million SWU was $108.70 per SWU in 2025, up 11% from the $97.66 per SWU paid in 2024."
+  supplier_concentration:
+    rating: 4
+    basis: "EIA 2025 年数据：美国电厂浓缩服务 77% 来自国外、单一国家俄罗斯占 26%；铀原料交付中美国本土只占 7%。数字直接、来自政府统计，只有 EIA 一个发布方，所以不给 5。"
+    sources:
+      - url: "https://www.eia.gov/uranium/marketing/pdf/umar.pdf"
+        kind: "government_statistics"
+        publisher: "U.S. Energy Information Administration"
+        title: "Uranium Marketing Annual Report (2025 data)"
+        excerpt: "In 2025, the U.S.-origin SWU share was 23%, and the foreign-origin SWU accounted for the remaining 77%. Foreign-origin SWU included 26% from Russia, 18% from France, 14% from the United Kingdom, and 8% from the Netherlands (Table 16)."
+      - url: "https://www.eia.gov/uranium/marketing/pdf/umar.pdf"
+        kind: "government_statistics"
+        publisher: "U.S. Energy Information Administration"
+        title: "Uranium Marketing Annual Report (2025 data)"
+        excerpt: "U.S. material accounted for 7% of total deliveries in 2025, down from 8% in 2024 (Table 3)."
+  expansion_lead_time:
+    rating: 2
+    basis: "只有一条来源：UEC 10-K 称许多新矿项目需 10-20 年。这是矿企自述（有利益相关），没有政府或第三方数字佐证，所以只给 2。"
+    sources:
+      - url: "https://www.sec.gov/Archives/edgar/data/1334933/000143774926031414/uec20260731_10k.htm"
+        kind: "company_filing"
+        publisher: "U.S. SEC (company filing)"
+        title: "Uranium Energy Corp Form 10-K FY2026"
+        excerpt: "The timeline for many new mining projects can be 10 to 20 years and they are expected to require prices high enough to stimulate new mining investments."
+  policy_resilience:
+    rating: 3
+    basis: "《禁止俄罗斯铀进口法》(Public Law 118-62) 以法律形式限制俄罗斯低浓铀进口，但允许能源部豁免，豁免最晚 2028-01-01 终止；政策在维持稀缺，但豁免条款意味着并非永久，故 3 分。"
+    sources:
+      - url: "https://www.govinfo.gov/content/pkg/PLAW-118publ62/pdf/PLAW-118publ62.pdf"
+        kind: "regulator"
+        publisher: "U.S. Government Publishing Office (Public Law 118-62)"
+        title: "Prohibiting Russian Uranium Imports Act"
+        excerpt: "Any waiver issued under subparagraph (A) shall terminate not later than January 1, 2028."
+companies:
+  - cik: 1334933
+    symbol: "UEC"
+    name: "Uranium Energy Corp"
+    market_cap_usd: 4690000000
+    market_cap_as_of: "2026-09-29"
+    exposure: "美国铀矿开发与生产商（怀俄明、南德克萨斯原地浸出项目），属于铀供给侧。"
+    source:
+      url: "https://www.sec.gov/Archives/edgar/data/1334933/000143774926031414/uec20260731_10k.htm"
+      kind: "company_filing"
+      publisher: "U.S. SEC (company filing)"
+      title: "Uranium Energy Corp Form 10-K FY2026"
+      excerpt: "We are a uranium mining and development company."
+  - cik: 1385849
+    symbol: "UUUU"
+    name: "Energy Fuels Inc"
+    market_cap_usd: 2770000000
+    market_cap_as_of: "2026-09-29"
+    exposure: "美国最大铀生产商，运营 White Mesa Mill 铀、钒与稀土加工设施，属于铀供给侧。"
+    source:
+      url: "https://www.sec.gov/Archives/edgar/data/1385849/000138584926000009/efr-20251231.htm"
+      kind: "company_filing"
+      publisher: "U.S. SEC (company filing)"
+      title: "Energy Fuels Inc Form 10-K FY2025"
+      excerpt: "Over the last several years, Energy Fuels has been the largest uranium producer in the U.S."
+  - cik: 1923891
+    symbol: "NNE"
+    name: "Nano Nuclear Energy Inc."
+    market_cap_usd: 850000000
+    market_cap_as_of: "2026-09-29"
+    exposure: "微型反应堆开发商，同时参与铀转化、再转化、燃料制造与运输环节的研发，是核燃料供应链的使用方兼潜在补位方。"
+    source:
+      url: "https://www.sec.gov/Archives/edgar/data/1923891/000149315225028285/form10-k.htm"
+      kind: "company_filing"
+      publisher: "U.S. SEC (company filing)"
+      title: "Nano Nuclear Energy Inc. Form 10-K FY2025"
+      excerpt: "LIST will oversee the development of the primary uranium enrichment processes using its novel laser technology, while our company will contribute towards development in the areas of conversion, deconversion, fuel fabrication, and fuel transportation."
+contradictions:
+  - searched: "在 EIA《Uranium Marketing Annual Report》2025 年数据里找供给放松的迹象：美国本土铀占交付比例是否上升、是否有大量未签约需求已被满足。"
+    found: "美国本土铀占 2025 年交付的 7%，低于 2024 年的 8%；2025 年底仍有 1.86 亿磅 2025-2035 年需求未签约。没有发现供给放松的官方数字。"
+    effect: "无，评分不变；但这些数字只反映美国电厂采购，不代表全球。"
+  - searched: "在 Energy Fuels 最新 10-K 里找矿山因市场价格而停产或待命的记录（说明供给对价格有弹性）。"
+    found: "10-K 写明其在美国的传统铀矿资产随市场条件变化时而生产、时而待命；说明只要价格合适，现有矿山能较快复产。"
+    effect: "这削弱了「供给长期刚性」的论断，因此没有给 expansion_lead_time 超过 2 分，也没有给 current_tightness 超过 3 分。"
+  - searched: "查 Terrestrial Energy (IMSR) 最新 10-K 对高丰度低浓铀 (HALEU) 供应的说法，判断燃料瓶颈是否对所有反应堆路线都成立。"
+    found: "该公司 10-K 明确称其刻意避开 HALEU，使用更易获得的 SALEU；因此燃料瓶颈对不同反应堆路线影响不同。"
+    effect: "因此本卡没有登记 IMSR，也没有给 architectural_necessity 评分。"

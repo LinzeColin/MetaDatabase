@@ -1,0 +1,114 @@
+{
+ "schema": "signal-lattice-card-verification/1",
+ "generated": "2026-09-30",
+ "entries": {
+  "157c7510097b29c5f029985c639e05d1": {
+   "url": "https://www.eia.gov/uranium/marketing/pdf/umar.pdf",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "abf066e13b130cf51c73c8275a893b100fd3a9c5c0550e001be515769e3519db",
+   "bytes": 921503,
+   "content_type": "application/pdf",
+   "card": "nuclear-fuel-cycle",
+   "place": "factors.supplier_concentration.sources[1]",
+   "note": ""
+  },
+  "64a67c3f740484421e3a8b3d3642384b": {
+   "url": "https://www.eia.gov/uranium/marketing/pdf/umar.pdf",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "abf066e13b130cf51c73c8275a893b100fd3a9c5c0550e001be515769e3519db",
+   "bytes": 921503,
+   "content_type": "application/pdf",
+   "card": "nuclear-fuel-cycle",
+   "place": "factors.funded_demand.sources[0]",
+   "note": ""
+  },
+  "6cc73648530a0337d6b77541c2e05cdc": {
+   "url": "https://www.sec.gov/Archives/edgar/data/1334933/000143774926031414/uec20260731_10k.htm",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "616d1f4ee48432833fafb070d9165d45b8a14c5afd0430e2d0bc70bc84380c32",
+   "bytes": 5612633,
+   "content_type": "text/html",
+   "card": "nuclear-fuel-cycle",
+   "place": "companies[0].source",
+   "note": ""
+  },
+  "7e79d68dd978946a4588dc59725780ac": {
+   "url": "https://www.eia.gov/uranium/marketing/pdf/umar.pdf",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "abf066e13b130cf51c73c8275a893b100fd3a9c5c0550e001be515769e3519db",
+   "bytes": 921503,
+   "content_type": "application/pdf",
+   "card": "nuclear-fuel-cycle",
+   "place": "factors.supplier_concentration.sources[0]",
+   "note": ""
+  },
+  "843d4b2aca47d8049a80087b6b8e6bc3": {
+   "url": "https://www.govinfo.gov/content/pkg/PLAW-118publ62/pdf/PLAW-118publ62.pdf",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "97875ab5830df2358d57a04d8b629e8b4a2f10eeff02a81b0d179a7212c040e6",
+   "bytes": 205692,
+   "content_type": "application/pdf",
+   "card": "nuclear-fuel-cycle",
+   "place": "factors.policy_resilience.sources[0]",
+   "note": ""
+  },
+  "907b0ca94906c7ba6cf9c85122d2daa0": {
+   "url": "https://www.sec.gov/Archives/edgar/data/1385849/000138584926000009/efr-20251231.htm",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "3f07e6e4d689a8c94e7254808420278ec5a9ae3bdb81d4cfbe526fd06ef7b161",
+   "bytes": 5180945,
+   "content_type": "text/html",
+   "card": "nuclear-fuel-cycle",
+   "place": "companies[1].source",
+   "note": ""
+  },
+  "c53a6b720ecd42e50a9f20f19ed9478f": {
+   "url": "https://www.eia.gov/uranium/marketing/pdf/umar.pdf",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "abf066e13b130cf51c73c8275a893b100fd3a9c5c0550e001be515769e3519db",
+   "bytes": 921503,
+   "content_type": "application/pdf",
+   "card": "nuclear-fuel-cycle",
+   "place": "factors.current_tightness.sources[0]",
+   "note": ""
+  },
+  "d1c09057a834f193c4909c48f30a4d30": {
+   "url": "https://www.sec.gov/Archives/edgar/data/1923891/000149315225028285/form10-k.htm",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "0e5b6c1910265325435bdac14beaffbeb3059e1f14a7c928646297058ae01dd2",
+   "bytes": 2165906,
+   "content_type": "text/html",
+   "card": "nuclear-fuel-cycle",
+   "place": "companies[2].source",
+   "note": ""
+  },
+  "dd1255a095c137195fb4ffea8b9f292f": {
+   "url": "https://www.sec.gov/Archives/edgar/data/1334933/000143774926031414/uec20260731_10k.htm",
+   "status": 200,
+   "checked": "2026-09-30",
+   "excerpt_found": true,
+   "content_sha256": "616d1f4ee48432833fafb070d9165d45b8a14c5afd0430e2d0bc70bc84380c32",
+   "bytes": 5612633,
+   "content_type": "text/html",
+   "card": "nuclear-fuel-cycle",
+   "place": "factors.expansion_lead_time.sources[0]",
+   "note": ""
+  }
+ }
+}
