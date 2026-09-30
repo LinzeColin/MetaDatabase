@@ -12,6 +12,7 @@ const {
   buildOciObjectUrl,
   buildR2ObjectUrl,
   bootstrapRuntimeDatabase,
+  readOptionalCredentialFile,
   restoreRemoteBackup,
   runCloudBackup,
 } = require("../src/services/backup/cb530-cloud-backup");
@@ -52,11 +53,14 @@ function createRuntimeDatabase(filePath) {
   }
 }
 
-function fakeProvider({ ociReadable = true } = {}) {
+function fakeProvider({ ociReadable = true, ociPutStatus = null, requestLog = null } = {}) {
   const r2 = new Map();
   const oci = new Map();
   return async (input, init = {}) => {
     const url = new URL(String(input));
+    if (requestLog) {
+      requestLog.push(url.hostname);
+    }
     const method = String(init.method || "GET").toUpperCase();
     if (url.pathname.includes("/r2/buckets/cyberboss-cold/objects/")) {
       const key = decodeURIComponent(url.pathname.split("/objects/", 2)[1]);
@@ -75,6 +79,9 @@ function fakeProvider({ ociReadable = true } = {}) {
     if (url.hostname === "objectstorage.example.invalid") {
       const key = decodeURIComponent(url.pathname.split("/o/", 2)[1]);
       if (method === "PUT") {
+        if (ociPutStatus !== null) {
+          return new Response("provider-down", { status: ociPutStatus });
+        }
         if (oci.has(key)) {
           return new Response("exists", { status: 412 });
         }
@@ -226,4 +233,80 @@ test("CB-530 CLI request preserves the managed Runtime source path", () => {
     () => backupRequest({}, SOURCE_COMMIT, CREATED_AT),
     (error) => error instanceof CloudBackupError && error.code === "CB530_RUNTIME_DB_PATH_INVALID",
   );
+});
+
+async function backupWith(t, overrides) {
+  const root = temporaryRoot(t);
+  const databasePath = path.join(root, "runtime.sqlite3");
+  createRuntimeDatabase(databasePath);
+  return runCloudBackup({
+    sourceDbPath: databasePath,
+    outputDir: path.join(root, "snapshots"),
+    restoreRoot: path.join(root, "restore"),
+    receiptDir: path.join(root, "receipts"),
+    sourceCommit: SOURCE_COMMIT,
+    createdAt: CREATED_AT,
+    scopePolicy: scopePolicy(),
+    r2AccountId: ACCOUNT_ID,
+    r2Token: TOKEN,
+    ...overrides,
+  });
+}
+
+for (const [label, ociParUrl] of [["null", null], ["undefined", undefined], ["empty string", ""]]) {
+  test(`CB-530 skips the OCI leg entirely when ociParUrl is ${label}: R2 alone is passed`, async (t) => {
+    const requestLog = [];
+    const result = await backupWith(t, { ociParUrl, fetchImpl: fakeProvider({ requestLog }) });
+    assert.equal(requestLog.includes("objectstorage.example.invalid"), false);
+    assert.equal(requestLog.length > 0, true);
+    assert.equal(result.status, "passed");
+    assert.equal(result.cold_copies_landed, 1);
+    assert.equal(result.r2.state, "verified");
+    assert.deepEqual({ ...result.oci }, { state: "disabled", reason: "OCI_NOT_CONFIGURED", provider_requests: 0 });
+    assert.equal(Object.isFrozen(result.oci), true);
+    assert.equal(result.counters.oci_provider_requests, 0);
+    assert.equal(result.isolated_restore.status, "passed");
+    const receipt = JSON.parse(fs.readFileSync(result.receipt_path, "utf8"));
+    assert.equal(receipt.oci.state, "disabled");
+    assert.equal(receipt.counters.oci_provider_requests, 0);
+  });
+}
+
+test("CB-530 configured OCI that fails is still degraded (exit-0 result), R2 landed", async (t) => {
+  const result = await backupWith(t, { ociParUrl: PAR, fetchImpl: fakeProvider({ ociPutStatus: 500 }) });
+  assert.equal(result.status, "degraded");
+  assert.equal(result.cold_copies_landed, 1);
+  assert.equal(result.r2.state, "verified");
+  assert.equal(result.oci.state, "failed");
+  assert.equal(result.oci.error_code, "CB530_OCI_PUT_FAILED");
+});
+
+test("CB-530 with OCI configured and both legs landed reports passed with two copies", async (t) => {
+  const result = await backupWith(t, { ociParUrl: PAR, fetchImpl: fakeProvider() });
+  assert.equal(result.status, "passed");
+  assert.equal(result.cold_copies_landed, 2);
+});
+
+test("CB-530 still fails when the only enabled leg (R2) fails and OCI is not configured", async (t) => {
+  const failingR2 = async () => new Response("denied", { status: 403 });
+  await assert.rejects(
+    backupWith(t, { ociParUrl: null, fetchImpl: failingR2 }),
+    (error) => error instanceof CloudBackupError && error.code === "CB530_R2_PRECHECK_FAILED",
+  );
+});
+
+test("CB-530 optional OCI credential file: missing is null, present-but-empty/invalid fails closed", (t) => {
+  const root = temporaryRoot(t);
+  const code = "CB530_OCI_PAR_FILE_INVALID";
+  assert.equal(readOptionalCredentialFile(path.join(root, "oci_par_url"), code), null);
+  const empty = path.join(root, "empty");
+  fs.writeFileSync(empty, "  \n", "utf8");
+  assert.throws(() => readOptionalCredentialFile(empty, code), (e) => e instanceof CloudBackupError && e.code === code);
+  const multiline = path.join(root, "multiline");
+  fs.writeFileSync(multiline, "a\nb", "utf8");
+  assert.throws(() => readOptionalCredentialFile(multiline, code), (e) => e instanceof CloudBackupError && e.code === code);
+  const good = path.join(root, "good");
+  fs.writeFileSync(good, `${PAR}\n`, "utf8");
+  assert.equal(readOptionalCredentialFile(good, code), PAR);
+  assert.throws(() => readOptionalCredentialFile("relative/path", code), (e) => e.code === code);
 });

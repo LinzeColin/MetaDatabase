@@ -9,6 +9,7 @@ const {
   CloudBackupError,
   bootstrapRuntimeDatabase,
   readCredentialFile,
+  readOptionalCredentialFile,
   restoreRemoteBackup,
   runCloudBackup,
 } = require("../src/services/backup/cb530-cloud-backup");
@@ -110,7 +111,8 @@ function loadConfig() {
     scopePolicy: readJson(path.join(releaseRoot, "docs/product_design/v0.0.0.4/implementation-kit/config/identity-scope.policy.json"), "CB530_SCOPE_POLICY_UNAVAILABLE"),
     r2AccountId: readCredentialFile(accountFile, "CB530_R2_ACCOUNT_FILE_INVALID"),
     r2Token: readCredentialFile(tokenFile, "CB530_R2_TOKEN_FILE_INVALID"),
-    ociParUrl: readCredentialFile(ociFile, "CB530_OCI_PAR_FILE_INVALID"),
+    // OCI 已退役：文件不存在 = 未配置，OCI 腿整条跳过；存在但非法仍然抛错。
+    ociParUrl: readOptionalCredentialFile(ociFile, "CB530_OCI_PAR_FILE_INVALID"),
   });
 }
 
@@ -175,7 +177,7 @@ function helpText() {
     "  cb530-cloud-backup.js backup --bootstrap-if-missing",
     "  cb530-cloud-backup.js restore --backup-id backup_<24位十六进制>",
     "",
-    "在固定 R2/OCI scope 内执行不可覆盖备份；恢复只做网络隔离的 SQLite 校验，不提升为运行库。",
+    "在固定 R2 scope（OCI 仅在配置了 PAR 时启用）内执行不可覆盖备份；恢复只做网络隔离的 SQLite 校验，不提升为运行库。",
   ].join("\n").concat("\n");
 }
 

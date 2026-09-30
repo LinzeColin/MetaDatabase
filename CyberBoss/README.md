@@ -6,6 +6,14 @@ Codex Workspace，普通用户通过同一个微信 Bot 以自带 Provider 密�
 
 ## 当前状态
 
+- 2026-09-30：OCI 已按 Owner 决定退役。云端每晚备份（`cyberboss-backup.service`，
+  `app/scripts/cb530-cloud-backup.js backup`）的 OCI 腿变为可选：没有 OCI PAR
+  凭据文件时整条腿跳过（不发请求，回执 `oci.state = "disabled"`），只有 R2 一份
+  冷备，R2 落地即判 `passed`；配了 OCI 时仍是 R2+OCI 两份（一份失败为 `degraded`，
+  两份都失败才整轮失败）。凭据文件存在但为空/非法仍然 fail closed。生产 release
+  `a0e201baa4f6-r2-standard` 的这两个备份脚本文件已按本提交现场更新，下个
+  release 起自带。
+
 - 生命周期：Stage 0–5 与独立退出门 PG-0–PG-5 已通过（单用户全云底座）。
   Owner Change Event `owner-change-cyberboss-v0.0.0.8-multiuser-weixin` 已把产品
   推进到 `v0.0.0.8` 多用户范围，追加 Stage 6–8 与 PG-6–PG-8；Stage 0–5 不重做、
