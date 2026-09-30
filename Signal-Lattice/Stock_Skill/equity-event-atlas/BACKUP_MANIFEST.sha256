@@ -3,6 +3,7 @@ a1db039dc02dcffef7178f9368b9464a8c6c7933e65604ed7893de05bfe5930b  ./README.md
 4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3  ./VERSION
 1d8b9af3232514a9544d2f4f56fb7733da46ebb23ce1ee826d6d130a8b5c9bdc  ./releases/SHA256SUMS
 653847fecb44d95a5e64546c834bd0913933c070e03546da7fc1eed88268c5da  ./releases/equity-event-atlas_v0.0.0.1-final.zip
+c3c5753f5829c650d2bcef1dfeeaefc27c6086a691d4731e5a1942fe8b53b854  ./runtime/params.json
 09b0ebdda07de6fa1834dcda3bc4985245c7163bc5e0d7850541c8adcdca080f  ./task-pack/MANIFEST.sha256
 4cca2fc0530515f50d0da9fa2b782868757e182c0773fbdc0ca979b8260253b3  ./task-pack/VERSION
 ac8e4a62f450902718e1c6aaa4dd3d7d9411af7a7f5de45ebd642bf458585dfb  ./task-pack/skill_draft/equity-event-atlas/MANIFEST.json
