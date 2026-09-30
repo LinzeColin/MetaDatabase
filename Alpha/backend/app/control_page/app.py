@@ -31,11 +31,13 @@ def build_control_app(
     real_funds=None,
     fx_source=None,
     reports_dir: str | Path = "reports/paper_3day",
-    runtime_dir: str | Path = "runtime",
+    runtime_dir: Optional[str | Path] = None,
     fx_aud_usd: Optional[float] = None,
 ) -> FastAPI:
+    from backend.app import truth
+
     app = FastAPI(title="Alpha 控制页", docs_url=None, redoc_url=None, openapi_url=None)
-    fx = fx_aud_usd if fx_aud_usd is not None else float(os.environ.get("ALPHA_FX_AUD_USD", "0.65"))
+    fx = fx_aud_usd if fx_aud_usd is not None else truth.contract_fx_aud_usd()
 
     def _check(supplied: str) -> None:
         expected = token_reader()
@@ -63,6 +65,7 @@ def build_control_app(
         return build_overview(
             session_factory=session_factory, heartbeats=heartbeats,
             kill_switch=kill_switch, quotes=quotes, fx_aud_usd=fx,
+            capital_aud=truth.capital_aud(),
             reports_dir=reports_dir, runtime_dir=runtime_dir,
             real_power_usd=power, fx_source=fx_source)
 

@@ -10,6 +10,7 @@
 import { ExternalLink, X } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { evidenceTierLabel } from "../labels";
 import type { EvidenceDetailRecord } from "../production-data-client";
 import { EmptyState, ErrorState, Skeleton } from "./feedback";
 
@@ -42,6 +43,15 @@ export function EvidencePanel({
           <strong className="evidenceConclusion" data-testid={testId ? `${testId}-conclusion` : undefined}>
             {conclusion}
           </strong>
+          {evidenceTierLabel(record?.evidence_tier) ? (
+            <span
+              className="evidenceTierChip"
+              data-evidence-tier={record?.evidence_tier ?? "none"}
+              data-testid={testId ? `${testId}-tier` : undefined}
+            >
+              {evidenceTierLabel(record?.evidence_tier)}
+            </span>
+          ) : null}
         </div>
         {onClose ? (
           <button aria-label="收起证据" className="iconButton pressable" onClick={onClose} type="button">

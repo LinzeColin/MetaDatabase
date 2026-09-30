@@ -27,6 +27,8 @@ os.environ.update({
     "ENABLE_REMOTIVE": "false",
     "ENABLE_ARBEITNOW": "false",
     "ENABLE_JOBICY": "false",
+    "ENABLE_AU_BOARDS": "false",
+    "FEED_CACHE_SECONDS": "0",
     # Test runs must never consume the platform AI allowance or make an
     # external provider call, even when the host has a production secret.
     "DEEPSEEK_API_KEY": "",

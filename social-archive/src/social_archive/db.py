@@ -6,12 +6,14 @@ import secrets
 import sqlite3
 import time
 from contextlib import contextmanager
+from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from importlib.resources import files
 from pathlib import Path
 from typing import Any, Iterator
 
 from .models import CaptureRequest
+from .replica_stores import replica_stores
 from .utils import clean_display_author, clean_display_title, canonicalize_url, json_bytes, sha256_bytes, stable_id, utcnow
 
 
@@ -45,6 +47,16 @@ def _like_pattern(value: str) -> str:
 # 而每次重排都是一次真的对外请求（Owner 生产库里量到每天约 128 次）。
 STRUCTURAL_FAILURE_CODES = ("MEDIA_BLOCKED_BY_PLATFORM", "MEDIA_TYPE_UNSUPPORTED")
 STRUCTURAL_PLACEHOLDERS = ",".join("?" for _ in STRUCTURAL_FAILURE_CODES)
+
+
+@dataclass
+class CompletedScanProgress:
+    """Out-parameter of ``RuntimeStore.iter_completed_content_bundles``."""
+
+    completed_total: int = 0
+    scanned: int = 0
+    truncated: bool = False
+    truncated_count: int = 0
 
 
 class RuntimeStore:
@@ -1376,26 +1388,108 @@ class RuntimeStore:
             ).fetchall()]
             return result
 
+    _COMPLETED_KEYS_SQL = """SELECT c.id AS id, c.last_observed_at AS last_observed_at
+                   FROM content c
+                   JOIN artifact a ON a.content_id=c.id
+                   {where}
+                   GROUP BY c.id
+                   HAVING COUNT(a.id)>0
+                      AND SUM(CASE WHEN a.status='complete' THEN 0 ELSE 1 END)=0
+                   ORDER BY c.last_observed_at ASC,c.id ASC
+                   LIMIT ?"""
+
+    def _completed_content_keys(
+        self, *, limit: int, after: tuple[str, str] | None = None
+    ) -> list[tuple[str, str]]:
+        """One keyset page of completed content as ``(last_observed_at, id)``.
+
+        ``after`` is the previous page's last key.  Keyset paging (not OFFSET)
+        keeps every page O(page) to position and stable while rows are added.
+        """
+        where = ""
+        params: list[Any] = []
+        if after is not None:
+            where = "WHERE (c.last_observed_at>? OR (c.last_observed_at=? AND c.id>?))"
+            params += [after[0], after[0], after[1]]
+        params.append(min(max(limit, 1), 1000))
+        with self.connection() as con:
+            rows = con.execute(self._COMPLETED_KEYS_SQL.format(where=where), params).fetchall()
+        return [(str(row["last_observed_at"]), str(row["id"])) for row in rows]
+
+    def count_completed_contents(self) -> int:
+        """How many contents are fully replicated (every artifact ``complete``)."""
+        with self.connection() as con:
+            row = con.execute(
+                """SELECT COUNT(*) AS n FROM (
+                     SELECT c.id FROM content c JOIN artifact a ON a.content_id=c.id
+                     GROUP BY c.id
+                     HAVING COUNT(a.id)>0
+                        AND SUM(CASE WHEN a.status='complete' THEN 0 ELSE 1 END)=0
+                   )"""
+            ).fetchone()
+        return int(row["n"])
+
     def list_completed_content_bundles(self, *, limit: int = 100) -> list[dict[str, Any]]:
         """Return only content whose every archived artifact has all three receipts.
 
         ``artifact.status='complete'`` is set exclusively by the shared replica
         completion gate, so this method cannot elevate a partially replicated
         capture into a durable business fact.
+
+        This is a single bounded page (oldest first).  Anything that must see
+        *every* completed content -- sync, backup -- has to use
+        :meth:`iter_completed_content_bundles`, never this page.
         """
+        keys = self._completed_content_keys(limit=limit)
+        return [bundle for _, cid in keys if (bundle := self.get_content(cid)) is not None]
+
+    def iter_completed_content_bundles(
+        self,
+        *,
+        batch_size: int = 200,
+        max_scan: int = 20000,
+        progress: "CompletedScanProgress | None" = None,
+    ):
+        """Yield every completed content bundle, oldest first, one batch in memory.
+
+        Keyset pagination on ``(last_observed_at, id)``.  At most ``max_scan``
+        contents are visited per call; when more exist ``progress.truncated``
+        becomes ``True`` and ``progress.truncated_count`` says how many were
+        left -- a truncated scan is never silent.
+        """
+        progress = progress if progress is not None else CompletedScanProgress()
+        progress.scanned = 0
+        progress.truncated = False
+        progress.truncated_count = 0
+        progress.completed_total = self.count_completed_contents()
+        after: tuple[str, str] | None = None
+        batch_size = min(max(batch_size, 1), 1000)
+        while True:
+            remaining = max_scan - progress.scanned
+            keys = self._completed_content_keys(limit=min(batch_size, remaining + 1), after=after)
+            if len(keys) > remaining:
+                keys = keys[:remaining]
+                progress.truncated = True
+            for key in keys:
+                progress.scanned += 1
+                bundle = self.get_content(key[1])
+                if bundle is not None:
+                    yield bundle
+            if progress.truncated:
+                progress.truncated_count = max(progress.completed_total - progress.scanned, 1)
+                return
+            if not keys or len(keys) < min(batch_size, remaining + 1):
+                return
+            after = keys[-1]
+
+    def delivered_outbox_aggregate_ids(self, *, event_type: str) -> set[str]:
+        """Aggregate ids that have at least one ``delivered`` event of this type."""
         with self.connection() as con:
             rows = con.execute(
-                """SELECT c.id
-                   FROM content c
-                   JOIN artifact a ON a.content_id=c.id
-                   GROUP BY c.id
-                   HAVING COUNT(a.id)>0
-                      AND SUM(CASE WHEN a.status='complete' THEN 0 ELSE 1 END)=0
-                   ORDER BY MAX(c.last_observed_at) ASC,c.id ASC
-                   LIMIT ?""",
-                (min(max(limit, 1), 1000),),
+                "SELECT DISTINCT aggregate_id FROM outbox WHERE event_type=? AND status='delivered'",
+                (event_type,),
             ).fetchall()
-        return [bundle for row in rows if (bundle := self.get_content(str(row["id"]))) is not None]
+        return {str(row["aggregate_id"]) for row in rows}
 
     def get_outbox_event(
         self,
@@ -2647,7 +2741,8 @@ class RuntimeStore:
                     (artifact_id,),
                 ).fetchall()
                 by_store = {row["store_id"]: row for row in rows}
-                required = {"r2", "oci", "github"}
+                # 必须有的副本集合可配置：OCI 退役后是 {"r2","github"}（见 replica_stores.py）。
+                required = set(replica_stores())
                 if required.issubset(by_store):
                     cipher_hashes = {str(by_store[item]["verified_sha256"] or "") for item in required}
                     original_hashes = {str(by_store[item]["original_sha256"] or "") for item in required}
@@ -2670,7 +2765,9 @@ class RuntimeStore:
             total = int(con.execute("SELECT COUNT(*) FROM artifact").fetchone()[0])
             complete = int(con.execute("SELECT COUNT(*) FROM artifact WHERE status='complete'").fetchone()[0])
             pending = max(0, total - complete)
-            return {"required_replicas": 3, "total_artifacts": total, "all_three_verified": complete, "pending": pending}
+            # 键名 all_three_verified 是对外契约（接口、界面、证据文件都读它），保留；
+            # 「几份」以 required_replicas 为准——OCI 退役后是 2。
+            return {"required_replicas": len(replica_stores()), "total_artifacts": total, "all_three_verified": complete, "pending": pending}
 
 
 class TenantScope:

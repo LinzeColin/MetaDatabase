@@ -1,0 +1,68 @@
+# 由 nginx 官方镜像的 envsubst 机制在容器启动时渲染到 /etc/nginx/conf.d/site.conf（tmpfs）。
+# 只有 ${EEI_UPSTREAM} ${EEI_RESOLVER} 被替换；$host、$uri 之类 nginx 变量原样保留。
+
+# 上游主机名（含端口），用于 Host 头与 TLS SNI
+map "${EEI_UPSTREAM}" $eei_host {
+  "~^https?://(?<h>[^/]+)" $h;
+  default "";
+}
+
+server {
+  listen 8080 default_server;
+  server_name _;
+  root /usr/share/nginx/html;
+  index index.html;
+
+  # 上游域名运行时按 TTL 重新解析（写成变量的 proxy_pass 才会走 resolver），上游换 IP 不用重启容器
+  resolver ${EEI_RESOLVER} valid=60s ipv6=off;
+  resolver_timeout 5s;
+
+  # ---- 宇宙页面（静态）----
+# 缓存头写 "private, no-cache"：浏览器每次带 ETag 验证。Cloudflare 的区域设置「浏览器缓存 TTL」会把 .js/.css 的
+# 普通 no-cache 改写成 max-age=14400（实测），改了页面 4 小时内老访客还看旧版；带 private 时 Cloudflare 不缓存也不改写。
+  # 首页：无参数返回宇宙页面；带 ?subject= 的请求是旧版「完整图谱」的深链，交给上游
+  location = / {
+    error_page 418 = @upstream;
+    if ($arg_subject != "") { return 418; }
+    include /etc/nginx/snippets/headers.conf;
+    add_header Cache-Control "private, no-cache" always;
+    rewrite ^ /index.html break;
+  }
+
+  # vendor（three.js 固定版本）长缓存；升级 three 时换目录名，别原地覆盖
+  location /vendor/ {
+    include /etc/nginx/snippets/headers.conf;
+    add_header Cache-Control "public, max-age=2592000" always;
+    try_files $uri =404;
+  }
+
+  # 其余路径：宇宙自己的静态文件（index.html、app.js、styles.css、version.txt）优先，每次带 ETag 重新验证；
+  # 不是宇宙文件的（旧版各模块页 /structure、/capital、/supply-chain…）一律交给上游，
+  # 否则切主站后旧页面全变 404（2026-09-30 切换后 E2E 抓到）。
+  location / {
+    include /etc/nginx/snippets/headers.conf;
+    add_header Cache-Control "private, no-cache" always;
+    try_files $uri @upstream;
+  }
+
+  # ---- 反代上游（默认旧版 EEI；切主站后仍是这一组路径）----
+  location /v1/    { error_page 418 = @upstream; return 418; }
+  location = /health { error_page 418 = @upstream; return 418; }
+  location /_next/ { error_page 418 = @upstream; return 418; }
+
+  location @upstream {
+    set $eei_upstream "${EEI_UPSTREAM}";
+    proxy_pass $eei_upstream;               # 不带 URI：原样转发请求路径与参数
+    proxy_http_version 1.1;
+    proxy_set_header Connection "";
+    proxy_set_header Host $eei_host;
+    proxy_ssl_server_name on;               # 发 SNI
+    proxy_ssl_name $eei_host;
+    proxy_ssl_verify on;
+    proxy_ssl_trusted_certificate /etc/ssl/certs/ca-certificates.crt;
+    proxy_ssl_verify_depth 3;
+    proxy_connect_timeout 5s;
+    proxy_read_timeout 30s;
+    include /etc/nginx/snippets/headers.conf;
+  }
+}

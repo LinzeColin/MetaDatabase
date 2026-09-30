@@ -169,6 +169,7 @@ def autofill_fund_rules(
     max_fetches: int | None = None,
     timeout_seconds: float | None = None,
     write_output: bool = True,
+    fetcher=None,
 ) -> tuple[dict[str, FundRule], dict[str, object]]:
     generated_at = _now(settings)
     if not settings.candidate_universe_rule_autofill_enabled:
@@ -185,7 +186,11 @@ def autofill_fund_rules(
         fetched += 1
         source_url = _fee_url(candidate.asset_code)
         try:
-            text = _fetch_text(source_url, timeout_seconds or settings.candidate_universe_fetch_timeout_seconds)
+            text = (
+                fetcher(source_url)
+                if fetcher
+                else _fetch_text(source_url, timeout_seconds or settings.candidate_universe_fetch_timeout_seconds)
+            )
             rule = parse_fund_rule_from_fee_page(candidate, text, as_of=generated_at, source_url=source_url)
             rules[candidate.asset_code] = rule
             missing = _missing_fields(rule)
@@ -219,7 +224,7 @@ def autofill_fund_rules(
         "rows": [asdict(row) for row in rows],
     }
     if write_output:
-        output_dir = settings.root_dir / "outputs" / "preflight"
+        output_dir = settings.output_root() / "preflight"
         output_dir.mkdir(parents=True, exist_ok=True)
         (output_dir / "fund_rule_autofill_latest.json").write_text(
             json.dumps(result, ensure_ascii=False, indent=2),

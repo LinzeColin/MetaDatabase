@@ -147,8 +147,6 @@ class PlatformOperationsTests(unittest.TestCase):
             "WRP_PRIMARY_OBJECT_PREFIX": "primary-objects",
             "WRP_PRIVATE_DATABASE_BACKUP_PREFIX": "backups/private-database",
             "WRP_PRIVATE_DATABASE_R2_BACKUP_TARGET": "r2:weread/backups/private-database",
-            "WRP_R2_RCLONE_SOURCE": "r2:weread",
-            "WRP_OCI_RCLONE_TARGET": "oci:weread",
             "WRP_UPSTREAM_TIMEOUT_MS": "15000",
             "WRP_UPSTREAM_RETRY_ATTEMPTS": "2",
             "WRP_AUTH_FAILURE_LIMIT": "8",

@@ -1,0 +1,140 @@
+#!/usr/bin/env bash
+# linze-e2e —— 交付流水线第 8 关（公网端到端）在 VPS-3 上的包装脚本：按需运行 + 每日合成检查共用这一条路径。
+#   linze-e2e run [旅程文件名...]   # 先从公开仓 main 拉 tools/e2e（免令牌）、必要时重建镜像，再跑；缺省跑全部旅程
+#   linze-e2e sync                  # 只拉取并在 tools/e2e 有变化时重建镜像
+#   linze-e2e status                # 最近一次结果、镜像对应的提交、下次定时
+# 退出码（run）：0 全过；1 有不通过；2 执行器自身出错（含构建失败、超时）。
+# 不碰令牌、不碰别的项目；镜像只含执行器代码；容器只读、仅输出目录可写、限内存限 CPU。
+set -uo pipefail
+export GIT_TERMINAL_PROMPT=0 LC_ALL=C.UTF-8
+
+ROOT=${LINZE_E2E_ROOT:-/var/lib/linze-e2e}
+SRC=$ROOT/src
+RUNS=$ROOT/runs
+REPO_URL=https://github.com/LinzeColin/MetaDatabase.git
+BRANCH=main
+SUBDIR=tools/e2e
+IMAGE=linze-e2e
+KEEP=14
+RUN_TIMEOUT=1200
+export DOCKER_CONFIG=$ROOT/docker-config   # 不依赖 /root（service 里 ProtectHome）
+
+log() { printf '%s [linze-e2e] %s\n' "$(date -u +%FT%TZ)" "$*" >&2; }
+usage() { echo "用法: linze-e2e run [旅程文件名...] | sync | status" >&2; exit 64; }
+
+sync_src() { # 回显镜像 tag；失败且无旧镜像返回非 0
+  mkdir -p "$SRC" "$RUNS" "$DOCKER_CONFIG"
+  local fetched=0
+  if [ ! -d "$SRC/.git" ]; then
+    git init -q "$SRC" && git -C "$SRC" remote add origin "$REPO_URL" \
+      && git -C "$SRC" sparse-checkout init --cone && git -C "$SRC" sparse-checkout set "$SUBDIR" || return 1
+  fi
+  if timeout 180 git -C "$SRC" -c credential.helper= fetch -q --depth 1 --filter=blob:none origin "$BRANCH" \
+     && git -C "$SRC" checkout -q -f --detach FETCH_HEAD; then
+    fetched=1
+  else
+    log "警告：从 GitHub 拉取失败，改用本机已有的镜像"
+  fi
+  local tag
+  if [ "$fetched" = 1 ]; then
+    local tree; tree=$(git -C "$SRC" rev-parse "HEAD:$SUBDIR" 2>/dev/null) || return 1
+    tag=$IMAGE:${tree:0:12}
+    if docker image inspect "$tag" >/dev/null 2>&1; then
+      log "tools/e2e 无变化（树 ${tree:0:12}），沿用镜像 $tag"
+    else
+      log "tools/e2e 有变化（提交 $(git -C "$SRC" rev-parse --short HEAD)，树 ${tree:0:12}），构建 $tag"
+      timeout 900 docker build -q --label "linze.e2e.tree=$tree" --label "linze.e2e.commit=$(git -C "$SRC" rev-parse HEAD)" \
+        -t "$tag" "$SRC/$SUBDIR" >/dev/null || { log "镜像构建失败"; return 2; }
+      # 只留最新镜像
+      docker images --format '{{.Repository}}:{{.Tag}}' "$IMAGE" | grep -vxF "$tag" | xargs -r docker image rm >/dev/null 2>&1
+    fi
+  else
+    tag=$(docker images --format '{{.Repository}}:{{.Tag}}' "$IMAGE" | head -n1)
+    [ -n "$tag" ] || { log "没有可用镜像，也拉不到源码"; return 1; }
+  fi
+  echo "$tag"
+}
+
+prune_runs() {
+  local d n=0
+  for d in $(ls -1 "$RUNS" 2>/dev/null | grep -E '^[0-9]{8}-[0-9]{6}' | sort -r); do
+    n=$((n + 1)); [ "$n" -gt "$KEEP" ] && rm -rf -- "${RUNS:?}/$d"
+  done
+}
+
+record_status() { # 只在「项目通过/不通过」状态变化时往 state-changes.log 追加一行
+  local dir=$1 rc=$2 tag=$3
+  python3 - "$ROOT" "$dir" "$rc" "$tag" <<'PY'
+import json, sys, datetime, pathlib
+root, rdir, rc, tag = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2]), sys.argv[3], sys.argv[4]
+st_path = root / "status.json"
+prev = json.loads(st_path.read_text()) if st_path.exists() else {}
+now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+projects = prev.get("projects", {})
+try:
+    rep = json.loads((rdir / "report.json").read_text())
+    new = {p["project"]: bool(p["passed"]) for p in rep["projects"]}
+except Exception:
+    new = None
+if new is not None:
+    with open(root / "state-changes.log", "a", encoding="utf-8") as f:
+        for name, ok in new.items():
+            if name not in projects or projects[name] != ok:
+                was = "首次记录" if name not in projects else ("通过" if projects[name] else "不通过")
+                f.write(f"{now} {name}: {was} -> {'通过' if ok else '不通过'}（{rdir.name}）\n")
+    projects = {**projects, **new}
+st_path.write_text(json.dumps({"last_run_at": now, "exit_code": int(rc), "image": tag, "run_dir": str(rdir),
+                               "projects": projects}, ensure_ascii=False, indent=2))
+PY
+}
+
+do_run() {
+  local name
+  for name in "$@"; do
+    [[ $name != */* && $name != .* && $name != -* ]] || { echo "旅程文件名不能含 / 或以 . - 开头：$name" >&2; exit 64; }
+  done
+  mkdir -p "$ROOT"
+  exec 9>"$ROOT/run.lock"
+  flock -w 1300 9 || { log "另一次运行占着，等了 1300s 仍未结束"; exit 2; }
+  local tag rc
+  tag=$(sync_src); rc=$?
+  [ "$rc" = 0 ] || { log "同步/构建失败，本次不运行（退出码 2）"; exit 2; }
+  install -d -o 1000 -g 1000 "$RUNS"
+  docker rm -f linze-e2e-run >/dev/null 2>&1
+  log "运行 $tag ${*:-（全部旅程）}"
+  timeout -k 30 "$RUN_TIMEOUT" docker run --rm --name linze-e2e-run --init \
+    --user 1000:1000 -e HOME=/tmp \
+    --memory 1g --memory-swap 1g --cpus 1 --pids-limit 512 \
+    --read-only --tmpfs /tmp:rw,size=256m --security-opt no-new-privileges \
+    -v "$RUNS:/out:rw" \
+    "$tag" "$@" --out /out
+  rc=$?
+  docker rm -f linze-e2e-run >/dev/null 2>&1
+  [ "$rc" -le 2 ] || { log "执行器异常结束（退出码 $rc，124/137 多为超时 ${RUN_TIMEOUT}s）"; rc=2; }
+  local newest; newest=$(ls -1 "$RUNS" | grep -E '^[0-9]{8}-[0-9]{6}' | sort | tail -n1)
+  if [ -n "$newest" ] && [ -f "$RUNS/$newest/报告.md" ]; then
+    echo "==== $RUNS/$newest/报告.md ===="
+    cat "$RUNS/$newest/报告.md"
+    record_status "$RUNS/$newest" "$rc" "$tag"
+  else
+    record_status "$RUNS/none" "$rc" "$tag"
+  fi
+  prune_runs
+  exit "$rc"
+}
+
+do_status() {
+  echo "== 最近一次 $ROOT/status.json"; cat "$ROOT/status.json" 2>/dev/null || echo "(还没跑过)"
+  echo; echo "== 状态变化记录（只在通过/不通过变化时追加）"; tail -n 20 "$ROOT/state-changes.log" 2>/dev/null || echo "(无)"
+  echo "== 镜像"; docker images "$IMAGE" --format '{{.Repository}}:{{.Tag}}  {{.CreatedSince}}  {{.Size}}'
+  echo "== 保留的运行目录"; ls -1 "$RUNS" 2>/dev/null | tail -n "$KEEP"
+  echo "== 定时"; systemctl list-timers linze-e2e.timer --no-pager | sed -n '1,3p'
+}
+
+CMD=${1:-}; [ -n "$CMD" ] || usage; shift
+case "$CMD" in
+  run) do_run "$@" ;;
+  sync) mkdir -p "$ROOT"; exec 9>"$ROOT/run.lock"; flock -w 1300 9; sync_src ;;
+  status) do_status ;;
+  *) usage ;;
+esac

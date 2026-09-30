@@ -56,6 +56,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │   ├── scoring_parity.test.mjs
 │   │   │   ├── scoring_parity_fixture.json
 │   │   │   ├── smoke_assert.mjs
+│   │   │   ├── smoke_assert_official.mjs
 │   │   │   └── smoke_seed.sql
 │   │   ├── .gitignore
 │   │   ├── package-lock.json
@@ -598,6 +599,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── publish_to_cloud_channel.py
 │   ├── record_operator_soak_heartbeat.py
 │   ├── refresh_stability_probe.py
+│   ├── relationship_publication_gate.py
 │   ├── run_browser_scale_benchmarks.mjs
 │   ├── run_cloud_worker_smoke.sh
 │   ├── run_codex_autonomous.sh
@@ -671,6 +673,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   ├── capital-river.spec.ts
 │   │   ├── command-search.spec.ts
 │   │   ├── development-status.spec.ts
+│   │   ├── evidence-tier.spec.ts
 │   │   ├── feedback-motion-evidence.spec.ts
 │   │   ├── graph-label-overlap.spec.ts
 │   │   ├── graph-skeleton.spec.ts
@@ -706,7 +709,8 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   └── golden_vertical_review_decisions.json
 │   ├── integration
 │   │   ├── README.md
-│   │   └── test_database_migrations.py
+│   │   ├── test_database_migrations.py
+│   │   └── test_relationship_publication_gate_db.py
 │   └── unit
 │       ├── test_a202_signed_intake_preflight.py
 │       ├── test_amount_semantics.py
@@ -726,6 +730,7 @@ Enterprise_Ecosystem_Intelligence_release
 │       ├── test_postgres_compose_clean_environment.py
 │       ├── test_private_db_client.py
 │       ├── test_production_api_release_preflight.py
+│       ├── test_relationship_publication_gate.py
 │       ├── test_release_decision_bundle.py
 │       ├── test_release_manager_activation.py
 │       ├── test_scale_benchmarks.py
@@ -736,7 +741,8 @@ Enterprise_Ecosystem_Intelligence_release
 │       ├── test_sec_normalizer.py
 │       ├── test_sec_smoke.py
 │       ├── test_source_freshness.py
-│       └── test_transactional_pipeline.py
+│       ├── test_transactional_pipeline.py
+│       └── test_watch_pending_push.py
 ├── wireframes
 │   ├── README.md
 │   ├── dashboard_wireframe.png

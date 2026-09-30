@@ -120,11 +120,11 @@ synchronized in the same change.
 
 | 任务 | 频率 | 桶 | 作用 | 月 Class A | 月 Class B | **一碰就变收费的地方** |
 |---|---|---|---|---|---|---|
-| `weread-port-r2-oci-backup` | 每日 04:23 | weread-port-private | 加密用户对象镜像到 OCI 异地冷备 | 465 | 0 | **`rclone sync` 必须带 `--fast-list`**。删掉它 → 按前缀逐个列举，实测 15 次 → **9,300 次**（Class A 额度的 28.8%），且随对象数线性增长 |
+| ~~`weread-port-r2-oci-backup`~~ | **已于 2026-09-30 移除** | weread-port-private | OCI 账号过期（Owner：以后没有 OCI），timer/unit 与 `r2-to-oci` 命令已删；R2 加密正文现在只有 R2 一份 | 0（原 465） | 0 | 别恢复。要恢复先有新的异地目标；若用 `rclone sync` 必须带 `--fast-list`（见上：不带则 9,300 次/月） |
 | `memory-atlas-reconcile` | **每日** | weread-port-private | 核对 R2 是否仍持有 manifest 里的字节 | 434 | **229,338 (2.3%)** | **频率**。原为每 15 分钟 = 21.3M/月，直接打穿 10M 额度。因为 `exists_with_hash()` 对每个对象**整包下载**（2 Head + 1 Get × 2466 对象 = 7,398/轮） |
 | `linze-status-r2-mirror.sh` | 每 5 分钟 | primary-objects | status 站数据镜像 | 31,872 (3.2%) | ~200 | **镜像的文件个数**。每多镜像 1 个文件 = +8,928 次/月 |
 | weread-port 平台写入（常驻） | 持续 ~56 次/小时 | weread-port-private | 加密笔记 / 跨设备同步的对象写入 | 41,664 (4.2%) | 0 | 随用户活跃度增长。**写入方未逐一归因**，但已确认不是 reconcile（降频后仍在） |
-| `social-archive-replication` | 每 15 分钟 | social-archive-e2n-v0004 | 对象复制到多存储 | 3,224 | 19,468 | **`--limit 200` 这个上限**，别放大 |
+| `social-archive-replication` | 每 15 分钟 | social-archive-e2n-v0004 | 对象复制到 R2（OCI 已退役）再放 GitHub Release | 3,224 | 19,468 | **`--limit 200` 这个上限**，别放大 |
 | `weread-port-private-database-backup` | 每日 04:01 | backups | Private-Database git bundle 冷备 | 190 | ~30 | 有 `UNCHANGED` 短路，**别去掉** |
 | `linze-offsite-backup.sh` | 每日 03:40 | backups | 全量加密备份（单对象） | ~60 | ~30 | 别改成分片小块上传 |
 | `cyberboss-backup` | 每日 03:35 | cyberboss-cold | CyberBoss 冷备 | 35 | ~150 | — |
@@ -174,5 +174,12 @@ ssh ovh 'sudo /usr/local/bin/linze-r2-free-tier-guard.py'
 > 脚本的安全底线也别削：**删 R2 对象前先 `HeadObject` 核对 OCI 上同 key 同大小，核不上就跳过不删**；
 > 最新一批永远保留；只碰 `backups/<组>/<时间戳>/`，**不碰 `primary-objects/`（那是制品字节，删了就是毁档）**。
 > 每份快照有 `r2`/`oci`/`github` 三个 verified 副本，删掉 R2 那份仍剩两份 —— 这是「卸载」不是「删除」。
+>
+> **2026-09-30 OCI 退役**（`SOCIAL_ARCHIVE_REPLICA_STORES=r2,github`）：上面「核对 OCI」改成——只清
+> `backups/runtime-db/`；且 **30 小时内必须有已验证的 GitHub 副本**（`--github-daily` 每个 UTC 日期放一份到
+> Private-Database 的 Draft Release）才删，否则整批跳过；`backups/private-database/`（事实冷备）此后只有 R2 一份，
+> **一个都不删**。索引快照现在是独立单元 `social-archive-runtime-db-backup`（每 15 分钟），不再挂在
+> `social-archive-backup.service` / `social-archive-replication.service` 后面；`--apply` 那条 R2 清理仍在
+> `social-archive-backup.service.d/20-prune-r2-replicas.conf`。
 
 > 本仓经验条已迁出到 `dev-notes/经验-202608.md`。**AGENTS.md 只放「违反有代价」的规则，不放经验。**

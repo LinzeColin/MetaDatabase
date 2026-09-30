@@ -1,0 +1,24 @@
+{
+ "troubleshooting": [
+  {
+   "symptom": "页面第一屏显示「今天没有新报告」",
+   "cause": "最近一次运行失败；原因写在第一屏，也在 `status.json` 的 `error` 字段",
+   "fix": "上游临时故障会自己恢复，下次定时运行即补上；想看细节：服务器上 `journalctl -u fifa-daily.service -n 80`，想立刻重跑：`sudo systemctl start fifa-daily.service`"
+  },
+  {
+   "symptom": "页面红条写着生成于很多小时前",
+   "cause": "服务器上的定时器没有跑（服务器停机、timer 被停用、代码更新失败卡住）",
+   "fix": "服务器上 `systemctl status fifa-daily.timer fifa-daily-pull.timer`；`sudo fifa-daily-pull.sh status` 看代码更新状态；监控面板里的「日报新鲜度」条目超过 30 小时没收到心跳会自己变红"
+  },
+  {
+   "symptom": "数据截至日期比今天早一周",
+   "cause": "联赛数据集每周更新一次，赛果最多滞后约一周",
+   "fix": "不是故障；欧冠当季数据来自维基百科，几乎实时"
+  },
+  {
+   "symptom": "欧冠当季一场都没有",
+   "cause": "维基百科页面结构变了导致解析出 0 场，或页面标题变了",
+   "fix": "检查 `FIFA/daily-research/fifa_daily/config.py` 里的 `WIKI_CL_PAGE`，以及 `sources.py` 里的 `parse_wiki_boxes`"
+  }
+ ]
+}

@@ -16,10 +16,13 @@ from urllib.parse import urlsplit
 from social_archive.config import Settings
 from social_archive.storage import create_s3_client
 from social_archive.recovery import SECRET_PATH_FALLBACKS, resolve_secret_path
+from social_archive.replica_stores import CANONICAL_ORDER, replica_stores
 from social_archive.utils import read_secret, sha256_file
 
 
-REQUIRED_STORES = ("r2", "oci", "github")
+# 认得的收据目标（含已退役的 oci：老对象还带着它的收据，可以当恢复来源）；
+# 「必须有哪些」由 replica_stores() 决定（OCI 退役后是 r2+github）。
+REQUIRED_STORES = CANONICAL_ORDER
 
 
 class RecoveryBlocked(RuntimeError):
@@ -80,11 +83,13 @@ def _validated_descriptor(artifact: dict[str, Any], receipts: list[dict[str, Any
             "encryption": "age-x25519",
         }
 
-    if set(by_store) != set(REQUIRED_STORES):
-        raise RecoveryFailure("RECOVERY_RECEIPT_INVALID", "恢复对象缺少三副本收据")
+    required = set(replica_stores())
+    if not required <= set(by_store):
+        raise RecoveryFailure("RECOVERY_RECEIPT_INVALID",
+                              f"恢复对象缺少{'三' if len(required) == 3 else '两'}副本收据（需要 {sorted(required)}）")
     cipher_hashes = {receipt["cipher_sha256"] for receipt in by_store.values()}
     if len(cipher_hashes) != 1:
-        raise RecoveryFailure("RECOVERY_RECEIPT_INVALID", "三副本密文哈希不一致")
+        raise RecoveryFailure("RECOVERY_RECEIPT_INVALID", "各副本密文哈希不一致")
     return {
         "artifact_id": artifact_id,
         "original_sha256": original_sha256,

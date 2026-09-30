@@ -29,10 +29,18 @@ STATE_CN = {
 }
 RULE_CN = {
     "RULE_MARKET_DATA_STALE": "行情数据太旧,拒单保护",
+    "RULE_MARKET_DATA_MISSING": "行情缺失,拒单保护",
     "RULE_FAT_FINGER_SINGLE_ORDER": "单笔金额超上限,拒单保护",
-    "RULE_HOURLY_ORDER_BUDGET": "每小时下单笔数达上限,拒单保护",
-    "RULE_TOTAL_EXPOSURE": "总敞口将超 3000 澳元上限,拒单保护",
-    "RULE_JURISDICTION": "辖区许可未确认,拒单保护",
+    "RULE_BUSINESS_RATE_LIMIT": "每小时下单笔数达上限,拒单保护",
+    "RULE_GROSS_EXPOSURE_CAP": "总敞口将超 3000 澳元上限,拒单保护",
+    "RULE_JURISDICTION_DENY": "辖区许可未确认,拒单保护",
+    "RULE_KILL_SWITCH_ACTIVE": "紧急刹车拉下中,拒单保护",
+}
+#: 模拟券商/券商拒单码 -> 人话(完成记录 skip_reasons 形如 "QQQ:BrokerError:QUOTE_STALE")
+SKIP_CN = {
+    "QUOTE_STALE": "行情过旧", "QUOTE_UNAVAILABLE": "取不到行情",
+    "OUTSIDE_SESSION": "不在常规交易时段", "LIMIT_NOT_MARKETABLE": "限价不可成交",
+    "INSUFFICIENT_CASH": "现金不足", "NO_POSITION": "无持仓可卖",
 }
 
 
@@ -207,10 +215,55 @@ def _floor_30s(dt: datetime) -> datetime:
     return dt.replace(second=(dt.second // 30) * 30, microsecond=0)
 
 
-def _email_title(event_type: str) -> str:
-    from backend.app.notify.outbox import _EMAIL_TEMPLATES
-    tpl = _EMAIL_TEMPLATES.get(event_type)
-    return tpl[0] if tpl else event_type
+def _email_title(event_type: str, payload: str = "{}") -> str:
+    from backend.app.notify.outbox import render_email
+    try:
+        data = json.loads(payload or "{}")
+    except (TypeError, ValueError):
+        data = {}
+    return render_email(event_type, data if isinstance(data, dict) else {})[0].removeprefix("【Alpha】")
+
+
+def last_eval_summary(runtime_dir: Path, session_factory=None) -> dict:
+    """最近一次评估结果的一句人话(看盘通栏与每日摘要共用)。读不到如实说「尚未评估」。"""
+    from backend.app.health import eval_fill_count, last_eval_result
+
+    rec = last_eval_result(Path(runtime_dir))
+    if rec is None or not rec.get("date"):
+        return {"text": "尚未完成过评估", "date": "", "ok": None}
+    try:
+        at = datetime.fromisoformat(str(rec.get("completed_at")))
+        at = at if at.tzinfo else at.replace(tzinfo=timezone.utc)
+        head = f"{at.astimezone(SYD):%m月%d日 %H:%M}(悉尼)评估:"
+    except Exception:
+        head = f"{rec['date']} 评估:"
+    if rec.get("market_closed"):
+        return {"text": head + f"当日美股休市,评估顺延到 {rec.get('deferred_to', '下一个交易日')}",
+                "date": rec["date"], "ok": True}
+    plan = list(rec.get("plan") or [])
+    submitted = int(rec.get("submitted", 0))
+    rules = [f"{RULE_CN.get(r, r).split(',')[0]}({r})" for r in rec.get("reject_rules") or []]
+    for reason in rec.get("skip_reasons") or []:
+        code = str(reason).rsplit(":", 1)[-1]
+        rules.append(f"{SKIP_CN.get(code, code)}({code})")
+    blocked_txt = f"被拦下:{'、'.join(dict.fromkeys(rules))}" if rules else ""
+    if not plan:
+        return {"text": head + "无需调仓(持仓与目标的偏离未达调仓阈值)",
+                "date": rec["date"], "ok": True}
+
+    def _cn(item: str) -> str:              # "BUY QQQx3" -> "买入 QQQ×3"
+        side, _, rest = item.partition(" ")
+        return f"{SIDE_CN.get(side, side)} {rest.replace('x', '×')}"
+
+    if submitted == 0:
+        return {"text": head + (blocked_txt or "有调仓计划但一笔未提交"),
+                "date": rec["date"], "ok": False}
+    filled = eval_fill_count(session_factory, rec["date"]) if session_factory else 0
+    text = head + "、".join(_cn(x) for x in plan)
+    text += ",已成交" if filled >= submitted else f",已成交 {filled}/{submitted} 笔"
+    if blocked_txt:
+        text += f";另有部分{blocked_txt}"
+    return {"text": text, "date": rec["date"], "ok": filled >= submitted and not blocked_txt}
 
 
 def _latest_report(reports_dir: Path) -> Optional[dict]:
@@ -227,20 +280,34 @@ def _latest_report(reports_dir: Path) -> Optional[dict]:
 
 
 def _next_decision(now_utc: datetime, runtime_dir: Path) -> dict:
-    """下一次决策时间:有补评估标记 → 下一个交易日开盘后;否则周二正常节拍。"""
+    """下一次决策时间。
+
+    ①补评估标记的日期是今天且窗口(美东 10:30-11:30)还没过、今天又没评估过 -> 今天补评估窗起点;
+    日期早于今天的旧标记忽略;②否则周二例行节拍:本周二已评估过(开始标记 = 今天)或已过 11:00,
+    就是下周二。
+    """
+    from backend.app.workers.live_cycle import EVAL_WINDOW_END_MINUTE, MAKEUP_WINDOW_MINUTES
+
     et_now = now_utc.astimezone(ET)
-    makeup = (runtime_dir / "makeup_eval.txt").exists()
-    if makeup:
-        cand = et_now.replace(hour=10, minute=0, second=0, microsecond=0)
-        if et_now.hour >= 11:
-            cand += timedelta(days=1)
-        while cand.weekday() >= 5:
-            cand += timedelta(days=1)
-        kind = "补评估(上次评估被拦下,下个交易日开盘后补做)"
+    minute = et_now.hour * 60 + et_now.minute
+    today = et_now.date().isoformat()
+
+    def _read(name: str) -> str:
+        try:
+            return (runtime_dir / name).read_text().strip()
+        except OSError:
+            return ""
+
+    evaluated_today = _read("last_s1_eval.txt") == today
+    if (_read("makeup_eval.txt") == today and not evaluated_today
+            and et_now.weekday() < 5 and minute < MAKEUP_WINDOW_MINUTES[1]):
+        cand = et_now.replace(hour=MAKEUP_WINDOW_MINUTES[0] // 60,
+                              minute=MAKEUP_WINDOW_MINUTES[0] % 60, second=0, microsecond=0)
+        kind = "补评估(上次评估被拦下,今天开盘后补做)"
     else:
         days_ahead = (1 - et_now.weekday()) % 7
         cand = et_now.replace(hour=10, minute=0, second=0, microsecond=0) + timedelta(days=days_ahead)
-        if days_ahead == 0 and et_now.hour >= 11:
+        if days_ahead == 0 and (evaluated_today or minute > EVAL_WINDOW_END_MINUTE):
             cand += timedelta(days=7)
         kind = "每周例行决策(美股周二开盘后一小时内)"
     syd = cand.astimezone(SYD)
@@ -282,17 +349,25 @@ OPS_EVENTS = {
     "PREFLIGHT_OK": ("盘前自检通过(系统在岗)", "auto"),
     "PREFLIGHT_ALERT": ("盘前自检发现问题", "fault"),
     "LEDGER_BACKUP": ("交易账本备份", "auto"),
+    "ALERT_RAISED": ("系统提醒", "fault"),
+    "ALERT_RECOVERED": ("提醒已恢复", "auto"),
 }
 
 #: 自愈能力清单(与部署单元一一对应;运维记录页如实展示)
 SELF_HEAL_CAPS = [
     ("进程崩溃自动拉起", "系统服务管理器 Restart=always,崩溃 10 秒内重启"),
     ("卡死看门狗", "交易进程每拍喂狗;超过 5 分钟没喂 = 卡死,自动杀掉重启(07-23 事故补课)"),
-    ("守护受限重启权", "组件失联超 5 分钟,守护按序自动重启行情网关与交易进程,30 分钟冷却防抖"),
     ("条件自动收闸", "守护自己拍的紧急刹车,连续健康确认后自动解除;人拍的闸永远只有人能解"),
-    ("每日收盘自动复判", "每个交易日收盘后自动核算四灯并按纪律邮件;全绿自动发起实盘切换"),
-    ("定时任务失败自告警", "复判/切换任务自身失败时,自动发邮件通知(谁看门人的门,失败也有人知道)"),
+    ("漏评估自动补做", "周二评估窗结束仍无完成记录,守护当天写补评估标记,10:30-11:30 美东补做"),
+    ("定时任务失败自告警", "定时任务自身失败时自动发邮件;同一故障只发一封,恢复再发一封"),
 ]
+#: 仅在开启 sudo 受限重启权时才如实列出(VPS-3 模板默认关闭)
+RESTART_CAP = ("守护受限重启权", "组件失联超 5 分钟,守护按序自动重启行情网关与交易进程,30 分钟冷却防抖")
+
+
+def self_heal_caps() -> list[tuple[str, str]]:
+    from backend.app.workers.main_supervisor import sudo_restart_enabled
+    return SELF_HEAL_CAPS[:2] + ([RESTART_CAP] if sudo_restart_enabled() else []) + SELF_HEAL_CAPS[2:]
 
 
 def build_ops_view(*, session_factory, heartbeats, kill_switch,
@@ -330,12 +405,14 @@ def build_ops_view(*, session_factory, heartbeats, kill_switch,
         rows.sort(key=lambda x: x.created_at, reverse=True)
         recovered_after: list[datetime] = [x.created_at for x in rows
                                            if x.event_type in ("WORKER_RECOVERED",
-                                                               "KILL_SWITCH_CLEARED")]
+                                                               "KILL_SWITCH_CLEARED",
+                                                               "ALERT_RECOVERED")]
         # 定时任务失败(UNIT_FAILED)不会有 WORKER_RECOVERED,只能靠"之后该类任务成功跑过"来销账;
         # 否则修好的失败会永远挂在"待处理",让真故障淹没在噪音里(2026-07-25 深度自查)。
         success_after: list[datetime] = [
             x.created_at for x in rows
-            if x.event_type in ("PREFLIGHT_OK", "LEDGER_BACKUP", "WORKER_RECOVERED")]
+            if x.event_type in ("PREFLIGHT_OK", "LEDGER_BACKUP", "WORKER_RECOVERED",
+                                "ALERT_RECOVERED")]
         for x in rows[:40]:
             title, kind = OPS_EVENTS[x.event_type]
             if x.delivery_status == "DELIVERED" and x.delivered_at:
@@ -363,7 +440,7 @@ def build_ops_view(*, session_factory, heartbeats, kill_switch,
     fresh = all((now - datetime.fromisoformat(h["beat_at"])).total_seconds() < 150
                 for h in hb.values()) if hb else False
     return {
-        "caps": SELF_HEAL_CAPS,
+        "caps": self_heal_caps(),
         "ledger": ledger_rows,
         "events": events,
         "open_faults": sum(1 for e in events if not e["resolved"]),
@@ -383,8 +460,10 @@ def _readiness_rows(now: datetime) -> list[dict]:
         except Exception:
             return "—"
 
+    from backend.app.truth import facts_dir
+
     try:
-        pf = json.loads(Path("machine/facts/preflight_status.json").read_text())
+        pf = json.loads((facts_dir() / "preflight_status.json").read_text())
         reds = [c["name"] for c in pf.get("checks", []) if not c["ok"]]
         rows.append({
             "name": "盘前自检(交易日开盘前)",
@@ -400,7 +479,7 @@ def _readiness_rows(now: datetime) -> list[dict]:
         rows.append({"name": "盘前自检", "ok": False, "note": "尚无自检记录(定时任务未跑过或读不到)"})
 
     try:
-        bk = json.loads(Path("machine/facts/backup_status.json").read_text())
+        bk = json.loads((facts_dir() / "backup_status.json").read_text())
         rows.append({
             "name": "交易账本备份(每日)",
             "ok": bool(bk.get("ok")),
@@ -437,8 +516,8 @@ def build_strategy_view(*, promotion_path: str | Path = "configs/strategy_promot
     now = now or datetime.now(timezone.utc)
     # 已在实盘时,"晋级四道门"是已走完的准入条件,不是待过的关卡——标题与说明随之切换,
     # 避免"已实盘却像还在等晋级"的第二处自相矛盾(2026-07-25 深度自查)。
-    from backend.app.truth import is_micro_live
-    is_live = is_micro_live()
+    from backend.app import truth
+    is_live = truth.is_micro_live()
     gates = []
     try:
         import yaml
@@ -477,7 +556,8 @@ def build_strategy_view(*, promotion_path: str | Path = "configs/strategy_promot
         "gates": gates,
         "is_live": is_live,
         "gates_title": ("准入门禁(已于 2026-07-24 由 owner 书面裁定直接实盘,以下为契约留档条件)"
-                        if is_live else "晋级实盘的四道门(实时读契约配置)"),
+                        if is_live else truth.STRATEGY_WORDS[truth.mode()][1]),
+        "mode_word": truth.STRATEGY_WORDS[truth.mode()][0],
         "honesty_note": honesty,
         "research_cols": RESEARCH_COLS,
         "research": research,
@@ -489,14 +569,23 @@ def build_strategy_view(*, promotion_path: str | Path = "configs/strategy_promot
 
 def build_overview(*, session_factory, heartbeats, kill_switch,
                    quotes: Optional[QuoteSource] = None,
-                   fx_aud_usd: float = 0.65, capital_aud: float = 3000.0,
+                   fx_aud_usd: Optional[float] = None, capital_aud: Optional[float] = None,
                    reports_dir: str | Path = "reports/paper_3day",
-                   runtime_dir: str | Path = "runtime",
+                   runtime_dir: Optional[str | Path] = None,
                    real_power_usd: Optional[float] = None,
                    fx_source=None,
                    now: Optional[datetime] = None) -> dict:
     """聚合看盘页全部数据(纯只读)。所有金额人话口径:管理切片 = 3000 澳元。"""
+    from backend.app import truth
+    from backend.app.adapters.brokers.base import SystemMode
+    from backend.app.health import frozen_at, heartbeat_mode
+    from backend.app.store.orders import fold_own_executions
+
     now = now or datetime.now(timezone.utc)
+    # 本金与契约汇率只认 truth(缺省不再各写一份 3000 / 0.65)
+    capital_aud = truth.capital_aud() if capital_aud is None else capital_aud
+    fx_aud_usd = truth.contract_fx_aud_usd() if fx_aud_usd is None else fx_aud_usd
+    runtime_dir = Path(runtime_dir) if runtime_dir is not None else truth.runtime_dir()
     # 实时汇率(owner 2026-07-24 要求):取到就用真汇率,取不到回落契约固定口径并如实标注
     fx_live, fx_at = (None, None)
     if fx_source is not None:
@@ -529,22 +618,17 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
     def _utc(dt):
         return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
 
-    # ---------- 持仓与管理切片 ----------
-    net: dict[str, int] = {}
-    cost: dict[str, float] = {}
-    cash_flow_usd = 0.0
+    # ---------- 持仓与管理切片(自有账唯一算法 fold_own_executions,现金流已扣手续费) ----------
+    own_rows = []
     for e in sorted(execs, key=lambda x: x.executed_at):
         o = order_by_id.get(e.order_id)
         i = intents.get(o.intent_id) if o else None
-        if i is None:
-            continue
-        sign = 1 if i.side == "BUY" else -1
-        net[i.symbol] = net.get(i.symbol, 0) + sign * e.quantity
-        cost[i.symbol] = cost.get(i.symbol, 0.0) + sign * e.quantity * float(e.price)
-        # 策略自己的现金流:买入为负、卖出为正,并扣掉真实手续费(费用是策略的成本)
-        cash_flow_usd += (-sign) * e.quantity * float(e.price) - float(getattr(e, "fees", 0) or 0)
+        if i is not None:
+            own_rows.append((i.symbol, i.side, e.quantity, e.price, e.fees))
+    book = fold_own_executions(own_rows)
+    net, cost, cash_flow_usd = book.net, book.cost, book.cash_flow_usd
 
-    held = sorted(sym for sym, q in net.items() if q != 0)
+    held = sorted(net)
     quote_map = quotes.snapshots(held) if (quotes and held) else {}
 
     positions = []
@@ -588,7 +672,8 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
     # 否则本金先用契约汇率 0.65 折成美元、再用实时汇率折回澳元,会凭空造出几百澳元的假盈亏
     # (2026-07-28 实测 -194.65)。交易盈亏 = 策略现金流 + 持仓市值(未交易时恒为 0)。
     trading_pnl_usd = cash_flow_usd + mark_value_usd
-    equity_aud = capital_aud + trading_pnl_usd / fx_display
+    equity_aud = truth.equity_aud(capital_aud=capital_aud, trading_pnl_usd=trading_pnl_usd,
+                                  fx_aud_usd=fx_display)
     # 券商实际可动用资金只用于"资金是否到位"提示,绝不参与净值与盈亏计算
     account_cash_usd = float(real_power_usd) if funded_known else None
     funded_usd = (min(authorized_usd, account_cash_usd + mark_value_usd)
@@ -597,19 +682,20 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
     baseline_aud = capital_aud
 
     # ---------- 滚动复利要求线 + 目标进度条(owner 2026-07-24 指定口径) ----------
-    # 无期限滚动复利要求:本月应达 = 期初本金 × (1+月回报率)^(自 2026-07 起已过月数),逐月复利;
+    # 无期限滚动复利要求:本月应达 = 期初本金 × (1+月回报率)^(自本账本冻结月起已过月数),逐月复利;
     # 横框满额 = 本日历年年末应达。二者皆为「按回测月均推算的要求线」,不是收益承诺。
-    rate = float(os.environ.get("ALPHA_TARGET_MONTHLY_PCT", "1.245")) / 100.0
+    # 起算月与每日摘要同源(truth.required_line);首笔成交前要求线 = 本金,盈亏恒为 0。
     syd_now = now.astimezone(SYD)
-    elapsed = max(0, (syd_now.year - 2026) * 12 + (syd_now.month - 7))
-    to_year_end = max(elapsed, (syd_now.year - 2026) * 12 + (12 - 7))
-    month_target_aud = capital_aud * ((1.0 + rate) ** elapsed)
-    year_target_aud = capital_aud * ((1.0 + rate) ** to_year_end)
-    # 累计盈亏 = 净值 − 本月应达(相对滚动复利要求线,不是相对期初本金)。owner 2026-07-24 三次纠正:
-    # "这是无期限滚动复利要求";7 月为第 0 月、要求线恰为 3000,故本月数值与旧口径相同,但下月起分离。
+    line = truth.required_line(capital_aud, anchor=frozen_at(Path(runtime_dir)), now=now,
+                               traded=bool(execs))
+    rate, elapsed = line.rate, line.months_elapsed
+    month_target_aud, year_target_aud = line.month_target_aud, line.year_target_aud
+    # 累计盈亏 = 净值 − 本月应达(相对滚动复利要求线,不是相对期初本金)。
     total_pnl_aud = equity_aud - month_target_aud
     invested_usd = sum(p["market_value_usd"] for p in positions)
-    exposure_pct = round(100.0 * (invested_usd / fx_display) / capital_aud, 1) if capital_aud else 0.0
+    # 敞口占上限与风控同源:上限按契约汇率折算(资金上限只紧不松),不用实时汇率
+    exposure_pct = (round(100.0 * invested_usd * float(truth.fx_usd_aud(fx_contract))
+                          / capital_aud, 1) if capital_aud else 0.0)
     ahead = equity_aud >= month_target_aud
     progress = {
         "monthly_rate_pct": round(rate * 100, 3),
@@ -690,8 +776,9 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
     # 否则会出现"页头写微实盘、门禁写保持 Paper"的自相矛盾(2026-07-25 外部复审抓到)。
     from backend.app.truth import is_micro_live
     _env_live = is_micro_live()
+    _shadow = truth.mode() is SystemMode.SHADOW
     exam = None
-    if report and not _env_live:
+    if report and not _env_live and not _shadow:     # 影子盘与纸面三日考核无关,不展示历史报告
         promo = report.get("promotion", {})
         exam = {
             "report_date": report.get("_report_date", ""),
@@ -714,8 +801,12 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
         }
     #: 实盘阶段替代卡:纸面考核已是历史,这里只说当前实盘事实,不再展示已被推翻的旧结论
     live_stage = None
-    if _env_live:
+    if _shadow:
+        live_stage = {"title": "影子盘运行中(考核不适用)", "card_title": "影子盘运行阶段",
+                      "lines": list(truth.SHADOW_STAGE_NOTE), "archived_report_date": ""}
+    elif _env_live:
         live_stage = {
+            "card_title": "实盘运行阶段",
             "title": "实盘运行中(纸面考核已完成使命)",
             "lines": [
                 "已于 2026-07-24 按 owner 书面裁定换帅并直接进入微实盘,真实资金、真实订单。",
@@ -761,7 +852,7 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
                    key=lambda x: x.delivered_at, reverse=True)
     for x in mails[:3]:      # 邮件只留最近 3 封,别让告警旧账刷掉交易动作
         events.append({"at": _utc(x.delivered_at), "kind": "mail",
-                       "text": f"已邮件你:{_email_title(x.event_type)}"})
+                       "text": f"已邮件你:{_email_title(x.event_type, x.payload)}"})
     events.sort(key=lambda ev: ev["at"], reverse=True)
     timeline = [{"at_syd": f"{ev['at'].astimezone(SYD):%m-%d %H:%M}",
                  "kind": ev["kind"], "text": ev["text"]} for ev in events[:24]]
@@ -782,21 +873,27 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
             trading_status = h["status"]
             mode_hint = h.get("detail", "") or ""
     all_fresh = bool(components) and all(c["ok"] for c in components)
-    env_live = _env_live          # 与考核卡判定同源,杜绝"页头与门禁互相矛盾"
+    mode_now = truth.mode()
+    reported_mode = heartbeat_mode(mode_hint) if trading_status == "RUNNING" else None
     halted = kill_switch.active() or trading_status == "HALTED"
     if halted:
         banner = {"kind": "halted", "text": "⏸️ 系统已暂停(紧急刹车拉下,不会再下任何单)"}
+    elif reported_mode is not None and reported_mode != mode_now.value:
+        banner = {"kind": "warn",
+                  "text": f"⚠️ 模式不一致,已告警:交易进程报告 {reported_mode},配置是 {mode_now.value}"}
     elif all_fresh and trading_status == "RUNNING":
         banner = {"kind": "ok", "text": "✅ 系统正常运行中"}
     else:
         banner = {"kind": "warn",
                   "text": "⚠️ 系统部分组件没报平安,我会自动处理;持续异常会邮件通知你"}
-    mode_cn = "微实盘(真实资金)" if (env_live or "MICRO_LIVE" in mode_hint) else "模拟盘"
     last_mail = next((ev for ev in events if ev["kind"] == "mail"), None)
 
     return {
         "banner": banner,
-        "mode_cn": mode_cn,
+        "mode_code": mode_now.value,
+        "mode_cn": truth.mode_label(mode_now),
+        "mode_explain": truth.mode_explainer(mode_now),
+        "last_eval": last_eval_summary(runtime_dir, session_factory),
         "market": _market_status(now),
         "hero": {
             "equity_aud": round(equity_aud, 2),

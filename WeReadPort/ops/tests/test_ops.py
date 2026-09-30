@@ -281,7 +281,7 @@ class OpsTests(unittest.TestCase):
         with self.db.connect() as connection:
             self.assertEqual(connection.execute("SELECT COUNT(*) FROM runtime_events").fetchone()[0], 1)
 
-    def test_canonical_private_database_backup_to_r2_and_oci_is_idempotent(self):
+    def test_canonical_private_database_backup_to_r2_is_idempotent(self):
         commit = "a" * 40
         commands: list[list[str]] = []
 
@@ -292,8 +292,6 @@ class OpsTests(unittest.TestCase):
                 return subprocess.CompletedProcess(command, 0, commit + "\n", "")
             if command[0] == "restic":
                 return subprocess.CompletedProcess(command, 0, '{"message_type":"summary"}\n', "")
-            if command[0] == "rclone":
-                return subprocess.CompletedProcess(command, 0, "copied", "")
             raise AssertionError(command)
 
         def archive_fetcher(observed_commit: str, output: Path):
@@ -308,8 +306,6 @@ class OpsTests(unittest.TestCase):
         settings = Settings(**{
             **self.settings.__dict__,
             "restic_repository": "s3:https://r2.example.invalid/private-database",
-            "r2_remote": "r2:private-database",
-            "oci_remote": "oci:private-database",
         })
         tool_lookup = lambda name: f"/usr/bin/{name}"  # noqa: E731
         before = len(self.db.pending())
@@ -322,7 +318,7 @@ class OpsTests(unittest.TestCase):
             tool_lookup=tool_lookup,
         )
         self.assertEqual(first["r2Status"], "stored")
-        self.assertEqual(first["ociStatus"], "replicated")
+        self.assertNotIn("ociStatus", first)
         self.assertEqual(first["privateDatabaseCommit"], commit)
         self.assertEqual(len(self.db.pending()), before, "routine backup must not create a backup→fact→commit loop")
 
@@ -335,9 +331,8 @@ class OpsTests(unittest.TestCase):
             tool_lookup=tool_lookup,
         )
         self.assertEqual(second["r2Status"], "unchanged")
-        self.assertEqual(second["ociStatus"], "unchanged")
         self.assertEqual(len([cmd for cmd in commands if cmd and cmd[0] == "restic"]), 1)
-        self.assertEqual(len([cmd for cmd in commands if cmd and cmd[0] == "rclone"]), 1)
+        self.assertEqual([cmd for cmd in commands if cmd and cmd[0] == "rclone"], [], "no rclone mirror leg remains")
 
     def test_restore_refuses_corrupt_snapshot_without_touching_live_db(self):
         self.db.record_event("before", "ok", {}, event_id="before")

@@ -1,0 +1,17 @@
+[
+ {
+  "version": "日报 1.0.0",
+  "date": "2026-09-30",
+  "summary": "FIFA 复活：世界杯结束后延伸到英超、欧冠与四大联赛的每日研究日报；免注册公开数据；GitHub Actions 无人值守；网页发布到 GitHub Pages；只研究不下注"
+ },
+ {
+  "version": "日报 1.1.0",
+  "date": "2026-09-30",
+  "summary": "运行与对外服务从 GitHub 的定时任务与网页托管迁到云服务器 VPS-3：服务器定时器每天两次生成，网页在 `https://home.linzezhang.com/fifa/`；GitHub 只放代码；旧网页托管地址改为跳转说明"
+ },
+ {
+  "version": "日报 1.2.0",
+  "date": "2026-09-30",
+  "summary": "日报有了自己的网站 `https://fifa.linzezhang.com/`（站点在根路径）；旧地址 `home.linzezhang.com/fifa/` 与 GitHub Pages 旧页都 301/跳转到新域名"
+ }
+]

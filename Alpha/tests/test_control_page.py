@@ -236,8 +236,9 @@ def test_dashboard_v2_quote_outage_fails_soft(tmp_path):
     assert all(p["upl_usd"] == 0.0 for p in data["positions"])
 
 
-def test_dashboard_readonly_html(tmp_path):
+def test_dashboard_readonly_html(tmp_path, monkeypatch):
     """仪表盘:无令牌 401;?token= 可看;含关键区块;绝无动作按钮。"""
+    monkeypatch.setenv("ALPHA_MODE", "PAPER")   # 模式唯一来源是配置,须与心跳上报一致
     factory = create_session_factory(init_engine(f"sqlite:///{tmp_path / 'dash.sqlite'}"))
     hb = HeartbeatStore(factory)
     hb.beat("trading-worker", status="RUNNING", detail="{'mode': 'PAPER'}")
@@ -306,3 +307,31 @@ def test_strategy_csv_registry_single_source(tmp_path):
 
     # 5) 下载路由不带任何交易语义(仍受全站禁词自检约束)
     assert_no_trading_routes(app)
+
+
+def test_shadow_banner_and_no_account_cash(shadow_env, tmp_path):
+    """影子盘看盘页:醒目标注没动真钱 + 下一次评估(悉尼)+ 最近一次评估;不显示账户可用与券商模拟账户。"""
+    import json as _json
+
+    (shadow_env / "last_eval_result.json").write_text(_json.dumps({
+        "date": "2026-09-29", "completed_at": "2026-09-29T14:20:00+00:00",
+        "plan": ["BUY QQQx4"], "submitted": 0, "rejected": 1, "skipped": 0,
+        "reject_rules": ["RULE_MARKET_DATA_STALE"], "skip_reasons": []}))
+    factory = create_session_factory(init_engine())
+    hb = HeartbeatStore(factory)
+    hb.beat("trading-worker", status="RUNNING", detail="{'mode': 'SHADOW'}")
+    app = build_control_app(kill_switch=KillSwitch(tmp_path / "KS_SH"), heartbeats=hb,
+                            token_reader=lambda: TOKEN, ack_path=tmp_path / "ACK_SH.json",
+                            session_factory=factory)
+    client = TestClient(app)
+    body = client.get("/").text
+    assert "影子盘：按真实行情模拟成交，未动真钱" in body
+    assert "下一次评估" in body and "悉尼" in body
+    assert "最近一次评估" in body and "被拦下" in body and "RULE_MARKET_DATA_STALE" in body
+    assert "你账户可用" not in body and "读不到券商真实购买力" not in body
+    assert "券商模拟账户" not in body
+    data = client.get("/api/overview").json()
+    assert data["mode_code"] == "SHADOW" and data["banner"]["kind"] == "ok"
+    # 心跳报 MICRO_LIVE 而配置是 SHADOW:页面转 warn 并写明不一致
+    hb.beat("trading-worker", status="RUNNING", detail="{'mode': 'MICRO_LIVE'}")
+    assert "模式不一致" in client.get("/api/overview").json()["banner"]["text"]

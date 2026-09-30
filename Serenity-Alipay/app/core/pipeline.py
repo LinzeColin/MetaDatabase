@@ -304,6 +304,7 @@ def run_slot(
     send_mail: bool = False,
     run_date: date | None = None,
     run_datetime_bj: datetime | None = None,
+    data_health=None,
 ) -> dict[str, object]:
     init_db(settings.db_path)
     if run_datetime_bj:
@@ -362,12 +363,25 @@ def run_slot(
     fund_rules, fund_rule_autofill = autofill_fund_rules(settings, candidates, fund_rules)
     shanghai_returns = calculate_metrics(benchmark_history.get("000001.SH", [])).returns
     sp500_returns = calculate_metrics(benchmark_history.get("SPX", [])).returns
-    moomoo = moomoo_adapter.healthcheck(
-        settings=settings,
-        auto_start_opend=settings.opend_auto_start_enabled and not dry_run,
-        keep_auto_started_opend=settings.opend_keep_auto_started,
-        opend_wait_seconds=settings.opend_wait_seconds,
-    )
+    if settings.headless and data_health is not None:
+        from app.headless.refresh import apply_nav_freshness
+
+        candidates = apply_nav_freshness(
+            candidates,
+            price_history,
+            list(data_health.trading_dates),
+            times.beijing.date(),
+        )
+    if settings.moomoo_enabled:
+        moomoo = moomoo_adapter.healthcheck(
+            settings=settings,
+            auto_start_opend=settings.opend_auto_start_enabled and not dry_run,
+            keep_auto_started_opend=settings.opend_keep_auto_started,
+            opend_wait_seconds=settings.opend_wait_seconds,
+        )
+    else:
+        # 云端无人值守只用公开数据；MooMoo 不参与，也不算“降级”。
+        moomoo = moomoo_adapter.MoomooHealth(True, "not_used", "public-data mode: moomoo not used")
 
     scored_rows: list[dict[str, object]] = []
     with connect(settings.db_path) as conn:
@@ -410,6 +424,19 @@ def run_slot(
                 "created_at": created_at,
             },
         )
+        if data_health is not None:
+            insert_row(
+                conn,
+                "audit_log",
+                {
+                    "run_id": run_id,
+                    "event_type": "public_data_refresh",
+                    "severity": "info" if data_health.status == "ok" else "warn",
+                    "message": f"status={data_health.status}; latest_nav_date={data_health.latest_nav_date}",
+                    "context_json": json.dumps(data_health.to_dict(), ensure_ascii=False, default=str),
+                    "created_at": created_at,
+                },
+            )
         insert_row(
             conn,
             "audit_log",
@@ -559,7 +586,7 @@ def run_slot(
                 )
 
             points = price_history.get(candidate.asset_code, [])
-            for point in points:
+            for point in points if settings.persist_price_history else points[-1:]:
                 insert_row(
                     conn,
                     "market_kline_snapshot",
@@ -725,7 +752,11 @@ def run_slot(
             target = target_weights.get(candidate.asset_id, 0.0)
             current = reference_weights.get(candidate.asset_id, 0.0)
             deviation = target - current
-            action, trigger_reason = _action_with_deviation(score, current, target, settings)
+            if settings.headless:
+                # 没有真实持仓快照：不产出“增配/减配”，只保留研究等级与原因。
+                action, trigger_reason = score.action_label, score.trigger_reason
+            else:
+                action, trigger_reason = _action_with_deviation(score, current, target, settings)
             recommendation = {
                 "rank": rank,
                 "asset_id": candidate.asset_id,
@@ -739,6 +770,16 @@ def run_slot(
                 "action_label": action,
                 "trigger_reason": trigger_reason,
                 "manual_review_required": score.manual_review_required,
+                "metrics": {
+                    "returns": dict(row["metrics"].returns),
+                    "max_drawdown": row["metrics"].max_drawdown,
+                    "recovery_time_days": row["metrics"].recovery_time_days,
+                    "history_span_days": row["metrics"].history_span_days,
+                    "nav_date": (price_history.get(candidate.asset_code) or [None])[-1].date.isoformat()
+                    if price_history.get(candidate.asset_code)
+                    else None,
+                    "missing_nav_days": candidate.missing_nav_days,
+                },
             }
             recommendations.append(recommendation)
             insert_row(
@@ -794,17 +835,21 @@ def run_slot(
         conn.commit()
 
         comparison_summaries, comparison_events = persist_comparisons(conn, run_id, created_at, settings)
-        rebalance_events = (
-            deviation_events(recommendations, settings)
-            + comparison_events
-        )
-        if baseline_reference_run_id:
-            rebalance_events += single_position_overexpansion_events(conn, run_id, settings)
+        if settings.headless:
+            rebalance_events = list(comparison_events)
+        else:
+            rebalance_events = deviation_events(recommendations, settings) + comparison_events
+            if baseline_reference_run_id:
+                rebalance_events += single_position_overexpansion_events(conn, run_id, settings)
         persist_rebalance_events(conn, run_id, created_at, rebalance_events)
         conn.commit()
 
         action_pool = _action_pool_rows(recommendations)
         data_quality_status = "degraded" if not moomoo.available else "pass"
+        if data_health is not None and data_health.status != "ok":
+            data_quality_status = "degraded"
+        data_degraded = data_quality_status == "degraded"
+        run_status = "degraded" if data_degraded else "success"
         if _action_pool_requires_manual_review(recommendations):
             data_quality_status = "manual_review"
         severity = "Info"
@@ -817,81 +862,86 @@ def run_slot(
         execution_locked = data_quality_status != "pass"
         notification_recommendations = action_pool
 
-        notification_title, notification_body = render_notification(
-            run_id,
-            severity,
-            notification_recommendations,
-            run_time_bj,
-            run_time_au,
-            data_quality_status=data_quality_status,
-            execution_locked=execution_locked,
-        )
-        notification_event_reason = (
-            rebalance_events[0].trigger_reason
-            if rebalance_events
-            else (
-                notification_recommendations[0]["trigger_reason"]
-                if notification_recommendations
-                else ""
+        if settings.headless:
+            # 云端无人值守：正式报告由 app.headless.report 从本次运行结果渲染，这里不写旧版邮件草稿/离线页。
+            notification_title, notification_body, notification_html = "", "", ""
+            report_path = html_path = notification_path = None
+        else:
+            notification_title, notification_body = render_notification(
+                run_id,
+                severity,
+                notification_recommendations,
+                run_time_bj,
+                run_time_au,
+                data_quality_status=data_quality_status,
+                execution_locked=execution_locked,
             )
-        )
-        notification_html = render_notification_html(
-            notification_title,
-            run_id,
-            severity,
-            notification_recommendations,
-            run_time_bj,
-            run_time_au,
-            data_quality_status=data_quality_status,
-            event_reason=notification_event_reason,
-            manual_review_items=[
-                f"{row['asset_name']}：{row['trigger_reason']}"
-                for row in recommendations
-                if row.get("manual_review_required")
-            ],
-            execution_locked=execution_locked,
-        )
-        report_md = render_markdown_report(
-            run_id=run_id,
-            slot=slot.upper(),
-            run_time_bj=run_time_bj,
-            run_time_au=run_time_au,
-            status="degraded" if not moomoo.available else "success",
-            data_quality_status=data_quality_status,
-            moomoo_status=moomoo.status,
-            recommendations=recommendations,
-            benchmark_returns={"Shanghai Composite": shanghai_returns, "S&P 500": sp500_returns},
-            notification_title=notification_title,
-            comparison_summaries=[
-                {
-                    "compare_type": item.compare_type,
-                    "base_run_id": item.base_run_id,
-                    "old_top5": list(item.old_top5),
-                    "new_top5": list(item.new_top5),
-                    "top5_change_rate": item.top5_change_rate,
-                    "new_count": item.new_count,
-                    "replacement_count": item.replacement_count,
-                    "max_key_field_sigma": item.max_key_field_sigma,
-                }
-                for item in comparison_summaries
-            ],
-            rebalance_events=[event.trigger_reason for event in rebalance_events],
-            execution_locked=execution_locked,
-        )
-        report_path = settings.reports_dir / f"{run_id}_report.md"
-        html_path = settings.reports_dir / f"{run_id}_report.html"
-        notification_path = settings.notifications_dir / f"{run_id}_{severity.lower()}.md"
-        write_text(report_path, report_md)
-        write_text(html_path, render_offline_html(f"Serenity 每日分析正式报告 {run_id}", report_md))
-        write_mail_ready_draft(
-            notification_path,
-            notification_title,
-            notification_body,
-            settings.recipient_email,
-            html_body=notification_html,
-        )
+            notification_event_reason = (
+                rebalance_events[0].trigger_reason
+                if rebalance_events
+                else (
+                    notification_recommendations[0]["trigger_reason"]
+                    if notification_recommendations
+                    else ""
+                )
+            )
+            notification_html = render_notification_html(
+                notification_title,
+                run_id,
+                severity,
+                notification_recommendations,
+                run_time_bj,
+                run_time_au,
+                data_quality_status=data_quality_status,
+                event_reason=notification_event_reason,
+                manual_review_items=[
+                    f"{row['asset_name']}：{row['trigger_reason']}"
+                    for row in recommendations
+                    if row.get("manual_review_required")
+                ],
+                execution_locked=execution_locked,
+            )
+            report_md = render_markdown_report(
+                run_id=run_id,
+                slot=slot.upper(),
+                run_time_bj=run_time_bj,
+                run_time_au=run_time_au,
+                status="degraded" if not moomoo.available else "success",
+                data_quality_status=data_quality_status,
+                moomoo_status=moomoo.status,
+                recommendations=recommendations,
+                benchmark_returns={"Shanghai Composite": shanghai_returns, "S&P 500": sp500_returns},
+                notification_title=notification_title,
+                comparison_summaries=[
+                    {
+                        "compare_type": item.compare_type,
+                        "base_run_id": item.base_run_id,
+                        "old_top5": list(item.old_top5),
+                        "new_top5": list(item.new_top5),
+                        "top5_change_rate": item.top5_change_rate,
+                        "new_count": item.new_count,
+                        "replacement_count": item.replacement_count,
+                        "max_key_field_sigma": item.max_key_field_sigma,
+                    }
+                    for item in comparison_summaries
+                ],
+                rebalance_events=[event.trigger_reason for event in rebalance_events],
+                execution_locked=execution_locked,
+            )
+            report_path = settings.reports_dir / f"{run_id}_report.md"
+            html_path = settings.reports_dir / f"{run_id}_report.html"
+            notification_path = settings.notifications_dir / f"{run_id}_{severity.lower()}.md"
+            write_text(report_path, report_md)
+            write_text(html_path, render_offline_html(f"Serenity 每日分析正式报告 {run_id}", report_md))
+            write_mail_ready_draft(
+                notification_path,
+                notification_title,
+                notification_body,
+                settings.recipient_email,
+                html_body=notification_html,
+            )
 
-        send_status = "drafted"
+        send_status = "not_applicable" if settings.headless else "drafted"
         send_error = None
         suppress_reason = None
         related_run_id = None
@@ -946,7 +996,7 @@ def run_slot(
                 "channel": "macos_mail",
                 "severity": severity,
                 "title": notification_title,
-                "body_path": str(notification_path),
+                "body_path": str(notification_path) if notification_path else "",
                 "send_status": send_status,
                 "sent_at": created_at if send_status == "sent" else None,
                 "error_message": send_error,
@@ -967,16 +1017,16 @@ def run_slot(
             WHERE run_id=?
             """,
             (
-                "degraded" if not moomoo.available else "success",
+                run_status,
                 data_quality_status,
                 send_status,
-                str(report_path),
-                str(html_path),
+                str(report_path) if report_path else None,
+                str(html_path) if html_path else None,
                 run_id,
             ),
         )
         conn.commit()
-        offline_index_path = _write_offline_index(conn, settings)
+        offline_index_path = None if settings.headless else _write_offline_index(conn, settings)
 
     moomoo_cleanup = None
     if moomoo.cleanup_required and moomoo.opend_lifecycle_handle is not None:
@@ -997,16 +1047,54 @@ def run_slot(
                 },
             )
 
+    screening = [
+        {
+            "asset_code": row["candidate"].asset_code,
+            "asset_name": row["candidate"].asset_name,
+            "grade": row["score"].grade,
+            "score": row["score"].total_score,
+            "hard_block_reason": row["score"].hard_block_reason,
+            "trigger_reason": row["score"].trigger_reason,
+            "max_drawdown": row["metrics"].max_drawdown,
+            "recovery_time_days": row["metrics"].recovery_time_days,
+            "history_span_days": row["metrics"].history_span_days,
+            "official_source_count": row["candidate"].official_source_count,
+        }
+        for row in scored_rows
+    ]
     return {
         "run_id": run_id,
-        "status": "degraded" if not moomoo.available else "success",
+        "status": run_status,
         "data_quality_status": data_quality_status,
-        "report_path": str(report_path),
-        "offline_html_path": str(html_path),
-        "offline_index_path": str(offline_index_path),
-        "notification_path": str(notification_path),
+        "report_path": str(report_path) if report_path else None,
+        "offline_html_path": str(html_path) if html_path else None,
+        "offline_index_path": str(offline_index_path) if offline_index_path else None,
+        "notification_path": str(notification_path) if notification_path else None,
         "moomoo_status": moomoo.status,
         "moomoo_cleanup": moomoo_cleanup,
         "rebalance_events": [event.trigger_reason for event in rebalance_events],
         "top5": [row["asset_code"] for row in _action_pool_rows(recommendations)],
+        "run_time_bj": run_time_bj,
+        "run_time_au": run_time_au,
+        "severity": severity,
+        "execution_locked": execution_locked,
+        "reference_mode": reference_mode,
+        "recommendations": recommendations,
+        "benchmark_returns": {"Shanghai Composite": shanghai_returns, "S&P 500": sp500_returns},
+        "comparison_summaries": [
+            {
+                "compare_type": item.compare_type,
+                "base_run_id": item.base_run_id,
+                "old_top5": list(item.old_top5),
+                "new_top5": list(item.new_top5),
+                "top5_change_rate": item.top5_change_rate,
+                "new_count": item.new_count,
+                "replacement_count": item.replacement_count,
+                "max_key_field_sigma": item.max_key_field_sigma,
+            }
+            for item in comparison_summaries
+        ],
+        "screening": screening,
+        "candidate_count": len(scored_rows),
+        "universe_added": int(candidate_universe_expansion.get("added_count") or 0),
     }

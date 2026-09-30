@@ -75,20 +75,23 @@ def test_worker_entrypoints_importable_and_build():
     with tempfile.TemporaryDirectory() as tmp:
         old_db = os.environ.get("ALPHA_DATABASE_URL")
         old_ks = os.environ.get("ALPHA_KILL_SWITCH_PATH")
+        old_mode = os.environ.pop("ALPHA_MODE", None)
         os.environ["ALPHA_DATABASE_URL"] = f"sqlite:///{tmp}/smoke.sqlite"
         os.environ["ALPHA_KILL_SWITCH_PATH"] = f"{tmp}/KILL_SWITCH"
         try:
             worker = main_trading.build_worker()
             assert worker is not None
             summary = worker._run_cycle()  # noqa: SLF001 - 冒烟:空转周期诚实报告未接通
-            assert summary["status"] == "BLOCKED_ON_OPEND"
+            # 模式缺失 = DISABLED = 失败关闭;不再缺省去连 PAPER/OpenD
+            assert summary["status"] == "BLOCKED_ON_MODE"
             sup = main_supervisor.build_supervisor()
             assert sup is not None
             app = control_main.build_app()
             assert app is not None
             assert main_notify.WORKER_NAME == "notify-worker"
         finally:
-            for key, val in (("ALPHA_DATABASE_URL", old_db), ("ALPHA_KILL_SWITCH_PATH", old_ks)):
+            for key, val in (("ALPHA_DATABASE_URL", old_db), ("ALPHA_KILL_SWITCH_PATH", old_ks),
+                             ("ALPHA_MODE", old_mode)):
                 if val is None:
                     os.environ.pop(key, None)
                 else:

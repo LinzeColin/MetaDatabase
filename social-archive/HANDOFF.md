@@ -28,6 +28,54 @@ curl -s https://social-archive-api.linzezhang.com/health
 ```
 
 
+## 零、2026-09-30：OCI 已退役，备份链重新接通（先读这一节）
+
+跑着的版本仍是 **0.0.0.109**（本次没有发版，只改了备份链的脚本、systemd 单元和配置）。
+
+**Owner 2026-09-30：「OCI 过期了，以后没有 OCI 了」。** 下面「三份副本」「552/552」等数字是 2026-08-20 的，
+**现在的副本集合是 R2 + GitHub Release 两份**（`SOCIAL_ARCHIVE_REPLICA_STORES=r2,github`）。
+
+### 之前断了什么（实测）
+
+| 现象 | 根因 |
+|---|---|
+| 运行库索引快照 2026-09-05 15:48 之后 **25 天没有再做** | 快照是 `replication.service` 的第三条、`backup.service` 的第二条 ExecStart；`Type=oneshot` 前一条失败后面就不跑，而前一条（写 OCI）从 09-05 起每一轮 exit 4 |
+| 09-05 15:57 之后进来的 **4,704 个制品全卡在 `staged`** | 制品要 R2+OCI+GitHub 三份都验过才 `complete`，OCI 写不进去 |
+| 私有库事实不再同步、`backup.py` 报「没有已验证的完成态事实」 | 事实只取 `complete` 的内容（`list_completed_content_bundles`） |
+| `/health` `backup.stale: true`（593 小时） | 上面三条的后果 |
+
+### 改了什么
+
+- **「必须有哪些副本」从八个脚本里的字面量改成配置**：`src/social_archive/replica_stores.py`，环境变量
+  `SOCIAL_ARCHIVE_REPLICA_STORES`（不设 = `r2,oci,github` 老行为；OCI 退役 = `r2,github`，已写进 `.env.example` 与生产
+  `/etc/social-archive/social-archive.env`）。写错直接报错，不静默兜底。
+  用到它的地方：`db.py`（complete 判据、`required_replicas`）、`recovery.py`、`restore_object.py`、
+  `replicate_objects.py`（`--store all`）、`github_release_backup.py`（GitHub 只接收前面副本都验过的密文）、
+  `backup.py`、`backup_runtime_db.py`、`prune_r2_backup_replicas.py`、`check_the_three_copies_are_really_there.py`。
+- **索引快照拆成独立单元** `social-archive-runtime-db-backup.{service,timer}`（每 15 分钟；库没变就跳过）：
+  R2 每轮一份；`--github-daily` 每个 UTC 日期第一次放一份到 **Private-Database 的 Draft Release**
+  （tag 前缀 `social-archive-runtime-db-`，与该仓现行做法一致，只新增 Release，不碰 main 分支文件）。
+  凭据只用本来就有的：R2 两把 key + `github_markdown_token`（LoadCredential）。`validate_systemd.py` 现在**拒绝**把
+  `backup_runtime_db.py` 再挂回别的单元，也拒绝任何单元加载 OCI 凭据。
+- `prune_r2_backup_replicas.py`：OCI 退役后「删 R2 前核对 OCI」不再有对象可核，改成：只清 `backups/runtime-db/`；
+  且 30 小时内必须有已验证的 GitHub 副本才删；`backups/private-database/`（事实冷备的**唯一**副本）一个都不删。
+- 测试：`tests/focused/test_oci_is_retired.py`（31 条，含行为测试）；几条编码旧链结构的测试按新结构改了同样的不变量
+  （快照单元独立、先产出再清理、GitHub 凭据来源一致）。
+
+### 没做 / 要知道
+
+- **容器镜像没有重建**（`deploy_to_production.sh` 是 1,600 行、含真 Chrome 演练的全套发布门，本次只同步了宿主机
+  `scripts/` 与 `src/` 的改动文件和 systemd 单元）。后果：镜像里 `/app` 的 `db.py` 还是旧的——只影响接口里
+  `storage.completion.required_replicas` 显示 3；下一次正常部署自然对齐。`check_production_matches_the_repo.py`
+  在那之前会报「镜像比仓旧」，这是预期的，不是漂移。
+- 未做版本号递增：没有改扩展包，也没有用户可见变化。
+- 旧的 OCI 凭据文件（`runtime/secrets/oci_*`）还在磁盘上，已无任何单元引用。
+- GitHub 上 `social-archive-runtime-db-*` 的 Draft Release 每天新增一个（每个约 10 MB），目前不自动清理；
+  `social-archive-backup-*`（制品包）同理。需要时另立保留策略。
+- 制品三份副本的历史证据文件（`evidence/G5/THREE_COPIES_TODAY.json` 等）是 OCI 时代的快照，未改；
+  重新跑 `check_the_three_copies_are_really_there.py`（设 `SOCIAL_ARCHIVE_REPLICA_STORES=r2,github`）才会产出两份口径的新证据。
+- 3 个平台账号（小红书、抖音、B 站）的连接仍是「需登录，已停」，与本次无关。
+
 **这一节是当前状态（2026-08-20）。下面每个数字都是当天从生产上量出来的，不是记忆。**
 
 ## 一、它现在是什么

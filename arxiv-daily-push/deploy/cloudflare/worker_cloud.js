@@ -216,31 +216,52 @@ function parseOaiArxiv(xml) {
 //   · 503 有退避重试，超时没有 —— 同样是「这次不行」，处理方式却完全不同
 // 另外 export.arxiv.org/oai2 现在 301 跳到 oaipmh.arxiv.org/oai，实测跳转约值 1 秒，
 // 且多一次子请求；直接打规范地址，不依赖一个可能再变的重定向。
+//
+// 2026-09-30 再补：上面那次只给了「每页 1 次重试 + 固定 2 秒」，09-18、09-29 两天仍然整天 arxiv=0
+// （09-29 的 degraded 是 arxiv:TimeoutError:truncated + arxiv:parsed0：第 1 页两次尝试都超时）。
+// 改成：每页最多 3 次尝试，退避 2s -> 4s（指数，封顶 8s）；超时 / 网络错 / 读 body 失败 / 429 / 5xx 才重试，
+// 其余 4xx 直接放弃（重试也不会好）。
+// 总量有硬上限：每页 3 次 × ARXIV_PAGES(2) 页 = 最多 6 个 arXiv 子请求（DIR-007 记账 arxiv 2 -> 最多 6，
+// 全流程 20 -> 最多 24，仍 < 50）；最坏一页 3×20s + 2s + 4s = 66s，全部用尽后照旧带着 truncatedReason 返回，
+// 由调用方记降级 —— 看门狗（scripts/adp_liveness_check.py）阈值一字未动：最新一次日跑 arXiv=0 仍然是红。
+// 重试只是让「偶发的一次超时」在当天自己好，不是把持续故障藏起来。
+// 下面 ARXIV-RETRY 标记之间的代码由 tools/verify_arxiv_retry.mjs 直接抽取并实跑（不是副本）。
 const ARXIV_OAI_BASE = 'https://oaipmh.arxiv.org/oai';
+//@ARXIV-RETRY-START
 const ARXIV_PAGE_TIMEOUT_MS = 20000;
-const ARXIV_PAGE_RETRIES = 1;          // 每页最多重试 1 次；有上限，不是无限等（合同 §2.4）
+const ARXIV_FETCH_ATTEMPTS = 3;        // 每页最多尝试次数（含第 1 次）；有上限，不是无限等（合同 §2.4）
+const ARXIV_BACKOFF_BASE_MS = 2000;
+const ARXIV_BACKOFF_MAX_MS = 8000;
+function arxivBackoffMs(retryIndex) { return Math.min(ARXIV_BACKOFF_BASE_MS * 2 ** retryIndex, ARXIV_BACKOFF_MAX_MS); }
+function arxivRetryableStatus(status) { return status === 429 || status >= 500; }
+// 抓一页并读出正文。返回 { text, reason, attempts }：text 非 null = 成功；否则 reason 写明最后一次为何放弃。
+// 依赖全部注入（deps.fetch / deps.sleep），所以可以不联网、不真等地测。
+async function fetchArxivPage(url, deps) {
+  let reason = null;
+  for (let attempt = 1; attempt <= ARXIV_FETCH_ATTEMPTS; attempt++) {
+    try {
+      const resp = await deps.fetch(url, { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(ARXIV_PAGE_TIMEOUT_MS) });
+      if (resp.ok) return { text: await resp.text(), reason: null, attempts: attempt };
+      reason = 'arxiv:http' + resp.status;
+      try { await resp.body?.cancel(); } catch (e) { }
+      if (!arxivRetryableStatus(resp.status)) return { text: null, reason, attempts: attempt };
+    } catch (e) {
+      reason = 'arxiv:' + (e && e.name || 'FetchError');    // 超时 / 网络错 / 读 body 中断
+    }
+    if (attempt < ARXIV_FETCH_ATTEMPTS) await deps.sleep(arxivBackoffMs(attempt - 1));
+  }
+  return { text: null, reason, attempts: ARXIV_FETCH_ATTEMPTS };
+}
+//@ARXIV-RETRY-END
 
-async function fetchArxivAll(fromDay) {
+async function fetchArxivAll(fromDay, deps = { fetch: (...a) => fetch(...a), sleep: (ms) => new Promise(r => setTimeout(r, ms)) }) {
   let url = `${ARXIV_OAI_BASE}?verb=ListRecords&metadataPrefix=arXiv&from=${fromDay}`;
   const items = [];
   let truncated = null;                // 非 null = 抓到一半被打断，调用方要据此记降级
   for (let page = 0; page < ARXIV_PAGES; page++) {
-    let resp = null;
-    for (let attempt = 0; attempt <= ARXIV_PAGE_RETRIES; attempt++) {
-      try {
-        resp = await fetch(url, { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(ARXIV_PAGE_TIMEOUT_MS) });
-        break;
-      } catch (e) {
-        // ★关键：超时/网络错不再往外抛★ —— 抛出去等于把已抓到的整批丢掉。
-        if (attempt === ARXIV_PAGE_RETRIES) { truncated = 'arxiv:' + (e && e.name || 'FetchError'); break; }
-        await new Promise(r => setTimeout(r, 2000));
-      }
-    }
-    if (!resp) break;                                            // 重试用尽，保留已抓到的
-    if (resp.status === 503) { await new Promise(r => setTimeout(r, 3000)); continue; }
-    if (!resp.ok) { truncated = 'arxiv:http' + resp.status; break; }
-    const xml = await resp.text();
-    const { items: got, token } = parseOaiArxiv(xml);
+    const { text, reason } = await fetchArxivPage(url, deps);
+    if (text === null) { truncated = reason; break; }            // 重试用尽：保留已抓到的，不往外抛
+    const { items: got, token } = parseOaiArxiv(text);
     items.push(...got);
     if (!token || items.length >= ARXIV_CAP) break;
     url = `${ARXIV_OAI_BASE}?verb=ListRecords&resumptionToken=${encodeURIComponent(token)}`;

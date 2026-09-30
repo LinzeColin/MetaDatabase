@@ -1,0 +1,12 @@
+project: EEI宇宙
+owner_words: "EEi是非常强调宇宙关联这种可视化的，沉浸式体验"
+base_url: https://eei.linzezhang.com/
+viewports: [desktop, mobile, dark]
+# 不写 freshness：页面上的「数据截至 9/30 22:15」没有年份，执行器的日期解析要求带年份（YYYY-MM-DD）。
+journeys:
+  - name: 打开宇宙
+    steps:
+      - goto: ""
+      - expect_text: ["商域宇宙", "全库实体"]
+      - expect_no_text: ["数据接口暂时连不上", "没有开启 3D 图形"]
+      - screenshot: 首屏

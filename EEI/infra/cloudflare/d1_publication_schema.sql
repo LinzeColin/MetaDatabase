@@ -16,6 +16,14 @@ CREATE TABLE IF NOT EXISTS entities (
   status TEXT NOT NULL
 );
 
+-- evidence_tier says HOW the edge earned its place on the graph
+-- (scripts/relationship_publication_gate.py):
+--   single_official  one official first-hand source (SEC EDGAR, GLEIF ...) with an
+--                    openable original document; the UI labels it 单一官方来源
+--   multi_source     >= 2 independent sources (the original non-official rule)
+-- WITHOUT ROWID on purpose: D1's free tier meters every index row it writes, and a
+-- rowid table + TEXT primary key costs one extra row per insert. Edges are ~20k,
+-- so this is what lets the whole graph fit inside one day's write allowance.
 CREATE TABLE IF NOT EXISTS relationships (
   id TEXT PRIMARY KEY,
   subject_entity_id TEXT NOT NULL REFERENCES entities(id),
@@ -26,8 +34,9 @@ CREATE TABLE IF NOT EXISTS relationships (
   confidence REAL,
   observed_at TEXT,
   published_at TEXT,
-  qualifiers_json TEXT
-);
+  qualifiers_json TEXT,
+  evidence_tier TEXT
+) WITHOUT ROWID;
 
 CREATE INDEX IF NOT EXISTS idx_relationships_subject
   ON relationships(subject_entity_id);
@@ -45,7 +54,7 @@ CREATE TABLE IF NOT EXISTS relationship_evidence (
   publisher TEXT,
   document_date TEXT,
   PRIMARY KEY (relationship_id, source_document_id, role)
-);
+) WITHOUT ROWID;
 
 -- Capital River / vertical timeline: first-hand published EVENTS (SEC filings
 -- etc., derivation_rule = authoritative_first_hand_ingestion). Same one-way

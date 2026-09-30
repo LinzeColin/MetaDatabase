@@ -1,0 +1,45 @@
+name: FIFA Daily Report
+
+# FIFA 足球研究日报（只研究、不下注）。运行与对外服务都在云服务器 VPS-3，不在 GitHub：
+#   页面：https://fifa.linzezhang.com/
+#   服务器上：systemd timer fifa-daily.timer（UTC 20:37 与 08:47）+ fifa-daily-pull.timer（拉本仓 main 的 FIFA/daily-research）
+#   代码与说明：FIFA/daily-research/README.md；服务器部署件：FIFA/deploy/vps/
+# 本工作流只在 PR 上跑离线测试（合成数据，不联网），不定时、不发布任何页面。
+# 已于 2026-09-30 从「GitHub Actions 定时 + GitHub Pages」迁走；gh-pages 上只剩一页指向新地址的跳转说明。
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "FIFA/daily-research/**"
+      - "FIFA/deploy/**"
+      - ".github/workflows/fifa-daily-report.yml"
+
+concurrency:
+  group: fifa-daily-report-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: FIFA/daily-research/requirements.txt
+      - name: 安装依赖
+        run: python -m pip install --quiet -r FIFA/daily-research/requirements.txt
+      - name: 离线单元测试与端到端（合成数据，不联网）
+        working-directory: FIFA/daily-research
+        run: python -m unittest discover -s tests -t . -v
+      - name: 服务器部署件语法检查（脚本、compose、nginx 配置）
+        run: |
+          set -euo pipefail
+          for f in FIFA/deploy/vps/*.sh; do bash -n "$f"; done
+          docker compose -f FIFA/deploy/vps/docker-compose.yml config -q
+          docker run --rm -v "$PWD/FIFA/deploy/vps/nginx.conf:/etc/nginx/nginx.conf:ro" nginx:1.28.3-alpine nginx -t

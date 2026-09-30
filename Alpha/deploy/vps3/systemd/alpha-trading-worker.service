@@ -1,0 +1,34 @@
+[Unit]
+Description=Alpha 交易 Worker(影子盘 SHADOW:Yahoo 行情 + 本机模拟成交;失败关闭)
+After=network-online.target
+
+[Service]
+User=alpha
+Group=alpha
+WorkingDirectory=/opt/alpha/app/Alpha
+EnvironmentFile=/opt/alpha/env
+Environment=PYTHONDONTWRITEBYTECODE=1
+StateDirectory=alpha
+StateDirectoryMode=0700
+Slice=alpha.slice
+Nice=10
+TasksMax=64
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ReadWritePaths=/var/lib/alpha
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+MemoryMax=512M
+# 看门狗:装配完成报 READY,每拍喂 WATCHDOG;5 分钟没喂=卡死=杀掉重启
+Type=notify
+NotifyAccess=main
+WatchdogSec=300
+TimeoutStartSec=300
+ExecStart=/opt/alpha/venv/bin/python -m backend.app.workers.main_trading
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

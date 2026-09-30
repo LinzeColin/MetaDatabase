@@ -215,12 +215,76 @@ def test_real_path_blocked_by_default_and_never_unlocks(tmp_path, monkeypatch):
     assert "GATE_01_ENV_FLAG" in blocked["payload"]["failures"]  # 封锁留审计
 
 
-def test_disabled_and_shadow_modes_cannot_trade(tmp_path):
-    for mode in (SystemMode.DISABLED, SystemMode.SHADOW, SystemMode.HALTED):
+def test_disabled_and_halted_cannot_trade(tmp_path):
+    for mode in (SystemMode.DISABLED, SystemMode.HALTED):
         gw, _, client, _ = make_env(tmp_path, mode=mode)
         with pytest.raises(GateBlockedError):
             submit(gw, key=f"mode-{mode.value}")
         assert client.place_calls == []
+
+
+class _Quotes:
+    """假行情:报价时间 = NOW 前 1 秒(常规时段内、新鲜)。"""
+
+    def get_quote(self, sym):
+        from backend.app.marketdata.yahoo_live import LiveQuote
+        return LiveQuote(symbol=sym, price=99.5, ts_utc=NOW - timedelta(seconds=1))
+
+
+def _sim_broker(factory):
+    from backend.app.adapters.brokers.sim_broker import SimBroker
+    from backend.app.backtest.fees import FeeModel
+
+    class RecordingSim(SimBroker):
+        def __init__(self, *a, **kw):
+            super().__init__(*a, **kw)
+            self.place_calls, self.unlock_calls = [], 0
+
+        def place_order(self, **kw):
+            self.place_calls.append(kw)
+            return super().place_order(**kw)
+
+        def unlock(self):
+            self.unlock_calls += 1
+
+    return RecordingSim(factory, quotes=_Quotes(), fee_model=FeeModel(commission_usd_per_order=0.99),
+                        start_capital_usd=1950.0, now_fn=lambda: NOW)
+
+
+def test_shadow_rejects_non_local_client(tmp_path):
+    """SHADOW 配真券商形态的客户端(无 TRD_ENV=LOCAL):构造即拒,绝不下到真券商。"""
+    with pytest.raises(RuntimeError, match="模拟券商"):
+        make_env(tmp_path, mode=SystemMode.SHADOW)
+
+
+def test_sim_broker_cannot_masquerade_as_paper(tmp_path):
+    """模拟券商配 PAPER/MICRO_LIVE:构造即拒(防止影子成交冒充券商模拟盘/实盘)。"""
+    engine = init_engine(f"sqlite:///{tmp_path / 'mq.sqlite'}")
+    factory = create_session_factory(engine)
+    lease = LeaseManager(factory, holder_id="w", now_fn=lambda: NOW)
+    for mode in (SystemMode.PAPER, SystemMode.MICRO_LIVE):
+        with pytest.raises(RuntimeError, match="模拟券商"):
+            ExecutionGateway(store=OrderStore(factory), client=_sim_broker(factory),
+                             lease=lease, mode=mode, now_fn=lambda: NOW)
+
+
+def test_shadow_submits_local_without_gates_or_unlock(tmp_path):
+    """SHADOW + 模拟券商:trd_env=LOCAL 下单,不走十一门禁、不 unlock。"""
+    engine = init_engine(f"sqlite:///{tmp_path / 'sh.sqlite'}")
+    factory = create_session_factory(engine)
+    store = OrderStore(factory)
+    lease = LeaseManager(factory, holder_id="w", now_fn=lambda: NOW)
+    lease.acquire()
+    sim = _sim_broker(factory)
+    gw = ExecutionGateway(store=store, client=sim, lease=lease, mode=SystemMode.SHADOW,
+                          now_fn=lambda: NOW,
+                          business_limiter=BusinessRateLimiter(store, now_fn=lambda: NOW),
+                          broker_limiter=BrokerRateLimiter(now_fn=_ticking(NOW)))
+    order_id = submit(gw, key="S1-shadow-1")
+    assert sim.place_calls[0]["trd_env"] == "LOCAL"
+    assert sim.unlock_calls == 0
+    assert store.get_state(order_id) is OrderState.SUBMITTED
+    assert all(e["event_type"] != "GATE_BLOCKED_REAL" for e in store.list_events(order_id))
 
 
 def test_eleven_gates_all_green_allows_real(tmp_path, monkeypatch):

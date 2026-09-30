@@ -1,0 +1,11 @@
+project: Alpha 影子盘
+owner_words: "Alpha 恢复运行：影子盘，不连券商、不动真钱（2026-09-30 方案 1.2）"
+base_url: https://alpha.linzezhang.com/
+journeys:
+  - name: 打开看影子盘状态
+    steps:
+      - goto: ""
+      - expect_text: ["影子盘"]
+      - expect_no_text: ["券商模拟账户", "你账户可用"]
+      - expect_any_text: ["下一次评估", "下次评估"]
+      - screenshot: 首屏

@@ -9,6 +9,7 @@ from typing import Any
 from social_archive.config import Settings
 from social_archive.db import RuntimeStore
 from social_archive.encryption import AgeEncryptor
+from social_archive.replica_stores import replica_stores
 from social_archive.storage import S3ReplicaStore, StoredObject
 from social_archive.utils import read_secret, utcnow
 
@@ -143,7 +144,9 @@ def main() -> int:
     runtime = RuntimeStore(settings.runtime_db)
     runtime.initialize()
     encryptor = AgeEncryptor(recipient=settings.age_recipient, root=settings.staging_root / "encrypted")
-    selected = ["r2", "oci"] if args.store == "all" else [args.store]
+    # `all` = 必须有的、GitHub 之前的副本目标：默认 r2+oci；OCI 退役后（SOCIAL_ARCHIVE_REPLICA_STORES=r2,github）只有 r2。
+    # 显式 `--store oci` 仍然照做——那是人明确要求的。
+    selected = [store for store in replica_stores() if store != "github"] if args.store == "all" else [args.store]
     measured = runtime.artifact_unique_bytes()
     limits = {"r2": settings.r2_hard_bytes, "oci": settings.oci_hard_bytes}
     report: dict[str, Any] = {"schema_version": "1.0", "generated_at": utcnow(), "dry_run": args.dry_run, "once": args.once, "encryption": "age-x25519", "stores": {}}
@@ -212,8 +215,11 @@ def _index_backup_status(settings) -> dict[str, Any]:
         except (OSError, json.JSONDecodeError):
             continue
         verified = int(data.get("verified_remote_copies") or 0)
+        # 「够不够」以那份 manifest 自己记的必需份数为准（OCI 退役后 15 分钟一轮的快照只需 R2 一份）；
+        # 老 manifest 没有这个字段，按当时的标准 2 份算。
+        required = int(data.get("required_verified_copies") or 2)
         return {
-            "status": "PASS" if verified >= 2 else "DEGRADED",
+            "status": "PASS" if verified >= required else "DEGRADED",
             "created_at": data.get("created_at"),
             "verified_remote_copies": verified,
             "stores": {name: receipt.get("status") for name, receipt in (data.get("receipts") or {}).items()},

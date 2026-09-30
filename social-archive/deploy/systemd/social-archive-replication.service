@@ -1,5 +1,5 @@
 [Unit]
-Description=Replicate Social Archive objects to R2 then OCI
+Description=Replicate Social Archive objects to R2 then GitHub Release
 After=social-archive.service network-online.target
 Wants=network-online.target
 
@@ -11,8 +11,6 @@ WorkingDirectory=/opt/social-archive
 EnvironmentFile=/etc/social-archive/social-archive.env
 LoadCredential=r2_access_key_id:/opt/social-archive/runtime/secrets/r2_access_key_id
 LoadCredential=r2_secret_access_key:/opt/social-archive/runtime/secrets/r2_secret_access_key
-LoadCredential=oci_access_key_id:/opt/social-archive/runtime/secrets/oci_access_key_id
-LoadCredential=oci_secret_access_key:/opt/social-archive/runtime/secrets/oci_secret_access_key
 # **必须用有私有仓权限的那个 token。** 实测（2026-08-04）：
 # runtime/secrets/github_token 只看得见公开仓——用它查 Private-Database
 # 直接报 not resolvable，于是第三份副本（GitHub Release）永远失败，
@@ -22,21 +20,12 @@ LoadCredential=oci_secret_access_key:/opt/social-archive/runtime/secrets/oci_sec
 LoadCredential=github_token:/opt/social-archive/runtime/secrets/github_markdown_token
 Environment=SOCIAL_ARCHIVE_R2_ACCESS_KEY_ID_FILE=%d/r2_access_key_id
 Environment=SOCIAL_ARCHIVE_R2_SECRET_ACCESS_KEY_FILE=%d/r2_secret_access_key
-Environment=SOCIAL_ARCHIVE_OCI_ACCESS_KEY_ID_FILE=%d/oci_access_key_id
-Environment=SOCIAL_ARCHIVE_OCI_SECRET_ACCESS_KEY_FILE=%d/oci_secret_access_key
 Environment=SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE=%d/github_token
 ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/replicate_objects.py --store all --limit 200
 ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/github_release_backup.py --upload
-# **索引要跟上制品的节奏。**
-#
-# 制品在这条单元里每 ~15 分钟复制一次，而运行库索引原来一天才备一次
-# （social-archive-backup.timer，03:20 UTC）。机器在这两者之间没了，
-# 就会留下一批**有制品、没索引行**的孤儿密文——救回来也不知道是什么。
-#
-# --skip-if-unchanged：库没变的那些轮次只做一次 VACUUM INTO + 一次哈希，
-# 不产生任何流量。变更检测的两半都实测过是确定性的
-# （VACUUM INTO 连做三次哈希一致；gzip 置 mtime=0 且 filename=""）。
-ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/backup_runtime_db.py --skip-if-unchanged
+# **索引快照已经拆成独立单元 social-archive-runtime-db-backup.service**（2026-09-30）：
+# 它原来是这里的第三条 ExecStart，前面的 replicate_objects.py 因 OCI 失败 exit 4 之后就永远轮不到，
+# 运行库快照因此 25 天没做。OCI 也已退役——这里只复制到 R2，再把 R2 已验证的密文放进 GitHub Release。
 NoNewPrivileges=yes
 PrivateTmp=yes
 ProtectSystem=strict

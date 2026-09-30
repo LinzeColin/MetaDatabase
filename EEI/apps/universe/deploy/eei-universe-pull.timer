@@ -1,0 +1,12 @@
+[Unit]
+Description=Poll EEI 商域宇宙 (MetaDatabase main) every 10 minutes (pull-based deploy)
+Documentation=https://github.com/LinzeColin/MetaDatabase/tree/main/EEI/apps/universe/deploy
+
+[Timer]
+OnBootSec=120s
+OnCalendar=*:0/10
+RandomizedDelaySec=30s
+AccuracySec=10s
+
+[Install]
+WantedBy=timers.target

@@ -6,6 +6,7 @@ from typing import Any
 
 from .career_intelligence import (
     DOMAIN_ROLES,
+    ROLE_LABELS,
     domain_for_role,
     extract_job_requirements,
     normalize_role,
@@ -13,7 +14,9 @@ from .career_intelligence import (
     qualification_checks,
     role_label,
 )
+from .regions import location_fit
 
+MIN_DESCRIPTION_CHARS = 80
 LEVEL_POINTS = {"high": 3, "medium": 2, "low": 1}
 QUAL_POINTS = {"pass": 4, "pending": 1, "fail": -20}
 
@@ -145,19 +148,30 @@ def score_job(profile: dict[str, Any], job: dict[str, Any], now: datetime | None
     if any(x and x in industry for x in avoid_industries):
         hard_fail.append("职位属于你明确不接受的行业")
 
-    target_locations = [x.casefold() for x in _as_list(profile.get("target_locations"))]
+    target_locations = _as_list(profile.get("target_locations"))
     work_mode = str(job.get("work_mode") or "").casefold()
     accepted_modes = {str(value).casefold() for value in _as_list(profile.get("work_mode"))}
     if accepted_modes and work_mode and work_mode not in accepted_modes:
         pending.append("工作模式不在你的已确认偏好内")
-    if target_locations and not any(x in location for x in target_locations):
-        if work_mode == "remote" and any("remote" in x or "远程" in x for x in target_locations):
-            reasons.append("远程模式符合地点偏好")
-        else:
-            pending.append("地点是否可接受需要确认")
+    # Location is a candidate preference, not a hard qualification: a job that
+    # sits outside every confirmed target region is out of scope (relevance is
+    # capped below and the pipeline does not recommend it), while a job whose
+    # place is unclear or in another city of the same country still needs the
+    # candidate to confirm.  Qualification rules themselves are unchanged.
+    fit = location_fit(target_locations, job)
+    if fit == "match":
+        reasons.append("岗位地点符合你的目标地区")
+    elif fit == "remote_ok":
+        reasons.append("远程岗位面向你所在的地区")
+    elif fit in {"other_city", "unknown", "mismatch"}:
+        pending.append("地点是否可接受需要确认" if fit != "mismatch" else "岗位地点不在你确认的目标地区")
 
     raw_checks, requirements = qualification_checks(profile, job)
     checks = [item.to_dict() for item in raw_checks]
+    if len(description.strip()) < MIN_DESCRIPTION_CHARS:
+        # Hard requirements live in the posting body; without it "no requirement
+        # found" would be a false pass.
+        pending.append("岗位正文缺失或过短，无法核对硬性要求")
     qualification = _qualification_from_checks(checks, hard_fail, pending)
 
     candidate_roles = normalize_roles(
@@ -168,11 +182,9 @@ def score_job(profile: dict[str, Any], job: dict[str, Any], now: datetime | None
     # Preserve a confirmed narrow role outside the compact finance/legal taxonomy.
     # It is an exact literal signal only; transferable skills cannot promote an
     # unrelated role (for example, engineering) to high relevance.
-    job_role_text = f"{title} {description}"
     confirmed_custom_role = any(
-        normalize_role(role) == role
-        and role != "Other"
-        and _has_alias(job_role_text.casefold(), role.casefold())
+        normalize_role(role) not in ROLE_LABELS
+        and _has_alias(title.casefold(), role.casefold())
         for role in _as_list(profile.get("primary_role_families"))
     )
     if confirmed_custom_role:
@@ -204,6 +216,8 @@ def score_job(profile: dict[str, Any], job: dict[str, Any], now: datetime | None
         rel_score += 5
     rel_score = max(0, min(100, rel_score))
     relevance = "high" if rel_score >= 55 else ("medium" if rel_score >= 25 else "low")
+    if fit == "mismatch":
+        relevance = "low"
 
     posted_at = job.get("posted_at")
     if isinstance(posted_at, str):
@@ -272,4 +286,5 @@ def score_job(profile: dict[str, Any], job: dict[str, Any], now: datetime | None
         "domain": requirements.get("domain", "general"),
         "role_family": job_role,
         "age_days": age_days,
+        "location_fit": fit,
     }

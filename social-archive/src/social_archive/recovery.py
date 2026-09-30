@@ -15,6 +15,7 @@ from typing import Any
 
 from .db import RuntimeStore
 from .private_facts import PRIVATE_DATABASE_FACT_SCHEMA, fact_sha256
+from .replica_stores import replica_stores
 from .utils import sha256_bytes
 
 
@@ -87,9 +88,13 @@ def _validate_complete_fact(fact: Any) -> dict[str, Any]:
         per_artifact[artifact_id][store_id] = receipt
 
     for artifact_id, receipt_map in per_artifact.items():
-        _require(set(receipt_map) == {"r2", "oci", "github"}, f"恢复对象 {artifact_id} 缺少三副本收据")
+        # 必须有的副本可配置（OCI 退役后是 r2+github）。**多出来的收据不拒**：
+        # OCI 退役之前做的恢复包里，每个对象还带着一份 oci 收据，那是历史事实，不是错误。
+        required = set(replica_stores())
+        _require(required <= set(receipt_map),
+                 f"恢复对象 {artifact_id} 缺少{'三' if len(required) == 3 else '两'}副本收据（需要 {sorted(required)}）")
         cipher_hashes = {str(item.get("verified_sha256")) for item in receipt_map.values()}
-        _require(len(cipher_hashes) == 1, f"恢复对象 {artifact_id} 三副本密文不一致")
+        _require(len(cipher_hashes) == 1, f"恢复对象 {artifact_id} 各副本密文不一致")
     return fact
 
 

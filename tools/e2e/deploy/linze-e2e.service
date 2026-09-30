@@ -1,0 +1,22 @@
+[Unit]
+Description=Delivery pipeline gate 8: public end-to-end synthetic check (Playwright in docker)
+Documentation=https://github.com/LinzeColin/MetaDatabase/tree/main/tools/e2e
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/linze-e2e run
+# 总时限 20 分钟；systemd 这一侧限制的是 git/docker 客户端，容器本身的 1G 内存 / 1 核由 docker run 限制
+TimeoutStartSec=20min
+MemoryMax=1G
+CPUQuota=100%
+Nice=10
+IOSchedulingClass=idle
+StateDirectory=linze-e2e
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+# 退出码 1 = 有项目不通过，是「检查有结论」而不是 unit 故障；只有 2（执行器自身出错）才让 unit 变红
+SuccessExitStatus=1

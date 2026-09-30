@@ -1,0 +1,11 @@
+[Unit]
+Description=Alpha 盘前自检定时器(交易日开盘前)
+
+[Timer]
+# 美股 09:30 ET 开盘;13:15 UTC 约为开盘前 75 分钟(夏令时冗余)
+OnCalendar=Mon..Fri 13:15:00 UTC
+RandomizedDelaySec=60
+Persistent=true
+
+[Install]
+WantedBy=timers.target

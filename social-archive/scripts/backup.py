@@ -12,12 +12,13 @@ from pathlib import Path
 from typing import Any
 
 from social_archive.config import Settings
-from social_archive.db import RuntimeStore
+from social_archive.db import CompletedScanProgress, RuntimeStore
 from social_archive.encryption import AgeEncryptor, EncryptedObject
 from social_archive.private_facts import delivered_completed_content_facts, fact_bytes, fact_sha256
 from social_archive.storage import StoredObject, create_s3_client
 from social_archive.utils import atomic_write, json_bytes, read_secret, sha256_bytes, sha256_file, utcnow
 from social_archive.recovery import resolve_secret_path
+from social_archive.replica_stores import oci_enabled
 
 
 def _s3_config(store_id: str) -> dict[str, str] | None:
@@ -211,27 +212,33 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--once", action="store_true", help="oneshot compatibility flag")
     parser.add_argument("--output")
-    parser.add_argument("--limit", type=int, default=100)
+    parser.add_argument("--limit", type=int, default=None, help="optional hard cap on backed-up facts; default is ALL delivered completed facts")
     args = parser.parse_args()
 
     settings = Settings.from_env()
     if not settings.age_recipient:
         return _blocked("缺少 SOCIAL_ARCHIVE_AGE_RECIPIENT；禁止明文备份", code="AGE_RECIPIENT_MISSING")
     r2_config = _s3_config("r2")
-    oci_config = _s3_config("oci")
-    if not r2_config or not oci_config:
-        return _blocked("R2 与 OCI 都必须已配置；禁止只写单份 Private-Database 冷备", code="COLD_BACKUP_STORE_UNCONFIGURED")
+    # OCI 退役（SOCIAL_ARCHIVE_REPLICA_STORES=r2,github）之后没有 OCI 这一腿：冷备只写 R2。
+    # 默认（老配置）仍然是 R2+OCI 都必须配置，禁止悄悄退成单份。
+    oci_config = _s3_config("oci") if oci_enabled() else None
+    if not r2_config or (oci_enabled() and not oci_config):
+        message = ("R2 与 OCI 都必须已配置；禁止只写单份 Private-Database 冷备" if oci_enabled()
+                   else "R2 必须已配置（OCI 已退役）")
+        return _blocked(message, code="COLD_BACKUP_STORE_UNCONFIGURED")
+    cold_stores = [("r2", r2_config)] + ([("oci", oci_config)] if oci_config else [])
     if not args.dry_run and not shutil.which("age"):
         return _blocked("缺少 age 命令，不能生成远端密文", code="AGE_BINARY_MISSING")
 
-    limit = min(max(args.limit, 1), 1000)
+    limit = None if args.limit is None else max(args.limit, 1)
     if args.dry_run and not settings.runtime_db.is_file():
         return _blocked("Runtime Journal 尚未初始化；dry-run 不创建本地状态", code="RUNTIME_JOURNAL_UNAVAILABLE")
 
     settings.ensure_directories()
     store = RuntimeStore(settings.runtime_db)
     store.initialize()
-    facts = delivered_completed_content_facts(store, limit=limit)
+    scan = CompletedScanProgress()
+    facts = delivered_completed_content_facts(store, limit=limit, progress=scan)
     if not facts:
         return _blocked("没有已由 Private-Database API 验证的当前完成态事实，拒绝生成空或未同步冷备", code="PRIVATE_DATABASE_SYNC_PREREQUISITE")
     if args.dry_run:
@@ -241,8 +248,10 @@ def main() -> int:
             "status": "READY",
             "dry_run": True,
             "fact_count": len(facts),
+            "completed_total": scan.completed_total,
+            "scan_truncated_count": scan.truncated_count if scan.truncated else 0,
             "source": "Private-Database API-synchronized canonical facts",
-            "stores": ["r2", "oci"],
+            "stores": [store_id for store_id, _ in cold_stores],
             "local_checkout": False,
         }, ensure_ascii=False))
         return 0
@@ -268,7 +277,9 @@ def main() -> int:
         }, ensure_ascii=False))
         return 4
 
-    if encrypted.cipher_byte_size >= settings.r2_hard_bytes or encrypted.cipher_byte_size >= settings.oci_hard_bytes:
+    if encrypted.cipher_byte_size >= settings.r2_hard_bytes or (
+        oci_config is not None and encrypted.cipher_byte_size >= settings.oci_hard_bytes
+    ):
         print(json.dumps({
             "schema_version": "1.0",
             "generated_at": utcnow(),
@@ -279,6 +290,9 @@ def main() -> int:
         }, ensure_ascii=False))
         return 4
 
+    # **OCI 退役（2026-09-30）之后这里只剩 R2 一处。** 下面这段是 OCI 还在时写的，
+    # 「故障域」的算法没变：GitHub 上的源 + R2 = 两个相互独立的故障域；不要因为少了 OCI 就往同一个仓里补。
+    #
     # **这里只传 r2 与 oci 两处，没有 GitHub——那是对的，别去「补」第三份。**
     #
     # 2026-08-05 补上这条链的取回演练时数了一遍：索引（runtime-db）有三份
@@ -300,7 +314,7 @@ def main() -> int:
     # most needed.  Attempt each independently; the overall verdict below still
     # requires both to verify.
     receipts: dict[str, Any] = {}
-    for store_id, store_config in (("r2", r2_config), ("oci", oci_config)):
+    for store_id, store_config in cold_stores:
         try:
             receipts[store_id] = _upload_and_verify(
                 store_config, encrypted.path, key, encrypted, backup_root / "readback" / f"{store_id}.age"
@@ -338,7 +352,7 @@ def main() -> int:
         "receipts": receipts,
     }
     descriptor_receipts: dict[str, Any] = {}
-    for store_id, config in (("r2", r2_config), ("oci", oci_config)):
+    for store_id, config in cold_stores:
         if receipts.get(store_id, {}).get("status") != "verified":
             descriptor_receipts[store_id] = {"status": "blocked_prerequisite", "error_code": "COLD_BACKUP_CIPHER_NOT_VERIFIED"}
             continue
@@ -353,15 +367,20 @@ def main() -> int:
     }
     manifest_path = backup_root / "manifest.json"
     atomic_write(manifest_path, (json.dumps(manifest, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode("utf-8"), mode=0o600)
-    verified = all(receipts.get(store_id, {}).get("status") == "verified" for store_id in ("r2", "oci")) and all(
-        descriptor_receipts.get(store_id, {}).get("status") == "verified" for store_id in ("r2", "oci")
+    verified = all(receipts.get(store_id, {}).get("status") == "verified" for store_id, _ in cold_stores) and all(
+        descriptor_receipts.get(store_id, {}).get("status") == "verified" for store_id, _ in cold_stores
     )
+    scan_truncated_count = scan.truncated_count if scan.truncated else 0
+    # A backup that silently skipped part of the archive is worse than a loud failure.
+    verified = verified and scan_truncated_count == 0
     status = "PASS" if verified else "DEGRADED"
     print(json.dumps({
         "status": status,
         "manifest": str(manifest_path),
         "fact_count": len(facts),
-        "verified_remote_copies": 2 if verified else sum(receipt.get("status") == "verified" for receipt in receipts.values()),
+        "completed_total": scan.completed_total,
+        "scan_truncated_count": scan_truncated_count,
+        "verified_remote_copies": len(cold_stores) if verified else sum(receipt.get("status") == "verified" for receipt in receipts.values()),
         "verified_recovery_descriptors": sum(
             receipt.get("status") == "verified" for receipt in descriptor_receipts.values()
         ),

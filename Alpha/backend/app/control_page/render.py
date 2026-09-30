@@ -34,6 +34,9 @@ a{color:#9a6b16;text-decoration:none}
 .banner.ok{background:#eefaf1;border-color:#bfe4cd;color:#0f7a37}
 .banner.halted{background:#fff5e5;border-color:#f3d9a3;color:#8a5a06}
 .banner.warn{background:#fdecec;border-color:#f3c0c0;color:#b1283a}
+.shadowbar{padding:14px 17px;border-radius:12px;margin-bottom:14px;background:#eef4ff;
+  border:1px solid #c7d8f8;color:#1d3f7a;font-size:14px;line-height:1.7}
+.shadowbar b{font-size:16px}
 .grid{display:grid;gap:14px;grid-template-columns:1fr}
 @media(min-width:860px){.grid{grid-template-columns:1fr 1fr}.span2{grid-column:1/-1}}
 .card{background:#fff;border:1px solid #e4e7ec;border-radius:14px;padding:16px 18px;
@@ -375,6 +378,7 @@ _STRAT_COL_CLS = {
 
 def render_strategy_html(d: dict) -> str:
     ch = d["champion"]
+    mode_word = d.get("mode_word", "实盘")
     limits = "".join(f"<li>{_esc(x)}</li>" for x in d["hard_limits"])
     gates = "".join(
         f"<div class=light><i class='dot g'></i><div><b>{_esc(g['name'])}</b>"
@@ -389,7 +393,7 @@ def render_strategy_html(d: dict) -> str:
         tds = ""
         for c in cols:
             cls = _STRAT_COL_CLS.get(c, "")
-            val = _esc(r.get(c, ""))
+            val = _esc(r.get(c, "")).replace("现役实盘", f"现役{_esc(mode_word)}")
             if c == "策略" and live:
                 val = f"{val}<span class=livemark>● 现役</span>"
             tds += f"<td class={cls}>{val}</td>"
@@ -403,7 +407,7 @@ def render_strategy_html(d: dict) -> str:
 
     body = f"""
 <div class="card span2 live-hero">
-  <span class=tag>● 当前实盘策略</span>
+  <span class=tag>● 当前{_esc(mode_word)}策略</span>
   <div class=live-name>{_esc(ch['name_cn'])}</div>
   <div class=kv>
     <b>怎么赚钱</b><span>{_esc(ch['logic_cn'])}</span>
@@ -450,6 +454,20 @@ def _progress_bar(p: dict) -> str:
 
 def render_dashboard_html(d: dict) -> str:
     hero, mkt, nd, health = d["hero"], d["market"], d["next_decision"], d["health"]
+    shadow = d.get("mode_code") == "SHADOW"
+    last_eval = d.get("last_eval") or {"text": "尚未完成过评估"}
+    # 影子盘通栏:醒目说明「没动真钱」,并给出下一次/最近一次评估(owner 一眼看懂在不在干活)
+    shadow_bar = (
+        f"<div class=shadowbar><b>{_esc(d['mode_cn'])}</b><br>"
+        f"下一次评估:{_esc(nd['at_syd'])}(悉尼,周{_esc(nd['weekday_syd'])})<br>"
+        f"最近一次评估:{_esc(last_eval['text'])}</div>" if shadow else "")
+    # 你账户可用 / 读不到购买力:只在券商模式有意义;影子盘不连券商,一律不显示
+    acct = hero.get("account_cash_usd")
+    account_kpi = "" if shadow else (
+        '<span title="你账户里实际可动用的现金,只用于判断资金是否到位,不参与策略净值与盈亏">'
+        f'你账户可用 <b>{f"{acct:,.2f} 美元" if acct is not None else "读取中"}</b></span>')
+    funds_unknown = ("" if (shadow or hero.get("funded_known")) else
+                     '<div class=verdict>⚠️ 暂时读不到券商真实购买力,以下金额按授权额度显示(如实标注,非账户实有)。</div>')
 
     pos_rows = "".join(
         f"<tr><td><span class=sym>{_esc(p['symbol'])}</span> "
@@ -514,6 +532,7 @@ def render_dashboard_html(d: dict) -> str:
 </div>
 {_nav('/')}
 <div class="banner {_esc(d['banner']['kind'])}">{_esc(d['banner']['text'])}</div>
+{shadow_bar}
 <div class=grid>
 <div class="card span2 {'gainbg' if total > 0 else ('lossbg' if total < 0 else '')}">
   <h2>管理资金净值(澳元口径,本金 {hero['baseline_aud']:,.0f})</h2>
@@ -526,12 +545,12 @@ def render_dashboard_html(d: dict) -> str:
   <div class=kpis>
     <span title="策略自己的现金 = 期初本金 + 策略成交现金流(含手续费),与你账户余额无关">策略现金 <b>{hero['cash_usd']:,.2f} 美元</b></span>
     <span>策略持仓 <b>{hero['invested_usd']:,.2f} 美元</b></span>
-    <span title="你账户里实际可动用的现金,只用于判断资金是否到位,不参与策略净值与盈亏">你账户可用 <b>{f"{hero['account_cash_usd']:,.2f} 美元" if hero.get('account_cash_usd') is not None else "读取中"}</b></span>
+    {account_kpi}
     <span>敞口占上限 <b>{hero['exposure_pct']}%</b></span>
   </div>
   <div class=fxline>💱 {_esc(d['meta']['note_fx'])}</div>
   {f'<div class=verdict>💰 资金未全额到位:授权上限 {hero["authorized_usd"]:,.2f} 美元,账户实际可动用 {hero["funded_usd"]:,.2f} 美元,缺口 {hero["funding_gap_usd"]:,.2f} 美元。系统按<b>实际到位资金</b>下单与计算盈亏,绝不按授权额度虚报。</div>' if hero.get('funded_known') and hero['funding_gap_usd'] > 0.01 else ''}
-  {'' if hero.get('funded_known') else '<div class=verdict>⚠️ 暂时读不到券商真实购买力,以下金额按授权额度显示(如实标注,非账户实有)。</div>'}
+  {funds_unknown}
   {'' if hero.get('traded_yet') else '<div class=verdict>ℹ️ 策略<b>尚未进行任何交易</b>,因此净值恰为期初本金、盈亏为 0。你自己账户的买卖与出入金<b>不会</b>计入这里——两本账完全分开。</div>'}
   {_progress_bar(d['progress'])}
 </div>
@@ -546,7 +565,7 @@ def render_dashboard_html(d: dict) -> str:
   <div class=muted style="margin-top:6px">{_esc(mkt['next'])}</div>
 </div>
 <div class=card>
-  <h2>{'实盘运行阶段' if d.get('live_stage') else '三日模拟盘考核'}</h2>
+  <h2>{_esc(d['live_stage'].get('card_title', '实盘运行阶段')) if d.get('live_stage') else '三日模拟盘考核'}</h2>
   {exam_block}
 </div>
 <div class=card>
@@ -564,7 +583,7 @@ def render_dashboard_html(d: dict) -> str:
 </div>
 </div>
 <footer class=muted>
-{'· 这是<b>微实盘</b>:真实资金、真实订单,每一笔买卖都会原生出现在你的 moomoo 应用里;总敞口上限 3000 澳元,单笔不超 60%,失败关闭。<br>' if '微实盘' in d['mode_cn'] else '· 这是<b>模拟盘</b>:用券商模拟账户和真实行情演练,不动真钱;moomoo 手机应用里看不到这个模拟账户,本页就是唯一窗口。<br>'}
+· 这是<b>{_esc(d['mode_cn'])}</b>:{_esc(d.get('mode_explain', ''))}<br>
 · 本页永远只读,没有任何下单能力;紧急停机用你手里的控制令牌。<br>
 · 页面约每 30 秒自动更新;数据更新于 {_esc(d['meta']['updated_at_syd'])}(悉尼)。机器可读版:<a href="/api/overview">/api/overview</a>
 </footer>

@@ -28,7 +28,7 @@ REQUIRED = (
     "WRP_PRIVATE_DATABASE_GH_TOKEN",
     "WRP_TASKPACK_VERSION", "WRP_RELEASE_COMMIT", "WRP_OVH_RELEASE_ID", "WRP_EDGE_DEPLOYMENT_ID",
     "WRP_PRIMARY_OBJECT_PREFIX", "WRP_PRIVATE_DATABASE_BACKUP_PREFIX",
-    "WRP_PRIVATE_DATABASE_R2_BACKUP_TARGET", "WRP_R2_RCLONE_SOURCE", "WRP_OCI_RCLONE_TARGET",
+    "WRP_PRIVATE_DATABASE_R2_BACKUP_TARGET",
 )
 PLACEHOLDER = re.compile(r"(?:example\.invalid|replace|changeme|your[-_ ]|account_id|^secret$|base64-32|same-as)", re.I)
 
@@ -124,8 +124,6 @@ def check_environment(values: dict[str, str], *, env_file: Path | None = None, r
     backup_target = values.get("WRP_PRIVATE_DATABASE_R2_BACKUP_TARGET", "")
     if "backups/private-database" not in backup_target or not re.fullmatch(r"[^\s:]+:.+", backup_target):
         block("PRIVATE_DATABASE_R2_TARGET", "WRP_PRIVATE_DATABASE_R2_BACKUP_TARGET", "必须是指向 backups/private-database 的 rclone 远端路径。")
-    if not values.get("WRP_R2_RCLONE_SOURCE") or not values.get("WRP_OCI_RCLONE_TARGET"):
-        block("OCI_BACKUP", "WRP_R2_RCLONE_SOURCE/WRP_OCI_RCLONE_TARGET", "R2 到 OCI 异地冷备必须配置。")
     _check_b64(values.get("WRP_SESSION_PEPPER", ""), "WRP_SESSION_PEPPER", block)
     _check_b64(values.get("WRP_CREDENTIAL_PEPPER", ""), "WRP_CREDENTIAL_PEPPER", block)
     try:

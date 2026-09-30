@@ -1,0 +1,6 @@
+[Unit]
+Description=Record failure of %i in the journal (OnFailure handler)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/logger -t fifa-daily -p user.err "unit %i failed; online page/code stays on the previous good version; see: journalctl -u %i -n 80"

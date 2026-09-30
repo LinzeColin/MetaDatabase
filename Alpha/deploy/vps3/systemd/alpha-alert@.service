@@ -1,0 +1,27 @@
+# 定时任务失败自告警(失败钩子;%i = 失败的单元名)
+# Type=oneshot;无任何激活权限,只入队一封人话告警邮件;永不下单。
+[Unit]
+Description=Alpha 单元失败自告警(%i;永不下单)
+
+[Service]
+Type=oneshot
+User=alpha
+Group=alpha
+WorkingDirectory=/opt/alpha/app/Alpha
+EnvironmentFile=/opt/alpha/env
+Environment=PYTHONDONTWRITEBYTECODE=1
+StateDirectory=alpha
+StateDirectoryMode=0700
+Slice=alpha.slice
+Nice=10
+TasksMax=64
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ReadWritePaths=/var/lib/alpha
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+MemoryMax=256M
+TimeoutStartSec=120
+ExecStart=/opt/alpha/venv/bin/python scripts/notify_unit_failure.py %i

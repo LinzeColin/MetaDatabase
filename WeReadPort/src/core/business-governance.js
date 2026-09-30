@@ -12,7 +12,7 @@ const DEFINITIONS = Object.freeze([
   line("legacy-migration","匿名迁移兼容入口","Stage 2 / v1.9","浏览器兼容面","中",["public-trust"],[],"保留 /migrate 匿名导出，不替代账户平台","旧导出回归测试 + 浏览器白箱"),
   line("release-supply-chain","发布与供应链","Stage 2 / v1.9","交付控制面","高",["public-trust","identity-access"],[],"冻结测试、不可变 Action、同一 Sites 项目与精确提交","CI、构建、commit、部署版本与生产 Smoke"),
   line("operations-recovery","运维、自愈与恢复","Stage 2 / v1.9","OVH 运维面","关键",["release-supply-chain","account-storage"],[],"systemd、SQLite Runtime Journal/Outbox、诊断、备份、恢复与回滚","即时故障注入 + status.linzezhang.com"),
-  line("facts-backup","结构化事实与异地冷备","Stage 2 / v1.9","数据治理面","高",["operations-recovery"],[],"完成态结构化事实幂等进入 Private-Database；R2 对象冷备至 OCI","无空提交、对象哈希、恢复演练与脱敏证明"),
+  line("facts-backup","结构化事实与冷备","Stage 2 / v1.9","数据治理面","高",["operations-recovery"],[],"完成态结构化事实幂等进入 Private-Database；Private-Database 快照冷备至 R2","无空提交、对象哈希、恢复演练与脱敏证明"),
 ]);
 function line(id,name,phase,plane,criticality,dependsOnAll,dependsOnAny,relation,oracle){return Object.freeze({id,name,phase,plane,owner:plane,criticality,dependsOnAll:Object.freeze(dependsOnAll),dependsOnAny:Object.freeze(dependsOnAny),relation,oracle});}
 export function businessLineDefinitions(){return DEFINITIONS.map(item=>({...item,dependsOnAll:[...item.dependsOnAll],dependsOnAny:[...item.dependsOnAny]}));}
@@ -24,7 +24,7 @@ export function buildBusinessLineStatus({assetsReady,accountServiceReady=false,c
     if(item.id==="weread-wide-sync") return state(item,accountServiceReady?"NOT_VERIFIED":"BLOCKED",at,accountServiceReady?"OWNER_KEY_E2E_NOT_RUN":"ACCOUNT_SERVICE_UNAVAILABLE",accountServiceReady?"由 Owner 使用轮换后的本人密钥执行一次真实同步。":"先恢复账户服务。");
     if(item.id==="release-supply-chain") return state(item,"NOT_VERIFIED",at,"CI_AND_DEPLOY_EVIDENCE_REQUIRED","读取同一 commit 的 CI、Sites 部署和生产 Smoke 证据。");
     if(item.id==="operations-recovery") return state(item,"EXTERNAL",at,"OBSERVED_BY_EXTERNAL_OPERATIONS_PLANE","前往 status.linzezhang.com 查看 systemd、SQLite 与恢复状态。");
-    return state(item,"NOT_VERIFIED",at,"PRIVATE_FACTS_AND_BACKUP_EVIDENCE_REQUIRED","核验 Private-Database、R2 与 OCI 的脱敏事实和对象恢复证据。");
+    return state(item,"NOT_VERIFIED",at,"PRIVATE_FACTS_AND_BACKUP_EVIDENCE_REQUIRED","核验 Private-Database 与 R2 的脱敏事实和对象恢复证据。");
   });
 }
 function state(item,value,checkedAt,reasonCode,recoveryAction){return{...item,state:value,stateLabel:stateLabel(value),checkedAt,evidenceLevel:value==="READY"?"RUNTIME":"EXTERNAL_OR_OWNER",reasonCode,recoveryAction};}

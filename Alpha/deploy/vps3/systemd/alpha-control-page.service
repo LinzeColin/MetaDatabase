@@ -1,0 +1,29 @@
+[Unit]
+Description=Alpha 控制页(看盘/停机/恢复;永不下单)
+After=network-online.target
+
+[Service]
+User=alpha
+Group=alpha
+WorkingDirectory=/opt/alpha/app/Alpha
+EnvironmentFile=/opt/alpha/env
+Environment=PYTHONDONTWRITEBYTECODE=1
+StateDirectory=alpha
+StateDirectoryMode=0700
+Slice=alpha.slice
+Nice=10
+TasksMax=64
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ReadWritePaths=/var/lib/alpha
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+MemoryMax=256M
+ExecStart=/opt/alpha/venv/bin/python -m backend.app.control_page.main
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

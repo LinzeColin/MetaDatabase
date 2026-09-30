@@ -120,7 +120,7 @@ function renderProduct() {
                   <div class="key-field"><input id="api-key" name="api-key" type="password" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="wrk-…" required /><button id="key-visibility" class="key-addon" type="button" aria-label="显示微信读书密钥" aria-pressed="false">显示</button><button id="key-clear" class="key-addon" type="button">清空</button></div>
                   <button class="button secondary full" type="submit">连接并预览</button>
                 </form>
-                <p id="connect-capability-note" class="microcopy">密钥不进入网址、浏览器长期存储、OVH、私有事实库、R2、OCI、日志或分析系统。</p>
+                <p id="connect-capability-note" class="microcopy">密钥不进入网址、浏览器长期存储、OVH、私有事实库、R2、日志或分析系统。</p>
                 <p class="microcopy"><a href="${OFFICIAL_WEREAD_SKILL_URL}" target="_blank" rel="noopener noreferrer">查看腾讯官方接口与密钥使用说明</a></p>
               </article>
             </div>

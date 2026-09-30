@@ -472,7 +472,7 @@ def expand_candidate_universe(
     settings.ensure_dirs()
     base_path = base_candidates_path or settings.manual_dir / "candidates.csv"
     generated_at = _now(settings)
-    out_dir = output_dir or settings.root_dir / "outputs" / "preflight"
+    out_dir = output_dir or settings.output_root() / "preflight"
     expanded_path = out_dir / "candidate_universe_expanded_latest.csv"
     json_path = out_dir / "candidate_universe_expansion_latest.json"
     md_path = out_dir / "candidate_universe_expansion_latest.md"

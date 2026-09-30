@@ -39,16 +39,15 @@ def test_critical_events_cover_key_alerts():
         assert e in CRITICAL_EVENTS
 
 
-def test_backup_skips_non_postgres(monkeypatch, tmp_path):
-    """非 PostgreSQL 环境:备份如实跳过并落盘失败状态,绝不假装成功。"""
-    monkeypatch.setenv("ALPHA_DATABASE_URL", f"sqlite:///{tmp_path/'x.sqlite'}")
-    monkeypatch.chdir(tmp_path)
-    import importlib
+def test_backup_skips_unsupported_database(monkeypatch, tmp_path):
+    """既不是 SQLite 也不是 PostgreSQL(或没配置):备份如实跳过并落盘失败状态,绝不假装成功。"""
+    monkeypatch.setenv("ALPHA_DATABASE_URL", "mysql://nobody@127.0.0.1/x")
+    monkeypatch.setenv("ALPHA_RUNTIME_DIR", str(tmp_path / "rt"))
+    monkeypatch.setenv("ALPHA_BACKUP_DIR", str(tmp_path / "bk"))
     import scripts.backup_ledger as bl
-    importlib.reload(bl)
     rc = bl.main()
     assert rc == 1
-    st = json.loads((tmp_path / "machine/facts/backup_status.json").read_text())
+    st = json.loads((tmp_path / "rt/facts/backup_status.json").read_text())
     assert st["ok"] is False and "PostgreSQL" in st["detail"]
 
 
@@ -56,8 +55,8 @@ def test_readiness_rows_render(tmp_path, monkeypatch):
     """运维就绪:读自检/备份事实文件 → 渲染出对应灯。"""
     from datetime import datetime, timezone
 
-    monkeypatch.chdir(tmp_path)
-    facts = tmp_path / "machine/facts"
+    monkeypatch.setenv("ALPHA_RUNTIME_DIR", str(tmp_path / "rt"))
+    facts = tmp_path / "rt" / "facts"           # 事实文件在运行目录(truth.facts_dir),代码目录可只读
     facts.mkdir(parents=True)
     (facts / "preflight_status.json").write_text(json.dumps({
         "at": datetime.now(timezone.utc).isoformat(), "all_ok": True,

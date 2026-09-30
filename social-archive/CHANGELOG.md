@@ -6,6 +6,18 @@
 > **这里不补写**：隔了两版再靠回忆重建变更记录，写出来的东西看着像记录，
 > 其实是推测，比空着更容易被人当真。
 
+## 未发版（2026-09-30）— OCI 退役：备份链重新接通
+
+OCI 账号过期（Owner：以后没有 OCI）。`replicate_objects.py` 从 2026-09-05 起每轮失败，排在它后面的
+运行库快照 25 天没做，4,704 个新制品卡在 `staged`。
+
+- 新增 `replica_stores.py` 与 `SOCIAL_ARCHIVE_REPLICA_STORES`：必须有的远端副本可配置（默认 r2,oci,github；退役 r2,github）。
+- 索引快照拆成独立单元 `social-archive-runtime-db-backup`（R2 每 15 分钟 + GitHub Draft Release 每个 UTC 日期一份）。
+- `backup.py`、`backup_runtime_db.py`、`replicate_objects.py`、`github_release_backup.py`、`prune_r2_backup_replicas.py`、
+  `recovery.py`、`restore_object.py`、`db.py`：OCI 变为可选。
+- 详见 `HANDOFF.md` 第零节。
+- **事实同步不再只看最旧的 100 条**：`sync_private_database.py` 每轮键集分页（`last_observed_at,id`）遍历全部已完成内容（单轮上限 20000，超出写 `scan_truncated_count`），`--limit` 改为「本轮最多交付几条」（从未交付优先，其次交付后有变化的，各按最旧优先）；输出新增 `completed_total` / `pending_total` / `delivered_this_run`。`backup.py` 备份全部已交付的已完成事实。修前生产：已完成 211、已交付 130、从未交付 81，每轮 NO_CHANGE。
+
 ## v0.0.0.109 — 少开一个页面不该换掉一项能力
 
 v0.0.0.108 我为了不让扩展每天开 B 站的页，把它并进了 `server_handled`。

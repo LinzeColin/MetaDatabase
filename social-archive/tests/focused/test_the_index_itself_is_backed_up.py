@@ -86,7 +86,9 @@ def test_it_refuses_to_report_success_without_two_verified_copies() -> None:
     code = "\n".join(l for l in source.splitlines() if not l.lstrip().startswith("#"))
     assert "REQUIRED_VERIFIED_COPIES = 2" in code
     assert 'receipt.get("status") == "verified"' in code, "统计的不是已验证副本"
-    assert "return 0 if verified >= REQUIRED_VERIFIED_COPIES else 4" in code, (
+    # OCI 退役（2026-09-30）后「够不够」= 这一轮打算放几处就必须验成几处（required_copies），
+    # 老配置仍是固定 2 份。不管哪种，副本不够都必须退非零。
+    assert "return 0 if verified >= required_copies else 4" in code, (
         "副本不够却仍然退 0——定时器会以为备份成功了"
     )
 
@@ -106,13 +108,25 @@ def test_it_does_not_delete_old_snapshots() -> None:
 
 
 def test_the_backup_timer_actually_runs_it() -> None:
-    """写了脚本没人跑，等于没写——本会话反复撞到的那种形状。"""
-    unit = (ROOT / "deploy/systemd/social-archive-backup.service").read_text(encoding="utf-8")
+    """写了脚本没人跑，等于没写——本会话反复撞到的那种形状。
+
+    2026-09-30：索引快照拆成了独立单元 + 独立定时器。原来它是 backup.service 的第二条 ExecStart，
+    排在 backup.py 后面——OCI 一挂 backup.py 就失败，它永远轮不到（25 天没有快照）。
+    """
+    unit = (ROOT / "deploy/systemd/social-archive-runtime-db-backup.service").read_text(encoding="utf-8")
+    timer = (ROOT / "deploy/systemd/social-archive-runtime-db-backup.timer").read_text(encoding="utf-8")
     lines = [l for l in unit.splitlines() if l.startswith("ExecStart=")]
     assert any("backup_runtime_db.py" in l for l in lines), (
-        "备份单元不跑运行库快照——索引仍然只有一份"
+        "快照单元不跑运行库快照——索引仍然只有一份"
     )
-    assert any(l.endswith("backup.py --once") for l in lines), "原来那条私有库备份被挤掉了"
+    assert "Unit=social-archive-runtime-db-backup.service" in timer, "定时器没指向快照单元——写了没人跑"
+    backup = (ROOT / "deploy/systemd/social-archive-backup.service").read_text(encoding="utf-8")
+    assert any(l.endswith("backup.py --once") for l in backup.splitlines() if l.startswith("ExecStart=")), (
+        "原来那条私有库备份被挤掉了"
+    )
+    assert "backup_runtime_db.py" not in "\n".join(
+        l for l in backup.splitlines() if l.startswith("ExecStart=")
+    ), "索引快照又被挂回 backup.service 里了：前面的步骤一失败它就永远轮不到"
 
 
 # ——— 取回演练：证明那份快照不只是「传上去了」，而是真的打得开 ———
@@ -218,17 +232,23 @@ def test_the_index_keeps_up_with_the_artifacts() -> None:
 
     机器在这两者之间没了，就会留下一批**有制品、没索引行**的孤儿密文
     ——救回来也不知道是什么。
+
+    2026-09-30：这条 15 分钟一轮的索引快照搬进了自己的单元与定时器（不再挂在复制单元后面）。
     """
-    unit = (ROOT / "deploy/systemd/social-archive-replication.service").read_text(encoding="utf-8")
+    unit = (ROOT / "deploy/systemd/social-archive-runtime-db-backup.service").read_text(encoding="utf-8")
+    timer = (ROOT / "deploy/systemd/social-archive-runtime-db-backup.timer").read_text(encoding="utf-8")
     lines = [l for l in unit.splitlines() if l.startswith("ExecStart=")]
     matched = [l for l in lines if "backup_runtime_db.py" in l]
-    assert matched, "复制单元不带索引快照——索引仍然落后制品一整天"
+    assert matched, "快照单元不带索引快照——索引仍然落后制品一整天"
     assert all("--skip-if-unchanged" in l for l in matched), (
         "每 15 分钟无条件传一次 1MB，一年就是 35GB——必须只在库变了时才传"
     )
-    # 每天那一次仍然要留着：它是兜底，且不受 --skip-if-unchanged 影响
-    daily = (ROOT / "deploy/systemd/social-archive-backup.service").read_text(encoding="utf-8")
-    assert "backup_runtime_db.py" in daily, "每天那一次兜底被拿掉了"
+    assert "OnUnitActiveSec=15min" in timer, "索引不再跟着制品的 15 分钟节奏"
+    # 复制单元里不许再有它：它排在会失败的复制步骤后面，前面一失败就永远轮不到
+    replication = (ROOT / "deploy/systemd/social-archive-replication.service").read_text(encoding="utf-8")
+    assert "backup_runtime_db.py" not in "\n".join(
+        l for l in replication.splitlines() if l.startswith("ExecStart=")
+    ), "索引快照又被挂回复制单元里了"
 
 
 def test_the_index_can_have_the_same_three_copies_as_the_artifacts() -> None:
@@ -256,7 +276,7 @@ def test_the_third_copy_is_not_attempted_before_the_first_is_verified() -> None:
         l for l in (ROOT / "scripts/backup_runtime_db.py").read_text(encoding="utf-8").splitlines()
         if not l.lstrip().startswith("#")
     )
-    assert 'if args.github and receipts.get("r2", {}).get("status") == "verified"' in code
+    assert 'if want_github and receipts.get("r2", {}).get("status") == "verified"' in code
 
 
 def test_the_github_copy_uses_a_draft_release_in_a_private_repo() -> None:
@@ -268,13 +288,15 @@ def test_the_github_copy_uses_a_draft_release_in_a_private_repo() -> None:
 
 def test_only_the_daily_run_pushes_a_third_copy() -> None:
     """Draft Release 每刻钟建一个会把仓刷爆，而且没必要——
-    前两份已经跟上了节奏，第三份每天补一次即可。"""
-    daily = (ROOT / "deploy/systemd/social-archive-backup.service").read_text(encoding="utf-8")
-    frequent = (ROOT / "deploy/systemd/social-archive-replication.service").read_text(encoding="utf-8")
-    daily_lines = [l for l in daily.splitlines() if l.startswith("ExecStart=") and "backup_runtime_db" in l]
-    frequent_lines = [l for l in frequent.splitlines() if l.startswith("ExecStart=") and "backup_runtime_db" in l]
-    assert daily_lines and all("--github" in l for l in daily_lines), "每天那一次没补第三份"
-    assert frequent_lines and not any("--github" in l for l in frequent_lines), (
+    R2 那份已经跟上了节奏，GitHub 那份每个 UTC 日期放一份即可。
+
+    2026-09-30：15 分钟一轮的快照单元用 `--github-daily`（当天已有已验证的 GitHub 副本就不再放），
+    而不是把 `--github` 挂在每一轮上。行为由 test_oci_is_retired.py 里的用例实测。
+    """
+    unit = (ROOT / "deploy/systemd/social-archive-runtime-db-backup.service").read_text(encoding="utf-8")
+    lines = [l for l in unit.splitlines() if l.startswith("ExecStart=") and "backup_runtime_db" in l]
+    assert lines and all("--github-daily" in l for l in lines), "每天第一轮没补 GitHub 那份"
+    assert not any(" --github " in (l + " ") for l in lines), (
         "每刻钟都去建 Draft Release——会把私有仓刷爆"
     )
 

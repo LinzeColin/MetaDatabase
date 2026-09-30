@@ -270,15 +270,18 @@ def validate_source(errors: list[str]) -> None:
     unit_text = backup_unit.read_text(encoding="utf-8") + restore_unit.read_text(encoding="utf-8")
     timer_text = timer.read_text(encoding="utf-8")
     handover_text = handover.read_text(encoding="utf-8")
-    for marker in ("runCloudBackup", "uploadR2Bundle", "uploadOciBundle", "restoreRemoteBackup", "control_plane_llm_calls"):
+    for marker in ("runCloudBackup", "uploadR2Bundle", "uploadOciBundle", "restoreRemoteBackup", "control_plane_llm_calls", "OCI_NOT_CONFIGURED"):
         if marker not in source_text:
             errors.append(f"backup_source_marker:{marker}")
     for marker in ("backupRequest", "CB530_RELEASE_ROOT_INVALID", "redactResult"):
         if marker not in cli_text:
             errors.append(f"backup_cli_marker:{marker}")
-    for marker in ("LoadCredential=r2_oauth_refresh_token", "LoadCredential=oci_par_url", "cb530-refresh-r2-oauth.js"):
+    for marker in ("LoadCredential=r2_oauth_refresh_token", "cb530-refresh-r2-oauth.js"):
         if marker not in unit_text:
             errors.append(f"unit_marker:{marker}")
+    # 2026-09-30 起 OCI 已退役、OCI 腿为可选：单元不再加载 OCI PAR 凭据，
+    # 没有 PAR 文件时 CLI 把 ociParUrl 置 null 并整条跳过 OCI（见 readOptionalCredentialFile）。
+    report(errors, "oci_leg_optional", "oci_par_url" not in unit_text and "CB_OCI_PAR_FILE" not in unit_text and "readOptionalCredentialFile" in cli_text)
     report(errors, "backup_timer_contract", "OnCalendar=*-*-* 03:35:00 UTC" in timer_text and "Persistent=true" in timer_text)
     report(errors, "handover_contract", "write-only" in handover_text and "launchd" in handover_text)
     report(errors, "no_launchd_source", "launchctl" not in "\n".join((source_text, cli_text, unit_text, timer_text, refresh.read_text(encoding="utf-8"))).lower())
@@ -309,7 +312,7 @@ def validate_focused_tests(errors: list[str]) -> None:
         check=False,
         timeout=300,
     )
-    if result.returncode != 0 or "fail 0" not in result.stdout or "tests 16" not in result.stdout:
+    if result.returncode != 0 or "fail 0" not in result.stdout or "tests 24" not in result.stdout:
         errors.append("cb530_focused_tests")
 
 

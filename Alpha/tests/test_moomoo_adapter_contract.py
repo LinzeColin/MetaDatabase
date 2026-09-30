@@ -197,7 +197,7 @@ def test_error_map_covers_only_known_codes():
 def test_mode_to_trd_env_table():
     assert MODE_TO_TRD_ENV[SystemMode.DISABLED] == (TrdEnv.NONE, False)
     assert MODE_TO_TRD_ENV[SystemMode.PAPER] == (TrdEnv.SIMULATE, True)
-    assert MODE_TO_TRD_ENV[SystemMode.SHADOW] == (TrdEnv.NONE, False)
+    assert MODE_TO_TRD_ENV[SystemMode.SHADOW] == (TrdEnv.LOCAL, True)   # 只许本机模拟券商接单
     assert MODE_TO_TRD_ENV[SystemMode.MICRO_LIVE] == (TrdEnv.REAL, True)
     assert MODE_TO_TRD_ENV[SystemMode.HALTED] == (TrdEnv.NONE, False)
 

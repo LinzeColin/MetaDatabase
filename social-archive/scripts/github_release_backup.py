@@ -14,6 +14,7 @@ from typing import Any, Sequence
 from social_archive.config import Settings
 from social_archive.db import RuntimeStore
 from social_archive.encryption import AgeEncryptor, EncryptedObject
+from social_archive.replica_stores import stores_before_github
 from social_archive.storage import StoredObject
 from social_archive.utils import read_secret, sha256_file, utcnow
 
@@ -92,8 +93,12 @@ def required_prior_receipt_error(
     artifact_id: str,
     encrypted: EncryptedObject,
 ) -> str | None:
-    """GitHub may only receive the exact age ciphertext already verified twice."""
-    for store_id in ("r2", "oci"):
+    """GitHub may only receive the exact age ciphertext every earlier store already verified.
+
+    Earlier stores are r2+oci by default and r2 alone once OCI is retired
+    (``SOCIAL_ARCHIVE_REPLICA_STORES=r2,github``).
+    """
+    for store_id in stores_before_github():
         error = _replica_receipt_error(store, artifact_id, store_id, encrypted)
         if error:
             return error
@@ -243,7 +248,7 @@ def main() -> int:
     store = RuntimeStore(settings.runtime_db)
     store.initialize()
 
-    rows = store.list_artifacts_for_replication("github", limit=max(1, min(args.limit, 5000)), requires_verified_store="oci")
+    rows = store.list_artifacts_for_replication("github", limit=max(1, min(args.limit, 5000)), requires_verified_store=stores_before_github()[-1])
     if not rows:
         print(json.dumps({"status": "PASS", "message": "没有待复制对象", "object_count": 0}, ensure_ascii=False))
         return 0

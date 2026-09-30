@@ -8,6 +8,7 @@ fees.yaml 只锁定佣金 0.99 USD/单;SEC/CAT 费官方费率随期调整、文
 from __future__ import annotations
 
 from dataclasses import dataclass
+from decimal import ROUND_CEILING, ROUND_FLOOR, Decimal
 from pathlib import Path
 
 import yaml
@@ -24,12 +25,25 @@ class FeeModel:
     sec_fee_rate_on_sell: float = SEC_FEE_RATE_ESTIMATE
     cat_fee_per_share: float = CAT_FEE_PER_SHARE_ESTIMATE
     estimates_pending_official: bool = True
+    #: 每边滑点(基点),取 fees.yaml slippage_model.default_bps。**滑点的唯一出处。**
+    #: 目前只有影子盘模拟成交调用 slipped_price;回测仍是 0 滑点(现存差距,另行立项)。
+    slippage_bps: float = 0.0
 
     @classmethod
     def from_yaml(cls, path: str | Path = "configs/fees.yaml") -> "FeeModel":
         cfg = yaml.safe_load(Path(path).read_text())
         us = cfg["us_stocks_etf"]
-        return cls(commission_usd_per_order=float(us["commission_usd_per_order"]))
+        slip = (cfg.get("slippage_model") or {}).get("default_bps", 0.0)
+        return cls(commission_usd_per_order=float(us["commission_usd_per_order"]),
+                   slippage_bps=float(slip))
+
+    def slipped_price(self, side: str, price: float) -> float:
+        """含滑点成交价:买向上、卖向下取整到分(对自己不利的方向,保守)。"""
+        k = Decimal(str(self.slippage_bps)) / Decimal("10000")
+        p = Decimal(str(price))
+        if side == "BUY":
+            return float((p * (1 + k)).quantize(Decimal("0.01"), rounding=ROUND_CEILING))
+        return float((p * (1 - k)).quantize(Decimal("0.01"), rounding=ROUND_FLOOR))
 
     def order_cost_usd(self, *, side: str, quantity: int, price: float) -> float:
         if quantity <= 0:

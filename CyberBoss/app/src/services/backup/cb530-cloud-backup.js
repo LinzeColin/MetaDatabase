@@ -19,6 +19,11 @@ const R2_SNAPSHOT_PREFIX = `${R2_PREFIX}snapshots/`;
 const OCI_SNAPSHOT_PREFIX = `${OCI_PREFIX}snapshots/`;
 const SNAPSHOT_FILENAMES = Object.freeze(["runtime.sqlite3", "manifest.json"]);
 const MAX_OBJECT_BYTES = 64 * 1024 * 1024;
+const OCI_DISABLED = Object.freeze({
+  state: "disabled",
+  reason: "OCI_NOT_CONFIGURED",
+  provider_requests: 0,
+});
 
 class CloudBackupError extends Error {
   constructor(code) {
@@ -123,14 +128,21 @@ async function runCloudBackup({
       restoreRoot: restore,
     })
     : Object.freeze({ state: "skipped", reason: "R2_COPY_UNAVAILABLE" });
-  const oci = await attemptCopy("oci", () => uploadOciBundle({
-    bundle: backup,
-    parUrl: ociParUrl,
-    fetchImpl,
-  }));
-  const landed = [r2, oci].filter((copy) => copy.state !== "failed");
+  // OCI 那一腿是可选的：2026-09-30 Owner 决定 OCI 退役，没配 PAR 地址就整条腿
+  // 跳过，一个请求都不发。R2 恒启用；OCI 只在配了 ociParUrl 时启用。
+  const ociEnabled = !(ociParUrl === null || ociParUrl === undefined || ociParUrl === "");
+  const oci = ociEnabled
+    ? await attemptCopy("oci", () => uploadOciBundle({
+      bundle: backup,
+      parUrl: ociParUrl,
+      fetchImpl,
+    }))
+    : OCI_DISABLED;
+  const enabled = ociEnabled ? 2 : 1;
+  // 只数真的落地的腿：failed 没落地，disabled 根本没试。
+  const landed = [r2, oci].filter((copy) => copy.state !== "failed" && copy.state !== "disabled");
   if (landed.length === 0) {
-    // 两份都没落地：这一轮**确实**没有任何异地副本，必须失败。
+    // 被启用的腿都没落地：这一轮**确实**没有任何异地副本，必须失败。
     throw new CloudBackupError(r2.error_code || oci.error_code || "CB530_ALL_COLD_COPIES_FAILED");
   }
   const receipt = Object.freeze({
@@ -156,10 +168,11 @@ async function runCloudBackup({
   const receiptPath = path.join(receipts, `${backup.manifest.backup_id}.json`);
   writeJsonDurable(receiptPath, receipt);
   return Object.freeze({
-    // 两份都落地才叫 passed。剩一份是 degraded——它**成功了**（异地确实有副本，
-    // 所以退出码是 0、不该让 systemd 每晚报警），但它和「两份都在」不是一回事，
-    // 运维要看得出来。挤成一个 passed 的话，双冷备退化成单冷备且无人知晓。
-    status: landed.length === 2 ? "passed" : "degraded",
+    // 所有被启用的腿都落地才叫 passed。配了 OCI 却只落地一份是 degraded——它
+    // **成功了**（异地确实有副本，所以退出码是 0、不该让 systemd 每晚报警），但它
+    // 和「配置的每一份都在」不是一回事，运维要看得出来。OCI 未配置（disabled）时
+    // 只有 R2 一腿被启用，R2 落地即 passed。
+    status: landed.length === enabled ? "passed" : "degraded",
     cold_copies_landed: landed.length,
     backup_id: backup.manifest.backup_id,
     archive_sha256: backup.manifest.archive.sha256,
@@ -525,6 +538,21 @@ function readCredentialFile(filePath, code) {
   return value;
 }
 
+// 可选凭据：文件不存在 → null（该腿未配置）；存在但内容非法/为空 → 照旧抛错，
+// 不吞（fail closed：配了一半的凭据不能被当成「没配」悄悄跳过）。
+function readOptionalCredentialFile(filePath, code) {
+  const resolved = requireAbsolutePath(filePath, code);
+  try {
+    fs.lstatSync(resolved);
+  } catch (error) {
+    if (error && error.code === "ENOENT") {
+      return null;
+    }
+    throw new CloudBackupError(code);
+  }
+  return readCredentialFile(resolved, code);
+}
+
 function readTextFile(filePath, code) {
   try {
     return fs.readFileSync(requireAbsolutePath(filePath, code), "utf8");
@@ -709,6 +737,7 @@ module.exports = {
   ociObjectKey,
   r2ObjectKey,
   readCredentialFile,
+  readOptionalCredentialFile,
   restoreRemoteBackup,
   runCloudBackup,
 };

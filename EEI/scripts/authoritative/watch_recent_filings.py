@@ -50,6 +50,8 @@ STATE_PATH = Path(os.environ.get("EEI_WATCH_STATE", ROOT / ".eei_watch_state.jso
 RUN_LOG = Path(os.environ.get("EEI_WATCH_RUN_LOG", ROOT / ".eei_watch_runs.jsonl"))
 # Bound the seen-accession memory (ring); one filing day is a few thousand.
 MAX_SEEN = 20000
+# A push that keeps failing (D1 quota, network) must not grow without bound.
+PENDING_PUSH_MAX_ENTITIES = 500
 
 # One Atom <entry> block: form is the title prefix, CIK is the 10-digit paren
 # group, accession rides in the <id> urn.
@@ -95,12 +97,12 @@ def load_state() -> dict:
     return {}
 
 
-def save_state(seen: list[str]) -> None:
+def save_state(seen: list[str], pending_push: dict | None = None) -> None:
+    payload: dict = {"seen_accessions": seen[-MAX_SEEN:]}
+    if pending_push:
+        payload["pending_push"] = pending_push
     STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    STATE_PATH.write_text(
-        json.dumps({"seen_accessions": seen[-MAX_SEEN:]}, ensure_ascii=False),
-        encoding="utf-8",
-    )
+    STATE_PATH.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
 
 
 def universe_entity_for_ciks(conn, ciks: list[str]) -> dict[str, tuple[str, str]]:
@@ -159,6 +161,42 @@ def _beat(result: dict) -> None:
         result["heartbeat_error"] = str(exc)[:200]
 
 
+def _push_and_save(
+    result: dict, state: dict, seen: list[str], affected: dict, *, apply: bool
+) -> None:
+    """Push this poll's new events (plus any earlier failed push) and persist state.
+
+    A push that failed (D1 quota, network) must be retried, not forgotten: the
+    entities and the "since" of the failed attempt ride in the state file and are
+    merged into the next push.
+    """
+    pending = state.get("pending_push") or {}
+    pending_entities = list(pending.get("entities", []))
+    pending_push: dict | None = pending or None
+    if apply and (affected or pending_entities):
+        publish_url = os.environ.get("EEI_PUBLISH_URL", "").strip()
+        publish_token = os.environ.get("EEI_PUBLISH_TOKEN", "").strip()
+        if publish_url and publish_token:
+            entities = sorted(set(pending_entities) | set(affected))[:PENDING_PUSH_MAX_ENTITIES]
+            since = pending.get("since") or result["started_at"]
+            try:
+                # Only what was collected since `since`: relationships have their own
+                # gated backlog (refresh_cycle), and re-pushing a company's whole
+                # history for one new filing is what blew D1's daily write allowance.
+                result["published"] = push_incremental(
+                    entities,
+                    publish_url=publish_url,
+                    publish_token=publish_token,
+                    include_relationships=False,
+                    since=since,
+                )
+                pending_push = None
+            except Exception as exc:  # noqa: BLE001 - kept in state, retried next poll
+                result["publish_error"] = str(exc)[:200]
+                pending_push = {"since": since, "entities": entities}
+    save_state(seen, pending_push)
+
+
 def _collect(sec: SecClient, *, apply: bool) -> dict:
     started = datetime.now(UTC).isoformat()
     result: dict = {"started_at": started}
@@ -178,8 +216,11 @@ def _collect(sec: SecClient, *, apply: bool) -> dict:
     result["fresh"] = len(fresh)
     if not fresh:
         # Nothing new since last poll; record the poll and return cheaply.
-        # one_poll still beats and logs — see its docstring.
+        # one_poll still beats and logs — see its docstring. A previously failed
+        # push is still retried here.
         result.update(matched_universe=0, enriched=0, new_events=0)
+        if state.get("pending_push"):
+            _push_and_save(result, state, seen, {}, apply=apply)
         return result
 
     fresh_ciks = sorted({cik for (_f, cik, _a) in fresh})
@@ -206,22 +247,11 @@ def _collect(sec: SecClient, *, apply: bool) -> dict:
         if acc not in seen_set:
             seen.append(acc)
             seen_set.add(acc)
-    save_state(seen)
 
     result["new_events"] = new_events
     result["enriched"] = len(affected)
 
-    if apply and affected:
-        publish_url = os.environ.get("EEI_PUBLISH_URL", "").strip()
-        publish_token = os.environ.get("EEI_PUBLISH_TOKEN", "").strip()
-        if publish_url and publish_token:
-            try:
-                push = push_incremental(
-                    [eid for eid in affected], publish_url=publish_url, publish_token=publish_token
-                )
-                result["published"] = push
-            except Exception as exc:  # noqa: BLE001 - publish retry next poll; DB already has it
-                result["publish_error"] = str(exc)[:200]
+    _push_and_save(result, state, seen, affected, apply=apply)
 
     return result
 

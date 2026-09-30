@@ -201,7 +201,9 @@ def test_makeup_eval_window_any_weekday():
     wed = datetime(2026, 7, 22, 10, 45, tzinfo=ET)   # 周三 10:45 ET,窗口内
     assert in_eval_window(wed) is False               # 正常节拍仍然只认周二
     minute = wed.hour * 60 + wed.minute
-    assert (9 * 60 + 60) <= minute <= (9 * 60 + 120)  # 但补评估窗口覆盖它
+    from backend.app.workers.live_cycle import MAKEUP_WINDOW_MINUTES
+    assert MAKEUP_WINDOW_MINUTES == (10 * 60 + 30, 11 * 60 + 30)   # 美东 10:30-11:30
+    assert MAKEUP_WINDOW_MINUTES[0] <= minute <= MAKEUP_WINDOW_MINUTES[1]   # 补评估窗口覆盖它
 
 
 # ---------- 080:模式解析与 REAL 桥红线 ----------
@@ -252,3 +254,106 @@ def test_prepare_authorization_schema_valid(tmp_path, monkeypatch):
         promotion_config_path="configs/strategy_promotion.yaml",
         now=datetime.now(timezone.utc))
     assert ok, reasons
+
+
+# ---------- 券商路径行为不变(影子盘修正不外溢) ----------
+
+class _PaperClient:
+    """券商模拟盘形态的假交易会话(无 TRD_ENV=LOCAL)。"""
+
+    def __init__(self, orders=(), deals=()):
+        self.orders, self.deals, self.place_calls = list(orders), list(deals), []
+
+    def place_order(self, **kw):
+        self.place_calls.append(kw)
+        return {"broker_order_id": f"MM{len(self.place_calls)}"}
+
+    def poll_orders(self):
+        return self.orders
+
+    def poll_deals(self):
+        return self.deals
+
+    def open_orders_by_remark(self):
+        return {}
+
+    def unlock(self):
+        pass
+
+    def healthy(self):
+        return True
+
+
+def _paper_deps(tmp_path, client, read_client, now_fn):
+    from pathlib import Path
+
+    from backend.app.adapters.brokers.base import SystemMode
+    from backend.app.execution.gateway import ExecutionGateway
+    from backend.app.execution.lease import LeaseManager
+    from backend.app.shadow.recorder import ShadowRecorder
+    from backend.app.store.db import create_session_factory, init_engine
+    from backend.app.store.orders import OrderStore
+    from backend.app.strategies.s1_momentum import load_s1_config
+    from backend.app.workers.killswitch import KillSwitch
+    from backend.app.workers.live_cycle import LiveCycleDeps
+
+    factory = create_session_factory(init_engine(f"sqlite:///{tmp_path / 'paper.sqlite'}"))
+    store = OrderStore(factory)
+    lease = LeaseManager(factory, holder_id="w", now_fn=now_fn)
+    lease.acquire()
+    gw = ExecutionGateway(store=store, client=client, lease=lease, mode=SystemMode.PAPER,
+                          now_fn=now_fn)
+    return LiveCycleDeps(
+        read_client=read_client, trade_client=client, store=store, gateway=gw,
+        shadow=ShadowRecorder(factory), lease=lease, kill_switch=KillSwitch(tmp_path / "KS"),
+        cfg=load_s1_config("configs/strategies/s1_gem_plus.yaml"), capital_usd=1950.0,
+        fx_usd_aud=Decimal("1.538462"), marker_path=Path(tmp_path / "rt" / "last_s1_eval.txt"),
+        fee_estimate=lambda side, qty, px: 0.99, slippage_bps=0.0, mode="PAPER", now_fn=now_fn)
+
+
+def test_paper_path_jurisdiction_still_deny(tmp_path, monkeypatch, make_clock, make_market):
+    """PAPER 且无辖区探针记录:买单仍被 RULE_JURISDICTION_DENY 拒(ALLOW 只属于 SHADOW)。"""
+    from backend.app.workers.live_cycle import run_live_cycle
+
+    monkeypatch.setenv("ALPHA_RUNTIME_DIR", str(tmp_path / "rt"))
+    clock = make_clock(datetime(2026, 7, 21, 14, 15, tzinfo=timezone.utc))
+    client = _PaperClient()
+    d = _paper_deps(tmp_path, client, make_market(clock), clock)
+    r = run_live_cycle(d)
+    assert r["plan"] == ["BUY QQQx4"] and r["rejected"] == 1 and r["submitted"] == 0
+    order_id = d.store.find_order_by_idempotency_key("S1-2026-07-21-QQQ-BUY-4")
+    assert "RULE_JURISDICTION_DENY" in d.store.get_risk_rules(order_id)
+    assert client.place_calls == []
+
+
+def test_broker_deal_without_fees_records_zero(tmp_path):
+    """券商成交明细不带 fees 字段时如实入账 0(券商路径行为不变);带 fees 时透传。"""
+    from types import SimpleNamespace
+
+    from sqlalchemy import select
+
+    from backend.app.domain.models import Execution
+    from backend.app.workers.live_cycle import _backfill
+
+    now = datetime(2026, 7, 21, 14, 45, tzinfo=timezone.utc)
+    client = _PaperClient()
+    d = _paper_deps(tmp_path, client, None, lambda: now)
+    for key, broker_id in (("S1-a", "MM1"), ("S1-b", "MM2")):
+        oid = d.store.create_intent(idempotency_key=key, symbol="SPY", side="BUY", quantity=3,
+                                    currency="USD", strategy_source="S1",
+                                    limit_price=Decimal("100"))
+        d.store.record_risk_decision(oid, allowed=True)
+        d.store.apply_transition(oid, OrderState.SUBMITTING, event_type="GATEWAY_SUBMIT")
+        d.store.apply_transition(oid, OrderState.SUBMITTED, event_type="ACK",
+                                 broker_order_id=broker_id)
+    client.orders = [{"remark": "S1-a", "broker_order_id": "MM1", "status": "FILLED_ALL"},
+                     {"remark": "S1-b", "broker_order_id": "MM2", "status": "FILLED_ALL"}]
+    client.deals = [{"broker_execution_id": "D1", "broker_order_id": "MM1",
+                     "quantity": 3, "price": 100.0},
+                    {"broker_execution_id": "D2", "broker_order_id": "MM2",
+                     "quantity": 3, "price": 100.0, "fees": "1.23"}]
+    _backfill(SimpleNamespace(trade_client=client, store=d.store, gateway=d.gateway),
+              {"backfilled": 0, "fills": 0})
+    with d.store._sessions() as s:  # noqa: SLF001
+        fees = {e.broker_execution_id: e.fees for e in s.scalars(select(Execution))}
+    assert fees == {"D1": Decimal("0"), "D2": Decimal("1.23")}

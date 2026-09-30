@@ -89,7 +89,7 @@ import {
 } from "./workspace-context";
 import { WorkspaceNavigationRail } from "./workspace-navigation";
 import { PulseStrip } from "./components/data-pulse";
-import { ZONE_LABELS, zhLabel } from "./labels";
+import { ZONE_LABELS, evidenceTierLabel, zhLabel } from "./labels";
 
 type FocusKey =
   | "materials"
@@ -335,6 +335,11 @@ type GraphRenderEdge = {
   lens: RelationshipLens;
   fixtureNotice: string;
   evidenceCount: number;
+  /** 上图依据（single_official | multi_source），仅云端边有。 */
+  evidenceTier?: string | null;
+  /** 官方原文链接 / 出处，点击核对。 */
+  sourceUrl?: string | null;
+  sourcePublisher?: string | null;
   observedAt: string;
   source: "fixture" | "server";
 };
@@ -1263,6 +1268,9 @@ function serverGraphRenderEdges(
       lens: lensForRelationshipFamily(edge.relationship_family),
       fixtureNotice: edge.fixture_notice ?? `${edge.status ?? "relationship"}; evidence=${edge.evidence_count ?? 0}`,
       evidenceCount: edge.evidence_count ?? 0,
+      evidenceTier: edge.evidence_tier ?? null,
+      sourceUrl: edge.source_url ?? null,
+      sourcePublisher: edge.source_publisher ?? null,
       observedAt,
       source: "server" as const
     });
@@ -2343,12 +2351,17 @@ export default function Home() {
   const publishedContextMeta = (productionContext?.active_analysis_context ?? {}) as {
     as_of?: string | null;
     published_at?: string | null;
+    /** 已上图的最新一条关系的时间（发布方按实际写入的行现算，不是构建日期）。 */
+    relationships_as_of?: string | null;
   };
   // ★空值不等于「还在加载」★：云发布面本来就不带 snapshot，as_of 恒为 null，
   // 而每一处都写成 `(as_of ?? "").slice(0,10) || "载入中"` —— 于是「数据版本」永远转圈，
   // 看的人只能理解成「网还没通」。响应已经回来时，有 published_at 就显示它，
   // 两个都没有就显示「不确定」，绝不显示成还在路上。
   const publishedDataVersion = (() => {
+    // 数据截至：图上最新一条关系的时间优先（真数据现算），其次发布面快照。
+    const relationshipsDay = (publishedContextMeta.relationships_as_of ?? "").slice(0, 10);
+    if (relationshipsDay) return relationshipsDay;
     const asOfDay = (publishedContextMeta.as_of ?? "").slice(0, 10);
     if (asOfDay) return asOfDay;
     if (productionGraphStatus === "loading-production-graph" || productionGraphStatus === "local-fixture") {
@@ -3546,7 +3559,7 @@ export default function Home() {
             </dd>
           </div>
           <div>
-            <dt>数据版本</dt>
+            <dt>{CLOUD_MODE ? "数据截至" : "数据版本"}</dt>
             <dd>
               {CLOUD_MODE
                 ? publishedDataVersion
@@ -4582,7 +4595,7 @@ export default function Home() {
                 {productionPublishedRelationships?.total?.toLocaleString() ?? "载入中"}
               </span>
               <span data-testid="kpi-asof">
-                数据版本 {publishedDataVersion}
+                数据截至 {publishedDataVersion}
               </span>
               <span className="kpiHint">点击查看数据来源</span>
             </button>
@@ -4687,7 +4700,7 @@ export default function Home() {
               data-timeline-mode="published-snapshot"
             >
               <strong>
-                数据版本 · {publishedDataVersion}
+                数据截至 · {publishedDataVersion}
               </strong>
               <span>
                 更新于{" "}
@@ -4973,7 +4986,13 @@ export default function Home() {
                       x={midX}
                       y={midY + 16}
                     >
-                      {edge.source === "server" ? `证据 ${edge.evidenceCount} 条` : "样例证据"}
+                      {edge.source === "server"
+                        ? `证据 ${edge.evidenceCount} 条${
+                            evidenceTierLabel(edge.evidenceTier)
+                              ? ` · ${evidenceTierLabel(edge.evidenceTier)}`
+                              : ""
+                          }`
+                        : "样例证据"}
                     </text>
                   ) : null}
                 </g>
@@ -5288,8 +5307,21 @@ export default function Home() {
                     graphViewNodeByKey.get(edge.to)?.shortLabel ?? edge.to
                   }`}</strong>
                   <span>{edge.label}</span>
-                  <em>已发布事实</em>
+                  <em data-evidence-tier={edge.evidenceTier ?? "none"}>
+                    {evidenceTierLabel(edge.evidenceTier) ?? "已发布事实"}
+                  </em>
                   <small>证据 {edge.evidenceCount} 条 · {edge.stage}</small>
+                  {edge.sourceUrl ? (
+                    <a
+                      className="evidenceSourceLink"
+                      data-testid={`edge-source-link-${edge.id}`}
+                      href={edge.sourceUrl}
+                      rel="noreferrer noopener"
+                      target="_blank"
+                    >
+                      查看官方原文{edge.sourcePublisher ? `（${edge.sourcePublisher}）` : ""}
+                    </a>
+                  ) : null}
                 </li>
               ))
             : scenario.edges.slice(0, 4).map((edge) => (
@@ -5327,6 +5359,16 @@ export default function Home() {
               <strong className="evidenceConclusion" data-testid="production-evidence-conclusion">
                 {cloudEvidenceConclusion}
               </strong>
+            ) : null}
+            {/* 上图依据：单一官方来源 / 多来源交叉核实（发布闸门给每条边盖的章）。 */}
+            {evidenceTierLabel(productionEvidenceDetail?.evidence_tier) ? (
+              <span
+                className="evidenceTierChip"
+                data-evidence-tier={productionEvidenceDetail?.evidence_tier ?? "none"}
+                data-testid="production-evidence-tier"
+              >
+                {evidenceTierLabel(productionEvidenceDetail?.evidence_tier)}
+              </span>
             ) : null}
             <small className="evidenceSummaryLine">
               {productionEvidenceDetail?.evidence_count ?? 0} 条摘录 ·{" "}
@@ -5491,8 +5533,14 @@ export default function Home() {
                   </td>
                   <td>{edge.stage}</td>
                   <td>
-                    <span className="evidencePill">
-                      {edge.source === "server" ? `证据 ${edge.evidenceCount} 条` : "样例证据"}
+                    <span className="evidencePill" data-evidence-tier={edge.evidenceTier ?? "none"}>
+                      {edge.source === "server"
+                        ? `证据 ${edge.evidenceCount} 条${
+                            evidenceTierLabel(edge.evidenceTier)
+                              ? ` · ${evidenceTierLabel(edge.evidenceTier)}`
+                              : ""
+                          }`
+                        : "样例证据"}
                     </span>
                   </td>
                   <td>{edge.observedAt}</td>
