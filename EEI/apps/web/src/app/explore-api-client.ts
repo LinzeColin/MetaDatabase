@@ -1,5 +1,7 @@
 "use client";
 
+import { readConfiguredApiBaseUrl } from "./api-base";
+
 export const EXPLORE_API_BASE_STORAGE_KEY = "eei.exploreApiBaseUrl.v1";
 const SHARED_API_BASE_STORAGE_KEY = "eei.apiBaseUrl.v1";
 
@@ -184,7 +186,7 @@ export type ExploreGraphSyncResult =
 export function readExploreApiBaseUrl() {
   const override = window.localStorage.getItem(EXPLORE_API_BASE_STORAGE_KEY)?.trim();
   const sharedOverride = window.localStorage.getItem(SHARED_API_BASE_STORAGE_KEY)?.trim();
-  const configured = process.env.NEXT_PUBLIC_EEI_API_BASE_URL?.trim();
+  const configured = readConfiguredApiBaseUrl();
   return stripTrailingSlash(override || sharedOverride || configured || "");
 }
 

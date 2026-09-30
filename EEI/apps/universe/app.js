@@ -9,7 +9,8 @@ import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 
-const API = (new URLSearchParams(location.search).get("api") || "https://eei.linzezhang.com").replace(/\/$/, "");
+// 数据接口默认就是页面自己的域名（同源 /v1/*，由 nginx 转给上游或本机接口）；?api= 只在调试时覆盖
+const API = (new URLSearchParams(location.search).get("api") || location.origin).replace(/\/$/, "");
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const MOBILE = matchMedia("(max-width: 900px)").matches;
 
@@ -82,7 +83,7 @@ try {
 } catch (err) {
   const box = document.getElementById("state");
   box.querySelector(".state-core").style.animation = "none";
-  document.getElementById("state-text").innerHTML = '这个浏览器没有开启 3D 图形（WebGL），宇宙视图画不出来。<br>换用最新版 Chrome、Safari 或 Edge，或在浏览器设置里打开「硬件加速」后刷新。<br><a href="https://eei.linzezhang.com/" style="color:#3fd6e0">先去看平面版完整图谱 ↗</a>';
+  document.getElementById("state-text").innerHTML = '这个浏览器没有开启 3D 图形（WebGL），宇宙视图画不出来。<br>换用最新版 Chrome、Safari 或 Edge，或在浏览器设置里打开「硬件加速」后刷新。<br><a href="/?subject=00000000-0000-4000-8000-000000000006" style="color:#3fd6e0">先去看平面版完整图谱 ↗</a>';
   throw err;
 }
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, MOBILE ? 1.5 : 2));
@@ -637,7 +638,7 @@ async function selectNode(n) {
   }).join("");
   const more = rels.length > shown.length ? `<p class="legal">另有 ${rels.length - shown.length} 条关系，在完整图谱里查看</p>` : "";
   detailBody.innerHTML = `${head}<h4>${n.isSun ? "关系样本（点行星看全部）" : "它的关系与官方原文"}</h4>${relHTML}${more}
-    <div class="actions">${n.isSun && focusSys !== sys ? `<button id="act-enter">进入这个星系</button>` : ""}<a href="https://eei.linzezhang.com/?subject=${encodeURIComponent(n.id)}" target="_blank" rel="noopener">在完整图谱中打开 ↗</a></div>`;
+    <div class="actions">${n.isSun && focusSys !== sys ? `<button id="act-enter">进入这个星系</button>` : ""}<a href="/?subject=${encodeURIComponent(n.id)}" target="_blank" rel="noopener">在完整图谱中打开 ↗</a></div>`;
   detail.hidden = false;
   document.getElementById("act-enter")?.addEventListener("click", () => focusSystem(sys));
   for (const e of shown) loadEvidence(e);
