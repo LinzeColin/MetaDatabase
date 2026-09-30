@@ -5211,3 +5211,145 @@ dd {
 :root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphPolicyPanel .diagDetails > summary {
   color: var(--muted);
 }
+
+/* ============================================================
+   云发布面 · 深空主题 · 左右栏与关系表格的可读性（WCAG AA，正文 >= 4.5:1）
+   原因：下面这些组件的底色是浅色主题写死的 #fbfcfc / #f3f6fb / #edf8f1 等，文字却继承深空的浅色
+   （#e6ecf7），浅底浅字对比度只有 1.05–1.2。
+   只在 :root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] 下生效：
+   - 浅色主题（daylight）不受影响；
+   - 本地样例工作台（data-cloud-surface="false"，A167 视觉回归基线）不受影响。
+   ============================================================ */
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] {
+  --cloud-surface: #111a2e;
+  --cloud-line: #2a3c63;
+  --cloud-link: #8fbcff;
+}
+
+/* 搜索框、按钮、行业卡片 */
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .searchInputRow,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .searchInputRow button,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .searchResults button,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .compactList button,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .lens,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .zoomControl,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .timelineControl,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .historyControls button,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .breadcrumb button,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .savedViewActions button,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .stagePill {
+  border-color: var(--cloud-line);
+  background: var(--cloud-surface);
+  color: var(--ink);
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .searchInputRow button,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .savedViewActions button {
+  color: var(--cloud-link);
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .searchInputRow input::placeholder {
+  color: var(--muted);
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .timelineControl.active,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .lens.active,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .lens[aria-pressed="true"],
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .stagePill.focus {
+  border-color: #3e66a8;
+  background: #182a4b;
+  color: var(--cloud-link);
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .stagePill.upstream {
+  border-color: #2b6b55;
+  background: #10281f;
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .stagePill.downstream {
+  border-color: #4d4a8c;
+  background: #1c1a3a;
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .homeIndustryEntry {
+  border-color: var(--cloud-line);
+  background: var(--cloud-surface);
+  color: var(--ink);
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .homeIndustryEntry:hover {
+  border-color: #3e66a8;
+  background: #182a4b;
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .homeIndustryEntry small {
+  color: var(--muted);
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .homeIndustrySeed,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] [data-testid="home-industry-map-link"] {
+  color: var(--cloud-link);
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .workspaceLayerStrip header small,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .structureMatrix header small {
+  color: var(--muted);
+}
+
+/* 右栏「所选节点」卡、节点动作状态、关系表格、分组列表、状态条 */
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .selectedNodeCard,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .nodeActionState,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .groupList {
+  border-color: var(--cloud-line);
+  background: var(--cloud-surface);
+  color: var(--ink);
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .selectedNodeCard dl div,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .nodeActionState div,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel th,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel td {
+  border-top-color: var(--cloud-line);
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel select {
+  border-color: var(--cloud-line);
+  background: var(--panel);
+  color: var(--ink);
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .statusStrip span {
+  background: var(--cloud-surface);
+  color: var(--ink);
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .actionStack button {
+  border-color: #3e66a8;
+  background: #182a4b;
+  color: var(--cloud-link);
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .actionStack button:disabled {
+  border-color: var(--cloud-line);
+  background: var(--cloud-surface);
+  color: var(--muted);
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .actionStack .primaryAction:not(:disabled) {
+  border-color: #6fa6f2;
+  background: #2f6fd6;
+  color: #ffffff;
+}
+
+/* 彩色徽标：白字在深空的亮色底上只有 2.6:1，改深字 */
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .nodeToken {
+  color: #06101f;
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .brandGlyph {
+  color: var(--bg);
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .savedViewPanel header strong {
+  color: var(--cloud-link);
+}
+
+/* 证据面板里不可折行的长串（证据标记、URL）会把单列网格撑宽，桌面 1440 下整页出现 17px 横向滚动。
+   网格列改 minmax(0, 1fr)，长串允许折行。只作用于云发布面。 */
+.workspace[data-cloud-surface="true"] .graphPolicyPanel,
+.workspace[data-cloud-surface="true"] .graphPolicyPanel header,
+.workspace[data-cloud-surface="true"] .graphPolicyPanel dl {
+  grid-template-columns: minmax(0, 1fr);
+}
+.workspace[data-cloud-surface="true"] .graphPolicyPanel {
+  overflow-wrap: anywhere;
+}
+.workspace[data-cloud-surface="true"] .inspector .pathList,
+.workspace[data-cloud-surface="true"] .inspector .pathList > li {
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

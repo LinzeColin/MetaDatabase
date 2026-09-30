@@ -4086,6 +4086,7 @@ export default function Home() {
         <section
           aria-label="集团结构与业务板块"
           className="structureMatrix"
+          tabIndex={0}
           data-api-contract="/v1/entities/{entityId}/empire"
           data-commercial-empire-control-claim="false"
           data-separates="legal_group,business_segment,brand,product,facility"
@@ -4595,7 +4596,7 @@ export default function Home() {
         ) : null}
 
 
-        <div className="stageRail" aria-label="供应链阶段覆盖">
+        <div className="stageRail" aria-label="供应链阶段覆盖" role="group" tabIndex={0}>
           {stageRows.map((stage) => (
             <span className={`stagePill ${stage.side}`} key={stage.id}>
               {stage.id} {stage.name}
@@ -4764,8 +4765,8 @@ export default function Home() {
               纵深（诚实空态，不造年份）。原 S9PCT01 契约 testid 全保留。 */}
           <div
             aria-label="历史纵深时间轴（右侧竖轴，滑动选年）"
-            aria-orientation="vertical"
             className="historyScrubber"
+            role="group"
             data-testid="empire-history-scrubber"
             onPointerDown={handleHistoryPointerDown}
             onPointerMove={handleHistoryPointerMove}
@@ -4827,7 +4828,7 @@ export default function Home() {
             data-server-rendered-node-count={graphViewMode === "server" ? graphViewNodes.length : 0}
             data-testid="ecosystem-map-svg"
             viewBox="0 0 760 480"
-            role="img"
+            role="group"
             aria-label={
               graphViewMode === "server"
                 ? "EEI 生产关系图（服务端递归展开）"
@@ -5110,7 +5111,7 @@ export default function Home() {
 
         {/* P2-12：minimap 大图定位缩略图（Bloom 骨架）。同 viewBox 等比缩小，
             节点按 zone 着色、焦点金边；点节点即换中心。窄屏 CSS 隐藏。 */}
-        <div aria-label="图谱缩略定位" className="graphMinimap" data-testid="graph-minimap">
+        <div aria-label="图谱缩略定位" className="graphMinimap" data-testid="graph-minimap" role="group">
           <svg
             aria-hidden="true"
             preserveAspectRatio="xMidYMid meet"
