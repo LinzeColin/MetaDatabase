@@ -1,0 +1,13 @@
+project: FIFA 研究日报
+owner_words: "fifa不应该依靠github，他也应该是公网部署的状态（2026-09-30）"
+base_url: https://home.linzezhang.com/fifa/
+freshness:
+  pattern: '报告日\s*(\d{4}-\d{2}-\d{2})'
+  max_age_hours: 30
+journeys:
+  - name: 打开看今天的报告
+    steps:
+      - goto: ""
+      - expect_any_text: ["今天的新报告已生成", "今天没有新报告"]
+      - expect_any_text: ["英超", "西甲", "欧冠"]
+      - screenshot: 首屏

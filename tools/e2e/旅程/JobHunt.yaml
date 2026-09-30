@@ -1,0 +1,13 @@
+project: JobHunt 求职
+owner_words: "JobHunt：部署 #359、改用免 key 公开职位源（2026-09-30）"
+base_url: https://jobhunt.linzezhang.com/
+journeys:
+  - name: 打开首页了解怎么用
+    steps:
+      - goto: ""
+      - expect_text: ["上传简历", "登录"]
+      - screenshot: 首屏
+  - name: 服务就绪
+    steps:
+      - goto: "/readyz"
+      - expect_any_text: ["ok", "ready", "true"]

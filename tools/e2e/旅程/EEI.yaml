@@ -1,0 +1,19 @@
+project: EEI 商域图谱
+owner_words: "EEI：官方单来源（SEC、GLEIF）可以上图，标注「单一官方来源」并可点开来源（2026-09-30）"
+base_url: https://eei.linzezhang.com/
+freshness:
+  pattern: '数据版本\s*[·:：]?\s*(\d{4}-\d{2}-\d{2})'
+  max_age_hours: 48
+journeys:
+  - name: 打开看英伟达的关系图
+    steps:
+      - goto: ""
+      - expect_text: ["已发布到图上"]
+      - expect_visible: "canvas, svg"
+      - expect_no_text: ["载入中", "正在载入"]
+      - screenshot: 首屏
+  - name: 点开证据栏看来源
+    steps:
+      - click_text: "证据栏"
+      - expect_any_text: ["SEC", "GLEIF", "单一官方来源"]
+      - screenshot: 证据栏

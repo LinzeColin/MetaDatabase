@@ -1,0 +1,13 @@
+project: 云平台总览
+owner_words: "业务体检尺子：从机器外面盯着（2026-09-30 方案 0.6）"
+base_url: https://status.linzezhang.com/
+freshness:
+  pattern: '快照\s*(\d{4}-\d{2}-\d{2} \d{2}:\d{2})'
+  max_age_hours: 1
+journeys:
+  - name: 打开看今天要处理的事
+    steps:
+      - goto: ""
+      - expect_text: ["需要你处理的事", "服务在线"]
+      - expect_no_text: ["正在连接"]
+      - screenshot: 首屏
