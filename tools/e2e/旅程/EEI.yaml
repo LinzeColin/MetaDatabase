@@ -14,6 +14,7 @@ journeys:
       - screenshot: 首屏
   - name: 点开证据栏看来源
     steps:
+      - goto: ""
       - click_text: "证据栏"
       - expect_any_text: ["SEC", "GLEIF", "单一官方来源"]
       - screenshot: 证据栏
