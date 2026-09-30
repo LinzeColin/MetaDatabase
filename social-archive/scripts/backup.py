@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from social_archive.config import Settings
-from social_archive.db import RuntimeStore
+from social_archive.db import CompletedScanProgress, RuntimeStore
 from social_archive.encryption import AgeEncryptor, EncryptedObject
 from social_archive.private_facts import delivered_completed_content_facts, fact_bytes, fact_sha256
 from social_archive.storage import StoredObject, create_s3_client
@@ -212,7 +212,7 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--once", action="store_true", help="oneshot compatibility flag")
     parser.add_argument("--output")
-    parser.add_argument("--limit", type=int, default=100)
+    parser.add_argument("--limit", type=int, default=None, help="optional hard cap on backed-up facts; default is ALL delivered completed facts")
     args = parser.parse_args()
 
     settings = Settings.from_env()
@@ -230,14 +230,15 @@ def main() -> int:
     if not args.dry_run and not shutil.which("age"):
         return _blocked("缺少 age 命令，不能生成远端密文", code="AGE_BINARY_MISSING")
 
-    limit = min(max(args.limit, 1), 1000)
+    limit = None if args.limit is None else max(args.limit, 1)
     if args.dry_run and not settings.runtime_db.is_file():
         return _blocked("Runtime Journal 尚未初始化；dry-run 不创建本地状态", code="RUNTIME_JOURNAL_UNAVAILABLE")
 
     settings.ensure_directories()
     store = RuntimeStore(settings.runtime_db)
     store.initialize()
-    facts = delivered_completed_content_facts(store, limit=limit)
+    scan = CompletedScanProgress()
+    facts = delivered_completed_content_facts(store, limit=limit, progress=scan)
     if not facts:
         return _blocked("没有已由 Private-Database API 验证的当前完成态事实，拒绝生成空或未同步冷备", code="PRIVATE_DATABASE_SYNC_PREREQUISITE")
     if args.dry_run:
@@ -247,6 +248,8 @@ def main() -> int:
             "status": "READY",
             "dry_run": True,
             "fact_count": len(facts),
+            "completed_total": scan.completed_total,
+            "scan_truncated_count": scan.truncated_count if scan.truncated else 0,
             "source": "Private-Database API-synchronized canonical facts",
             "stores": [store_id for store_id, _ in cold_stores],
             "local_checkout": False,
@@ -367,11 +370,16 @@ def main() -> int:
     verified = all(receipts.get(store_id, {}).get("status") == "verified" for store_id, _ in cold_stores) and all(
         descriptor_receipts.get(store_id, {}).get("status") == "verified" for store_id, _ in cold_stores
     )
+    scan_truncated_count = scan.truncated_count if scan.truncated else 0
+    # A backup that silently skipped part of the archive is worse than a loud failure.
+    verified = verified and scan_truncated_count == 0
     status = "PASS" if verified else "DEGRADED"
     print(json.dumps({
         "status": status,
         "manifest": str(manifest_path),
         "fact_count": len(facts),
+        "completed_total": scan.completed_total,
+        "scan_truncated_count": scan_truncated_count,
         "verified_remote_copies": len(cold_stores) if verified else sum(receipt.get("status") == "verified" for receipt in receipts.values()),
         "verified_recovery_descriptors": sum(
             receipt.get("status") == "verified" for receipt in descriptor_receipts.values()

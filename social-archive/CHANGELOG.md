@@ -16,6 +16,7 @@ OCI 账号过期（Owner：以后没有 OCI）。`replicate_objects.py` 从 2026
 - `backup.py`、`backup_runtime_db.py`、`replicate_objects.py`、`github_release_backup.py`、`prune_r2_backup_replicas.py`、
   `recovery.py`、`restore_object.py`、`db.py`：OCI 变为可选。
 - 详见 `HANDOFF.md` 第零节。
+- **事实同步不再只看最旧的 100 条**：`sync_private_database.py` 每轮键集分页（`last_observed_at,id`）遍历全部已完成内容（单轮上限 20000，超出写 `scan_truncated_count`），`--limit` 改为「本轮最多交付几条」（从未交付优先，其次交付后有变化的，各按最旧优先）；输出新增 `completed_total` / `pending_total` / `delivered_this_run`。`backup.py` 备份全部已交付的已完成事实。修前生产：已完成 211、已交付 130、从未交付 81，每轮 NO_CHANGE。
 
 ## v0.0.0.109 — 少开一个页面不该换掉一项能力
 

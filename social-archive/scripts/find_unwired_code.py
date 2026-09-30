@@ -54,6 +54,7 @@ BY_DESIGN: dict[str, str] = {
     "write_object_reference": "同上",
     "open_tab_async": "scripts/cdp_extension_harness.py 是给人手动驱动浏览器用的开发工具，不是生产路径",
     "ev": "同上",
+    "completed_content_facts": "2026-09-30 之前同步/冷备用它取「最旧 100 条」，导致第 101 条起永远不被同步。现在生产路径一律走 iter_completed_content_facts/plan_sync 全量分页；它只留作「取最旧 N 条」的小工具（既有测试与手工排查在用），**生产路径不许再调它**",
     "redirect_request": "urllib 的框架回调：check_the_guide_warns_about_the_access_gate.py 覆写它来**不跟随跳转**（要看的正是 302 跳去哪儿）。仓内没人显式调它，调用方是 urllib 自己",
 }
 

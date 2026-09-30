@@ -11,9 +11,10 @@ from __future__ import annotations
 import json
 import re
 import urllib.parse
-from typing import Any
+from dataclasses import dataclass, field
+from typing import Any, Iterator
 
-from .db import RuntimeStore
+from .db import CompletedScanProgress, RuntimeStore
 from .utils import json_bytes, redact, sha256_bytes
 
 
@@ -123,8 +124,31 @@ def completed_content_fact(bundle: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+COMPLETED_SCAN_MAX = 20000
+COMPLETED_SCAN_BATCH = 200
+
+
 def completed_content_facts(store: RuntimeStore, *, limit: int = 100) -> list[dict[str, Any]]:
+    """One bounded page of the OLDEST completed facts.  Not a full view.
+
+    Anything that must cover every completed content (sync, backup) uses
+    :func:`iter_completed_content_facts`.
+    """
     return [completed_content_fact(bundle) for bundle in store.list_completed_content_bundles(limit=limit)]
+
+
+def iter_completed_content_facts(
+    store: RuntimeStore,
+    *,
+    batch_size: int = COMPLETED_SCAN_BATCH,
+    max_scan: int = COMPLETED_SCAN_MAX,
+    progress: CompletedScanProgress | None = None,
+) -> Iterator[dict[str, Any]]:
+    """Every completed content as a fact, oldest first, keyset-paged, bounded by ``max_scan``."""
+    for bundle in store.iter_completed_content_bundles(
+        batch_size=batch_size, max_scan=max_scan, progress=progress
+    ):
+        yield completed_content_fact(bundle)
 
 
 def fact_bytes(fact: dict[str, Any]) -> bytes:
@@ -135,10 +159,20 @@ def fact_sha256(fact: dict[str, Any]) -> str:
     return sha256_bytes(fact_bytes(fact))
 
 
-def delivered_completed_content_facts(store: RuntimeStore, *, limit: int = 100) -> list[dict[str, Any]]:
-    """Return the current completed versions only after their matching outbox ACK."""
+def delivered_completed_content_facts(
+    store: RuntimeStore,
+    *,
+    limit: int | None = None,
+    max_scan: int = COMPLETED_SCAN_MAX,
+    progress: CompletedScanProgress | None = None,
+) -> list[dict[str, Any]]:
+    """Every completed content's current version whose matching outbox ACK exists.
+
+    Walks ALL completed content (keyset-paged); ``limit`` is an optional hard
+    cap on the returned facts, not on what is examined.
+    """
     delivered: list[dict[str, Any]] = []
-    for fact in completed_content_facts(store, limit=limit):
+    for fact in iter_completed_content_facts(store, max_scan=max_scan, progress=progress):
         content_id = str(fact["content"]["id"])
         event = store.get_outbox_event(
             event_type=PRIVATE_DATABASE_EVENT,
@@ -147,4 +181,59 @@ def delivered_completed_content_facts(store: RuntimeStore, *, limit: int = 100) 
         )
         if event and event.get("status") == "delivered":
             delivered.append(fact)
+            if limit is not None and len(delivered) >= limit:
+                break
     return delivered
+
+
+@dataclass
+class SyncPlan:
+    """What one sync pass should deliver, found without holding every fact."""
+
+    completed_total: int = 0
+    scanned: int = 0
+    scan_truncated_count: int = 0
+    already_delivered: int = 0
+    never_delivered: int = 0
+    changed_since_delivery: int = 0
+    selected: list[dict[str, Any]] = field(default_factory=list)
+
+    @property
+    def pending_total(self) -> int:
+        return self.never_delivered + self.changed_since_delivery
+
+
+def plan_sync(store: RuntimeStore, *, limit: int, max_scan: int = COMPLETED_SCAN_MAX) -> SyncPlan:
+    """Scan every completed content once and pick up to ``limit`` facts to deliver.
+
+    Priority: never delivered first, then delivered-but-changed; inside each
+    group oldest ``last_observed_at`` first (the scan order).  Only the facts
+    that can be selected are kept -- at most ``2 * limit`` at any moment.
+    """
+    progress = CompletedScanProgress()
+    delivered_ids = store.delivered_outbox_aggregate_ids(event_type=PRIVATE_DATABASE_EVENT)
+    plan = SyncPlan()
+    never: list[dict[str, Any]] = []
+    changed: list[dict[str, Any]] = []
+    for fact in iter_completed_content_facts(store, max_scan=max_scan, progress=progress):
+        content_id = str(fact["content"]["id"])
+        event = store.get_outbox_event(
+            event_type=PRIVATE_DATABASE_EVENT,
+            aggregate_id=content_id,
+            payload_sha256=fact_sha256(fact),
+        )
+        if event and event.get("status") == "delivered":
+            plan.already_delivered += 1
+        elif content_id in delivered_ids:
+            plan.changed_since_delivery += 1
+            if len(changed) < limit:
+                changed.append(fact)
+        else:
+            plan.never_delivered += 1
+            if len(never) < limit:
+                never.append(fact)
+    plan.completed_total = progress.completed_total
+    plan.scanned = progress.scanned
+    plan.scan_truncated_count = progress.truncated_count if progress.truncated else 0
+    plan.selected = (never + changed)[:limit]
+    return plan
