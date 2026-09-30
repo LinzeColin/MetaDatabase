@@ -41,5 +41,5 @@ jobs:
         run: |
           set -euo pipefail
           for f in FIFA/deploy/vps/*.sh; do bash -n "$f"; done
-          python -c "import yaml; yaml.safe_load(open('FIFA/deploy/vps/docker-compose.yml'))"
+          docker compose -f FIFA/deploy/vps/docker-compose.yml config -q
           docker run --rm -v "$PWD/FIFA/deploy/vps/nginx.conf:/etc/nginx/nginx.conf:ro" nginx:1.28.3-alpine nginx -t
