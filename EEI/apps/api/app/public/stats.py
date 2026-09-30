@@ -202,7 +202,7 @@ def compute_light_stats(db: PublicDatabase) -> LightStats:
         as_of_row = conn.execute(PULSE_DATA_AS_OF_SQL).fetchone()
         data_as_of = as_of_row[0] if as_of_row and as_of_row[0] else None
         ingest_row = conn.execute(
-            "SELECT to_char(max(retrieved_at), 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"')"
+            'SELECT to_char(max(retrieved_at), \'YYYY-MM-DD"T"HH24:MI:SS"Z"\')'
             " FROM source_documents"
         ).fetchone()
         filings = [

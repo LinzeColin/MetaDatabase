@@ -198,7 +198,7 @@ def _relationship(
         " relationship_family, status, confidence, observed_at, derivation_rule,"
         " derivation_version, qualifiers)"
         " VALUES (%s, %s, %s, %s, %s, %s, 0.9, now(), %s, 'public-api-test',"
-        " '{\"owner_actor\": \"secret-person@example.test\", \"parser_version\": \"p1\"}')",
+        ' \'{"owner_actor": "secret-person@example.test", "parser_version": "p1"}\')',
         (relationship_id, subject, obj, rel_type, rel_family, status, rule),
     )
     for source_id, url, publisher in evidence:
@@ -227,24 +227,38 @@ def world(provisioned_database: None) -> Iterator[World]:
         published = {
             # 官方一手来源 + 可打开原文：单来源即可上图
             "official_single": _relationship(
-                c, focus, e1, rule=AUTHORITATIVE_RULE,
+                c,
+                focus,
+                e1,
+                rule=AUTHORITATIVE_RULE,
                 evidence=[(official, OFFICIAL_URL, "SEC EDGAR")],
             ),
             # 非官方，走复核流水线，两家独立来源
             "reviewed_multi": _relationship(
-                c, focus, e2, rule=PUBLISHED_RULE,
-                evidence=[(ir, "https://ir.example.test/a", "Acme IR"),
-                          (news, "https://news.example.test/a", "Example News")],
+                c,
+                focus,
+                e2,
+                rule=PUBLISHED_RULE,
+                evidence=[
+                    (ir, "https://ir.example.test/a", "Acme IR"),
+                    (news, "https://news.example.test/a", "Example News"),
+                ],
                 family="ownership_control",
             ),
             # 第二跳
             "hop2": _relationship(
-                c, e1, e4, rule=AUTHORITATIVE_RULE,
+                c,
+                e1,
+                e4,
+                rule=AUTHORITATIVE_RULE,
                 evidence=[(official, OFFICIAL_URL + "?hop2", "SEC EDGAR")],
                 family="supply_chain_operations",
             ),
             "policy": _relationship(
-                c, focus, e8, rule=AUTHORITATIVE_RULE,
+                c,
+                focus,
+                e8,
+                rule=AUTHORITATIVE_RULE,
                 evidence=[(official, OFFICIAL_URL + "?policy", "SEC EDGAR")],
                 family="government_policy",
             ),
@@ -252,7 +266,10 @@ def world(provisioned_database: None) -> Iterator[World]:
         hidden = {
             # 非官方单来源且没走复核：不够
             "non_official_single": _relationship(
-                c, focus, e3, rule=AUTHORITATIVE_RULE,
+                c,
+                focus,
+                e3,
+                rule=AUTHORITATIVE_RULE,
                 evidence=[(ir, "https://ir.example.test/b", "Acme IR")],
             ),
             # 官方来源但没有可打开的原文链接
@@ -263,41 +280,71 @@ def world(provisioned_database: None) -> Iterator[World]:
             "no_evidence": _relationship(c, focus, e6, rule=AUTHORITATIVE_RULE, evidence=[]),
             # 只有 contradicts 证据，没有 supports
             "contradicts_only": _relationship(
-                c, focus, e6, rule=AUTHORITATIVE_RULE,
-                evidence=[(official, OFFICIAL_URL + "?c", "SEC EDGAR")], role="contradicts",
+                c,
+                focus,
+                e6,
+                rule=AUTHORITATIVE_RULE,
+                evidence=[(official, OFFICIAL_URL + "?c", "SEC EDGAR")],
+                role="contradicts",
             ),
             # 来源已停用：官方等级不作数，又没走复核
             "inactive_source": _relationship(
-                c, focus, e7, rule=AUTHORITATIVE_RULE,
+                c,
+                focus,
+                e7,
+                rule=AUTHORITATIVE_RULE,
                 evidence=[(inactive_official, OFFICIAL_URL + "?i", "SEC EDGAR")],
             ),
             # 夹具/其它派生规则：发布端从不取
             "wrong_rule": _relationship(
-                c, focus, e7, rule="synthetic_fixture",
+                c,
+                focus,
+                e7,
+                rule="synthetic_fixture",
                 evidence=[(official, OFFICIAL_URL + "?w", "SEC EDGAR")],
             ),
             # 已被取代
             "superseded": _relationship(
-                c, focus, e7, rule=AUTHORITATIVE_RULE, status="superseded",
+                c,
+                focus,
+                e7,
+                rule=AUTHORITATIVE_RULE,
+                status="superseded",
                 evidence=[(official, OFFICIAL_URL + "?s", "SEC EDGAR")],
             ),
             # 复核流水线的关系，但只有一家非官方来源
             "reviewed_single": _relationship(
-                c, focus, e7, rule=PUBLISHED_RULE,
+                c,
+                focus,
+                e7,
+                rule=PUBLISHED_RULE,
                 evidence=[(ir, "https://ir.example.test/c", "Acme IR")],
             ),
         }
 
-        def event(title: str, *, rule: str, amount: float | None, with_evidence: bool,
-                  status: str = "reported") -> str:
+        def event(
+            title: str,
+            *,
+            rule: str,
+            amount: float | None,
+            with_evidence: bool,
+            status: str = "reported",
+        ) -> str:
             event_id = str(uuid4())
             c.execute(
                 "INSERT INTO events (id, event_type, title, status, observed_at, amount,"
                 " currency, amount_kind, derivation_rule, derivation_version, announced_at,"
                 " qualifiers) VALUES (%s, 'sec_filing', %s, %s, now(), %s, %s, %s, %s,"
-                " 'public-api-test', now(), '{\"owner_actor\": \"x\", \"parser_version\": \"p\"}')",
-                (event_id, title, status, amount, "USD" if amount else None,
-                 "reported_total" if amount else None, rule),
+                ' \'public-api-test\', now(), \'{"owner_actor": "x", "parser_version": "p"}\')',
+                (
+                    event_id,
+                    title,
+                    status,
+                    amount,
+                    "USD" if amount else None,
+                    "reported_total" if amount else None,
+                    rule,
+                ),
             )
             c.execute(
                 "INSERT INTO event_participants (event_id, entity_id, role, direction)"
@@ -317,18 +364,37 @@ def world(provisioned_database: None) -> Iterator[World]:
             f"PubApi {suffix} filing", rule=AUTHORITATIVE_RULE, amount=1250.0, with_evidence=True
         )
         event_hidden = {
-            "no_evidence": event(f"PubApi {suffix} draft", rule=AUTHORITATIVE_RULE,
-                                 amount=1.0, with_evidence=False),
-            "wrong_rule": event(f"PubApi {suffix} fixture", rule="synthetic_fixture",
-                                amount=2.0, with_evidence=True),
-            "superseded": event(f"PubApi {suffix} old", rule=AUTHORITATIVE_RULE, amount=3.0,
-                                with_evidence=True, status="superseded"),
+            "no_evidence": event(
+                f"PubApi {suffix} draft", rule=AUTHORITATIVE_RULE, amount=1.0, with_evidence=False
+            ),
+            "wrong_rule": event(
+                f"PubApi {suffix} fixture", rule="synthetic_fixture", amount=2.0, with_evidence=True
+            ),
+            "superseded": event(
+                f"PubApi {suffix} old",
+                rule=AUTHORITATIVE_RULE,
+                amount=3.0,
+                with_evidence=True,
+                status="superseded",
+            ),
         }
         c.commit()
         rel_ids = [*published.values(), *hidden.values()]
         world_data = World(
-            suffix=suffix, focus=focus, e1=e1, e2=e2, e4=e4, e3=e3, e5=e5, e6=e6, e7=e7, e8=e8,
-            lonely=lonely, published=published, hidden=hidden, event_published=event_published,
+            suffix=suffix,
+            focus=focus,
+            e1=e1,
+            e2=e2,
+            e4=e4,
+            e3=e3,
+            e5=e5,
+            e6=e6,
+            e7=e7,
+            e8=e8,
+            lonely=lonely,
+            published=published,
+            hidden=hidden,
+            event_published=event_published,
             event_hidden=event_hidden,
             entity_ids=[focus, e1, e2, e3, e4, e5, e6, e7, e8, lonely],
             source_ids=[official, inactive_official, ir, news],
@@ -340,7 +406,8 @@ def world(provisioned_database: None) -> Iterator[World]:
     finally:
         with connect_database() as c:
             c.execute(
-                "DELETE FROM event_evidence WHERE event_id = ANY(%s::uuid[])", (world_data.event_ids,)
+                "DELETE FROM event_evidence WHERE event_id = ANY(%s::uuid[])",
+                (world_data.event_ids,),
             )
             c.execute(
                 "DELETE FROM event_participants WHERE event_id = ANY(%s::uuid[])",
@@ -352,7 +419,8 @@ def world(provisioned_database: None) -> Iterator[World]:
                 (world_data.relationship_ids,),
             )
             c.execute(
-                "DELETE FROM relationships WHERE id = ANY(%s::uuid[])", (world_data.relationship_ids,)
+                "DELETE FROM relationships WHERE id = ANY(%s::uuid[])",
+                (world_data.relationship_ids,),
             )
             c.execute(
                 "DELETE FROM source_documents WHERE source_id = ANY(%s::uuid[])",
@@ -383,7 +451,9 @@ def _explore(client: TestClient, world: World, **overrides: Any) -> dict[str, An
 # ---------------------------------------------------------------------------
 
 
-def test_explore_serves_only_gated_relationships_with_tier(client: TestClient, world: World) -> None:
+def test_explore_serves_only_gated_relationships_with_tier(
+    client: TestClient, world: World
+) -> None:
     payload = _explore(client, world)
     edges = {edge["id"]: edge for edge in payload["edges"]}
 
@@ -470,8 +540,15 @@ def test_relationship_evidence_and_explanation_hide_unpublished(
     assert evidence["evidence_count"] == 1
     assert evidence["evidence"][0]["source_url"] == OFFICIAL_URL
     assert set(evidence["evidence"][0]) == {
-        "relationship_id", "source_document_id", "role", "locator", "support_excerpt",
-        "source_url", "source_title", "publisher", "document_date",
+        "relationship_id",
+        "source_document_id",
+        "role",
+        "locator",
+        "support_excerpt",
+        "source_url",
+        "source_title",
+        "publisher",
+        "document_date",
     }
     explanation = client.get(f"/v1/scoring/relationship/{published}/explanation").json()
     assert explanation["evidence_tier"] == "single_official"
@@ -481,8 +558,7 @@ def test_relationship_evidence_and_explanation_hide_unpublished(
     for name, relationship_id in world.hidden.items():
         assert client.get(f"/v1/evidence/relationship/{relationship_id}").status_code == 404, name
         assert (
-            client.get(f"/v1/scoring/relationship/{relationship_id}/explanation").status_code
-            == 404
+            client.get(f"/v1/scoring/relationship/{relationship_id}/explanation").status_code == 404
         ), name
     assert client.get("/v1/evidence/relationship/not-a-uuid").status_code == 404
 
@@ -494,10 +570,15 @@ def test_public_qualifiers_never_carry_private_identifiers(
         f"/v1/scoring/relationship/{world.published['official_single']}/explanation"
     ).json()
     assert "owner_actor" not in explanation["qualifiers"]
-    assert "secret-person" not in client.get(
-        f"/v1/scoring/relationship/{world.published['official_single']}/explanation"
-    ).text
-    assert explanation["qualifiers"]["source_threshold_policy"]["policy"] == "official_single_source"
+    assert (
+        "secret-person"
+        not in client.get(
+            f"/v1/scoring/relationship/{world.published['official_single']}/explanation"
+        ).text
+    )
+    assert (
+        explanation["qualifiers"]["source_threshold_policy"]["policy"] == "official_single_source"
+    )
 
 
 def test_changes_feed_lists_published_only(client: TestClient, world: World) -> None:
@@ -523,12 +604,19 @@ def test_module_overviews_exclude_unpublished(client: TestClient, world: World) 
     signals = client.get("/v1/signals/overview").json()
     everything = {
         r["id"]
-        for rows in (control["relationships"], supply["relationships"], ma["relationships"],
-                     signals["relationships"], policy["policy_relationships"])
+        for rows in (
+            control["relationships"],
+            supply["relationships"],
+            ma["relationships"],
+            signals["relationships"],
+            policy["policy_relationships"],
+        )
         for r in rows
     }
     assert everything.isdisjoint(world.hidden.values())
-    multi = next(r for r in control["relationships"] if r["id"] == world.published["reviewed_multi"])
+    multi = next(
+        r for r in control["relationships"] if r["id"] == world.published["reviewed_multi"]
+    )
     assert multi["owner_signed_published"] is True
     assert multi["evidence_tier"] == "multi_source"
 
@@ -569,8 +657,12 @@ def test_events_serve_published_only_with_participants_and_amounts(
     assert ids == {world.event_published}
     event = events[0]
     assert event["participants"] == [
-        {"entity_id": world.focus, "entity_name": f"PubApi {world.suffix} Focus",
-         "role": "filer", "direction": "out"}
+        {
+            "entity_id": world.focus,
+            "entity_name": f"PubApi {world.suffix} Focus",
+            "role": "filer",
+            "direction": "out",
+        }
     ]
     assert event["amount"] == 1250.0
     assert event["amount_semantics"]["state"] == "reported"
@@ -599,13 +691,21 @@ def test_pulse_and_meta_endpoints(client: TestClient, world: World) -> None:
     pulse = client.get("/v1/meta/pulse").json()
     assert pulse["schema_version"] == "eei-data-pulse-v1"
     assert set(pulse) >= {
-        "generated_at", "data_as_of", "last_publish_at", "totals", "added", "series",
-        "composition", "sources", "heartbeat",
+        "generated_at",
+        "data_as_of",
+        "last_publish_at",
+        "totals",
+        "added",
+        "series",
+        "composition",
+        "sources",
+        "heartbeat",
     }
     assert pulse["totals"]["relationships"] >= 4
     assert pulse["series"][-1]["relationships"] == pulse["totals"]["relationships"]
     assert {b["bucket"] for b in pulse["composition"]["relationship_family"]} >= {
-        "ownership_control", "supply_chain_operations"
+        "ownership_control",
+        "supply_chain_operations",
     }
     assert pulse["heartbeat"]["state"] in {"live", "delayed", "stalled", "unknown"}
 
@@ -633,7 +733,9 @@ def test_published_count_matches_publisher_gate(client: TestClient, world: World
             )
             if relationship is not None
         )
-    assert client.get("/v1/publication/meta").json()["published_relationship_count"] == publisher_count
+    assert (
+        client.get("/v1/publication/meta").json()["published_relationship_count"] == publisher_count
+    )
 
 
 def test_scoring_and_catalog_reference_data(client: TestClient) -> None:
@@ -660,15 +762,29 @@ def test_scoring_and_catalog_reference_data(client: TestClient) -> None:
 # ---------------------------------------------------------------------------
 
 SERVED_GET = {
-    "/v1/publication/meta", "/v1/meta/pulse", "/v1/sources/freshness", "/v1/policy/overview",
-    "/v1/control/overview", "/v1/ma/overview", "/v1/signals/overview", "/v1/entities",
-    "/v1/scoring/active-context", "/v1/supply-chain/overview", "/v1/changes", "/v1/events",
-    "/v1/events/amount-summary", "/v1/meta/build",
+    "/v1/publication/meta",
+    "/v1/meta/pulse",
+    "/v1/sources/freshness",
+    "/v1/policy/overview",
+    "/v1/control/overview",
+    "/v1/ma/overview",
+    "/v1/signals/overview",
+    "/v1/entities",
+    "/v1/scoring/active-context",
+    "/v1/supply-chain/overview",
+    "/v1/changes",
+    "/v1/events",
+    "/v1/events/amount-summary",
+    "/v1/meta/build",
 }
 SERVED_POST = {"/v1/explore", "/v1/explore/reroot", "/v1/explore/expand"}
 DENIED = {
-    "/v1/saved-views", "/v1/watchlists", "/v1/exploration-log", "/v1/cloud/runs",
-    "/v1/cloud/runs/trigger", "/v1/internal/publish/exec",
+    "/v1/saved-views",
+    "/v1/watchlists",
+    "/v1/exploration-log",
+    "/v1/cloud/runs",
+    "/v1/cloud/runs/trigger",
+    "/v1/internal/publish/exec",
 }
 
 
@@ -712,34 +828,76 @@ def test_worker_regex_routes_are_served(client: TestClient, world: World) -> Non
 def test_explore_response_fields_match_worker_contract(client: TestClient, world: World) -> None:
     payload = _explore(client, world)
     assert set(payload) == {
-        "session_id", "focus", "query", "nodes", "edges", "truncated", "truncation",
-        "continuation", "warnings", "coverage", "production_context",
+        "session_id",
+        "focus",
+        "query",
+        "nodes",
+        "edges",
+        "truncated",
+        "truncation",
+        "continuation",
+        "warnings",
+        "coverage",
+        "production_context",
     }
     assert set(payload["edges"][0]) == {
-        "id", "subject_id", "object_id", "relationship_type", "relationship_family", "status",
-        "confidence", "valid_from", "valid_to", "evidence_count", "evidence_tier", "source_url",
-        "source_publisher", "synthetic", "fixture_notice",
+        "id",
+        "subject_id",
+        "object_id",
+        "relationship_type",
+        "relationship_family",
+        "status",
+        "confidence",
+        "valid_from",
+        "valid_to",
+        "evidence_count",
+        "evidence_tier",
+        "source_url",
+        "source_publisher",
+        "synthetic",
+        "fixture_notice",
     }
     assert set(payload["nodes"][0]) == {
-        "id", "canonical_name", "entity_type", "fixture_notice", "synthetic"
+        "id",
+        "canonical_name",
+        "entity_type",
+        "fixture_notice",
+        "synthetic",
     }
     assert set(payload["query"]) == {
-        "focus", "direction", "hops", "as_of", "scoring_profile_version_id", "active_layers",
-        "filters", "budget", "hard_limits",
+        "focus",
+        "direction",
+        "hops",
+        "as_of",
+        "scoring_profile_version_id",
+        "active_layers",
+        "filters",
+        "budget",
+        "hard_limits",
     }
     assert set(payload["truncation"]) == {
-        "applied", "reasons", "message", "fetched_edge_count", "returned_edge_count",
+        "applied",
+        "reasons",
+        "message",
+        "fetched_edge_count",
+        "returned_edge_count",
         "returned_node_count",
     }
     assert set(payload["coverage"]) == {
-        "visible_nodes", "visible_edges", "source_count", "relationship_family_count",
+        "visible_nodes",
+        "visible_edges",
+        "source_count",
+        "relationship_family_count",
         "synthetic_fixture_edges",
     }
     assert payload["session_id"]
-    assert client.post(
-        "/v1/explore",
-        json={"focus": {"object_id": world.focus}, "session_id": "keep-me"},
-    ).json()["session_id"] == "keep-me"
+    assert (
+        client.post(
+            "/v1/explore",
+            json={"focus": {"object_id": world.focus}, "session_id": "keep-me"},
+        ).json()["session_id"]
+        == "keep-me"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -755,8 +913,13 @@ def test_reader_role_can_only_select_whitelisted_tables(reader_dsn: str, world: 
                 "INSERT INTO entities (canonical_name, entity_type) VALUES ('x', 'legal_entity')"
             )
         conn.rollback()
-        for forbidden in ("saved_views", "watchlists", "relationship_fact_candidates",
-                          "manual_review_queue", "operation_logs"):
+        for forbidden in (
+            "saved_views",
+            "watchlists",
+            "relationship_fact_candidates",
+            "manual_review_queue",
+            "operation_logs",
+        ):
             with pytest.raises(psycopg.errors.InsufficientPrivilege):
                 conn.execute(f"SELECT 1 FROM {forbidden} LIMIT 1")
             conn.rollback()
@@ -789,8 +952,14 @@ def test_indexes_sql_is_idempotent(provisioned_database: None) -> None:
             row[0]
             for row in connection.execute(
                 "SELECT indexname FROM pg_indexes WHERE indexname = ANY(%s)",
-                (["relationships_created_idx", "relationships_family_type_idx",
-                  "events_public_time_idx", "event_participants_entity_idx"],),
+                (
+                    [
+                        "relationships_created_idx",
+                        "relationships_family_type_idx",
+                        "events_public_time_idx",
+                        "event_participants_entity_idx",
+                    ],
+                ),
             ).fetchall()
         }
     assert len(found) == 4
@@ -800,8 +969,9 @@ def test_pool_connections_are_read_only_even_for_the_owner_role(
     provisioned_database: None,
 ) -> None:
     owner = PublicDatabase(
-        _settings(os.environ.get("DATABASE_URL") or _dotenv_database_url(),
-                  require_read_only_role=False)
+        _settings(
+            os.environ.get("DATABASE_URL") or _dotenv_database_url(), require_read_only_role=False
+        )
     )
     try:
         with owner.connection() as conn:

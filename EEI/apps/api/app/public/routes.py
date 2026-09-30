@@ -427,8 +427,10 @@ def get_changes(
 def fallback(request: Request, path: str) -> JSONResponse:
     settings = _ctx(request).settings
     first = path.split("/", 1)[0]
-    if request.method not in READ_METHODS or first in DENIED_PREFIXES or path.startswith(
-        "scoring/profiles/"
+    if (
+        request.method not in READ_METHODS
+        or first in DENIED_PREFIXES
+        or path.startswith("scoring/profiles/")
     ):
         if settings.write_route_mode == "hidden":
             return JSONResponse(

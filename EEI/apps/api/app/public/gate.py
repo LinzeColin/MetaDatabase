@@ -39,7 +39,8 @@ OPENABLE_SUPPORT_SQL = """EXISTS (
 )"""
 
 # 实体可见的 SQL 预筛：研究目标，或是至少一条「可能过门」关系的端点（必要条件，只挡必拒的）。
-# 精确判定在 Python：研究目标 或 has_published_edge()——比 D1 发布面（任何已发布规则关系的端点）更窄。
+# 精确判定在 Python：研究目标 或 has_published_edge()。
+# 比 D1 发布面（任何已发布规则关系的端点）更窄。
 ENTITY_VISIBLE_SQL = """(
     e.status = 'research_target'
     OR EXISTS (

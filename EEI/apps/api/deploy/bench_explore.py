@@ -24,7 +24,6 @@ import os
 import statistics
 import subprocess
 import sys
-import tempfile
 import time
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
@@ -70,19 +69,22 @@ FROM rel r;
 
 CREATE TEMP TABLE doc AS
   SELECT gen_random_uuid() AS id, r.id AS rid, r.kind,
-         CASE WHEN r.kind < 0.90 OR r.kind >= 0.95 THEN (SELECT id FROM sources WHERE code = 'bench_official')
+         CASE WHEN r.kind < 0.90 OR r.kind >= 0.95
+              THEN (SELECT id FROM sources WHERE code = 'bench_official')
               ELSE (SELECT id FROM sources WHERE code = 'bench_ir') END AS source_id
   FROM rel r;
 
 INSERT INTO source_documents (id, source_id, external_id, url, title, publisher, document_date,
                               observed_at, content_hash)
 SELECT d.id, d.source_id, d.id::text,
-       CASE WHEN d.kind >= 0.95 THEN '' ELSE 'https://www.sec.gov/Archives/bench/' || d.id || '.htm' END,
+       CASE WHEN d.kind >= 0.95 THEN ''
+            ELSE 'https://www.sec.gov/Archives/bench/' || d.id || '.htm' END,
        'doc', CASE WHEN d.kind >= 0.90 AND d.kind < 0.95 THEN 'Bench IR' ELSE 'SEC EDGAR' END,
        now(), now(), d.id::text
 FROM doc d;
 
-INSERT INTO relationship_evidence (relationship_id, source_document_id, role, locator, support_excerpt)
+INSERT INTO relationship_evidence (relationship_id, source_document_id, role, locator,
+                                   support_excerpt)
 SELECT d.rid, d.id, 'supports', 'p.1', 'bench excerpt ' || repeat('x', 200) FROM doc d;
 """
 
@@ -102,7 +104,9 @@ def percentile(values: list[float], q: float) -> float:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawTextHelpFormatter
+    )
     parser.add_argument("--admin-dsn", required=True, help="能 CREATE DATABASE 的连接串")
     parser.add_argument("--entities", type=int, default=20_000)
     parser.add_argument("--relationships", type=int, default=150_000)
@@ -146,39 +150,59 @@ def main() -> int:
                 " (SELECT count(*) FROM relationship_evidence)"
             ).fetchone()
             # 枢纽：度最大的 5 个；中位：度排在中间；随机：研究目标里随机取
-            hubs = [r[0] for r in conn.execute(
-                "SELECT e.id::text FROM entities e JOIN (SELECT subject_entity_id AS id, count(*) c"
-                " FROM relationships GROUP BY 1 ORDER BY 2 DESC LIMIT 5) d ON d.id = e.id"
-                " ORDER BY d.c DESC"
-            ).fetchall()]
-            degrees = [r[1] for r in conn.execute(
-                "SELECT e.id::text, count(*) FROM entities e JOIN relationships r"
-                " ON r.subject_entity_id = e.id OR r.object_entity_id = e.id"
-                " WHERE e.status = 'research_target' GROUP BY 1 ORDER BY 2 DESC"
-            ).fetchall()]
-            median = [r[0] for r in conn.execute(
-                "SELECT e.id::text FROM entities e WHERE e.status = 'research_target'"
-                " ORDER BY random() LIMIT %s", (args.requests,)
-            ).fetchall()]
+            hubs = [
+                r[0]
+                for r in conn.execute(
+                    "SELECT e.id::text FROM entities e"
+                    " JOIN (SELECT subject_entity_id AS id, count(*) c"
+                    " FROM relationships GROUP BY 1 ORDER BY 2 DESC LIMIT 5) d ON d.id = e.id"
+                    " ORDER BY d.c DESC"
+                ).fetchall()
+            ]
+            median = [
+                r[0]
+                for r in conn.execute(
+                    "SELECT e.id::text FROM entities e WHERE e.status = 'research_target'"
+                    " ORDER BY random() LIMIT %s",
+                    (args.requests,),
+                ).fetchall()
+            ]
             max_degree = conn.execute(
-                "SELECT max(c) FROM (SELECT count(*) c FROM relationships GROUP BY subject_entity_id) x"
+                "SELECT max(c) FROM"
+                " (SELECT count(*) c FROM relationships GROUP BY subject_entity_id) x"
             ).fetchone()[0]
-        reader_dsn = psycopg.conninfo.make_conninfo(
-            bench_dsn, user="eei_reader", password="bench"
-        )
-        categories = {"hub": (hubs * args.requests)[: args.requests], "random_research_target": median}
+        reader_dsn = psycopg.conninfo.make_conninfo(bench_dsn, user="eei_reader", password="bench")
+        categories = {
+            "hub": (hubs * args.requests)[: args.requests],
+            "random_research_target": median,
+        }
         results: dict[str, dict[str, float]] = {}
         body_for = lambda entity: {  # noqa: E731
             "focus": {"object_type": "entity", "object_id": entity},
-            "active_layers": [], "direction": "both", "hops": args.hops, "filters": {},
-            "budget": {"max_nodes": args.max_nodes, "max_edges": args.max_edges, "expand_nodes": 40},
+            "active_layers": [],
+            "direction": "both",
+            "hops": args.hops,
+            "filters": {},
+            "budget": {
+                "max_nodes": args.max_nodes,
+                "max_edges": args.max_edges,
+                "expand_nodes": 40,
+            },
         }
         server = None
         if args.http:
             port = 18765
             server = subprocess.Popen(
-                [sys.executable, "-m", "uvicorn", "apps.api.app.public_main:app",
-                 "--port", str(port), "--log-level", "warning"],
+                [
+                    sys.executable,
+                    "-m",
+                    "uvicorn",
+                    "apps.api.app.public_main:app",
+                    "--port",
+                    str(port),
+                    "--log-level",
+                    "warning",
+                ],
                 cwd=ROOT,
                 env={**os.environ, "DATABASE_URL": reader_dsn, "EEI_DB_POOL_SIZE": "4"},
             )
@@ -198,8 +222,9 @@ def main() -> int:
             from apps.api.app.public.app import create_public_app
             from apps.api.app.public.settings import PublicSettings
 
-            app = create_public_app(PublicSettings(database_url=reader_dsn, db_pool_size=4),
-                                    warm_up=False)
+            app = create_public_app(
+                PublicSettings(database_url=reader_dsn, db_pool_size=4), warm_up=False
+            )
             client = TestClient(app)
             post = lambda entity: client.post("/v1/explore", json=body_for(entity))  # noqa: E731
         try:
@@ -227,10 +252,18 @@ def main() -> int:
                 server.terminate()
         summary = {
             "mode": "http(uvicorn, loopback)" if args.http else "in-process",
-            "dataset": {"entities": totals[0], "relationships": totals[1],
-                        "evidence_rows": totals[2], "max_subject_degree": max_degree,
-                        "top_hubs_benchmarked": len(hubs)},
-            "request": {"hops": args.hops, "max_nodes": args.max_nodes, "max_edges": args.max_edges},
+            "dataset": {
+                "entities": totals[0],
+                "relationships": totals[1],
+                "evidence_rows": totals[2],
+                "max_subject_degree": max_degree,
+                "top_hubs_benchmarked": len(hubs),
+            },
+            "request": {
+                "hops": args.hops,
+                "max_nodes": args.max_nodes,
+                "max_edges": args.max_edges,
+            },
             "edges_returned": {"mean": round(statistics.fmean(sizes), 1), "max": max(sizes)},
             "results": results,
             "p95_target_ms": 1500,
