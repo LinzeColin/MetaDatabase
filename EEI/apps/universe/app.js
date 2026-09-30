@@ -25,7 +25,8 @@ const ANCHORS = [
   { id: "00000000-0000-4000-8000-000000000004", zh: "亚马逊" },
   { id: "00000000-0000-4000-8000-000000000008", zh: "甲骨文" },
   { id: "00000000-0000-4000-8000-000000000007", zh: "特斯拉" },
-  { id: "2f0812b5-5c32-5603-9795-db788f6f7842", zh: "伯克希尔" },
+  // 伯克希尔：两跳、或一跳超过 60 个节点，上游接口都返回 500（2026-09-30 实测），直接从一跳 60 节点起
+  { id: "2f0812b5-5c32-5603-9795-db788f6f7842", zh: "伯克希尔", hops: 1, maxNodes: 60 },
 ];
 const LAYERS = ["corporate_structure", "ownership_control", "governance", "supply_chain", "capital", "business"];
 
@@ -206,8 +207,8 @@ async function getJSON(path, init) {
   if (!r.ok) throw new Error(`${path} → HTTP ${r.status}`);
   return r.json();
 }
-async function exploreGraph(id) {
-  const tries = [{ hops: 2, max_nodes: 160, max_edges: 320 }, { hops: 1, max_nodes: 90, max_edges: 120 }, { hops: 1, max_nodes: 40, max_edges: 60 }];
+async function exploreGraph(id, startHops = 2, startNodes = 160) {
+  const tries = [{ hops: 2, max_nodes: 160, max_edges: 320 }, { hops: 1, max_nodes: 90, max_edges: 120 }, { hops: 1, max_nodes: 60, max_edges: 80 }, { hops: 1, max_nodes: 40, max_edges: 60 }].filter((t) => t.hops <= startHops && t.max_nodes <= startNodes);
   let last;
   for (const t of tries) {
     const body = { focus: { object_type: "entity", object_id: id }, active_layers: LAYERS, direction: "both", hops: t.hops, filters: {}, budget: { max_nodes: t.max_nodes, max_edges: t.max_edges, expand_nodes: 40 } };
@@ -430,7 +431,7 @@ function updateFlyers(t) {
 
 // ---------- 装配宇宙 ----------
 async function loadUniverse() {
-  const results = await Promise.allSettled(ANCHORS.map((a) => exploreGraph(a.id)));
+  const results = await Promise.allSettled(ANCHORS.map((a) => exploreGraph(a.id, a.hops || 2, a.maxNodes || 160)));
   const ok = [];
   results.forEach((r, i) => { if (r.status === "fulfilled" && r.value?.focus) ok.push({ anchor: ANCHORS[i], g: r.value }); });
   if (!ok.length) throw new Error("所有恒星的数据都没取到");

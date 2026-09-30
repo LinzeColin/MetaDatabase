@@ -36,11 +36,13 @@ server {
     try_files $uri =404;
   }
 
-  # 其余静态文件（index.html、app.js、styles.css、version.txt）：每次带 ETag 重新验证，改了立刻生效
+  # 其余路径：宇宙自己的静态文件（index.html、app.js、styles.css、version.txt）优先，每次带 ETag 重新验证；
+  # 不是宇宙文件的（旧版各模块页 /structure、/capital、/supply-chain…）一律交给上游，
+  # 否则切主站后旧页面全变 404（2026-09-30 切换后 E2E 抓到）。
   location / {
     include /etc/nginx/snippets/headers.conf;
     add_header Cache-Control "private, no-cache" always;
-    try_files $uri =404;
+    try_files $uri @upstream;
   }
 
   # ---- 反代上游（默认旧版 EEI；切主站后仍是这一组路径）----
