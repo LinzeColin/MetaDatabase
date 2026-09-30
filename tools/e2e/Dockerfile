@@ -6,6 +6,8 @@ FROM mcr.microsoft.com/playwright/python:v1.61.0-noble
 ADD --chmod=0644 --checksum=sha256:fb83a4378d978ecb7d2dae48a3a3778a84c971ac692f3afd45d714fba89c0f0d \
     https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.11.4/axe.min.js /opt/axe/axe.min.js
 
+RUN chmod -R a+rX /opt/axe   # 容器以 uid 1000 运行，必须可读
+
 ENV E2E_AXE_JS=/opt/axe/axe.min.js \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
