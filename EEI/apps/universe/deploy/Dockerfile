@@ -12,7 +12,7 @@ COPY vendor/ /usr/share/nginx/html/vendor/
 # 线上版本戳：拉取式部署构建时传入提交号，curl <域名>/version.txt 即可看到线上是哪一版
 ARG SOURCE_COMMIT=unknown
 RUN printf '%s\n' "$SOURCE_COMMIT" > /usr/share/nginx/html/version.txt
-# 预览期上游 = Cloudflare Workers 上的旧程序；要换上游，在 eei-universe.env 的 RUN_EXTRA_ARGS 里加 -e EEI_UPSTREAM=... 即可，不用改镜像
+# 上游 = Cloudflare Workers 上的旧程序（workers.dev 地址）；要换上游，在 eei-universe.env 的 RUN_EXTRA_ARGS 里加 -e EEI_UPSTREAM=... 即可，不用改镜像
 ENV EEI_UPSTREAM=https://codex-eei.linzezhang35.workers.dev \
     EEI_RESOLVER="1.1.1.1 8.8.8.8" \
     NGINX_ENTRYPOINT_QUIET_LOGS=1

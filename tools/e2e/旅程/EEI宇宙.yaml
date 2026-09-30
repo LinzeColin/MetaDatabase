@@ -1,6 +1,6 @@
 project: EEI宇宙
 owner_words: "EEi是非常强调宇宙关联这种可视化的，沉浸式体验"
-base_url: https://eei-preview.linzezhang.com/
+base_url: https://eei.linzezhang.com/
 viewports: [desktop, mobile, dark]
 # 不写 freshness：页面上的「数据截至 9/30 22:15」没有年份，执行器的日期解析要求带年份（YYYY-MM-DD）。
 journeys:

@@ -1,6 +1,6 @@
 project: EEI 商域图谱
 owner_words: "EEI：官方单来源（SEC、GLEIF）可以上图，标注「单一官方来源」并可点开来源（2026-09-30）"
-base_url: https://eei.linzezhang.com/
+base_url: https://eei.linzezhang.com/?subject=00000000-0000-4000-8000-000000000006
 freshness:
   pattern: '数据版本\s*[·:：]?\s*(\d{4}-\d{2}-\d{2})'
   max_age_hours: 48
