@@ -30,4 +30,4 @@
 
 Web UI -> 图/Sankey/时间线/矩阵/ERD -> API 投影与模型预览 -> 领域服务 -> PostgreSQL、原始快照、证据、配置、分数快照、outbox 与日志。
 
-完整功能矩阵：`FUNCTION_CATALOG.md`。
+完整功能矩阵：`文档/归档/FUNCTION_CATALOG.md`。
