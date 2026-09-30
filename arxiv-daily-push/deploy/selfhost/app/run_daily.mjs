@@ -16,6 +16,7 @@ import { appendFileSync, mkdirSync, readdirSync, rmSync, existsSync } from 'node
 import { join } from 'node:path';
 import { loadWorker, schemaPath } from './load_worker.mjs';
 import { openDatabase } from './d1_sqlite.mjs';
+import { installPoliteFetch } from './polite_fetch.mjs';
 
 const CRON = { daily: '30 20 * * *', backfill: '30 8 * * *' };
 const ATTEMPT_TIMEOUT_MS = Number(process.env.ADP_ATTEMPT_TIMEOUT_SECONDS || 1200) * 1000;
@@ -80,7 +81,7 @@ export function backupDatabase(db, dataDir, keep = KEEP_BACKUPS) {
   return target;
 }
 
-export async function runJob({ job = 'daily', dataDir = process.env.ADP_DATA_DIR || '/data', dbPath, backoff = parseBackoff(process.env.ADP_RETRY_BACKOFF_SECONDS), sleep = (s) => new Promise((r) => setTimeout(r, s * 1000)), log, doBackup = true } = {}) {
+async function runJobInner({ job = 'daily', dataDir = process.env.ADP_DATA_DIR || '/data', dbPath, backoff = parseBackoff(process.env.ADP_RETRY_BACKOFF_SECONDS), sleep = (s) => new Promise((r) => setTimeout(r, s * 1000)), log, doBackup = true } = {}) {
   if (!CRON[job]) throw new Error(`未知任务 ${job}`);
   log ||= makeLogger(dataDir);
   const { worker } = await loadWorker();
@@ -133,6 +134,13 @@ export async function runJob({ job = 'daily', dataDir = process.env.ADP_DATA_DIR
   log({ event: 'job_done', ...summary });
   db.close();
   return summary;
+}
+
+// 对外入口：在 runJobInner 外面给 arXiv 请求套上「≥3 秒间隔」（见 polite_fetch.mjs），跑完还原。
+// arxivMinIntervalMs 默认读 ADP_ARXIV_MIN_INTERVAL_MS（缺省 3000）；测试可传 0 关掉。
+export async function runJob(opts = {}) {
+  const restore = installPoliteFetch({ minIntervalMs: opts.arxivMinIntervalMs });
+  try { return await runJobInner(opts); } finally { restore(); }
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
