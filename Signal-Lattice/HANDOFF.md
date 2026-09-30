@@ -1,6 +1,14 @@
 # Signal Lattice V2 重建交接
 
-## 2026-09-30 合并前修正（最新）
+## 2026-09-30 0.0.0.3.5：once 不再每分钟打印整份报告（最新）
+
+- `signal-lattice once` 原先每轮把整份报告（约 7,500 行、0.7 MB）打到 stdout；定时器每分钟一轮，journal 与 syslog
+  各存一份，整机 syslog 一天约 1 GB、journal 只剩 2 天，别的服务的故障证据被冲掉。
+- 现在 stdout 只在结论（`state`、`decision.action_code`、`decision.primary_symbol`、`blocking_findings`）相对上一轮
+  变化时记一行 JSON；结论不变则不打印。整份报告照旧落盘在 `latest.json`，`signal-lattice print-latest` 与
+  `/api/v1/report/latest` 读取方式不变，退出码不变。测试：`tests/test_once_logs_only_outcome_changes.py`。
+
+## 2026-09-30 合并前修正
 
 - 版本升到 `0.0.0.3.4`。生产机已有 `releases/0.0.0.3.3`，`install_release.sh` 对同版本、不同 wheel 会
   `VERSION_COLLISION` 退出，不升版本 `deploy_v2.sh` 在生产上必然失败。版本唯一手写源仍是 `pyproject.toml`，
