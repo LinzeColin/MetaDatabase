@@ -6,12 +6,19 @@
 
 ```text
 邮箱注册验证 → 上传一份或多份简历 → 确认少量高影响事实（工作权利、担保、城市、年限、资质）
-→ 每 6 小时自动聚合合法岗位源（Remotive / Arbeitnow / Jobicy / Adzuna / Greenhouse / Lever / Ashby）
+→ 每 6 小时自动聚合合法岗位源（Remotive / Arbeitnow / Jobicy / Adzuna / Greenhouse / Lever / Ashby，以及按目标地区启用的澳洲雇主公开招聘板，见下）
 → 先判硬资格（职级、年限、CPA/CFA、律师准入、执业证书、工作权利、担保），再排序
 → 每个岗位自动选最合适的那份简历 → 下载只含本人事实的岗位定制 DOCX → 本人到官方页面投递并记录
 ```
 
 DeepSeek 只做可选的材料复核；没有 Key 或额度用完时，核心流程按确定性规则照常完成。系统不保存第三方招聘平台账号，不自动提交申请。
+
+## 岗位源与地区
+
+- 全部免 key、只走各服务商公开的、无需登录的岗位接口；请求带可识别的 User-Agent，链接一律指回原岗位页，不自动投递。
+- 同一轮里所有用户共用一次公开源抓取（`FEED_CACHE_SECONDS`，默认 5 小时），Remotive 每天至多 4 次的限制因此不会被多用户放大。
+- 候选人确认的目标地区含澳大利亚时，额外启用：Jobicy `geo=australia`，以及 `app/au_boards.json` 里的雇主招聘板（Greenhouse / Lever / Ashby / SmartRecruiters / Workable，只保留澳洲地点的岗位）。`ENABLE_AU_BOARDS=false` 可整体关闭；`GREENHOUSE_BOARDS` 等环境变量仍可追加。
+- 地点不是「硬资格」：地区匹配见 `app/regions.py`（中英文地名互通）；不在任何目标地区的岗位只进岗位库，不进该候选人的推荐；同国其他城市或地点不明仍标「待确认」。资格判断（年限、级别、资质、工作权利、担保）规则没有改动。
 
 ## 怎么跑
 

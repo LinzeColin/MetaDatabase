@@ -7,8 +7,8 @@
 </section>
 <section class="source-strip" data-testid="source-status">
   {% if latest_run %}
-  <div><b>最近刷新</b><span>{{ latest_run.completed_at or latest_run.created_at }}</span></div><div><b>发现</b><span>{{ latest_run.jobs_seen }} 个</span></div><div><b>新增</b><span>{{ latest_run.jobs_new }} 个</span></div>
-  {% for row in source_rows %}<span class="source-badge {{ row.status }}" title="{{ row.detail or '' }}">{{ row.source }} · {{ {'completed':'成功','failed':'失败','running':'运行中','queued':'排队中'}.get(row.status,row.status) }} · {{ row.jobs_seen }}</span>{% endfor %}
+  <div><b>最近一次聚合时间</b><span data-testid="last-aggregation-time">{{ (latest_run.completed_at or latest_run.created_at)|utc_stamp }}</span></div><div><b>看到</b><span>{{ latest_run.jobs_seen }} 个</span></div><div><b>新增</b><span>{{ latest_run.jobs_new }} 个</span></div><div><b>合格</b><span data-testid="qualified-count">{{ summary.qualified_total }} 个（本轮新增 {{ summary.qualified_new }}）</span></div>
+  {% for row in source_rows %}<span class="source-badge {{ row.status }}" title="{{ row.detail or '' }}">{{ row.source }} · {{ {'ok':'成功','completed':'成功','failed':'失败','running':'运行中','queued':'排队中'}.get(row.status,row.status) }} · {{ row.jobs_seen }}</span>{% endfor %}
   {% else %}<span>岗位发现正在准备中。</span>{% endif %}
 </section>
 <form method="get" action="/recommendations" class="filter-panel" data-testid="recommendation-filters" data-live-filters>

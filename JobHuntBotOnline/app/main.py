@@ -50,6 +50,14 @@ CSRF_COOKIE = "jobhunt_csrf"
 TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 TEMPLATES.env.filters["role_label"] = role_label
 TEMPLATES.env.filters["domain_label"] = domain_label
+
+
+def _utc_stamp(value) -> str:
+    """Stored timestamps are naive UTC; show them explicitly as such, to the minute."""
+    return value.strftime("%Y-%m-%d %H:%M UTC") if value else "—"
+
+
+TEMPLATES.env.filters["utc_stamp"] = _utc_stamp
 STATIC_ROOT = Path(__file__).parent / "static"
 
 
@@ -571,6 +579,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         audit(db, "password_reset", user.id)
         return _redirect("/login", message="密码已重置，请使用新密码登录。")
 
+    def _run_summary(db: Session, user_id: int) -> dict[str, Any]:
+        """Latest aggregation plus how many candidates-qualified jobs it produced."""
+        latest = db.scalar(select(DiscoveryRun).where(DiscoveryRun.user_id == user_id).order_by(DiscoveryRun.created_at.desc()))
+        qualified_total = db.scalar(select(func.count(Recommendation.id)).where(
+            Recommendation.user_id == user_id, Recommendation.qualification == "pass")) or 0
+        qualified_new = 0
+        if latest and (latest.started_at or latest.created_at):
+            qualified_new = db.scalar(select(func.count(Recommendation.id)).where(
+                Recommendation.user_id == user_id,
+                Recommendation.qualification == "pass",
+                Recommendation.first_recommended_at >= (latest.started_at or latest.created_at),
+            )) or 0
+        return {"run": latest, "qualified_total": qualified_total, "qualified_new": qualified_new}
+
     @app.get("/dashboard", response_class=HTMLResponse)
     def dashboard(request: Request, db: Session = Depends(get_db)):
         user = _require_user(request)
@@ -582,8 +604,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "saved": db.scalar(select(func.count(Recommendation.id)).where(Recommendation.user_id == user.id, Recommendation.user_status == "saved")) or 0,
             "applied": db.scalar(select(func.count(ApplicationEvent.id)).where(ApplicationEvent.user_id == user.id, ApplicationEvent.status == "submitted")) or 0,
         }
-        latest_run = db.scalar(select(DiscoveryRun).where(DiscoveryRun.user_id == user.id).order_by(DiscoveryRun.created_at.desc()))
+        summary = _run_summary(db, user.id)
+        latest_run = summary["run"]
         return _render(request, "dashboard.html", {
+            "summary": summary,
             "counts": counts,
             "profile_row": profile_row,
             "latest_run": latest_run,
@@ -731,6 +755,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             .where(
                 Recommendation.user_id == user.id,
                 ((Job.owner_user_id.is_(None)) | (Job.owner_user_id == user.id)),
+                *([Recommendation.relevance == relevance] if relevance else []),
             )
             .order_by(Recommendation.rank_score.desc(), Job.posted_at.desc())
         ).all()
@@ -801,13 +826,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "skills": sorted({s for _rec, job in rows for s in json.loads(job.skills_text or "[]")})[:80],
             "sources": sorted({job.source for _rec, job in rows}),
         }
-        latest_run = db.scalar(select(DiscoveryRun).where(DiscoveryRun.user_id == user.id).order_by(DiscoveryRun.created_at.desc()))
+        summary = _run_summary(db, user.id)
+        latest_run = summary["run"]
         source_rows = []
         if latest_run:
             source_rows = db.scalars(select(DiscoverySourceStatus).where(DiscoverySourceStatus.run_id == latest_run.id)).all()
         return {
             "items": filtered, "facets": facets, "filters": active_filters,
-            "latest_run": latest_run, "source_rows": source_rows,
+            "latest_run": latest_run, "source_rows": source_rows, "summary": summary,
             "refresh_hours": settings.discovery_refresh_hours,
         }
 

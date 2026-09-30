@@ -73,6 +73,8 @@ class Settings:
     lever_companies: list[str]
     ashby_boards: list[str]
     freehire_base_url: str
+    enable_au_boards: bool
+    feed_cache_seconds: int
 
     upload_root: Path
     backup_root: Path
@@ -144,6 +146,10 @@ def get_settings() -> Settings:
         lever_companies=[x.strip() for x in os.getenv("LEVER_COMPANIES", "").split(",") if x.strip()],
         ashby_boards=[x.strip() for x in os.getenv("ASHBY_BOARDS", "").split(",") if x.strip()],
         freehire_base_url=os.getenv("FREEHIRE_BASE_URL", "").rstrip("/"),
+        enable_au_boards=_bool("ENABLE_AU_BOARDS", True),
+        # Shared by every candidate in one refresh cycle so a public feed is
+        # fetched once per cycle, not once per user (Remotive allows 4 requests a day).
+        feed_cache_seconds=_int("FEED_CACHE_SECONDS", 5 * 3600),
 
         upload_root=Path(os.getenv("UPLOAD_ROOT", "./runtime-data/uploads")),
         backup_root=Path(os.getenv("BACKUP_ROOT", "./runtime-data/backups")),

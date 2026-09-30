@@ -6,6 +6,7 @@ import json
 import re
 import signal
 import threading
+import time
 from contextlib import contextmanager
 from dataclasses import dataclass, asdict
 from datetime import datetime, timedelta, timezone
@@ -20,6 +21,7 @@ from sqlalchemy.orm import Session
 
 from .career_intelligence import detect_role_family, detect_skills
 from .config import Settings
+from .regions import location_fit, targets_include_australia
 from .models import (
     CandidateProfile, DiscoveryRun, DiscoverySourceStatus, Job, Recommendation, utcnow,
 )
@@ -351,7 +353,7 @@ def _lever(client: httpx.Client, companies: list[str], limit: int) -> list[Norma
                 company=company,
                 location=cats.get("location") or "",
                 description=clean_html((row.get("descriptionPlain") or "") + "\n" + (row.get("additionalPlain") or "")),
-                posted_at=parse_date(row.get("createdAt") / 1000 if isinstance(row.get("createdAt"), (int, float)) else None),
+                posted_at=parse_date(row["createdAt"] / 1000 if isinstance(row.get("createdAt"), (int, float)) else None),
                 work_mode=cats.get("workplaceType") or "",
             )))
     return out
@@ -405,6 +407,191 @@ def _freehire(client: httpx.Client, base: str, profile: dict, limit: int) -> lis
     return out
 
 
+USER_AGENT = "JobHuntBot/0.5 (+https://jobhunt.linzezhang.com; personal job-search aggregator; links to original postings only)"
+BOARD_REQUEST_GAP_SECONDS = 0.25
+BOARD_DEADLINE_SECONDS = 150
+SMARTRECRUITERS_DETAIL_CAP = 30
+_AU_BOARDS_PATH = Path(__file__).with_name("au_boards.json")
+_AU_LOCATION = re.compile(
+    r"(australia|(?<![a-z])au(?![a-z])|sydney|melbourne|brisbane|perth|canberra|adelaide|hobart|darwin|gold coast|"
+    r"new south wales|(?<![a-z])nsw(?![a-z])|queensland|(?<![a-z])vic(?![a-z]))",
+    re.I,
+)
+
+
+class CachedClient:
+    """Share successful public-feed responses between candidates in one cycle."""
+
+    def __init__(self, client: httpx.Client, ttl_seconds: int):
+        self._client = client
+        self._ttl = ttl_seconds
+        self._cache = _FEED_CACHE
+
+    def get(self, url: str, params: dict | None = None, ttl: int | None = None, **kwargs):
+        key = url + "?" + json.dumps(params or {}, sort_keys=True, default=str)
+        now = time.monotonic()
+        hit = self._cache.get(key)
+        if hit and hit[0] > now:
+            return hit[1]
+        response = self._client.get(url, params=params, **kwargs)
+        if response.status_code == 200:
+            self._cache[key] = (now + (ttl if ttl is not None else self._ttl), response)
+        return response
+
+
+_FEED_CACHE: dict[str, tuple[float, httpx.Response]] = {}
+
+
+def _get(client, url: str, params: dict | None = None, ttl: int | None = None):
+    if isinstance(client, CachedClient):
+        return client.get(url, params=params, ttl=ttl)
+    return client.get(url, params=params)
+
+
+def load_au_boards() -> dict[str, list[str]]:
+    try:
+        data = json.loads(_AU_BOARDS_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return {k: [str(x) for x in v] for k, v in data.items() if isinstance(v, list)}
+
+
+def _is_au_job(job: NormalizedJob) -> bool:
+    return job.country == "AU" or bool(_AU_LOCATION.search(job.location or ""))
+
+
+def _keep_au(jobs: list[NormalizedJob]) -> list[NormalizedJob]:
+    kept = []
+    for job in jobs:
+        if _is_au_job(job):
+            job.country = "AU"
+            kept.append(job)
+    return kept
+
+
+def _per_board(boards: list[str], fetch) -> tuple[list[NormalizedJob], str]:
+    """Run one fetch per employer board; one bad board must not hide the others."""
+    out: list[NormalizedJob] = []
+    failures: list[str] = []
+    for index, board in enumerate(boards):
+        if index:
+            time.sleep(BOARD_REQUEST_GAP_SECONDS)
+        try:
+            out.extend(fetch(board))
+        except Exception as exc:  # noqa: BLE001 - reported in the source detail
+            failures.append(f"{board}: {str(exc)[:80]}")
+    if boards and len(failures) == len(boards):
+        raise RuntimeError("all boards failed: " + "; ".join(failures[:3]))
+    return out, ("; ".join(failures))[:500]
+
+
+def _jobicy_geo(client, limit: int, geo: str) -> list[NormalizedJob]:
+    data = _get(client, "https://jobicy.com/api/v2/remote-jobs", params={"count": min(max(1, limit), 100), "geo": geo}).json()
+    out = []
+    for row in data.get("jobs", [])[:limit]:
+        out.append(enrich(NormalizedJob(
+            source="jobicy",
+            external_id=str(row.get("id") or row.get("url")),
+            url=row.get("url") or "",
+            title=row.get("jobTitle") or "",
+            company=row.get("companyName") or "",
+            location=row.get("jobGeo") or "Remote",
+            description=clean_html(row.get("jobDescription") or row.get("jobExcerpt") or ""),
+            posted_at=parse_date(row.get("pubDate")),
+            work_mode="remote",
+            industry=row.get("jobIndustry") or "",
+            skills=list(row.get("jobType") or []),
+        )))
+    return out
+
+
+def _smartrecruiters(client, company: str) -> list[NormalizedJob]:
+    """SmartRecruiters public Posting API: list Australian postings, then read the
+    body only for roles in the finance/legal/analysis families (bounded per board)."""
+    listing = []
+    for offset in (0, 100, 200):
+        page = _get(client, f"https://api.smartrecruiters.com/v1/companies/{company}/postings",
+                    params={"limit": 100, "offset": offset, "country": "au"}).json()
+        rows = page.get("content", [])
+        listing.extend(rows)
+        if len(rows) < 100:
+            break
+    out = []
+    detail_calls = 0
+    for row in listing:
+        department = (row.get("department") or {}).get("label", "") if isinstance(row.get("department"), dict) else ""
+        if detect_role_family(f"{row.get('name', '')} {department}") == "Other":
+            continue
+        if detail_calls >= SMARTRECRUITERS_DETAIL_CAP:
+            break
+        detail_calls += 1
+        time.sleep(BOARD_REQUEST_GAP_SECONDS)
+        detail = _get(client, f"https://api.smartrecruiters.com/v1/companies/{company}/postings/{row['id']}", ttl=24 * 3600).json()
+        sections = ((detail.get("jobAd") or {}).get("sections") or {})
+        body = "\n".join(str((sections.get(k) or {}).get("text") or "") for k in (
+            "companyDescription", "jobDescription", "qualifications", "additionalInformation"))
+        loc = row.get("location") or {}
+        city = loc.get("city") or ""
+        out.append(enrich(NormalizedJob(
+            source=f"smartrecruiters:{company}",
+            external_id=str(row["id"]),
+            url=detail.get("postingUrl") or f"https://jobs.smartrecruiters.com/{company}/{row['id']}",
+            title=row.get("name") or "",
+            company=(row.get("company") or {}).get("name") or company,
+            location=", ".join(x for x in (city, loc.get("region") or "", "Australia") if x),
+            description=clean_html(body),
+            posted_at=parse_date(row.get("releasedDate")),
+            city=city if city in {"Sydney", "Melbourne", "Brisbane", "Perth", "Canberra", "Adelaide"} else "",
+            country="AU",
+            work_mode="remote" if loc.get("remote") else ("hybrid" if loc.get("hybrid") else ""),
+            industry=department,
+        )))
+    return out
+
+
+def _workable(client, account: str) -> list[NormalizedJob]:
+    data = _get(client, f"https://apply.workable.com/api/v1/widget/accounts/{account}", params={"details": "true"}).json()
+    out = []
+    for row in data.get("jobs", []):
+        country = str(row.get("country") or "")
+        if country.casefold() not in {"australia", "au"}:
+            continue
+        city = row.get("city") or ""
+        out.append(enrich(NormalizedJob(
+            source=f"workable:{account}",
+            external_id=str(row.get("shortcode") or row.get("url")),
+            url=row.get("url") or row.get("shortlink") or "",
+            title=row.get("title") or "",
+            company=data.get("name") or account,
+            location=", ".join(x for x in (city, row.get("state") or "", "Australia") if x),
+            description=clean_html(row.get("description") or ""),
+            posted_at=parse_date(row.get("published_on") or row.get("created_at")),
+            country="AU",
+            work_mode="remote" if row.get("telecommuting") else "",
+            industry=row.get("department") or "",
+        )))
+    return out
+
+
+def _au_board_providers(client, settings: Settings) -> list[tuple[str, object]]:
+    boards = load_au_boards()
+    greenhouse = boards.get("greenhouse", [])
+    lever = boards.get("lever", [])
+    ashby = boards.get("ashby", [])
+    providers: list[tuple[str, object]] = []
+    if greenhouse:
+        providers.append(("au-greenhouse", lambda: _per_board(greenhouse, lambda b: _keep_au(_greenhouse(client, [b], 100000)))))
+    if lever:
+        providers.append(("au-lever", lambda: _per_board(lever, lambda b: _keep_au(_lever(client, [b], 100000)))))
+    if ashby:
+        providers.append(("au-ashby", lambda: _per_board(ashby, lambda b: _keep_au(_ashby(client, [b], 100000)))))
+    if boards.get("smartrecruiters"):
+        providers.append(("au-smartrecruiters", lambda: _per_board(boards["smartrecruiters"], lambda b: _smartrecruiters(client, b))))
+    if boards.get("workable"):
+        providers.append(("au-workable", lambda: _per_board(boards["workable"], lambda b: _workable(client, b))))
+    return providers
+
+
 def fetch_sources(settings: Settings, profile: dict) -> Iterable[tuple[str, str, list[NormalizedJob], str]]:
     if settings.discovery_fixture_path:
         try:
@@ -412,7 +599,9 @@ def fetch_sources(settings: Settings, profile: dict) -> Iterable[tuple[str, str,
         except Exception as exc:
             yield "fixture", "failed", [], str(exc)
         return
-    with httpx.Client(timeout=settings.discovery_source_timeout_seconds, follow_redirects=True) as client:
+    headers = {"User-Agent": USER_AGENT, "Accept": "application/json"}
+    with httpx.Client(timeout=settings.discovery_source_timeout_seconds, follow_redirects=True, headers=headers) as raw_client:
+        client = CachedClient(raw_client, settings.feed_cache_seconds) if settings.feed_cache_seconds > 0 else raw_client
         providers = []
         if settings.enable_remotive:
             providers.append(("remotive", lambda: _remotive(client, settings.discovery_max_jobs_per_source)))
@@ -430,13 +619,24 @@ def fetch_sources(settings: Settings, profile: dict) -> Iterable[tuple[str, str,
             providers.append(("ashby", lambda: _ashby(client, settings.ashby_boards, settings.discovery_max_jobs_per_source)))
         if settings.freehire_base_url:
             providers.append(("freehire", lambda: _freehire(client, settings.freehire_base_url, profile, settings.discovery_max_jobs_per_source)))
+        # Region-aware sources: only worth asking when the candidate confirmed Australia.
+        if targets_include_australia(profile.get("target_locations")):
+            if settings.enable_jobicy:
+                providers.append(("jobicy-au", lambda: _jobicy_geo(client, settings.discovery_max_jobs_per_source, "australia")))
+            if settings.enable_au_boards:
+                providers.extend(_au_board_providers(client, settings))
         for name, fn in providers:
             try:
-                with _source_deadline(settings.discovery_source_timeout_seconds):
-                    jobs = [j for j in fn() if safe_http_url(j.url) and j.title and j.company]
+                deadline = BOARD_DEADLINE_SECONDS if name.startswith("au-") else settings.discovery_source_timeout_seconds
+                with _source_deadline(deadline):
+                    result = fn()
+                detail = ""
+                if isinstance(result, tuple):
+                    result, detail = result
+                jobs = [j for j in result if safe_http_url(j.url) and j.title and j.company]
                 for job in jobs:
                     job.url = safe_http_url(job.url)
-                yield name, "ok", jobs, ""
+                yield name, "ok", jobs, detail
             except Exception as exc:
                 yield name, "failed", [], str(exc)[:1000]
 
@@ -573,6 +773,7 @@ def _stored_job_payload(job: Job) -> dict:
         "description": job.description,
         "location": job.location,
         "city": job.city,
+        "country": job.country,
         "work_mode": job.work_mode,
         "role_family": job.role_family,
         "industry": job.industry,
@@ -654,6 +855,10 @@ def process_run(db: Session, run: DiscoveryRun, settings: Settings, crypto: Cryp
                 "skills": item.skills or [],
                 "keywords": item.keywords or [],
             })
+            if score.get("location_fit") == "mismatch":
+                # Outside every confirmed target region: keep the job in the
+                # library but never put it in this candidate's feed.
+                continue
             rec = db.scalar(
                 select(Recommendation).where(
                     Recommendation.user_id == run.user_id,
