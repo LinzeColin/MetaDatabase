@@ -1,0 +1,8 @@
+tests
+__pycache__
+*.pyc
+.pytest_cache
+out
+Dockerfile
+requirements-dev.txt
+deploy

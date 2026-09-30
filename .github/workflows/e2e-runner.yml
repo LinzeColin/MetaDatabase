@@ -1,0 +1,43 @@
+name: E2E Runner
+
+# 交付流水线第 8 关执行器（tools/e2e）：只在它自己变化时触发。
+# 新增 workflow 文件不会触发 REVIEW-PIN-CI-WORKFLOW-SET（见 kit-drift.yml 里的实测说明）。
+on:
+  push:
+    branches: [main]
+    paths: ["tools/e2e/**", ".github/workflows/e2e-runner.yml"]
+  pull_request:
+    paths: ["tools/e2e/**", ".github/workflows/e2e-runner.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+      - name: 安装依赖与 Chromium
+        run: |
+          set -euo pipefail
+          pip install -r tools/e2e/requirements-dev.txt
+          playwright install --with-deps chromium
+      - name: 离线测试（本地夹具页，不访问外网）
+        working-directory: tools/e2e
+        run: python -m pytest -q tests
+
+  image-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: 镜像能构建（基础镜像、axe 校验值、依赖版本）
+        run: |
+          set -euo pipefail
+          docker build -t linze-e2e:ci tools/e2e
+          docker run --rm --entrypoint python linze-e2e:ci -c "import run, yaml, playwright; print('ok', run.VERSION)"

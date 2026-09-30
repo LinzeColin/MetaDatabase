@@ -1,0 +1,10 @@
+project: 门户
+owner_words: "交付流水线第 8 关示例旅程：门户 home.linzezhang.com 打开就能看到项目入口"
+base_url: https://home.linzezhang.com/
+viewports: [desktop, mobile, dark]
+journeys:
+  - name: 打开门户看项目
+    steps:
+      - goto: ""
+      - expect_visible: "main .hero h1"
+      - screenshot: 首屏
