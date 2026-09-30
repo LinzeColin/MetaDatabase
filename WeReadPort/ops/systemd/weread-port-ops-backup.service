@@ -1,5 +1,5 @@
 [Unit]
-Description=本地快照可重建运维状态，并把 GitHub 权威事实库加密冷备到 R2 与 OCI
+Description=本地快照可重建运维状态，并把 GitHub 权威事实库加密冷备到 R2
 After=network-online.target
 Wants=network-online.target
 

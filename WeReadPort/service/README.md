@@ -22,8 +22,7 @@ python3 service/scripts/platform_ops.py restore-check /var/lib/weread-port/snaps
 - Google OIDC/Drive、GitHub App user authorization、Notion OAuth client；
 - 会话 pepper、凭据 pepper、账户主密钥环和 Worker→OVH 内部共享 Secret；
 - 公开域与 Cloudflare 边缘部署身份；
-- Private-Database 已认证工作树；
-- 可选 R2→OCI rclone remote。
+- Private-Database 已认证工作树。
 
 不得把上述值提交到 Git、任务包、Cloudflare 静态配置或日志。
 

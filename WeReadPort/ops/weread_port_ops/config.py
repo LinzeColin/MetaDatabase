@@ -19,8 +19,6 @@ class Settings:
     retention_hours: int
     timeout_seconds: float
     restic_repository: str
-    r2_remote: str
-    oci_remote: str
 
     @classmethod
     def from_env(cls, env: dict[str, str] | None = None) -> "Settings":
@@ -57,8 +55,6 @@ class Settings:
             retention_hours=retention_hours,
             timeout_seconds=timeout_seconds,
             restic_repository=values.get("RESTIC_REPOSITORY", "").strip(),
-            r2_remote=values.get("WEREAD_PORT_R2_REMOTE", "").strip(),
-            oci_remote=values.get("WEREAD_PORT_OCI_REMOTE", "").strip(),
         )
 
     def ensure_state_dirs(self) -> None:

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""阅迁账户平台的确定性健康、备份、恢复、事实同步和异地冷备命令。"""
+"""阅迁账户平台的确定性健康、备份、恢复、事实同步和冷备命令。"""
 from __future__ import annotations
 
 import argparse
@@ -377,25 +377,6 @@ def private_database_backup() -> dict:
         restored.unlink(missing_ok=True)
 
 
-def r2_to_oci() -> dict:
-    source = os.environ.get("WRP_R2_RCLONE_SOURCE", "").strip()
-    target = os.environ.get("WRP_OCI_RCLONE_TARGET", "").strip()
-    if not source or not target:
-        raise RuntimeError("R2_OR_OCI_REMOTE_NOT_CONFIGURED")
-    # --fast-list 是 R2 免费额度的硬要求，不是性能调优：
-    # rclone 默认按前缀逐个 ListObjects，在内容寻址树上会炸成几千次调用。
-    # 2026-08-07 实测：不加时这一个每日任务打 9,300 次 ListObjects = 288,300/月
-    # = R2 Class A 免费额度(100万/月)的 28.8%,是全账号最大的单一 Class A 消费者,
-    # 且随对象数线性增长。加上后是一次递归列举(1000 key/页),约 14 次。
-    # 它只改"怎么列",不改比对与传输语义(--checksum --immutable 照旧)。
-    # 规则见 Private-Database OPS/AGENT_ONBOARDING.md §9.7。**删掉它等于把账单打开。**
-    command = ["rclone", "sync", source, target, "--fast-list", "--checksum", "--immutable", "--transfers", "4", "--checkers", "8", "--log-level", "NOTICE"]
-    completed = subprocess.run(command, capture_output=True, text=True, timeout=3600, env=rclone_environment())
-    if completed.returncode != 0:
-        raise RuntimeError("R2_OCI_SYNC_FAILED")
-    return {"status": "COMPLETE", "checkedAt": utc_now()}
-
-
 def atomic_json(path: Path, payload: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     fd, name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
@@ -429,7 +410,7 @@ def run_git(worktree: Path, args: list[str]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=("health", "backup", "restore-check", "restore", "facts-snapshot", "facts-sync", "private-database-backup", "r2-to-oci"))
+    parser.add_argument("command", choices=("health", "backup", "restore-check", "restore", "facts-snapshot", "facts-sync", "private-database-backup"))
     parser.add_argument("snapshot", nargs="?", type=Path)
     parser.add_argument("--apply", action="store_true")
     args = parser.parse_args()
@@ -443,8 +424,7 @@ def main() -> int:
         result = restore(args.snapshot, apply=args.apply)
     elif args.command == "facts-snapshot": result = fact_snapshot()
     elif args.command == "facts-sync": result = facts_sync()
-    elif args.command == "private-database-backup": result = private_database_backup()
-    else: result = r2_to_oci()
+    else: result = private_database_backup()
     print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
     return 0
 

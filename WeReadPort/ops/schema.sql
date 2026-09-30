@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS backup_state (
   snapshot_sha256 TEXT NOT NULL,
   sqlite_integrity TEXT NOT NULL,
   r2_status TEXT NOT NULL,
-  oci_status TEXT NOT NULL,
+  oci_status TEXT NOT NULL, -- 历史列：OCI 已于 2026-09-30 退役，新行固定写 retired
   details_json TEXT NOT NULL DEFAULT '{}',
   CHECK (json_valid(details_json))
 ) STRICT;

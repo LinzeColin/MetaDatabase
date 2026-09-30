@@ -42,7 +42,7 @@ def parser() -> argparse.ArgumentParser:
     release.add_argument("--production-version", required=True)
     release.add_argument("--production-origin", required=True)
     inject = sub.add_parser("inject-failure")
-    inject.add_argument("kind", choices=["site-down", "version-drift", "private-db-unavailable", "r2-unavailable", "oci-unavailable", "sqlite-corrupt-copy"])
+    inject.add_argument("kind", choices=["site-down", "version-drift", "private-db-unavailable", "r2-unavailable", "sqlite-corrupt-copy"])
     return root
 
 
@@ -223,8 +223,7 @@ def diagnose(settings: Settings, db: RuntimeDB) -> dict[str, Any]:
         "configuration": {
             "siteConfigured": bool(settings.site_url),
             "privateDatabaseClientConfigured": bool(settings.private_db_client and settings.private_db_client.is_file()),
-            "r2Configured": bool(settings.restic_repository or settings.r2_remote),
-            "ociConfigured": bool(settings.oci_remote),
+            "r2Configured": bool(settings.restic_repository),
             "retentionHours": settings.retention_hours,
         },
         "disk": {"total": stat.total, "used": stat.used, "free": stat.free},
@@ -278,8 +277,6 @@ def inject_failure(kind: str, settings: Settings, db: RuntimeDB, *, at: datetime
         return sync_pending(fake, db, at=at)
     if kind == "r2-unavailable":
         return {"status": "injected", "component": "r2", "expectedBehavior": "备份降级；产品导出保持在线"}
-    if kind == "oci-unavailable":
-        return {"status": "injected", "component": "oci", "expectedBehavior": "异地副本降级；R2 与产品导出保持在线"}
     if kind == "sqlite-corrupt-copy":
         target = settings.state_dir / "failure-fixtures" / "corrupt.sqlite3"
         target.parent.mkdir(parents=True, exist_ok=True)

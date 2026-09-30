@@ -77,9 +77,9 @@ def project_descriptor(site_url: str) -> dict[str, Any]:
         "parts": ["账户前台", "OVH 账户服务", "运维与恢复"],
         "host": "Cloudflare Worker + OVH Node.js/systemd",
         "db": "OVH SQLite 实时事务索引 + R2 加密用户对象",
-        "store": "Private-Database 结构化事实 + R2 用户对象 + OCI 冷备",
+        "store": "Private-Database 结构化事实 + R2 用户对象（唯一冷备）",
         "deploy": "Sites Version + systemd timers",
-        "backup": "Private-Database + R2 + OCI",
+        "backup": "Private-Database + R2",
         "agent": "无",
         "notify": "status",
     }
