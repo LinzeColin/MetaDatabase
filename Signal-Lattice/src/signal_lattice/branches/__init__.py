@@ -1,8 +1,5 @@
-"""Stage 2 可复算分支与其只读汇总入口。"""
+"""选股分支与它们共用的数据合同。分支通过 branch_entries 在独立子进程里运行，不在实时层运行。"""
 
 from .models import BranchVerdict
-from .runtime import build_branch_report
 
-from .runtime import DECISION_INPUT_SYMBOLS
-
-__all__ = ["BranchVerdict", "build_branch_report", "DECISION_INPUT_SYMBOLS"]
+__all__ = ["BranchVerdict"]

@@ -10,14 +10,12 @@ from pathlib import Path
 from typing import Dict, List, Mapping, Tuple
 from zoneinfo import ZoneInfo
 
-from .aggregate import blocked_aggregate_report
-from .backtest import run_backtest
-from .backtest.pipeline import walk_forward_windows
-from .backtest.runner import MIN_COMPLETE_WINDOWS
-from .branches import DECISION_INPUT_SYMBOLS, build_branch_report
+from . import hub, nyse_calendar
+from .ledger import HORIZONS, Ledger, draw_control
 from .live_config import APP_VERSION, LiveSettings
+from .research_view import BRANCH_LABELS, STOCK_BRANCHES, ResearchView, load_research
 from .marketdata import CollectionBudgetExceeded, DiskCache, EastMoneyFundProvider, HttpClient, MarketDataError, SinaKlineProvider, SinaQuoteProvider, TencentKlineProvider, TencentQuoteProvider
-from .marketdata.models import Bar, BarQualityIssue, Instrument, Quote
+from .marketdata.models import US_DECLARED_FEED_DELAY_MINUTES, Bar, BarQualityIssue, Instrument, Quote
 from .serialization import JsonSerializationConstraintError, strict_json_dumps
 
 
@@ -53,13 +51,14 @@ CLOSED_MARKET_SOURCE_MAX_AGE_DAYS = 4
 # 推进。取其两倍为 12 分钟：覆盖正常分块更新，又在绝对时延仍合格时识别真正卡住的源。
 QUOTE_ADVANCE_STALL_MINUTES = 12
 # 预算按实际发起的 HTTP 请求计数，重试也会逐次计入。正常上限是每分钟 1 次报价批量请求
-# 加每 6 小时 15 次日线刷新，即 1,500 次/日；1,600 次/日只为来源切换和有限重试留余量。
+# （候选 <= 60 只 + IWM 一次取完，1,440 次/日）加日线：流动性核对与记分簿收盘价/结算，
+# 日线缓存 6 小时，每天只有几十次；2,000 次/日给来源切换、有限重试和收盘后等日线的刷新留余量。
 MAX_PROVIDER_REQUESTS_PER_ROUND = 48
-MAX_PROVIDER_REQUESTS_PER_DAY = 1_600
+MAX_PROVIDER_REQUESTS_PER_DAY = 2_000
 COLLECTION_FAILURES_BEFORE_BACKOFF = 3
 COLLECTION_BACKOFF_INITIAL_SECONDS = 60
 # 退避是为了不把一个正在故障的免费源打爆，不是为了惩罚读者。循环本来就 60 秒
-# 一轮、每日预算 1600 次请求，停满一小时买不到任何额外保护，却让页面一小时不
+# 一轮、每日预算 2000 次请求，停满一小时买不到任何额外保护，却让页面一小时不
 # 出结论——2026-09-14 就是这样把一次上游时区故障放大成「十遍都没解决」。
 COLLECTION_BACKOFF_MAX_SECONDS = 5 * 60
 MARKET_OPEN_SESSIONS = {
@@ -69,8 +68,42 @@ MARKET_OPEN_SESSIONS = {
 }
 
 
+US_EXCHANGE_KLINE_SUFFIX = {"Nasdaq": "OQ", "NYSE": "N", "NYSE American": "AM"}
+BENCHMARK_SYMBOL = "IWM"
+BENCHMARK_EXCHANGE = "NYSE American"
+NEW_YORK = ZoneInfo("America/New_York")
+LEDGER_RECORD_DELAY_MINUTES = 5             # 收盘（16:00，半日市 13:00）后留 5 分钟等日线出来
+LEDGER_RETRY_MINUTES = 15                   # 当日 bar 迟迟不出：15 分钟重试一次，直到次日开盘前（不再每分钟刷新请求）
+LEDGER_CONTROL_MAX_ATTEMPTS = 5             # 随机对照取不到收盘价时，顺延最多试这么多只
+LIQUIDITY_WINDOW_DAYS = 20
+LIQUIDITY_MIN_BARS = 15
+
+
+def us_instrument(symbol: str, name: str, exchange: str | None) -> Instrument:
+    """美股个股/ETF 的实时层标的：新浪 gb_ 报价、新浪日线（裸代码）、腾讯日线（带交易所后缀）。"""
+    suffix = US_EXCHANGE_KLINE_SUFFIX.get(exchange or "")
+    return Instrument(
+        symbol=symbol, name=name, market="US", asset_type="ETF" if symbol == BENCHMARK_SYMBOL else "STOCK",
+        timezone="America/New_York", sina_symbol="gb_%s" % symbol.lower(), tencent_symbol=None,
+        tencent_kline_symbol="us%s.%s" % (symbol, suffix) if suffix else None, eastmoney_fund_code=None,
+        benchmark=BENCHMARK_SYMBOL, realtime_quote=True, sina_kline_symbol=symbol,
+        declared_feed_delay_minutes=US_DECLARED_FEED_DELAY_MINUTES,
+    )
+
+
 def _iso(value: datetime) -> str:
     return value.astimezone(timezone.utc).replace(microsecond=0).isoformat()
+
+
+def _sessions_on(instrument: Instrument, day) -> tuple:
+    """某个交易所当地日期的交易时段。美股按 NYSE 交易日历（假日休市、半日市 13:00 收盘）；
+    A 股/港股目前只有周一到周五的固定时段（没有接入它们的假日日历，行情陈旧度仍由来源时间兜底）。"""
+    if day.weekday() >= 5:
+        return ()
+    if instrument.market == "US":
+        close = nyse_calendar.close_time(day)
+        return () if close is None else ((nyse_calendar.OPEN_TIME, close),)
+    return MARKET_OPEN_SESSIONS.get(instrument.market, ())
 
 
 def _market_is_open(instrument: Instrument, exchange_now: datetime) -> bool:
@@ -79,16 +112,12 @@ def _market_is_open(instrument: Instrument, exchange_now: datetime) -> bool:
     不要用它判断当日 K 线是否已定稿：港股 12:00-13:00、A 股 11:30-13:00 的午休
     同样不在时段内，但交易日远未结束，当日 bar 只含上午半场。
     """
-    if exchange_now.weekday() >= 5:
-        return False
-    return any(start <= exchange_now.time() < end for start, end in MARKET_OPEN_SESSIONS.get(instrument.market, ()))
+    return any(start <= exchange_now.time() < end for start, end in _sessions_on(instrument, exchange_now.date()))
 
 
 def _trading_day_is_complete(instrument: Instrument, exchange_now: datetime) -> bool:
-    """交易所当天的最后一个时段是否已经结束——当日日线是否可以当作收盘值使用。"""
-    if exchange_now.weekday() >= 5:
-        return True
-    sessions = MARKET_OPEN_SESSIONS.get(instrument.market, ())
+    """交易所当天的最后一个时段是否已经结束——当日日线是否可以当作收盘值使用。休市日没有当日 bar，视为已完成。"""
+    sessions = _sessions_on(instrument, exchange_now.date())
     if not sessions:
         return True
     return exchange_now.time() >= max(end for _start, end in sessions)
@@ -96,9 +125,7 @@ def _trading_day_is_complete(instrument: Instrument, exchange_now: datetime) -> 
 
 def _in_intraday_break(instrument: Instrument, exchange_now: datetime) -> bool:
     """是否处在交易日内的休息时段（已开盘、未收盘，但当前不在任何时段内）。"""
-    if exchange_now.weekday() >= 5:
-        return False
-    sessions = MARKET_OPEN_SESSIONS.get(instrument.market, ())
+    sessions = _sessions_on(instrument, exchange_now.date())
     if not sessions:
         return False
     first_start = min(start for start, _end in sessions)
@@ -108,7 +135,7 @@ def _in_intraday_break(instrument: Instrument, exchange_now: datetime) -> bool:
 
 def _current_session_elapsed_seconds(instrument: Instrument, exchange_now: datetime) -> float | None:
     """当前所在时段已经开了多久；不在任何时段内时为 None。"""
-    for start, end in MARKET_OPEN_SESSIONS.get(instrument.market, ()):
+    for start, end in _sessions_on(instrument, exchange_now.date()):
         if start <= exchange_now.time() < end:
             opened_at = exchange_now.replace(
                 hour=start.hour, minute=start.minute, second=0, microsecond=0
@@ -125,23 +152,22 @@ def _trading_seconds_between(instrument: Instrument, start: datetime, end: datet
     允许值，于是每天复盘都阻断一次。按交易时间算，11:35→13:00 之间只有 11:35-12:00
     这 25 分钟属于交易时段，恰好等于申报延迟，判定为新鲜；而如果到 13:10 来源时间仍是
     11:35，交易时间已累计 35 分钟，超出允许值——那才是真的停滞。
+    休市日（周末、美股假日）与半日市的提前收盘都按交易日历计算。
     """
     if end <= start:
         return 0.0
-    sessions = MARKET_OPEN_SESSIONS.get(instrument.market, ())
-    if not sessions:
+    if instrument.market not in MARKET_OPEN_SESSIONS:
         return max(0.0, (end - start).total_seconds())
     total = 0.0
     day = start.date()
     while day <= end.date():
-        if day.weekday() < 5:
-            for session_start, session_end in sessions:
-                window_start = datetime.combine(day, session_start, tzinfo=start.tzinfo)
-                window_end = datetime.combine(day, session_end, tzinfo=start.tzinfo)
-                overlap_start = max(window_start, start)
-                overlap_end = min(window_end, end)
-                if overlap_end > overlap_start:
-                    total += (overlap_end - overlap_start).total_seconds()
+        for session_start, session_end in _sessions_on(instrument, day):
+            window_start = datetime.combine(day, session_start, tzinfo=start.tzinfo)
+            window_end = datetime.combine(day, session_end, tzinfo=start.tzinfo)
+            overlap_start = max(window_start, start)
+            overlap_end = min(window_end, end)
+            if overlap_end > overlap_start:
+                total += (overlap_end - overlap_start).total_seconds()
         day += timedelta(days=1)
     return total
 
@@ -150,12 +176,32 @@ def _intraday_break_started_at(instrument: Instrument, exchange_now: datetime) -
     """当前休息时段的起点（上一个已结束时段的收盘时刻）。"""
     if not _in_intraday_break(instrument, exchange_now):
         return None
-    ended = [end for _start, end in MARKET_OPEN_SESSIONS.get(instrument.market, ()) if end <= exchange_now.time()]
+    ended = [end for _start, end in _sessions_on(instrument, exchange_now.date()) if end <= exchange_now.time()]
     if not ended:
         return None
     return exchange_now.replace(
         hour=max(ended).hour, minute=max(ended).minute, second=0, microsecond=0
     )
+
+
+def us_market_status(now: datetime) -> dict:
+    """页面用的一句话：美股此刻开市还是休市、为什么（假日/周末/盘前/盘后/半日市已收盘）。"""
+    exchange_now = now.astimezone(NEW_YORK)
+    day, clock = exchange_now.date(), exchange_now.time()
+    base = {"exchange_time": exchange_now.isoformat(), "exchange_date": day.isoformat()}
+    if day.weekday() >= 5:
+        return {**base, "state": "CLOSED", "reason": "WEEKEND", "text": "美股休市：周末"}
+    holiday = nyse_calendar.holiday_zh(day)
+    if holiday is not None:
+        return {**base, "state": "CLOSED", "reason": "HOLIDAY", "text": "美股休市：%s" % holiday}
+    close = nyse_calendar.close_time(day)
+    half = nyse_calendar.is_half_day(day)
+    label = "半日市 %s 收盘" % close.strftime("%H:%M")
+    if clock < nyse_calendar.OPEN_TIME:
+        return {**base, "state": "CLOSED", "reason": "PRE_MARKET", "text": "美股盘前（9:30 开市）%s" % ("，今天是" + label if half else "")}
+    if clock < close:
+        return {**base, "state": "OPEN", "reason": "SESSION", "text": "美股开市中%s" % ("（今天是" + label + "）" if half else "")}
+    return {**base, "state": "CLOSED", "reason": "AFTER_CLOSE", "text": "美股已收盘（%s）" % (label if half else "16:00 收盘")}
 
 
 def apply_profitability_disclosure(branch_report: dict, backtest: dict) -> None:
@@ -431,6 +477,43 @@ class LiveStore:
             self._write_json(self.quote_progress_path, entries)
         return self.quote_progress(symbol)
 
+    @property
+    def hub_state_path(self) -> Path:
+        """中枢的持久状态：已发布建议的失效条件（发布时写死）与核对结果。"""
+        return self.root / "hub_state.json"
+
+    def hub_state(self) -> dict:
+        try:
+            value = json.loads(self.hub_state_path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+            return {"published": {}}
+        return value if isinstance(value, dict) and isinstance(value.get("published"), dict) else {"published": {}}
+
+    def save_hub_state(self, state: dict) -> None:
+        self._write_json(self.hub_state_path, state)
+
+    @property
+    def ledger_retry_path(self) -> Path:
+        """记分簿当日 bar 没出来时的重试退避状态（只属于 state_dir）。"""
+        return self.root / "ledger_retry.json"
+
+    def ledger_retry(self, trading_day: str) -> dict | None:
+        try:
+            value = json.loads(self.ledger_retry_path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+            return None
+        return value if isinstance(value, dict) and value.get("trading_day") == trading_day else None
+
+    def set_ledger_retry(self, trading_day: str, next_attempt_at: datetime, attempts: int, reason: str) -> None:
+        self._write_json(self.ledger_retry_path, {"trading_day": trading_day, "next_attempt_at": _iso(next_attempt_at),
+                                                  "attempts": attempts, "reason": reason})
+
+    def clear_ledger_retry(self) -> None:
+        try:
+            self.ledger_retry_path.unlink()
+        except OSError:
+            pass
+
     def write_heartbeat(self, observed_at: datetime) -> None:
         self._write_json(self.heartbeat_path, {"observed_at": _iso(observed_at)})
 
@@ -643,6 +726,31 @@ class MarketGateway:
             except MarketDataError as exc:
                 errors.append("BARS_FETCH_FAILED:%s:%s" % (item.symbol, exc))
         return quotes, bars, errors
+
+    # ---- 美股中小盘实时层：候选与 IWM 的批量报价、日线 --------------------------------------
+    def fetch_quotes(self, instruments: List[Instrument]) -> Tuple[Dict[str, Quote], List[str]]:
+        """新浪 gb_ 一次批量报价（带 Referer）。取不到就整体报错，由调用方决定是否阻断；不回退到旧快照。"""
+        try:
+            return self.sina.fetch([item for item in instruments if item.realtime_quote]), []
+        except MarketDataError as exc:
+            return {}, ["SINA_QUOTE:%s" % exc]
+
+    def fetch_bars(self, item: Instrument, *, refresh: bool = False) -> List[Bar]:
+        """美股日线：新浪为主，取不到再用腾讯。refresh=True 先删缓存（记分簿收盘价要当天最新的一根）。"""
+        if refresh:
+            self.sina_bars.cache.delete("sina_us_bars_%s" % item.symbol.lower())
+            self.tencent_bars.cache.delete("bars_%s" % item.symbol.lower())
+        try:
+            bars = self.sina_bars.fetch(item)
+            provider = self.sina_bars
+        except MarketDataError:
+            if not item.tencent_kline_symbol:
+                raise
+            bars = self.tencent_bars.fetch(item)
+            provider = self.tencent_bars
+        self.last_bar_quality[item.symbol] = list(getattr(provider, "last_quality_issues", ()))
+        return bars
+
 
 
 class LiveEngine:
@@ -966,8 +1074,6 @@ class LiveEngine:
                         "trimmed_bar_count": 0,
                         "trim_reason": None,
                         "trim_gap_business_days": None,
-                        "available_complete_walk_forward_windows": 0,
-                        "required_complete_walk_forward_windows": MIN_COMPLETE_WINDOWS,
                         "blocking_reasons": ["NO_ACCEPTED_BARS", "RATIO_THRESHOLD"],
                         "issue_counts_by_type": {
                             issue_type: sum(1 for issue in issues if issue.issue_type == issue_type)
@@ -995,7 +1101,6 @@ class LiveEngine:
             recent_window_start = max(recent_days[0], history_start)
             window_start = recent_window_start
             recent_issues = [issue for issue in issues if issue.day is None or issue.day >= window_start]
-            available_windows = len(walk_forward_windows([bar.day for bar in usable_series]))
             blocking_reasons: list[str] = []
             if recent_issues:
                 blocking_reasons.append("RECENT_DECISION_WINDOW")
@@ -1003,8 +1108,6 @@ class LiveEngine:
                 blocking_reasons.append("COUNT_THRESHOLD")
             if invalid_ratio > MAX_DROPPED_INVALID_BAR_RATIO:
                 blocking_reasons.append("RATIO_THRESHOLD")
-            if trim["reason"] and available_windows < MIN_COMPLETE_WINDOWS:
-                blocking_reasons.append("USABLE_SEGMENT_WALK_FORWARD_INSUFFICIENT")
             report[item.symbol] = {
                 "status": (
                     "BLOCKED" if blocking_reasons
@@ -1031,8 +1134,6 @@ class LiveEngine:
                 "trimmed_bar_count": accepted_count - len(usable_series),
                 "trim_reason": trim["reason"],
                 "trim_gap_business_days": trim["business_day_count"] if trim["reason"] else None,
-                "available_complete_walk_forward_windows": available_windows,
-                "required_complete_walk_forward_windows": MIN_COMPLETE_WINDOWS,
                 "blocking_reasons": blocking_reasons,
                 "issue_counts_by_type": {
                     issue_type: sum(1 for issue in issues if issue.issue_type == issue_type)
@@ -1050,24 +1151,42 @@ class LiveEngine:
             }
         return report
 
-    def _partition_findings(self, findings: Sequence[str]) -> tuple[list[str], list[str]]:
-        """把发现分成「会改变结论的」和「只降低覆盖面的」。
-
-        只有当一条发现能被确定归属到某个「已实现分支根本不读取」的标的时，才归入
-        覆盖面。其余一律算会改变结论——无法归属的系统级错误、归属到结论输入标的的
-        错误，都继续 fail-closed。宁可错杀，绝不放行。
-        """
-        known_symbols = {item.symbol for item in self.settings.universe}
-        blocking: list[str] = []
-        coverage_only: list[str] = []
-        for finding in findings:
-            parts = finding.split(":")
-            symbol = parts[1] if len(parts) > 1 else None
-            if symbol in known_symbols and symbol not in DECISION_INPUT_SYMBOLS:
-                coverage_only.append(finding)
-            else:
-                blocking.append(finding)
-        return blocking, coverage_only
+    def _quote_findings(
+        self,
+        item: Instrument,
+        quote: Quote | None,
+        now: datetime,
+        freshness: dict | None = None,
+    ) -> List[str]:
+        """一只标的的报价发现：缺失、非有限、观察时间过期、来源时间缺失/过期/停滞。"""
+        findings: List[str] = []
+        exchange_now = now.astimezone(ZoneInfo(item.timezone))
+        if quote is None:
+            findings.append("QUOTE_MISSING:%s" % item.symbol)
+        elif not math.isfinite(quote.price):
+            findings.append("QUOTE_NONFINITE:%s" % item.symbol)
+        else:
+            quote_age = (now - quote.observed_at).total_seconds()
+            if quote_age < -MAX_FUTURE_CLOCK_SKEW_SECONDS:
+                findings.append("QUOTE_CLOCK_AHEAD:%s" % item.symbol)
+            elif quote_age > self.settings.quote_max_age_seconds:
+                findings.append("QUOTE_STALE:%s" % item.symbol)
+            if freshness is None:
+                freshness = self._quote_freshness(item, quote, now)
+            if freshness["status"] == "SOURCE_TIME_NAIVE":
+                findings.append("QUOTE_SOURCE_TIME_NAIVE:%s:%s" % (item.symbol, quote.source))
+            if freshness["status"] == "SOURCE_TIME_MISSING":
+                findings.append("QUOTE_SOURCE_TIME_MISSING:%s:%s" % (item.symbol, quote.source))
+            elif freshness["status"] == "SOURCE_TIME_CLOCK_AHEAD":
+                findings.append(
+                    "QUOTE_SOURCE_CLOCK_AHEAD:%s:%s:%s"
+                    % (item.symbol, freshness["source_time"], exchange_now.isoformat())
+                )
+            if freshness.get("status") == "SOURCE_TIME_STALE":
+                findings.append("QUOTE_SOURCE_STALE:%s" % item.symbol)
+            if freshness.get("advance_status") == "FEED_STALLED":
+                findings.append("QUOTE_FEED_STALLED:%s" % item.symbol)
+        return findings
 
     def _validate(
         self,
@@ -1084,35 +1203,10 @@ class LiveEngine:
             exchange_now = now.astimezone(exchange_timezone)
             exchange_today = exchange_now.date()
             if item.realtime_quote:
-                quote = quotes.get(item.symbol)
-                if quote is None:
-                    findings.append("QUOTE_MISSING:%s" % item.symbol)
-                elif not math.isfinite(quote.price):
-                    findings.append("QUOTE_NONFINITE:%s" % item.symbol)
-                else:
-                    quote_age = (now - quote.observed_at).total_seconds()
-                    if quote_age < -MAX_FUTURE_CLOCK_SKEW_SECONDS:
-                        findings.append("QUOTE_CLOCK_AHEAD:%s" % item.symbol)
-                    elif quote_age > self.settings.quote_max_age_seconds:
-                        findings.append("QUOTE_STALE:%s" % item.symbol)
-                    freshness = (
-                        quote_freshness.get(item.symbol)
-                        if quote_freshness is not None
-                        else self._quote_freshness(item, quote, now)
-                    )
-                    if freshness["status"] == "SOURCE_TIME_NAIVE":
-                        findings.append("QUOTE_SOURCE_TIME_NAIVE:%s:%s" % (item.symbol, quote.source))
-                    if freshness["status"] == "SOURCE_TIME_MISSING":
-                        findings.append("QUOTE_SOURCE_TIME_MISSING:%s:%s" % (item.symbol, quote.source))
-                    elif freshness["status"] == "SOURCE_TIME_CLOCK_AHEAD":
-                        findings.append(
-                            "QUOTE_SOURCE_CLOCK_AHEAD:%s:%s:%s"
-                            % (item.symbol, freshness["source_time"], exchange_now.isoformat())
-                        )
-                    if freshness.get("status") == "SOURCE_TIME_STALE":
-                        findings.append("QUOTE_SOURCE_STALE:%s" % item.symbol)
-                    if freshness.get("advance_status") == "FEED_STALLED":
-                        findings.append("QUOTE_FEED_STALLED:%s" % item.symbol)
+                findings.extend(self._quote_findings(
+                    item, quotes.get(item.symbol), now,
+                    quote_freshness.get(item.symbol) if quote_freshness is not None else None,
+                ))
             series = bars.get(item.symbol)
             if not series:
                 findings.append("BAR_MISSING:%s" % item.symbol)
@@ -1136,18 +1230,7 @@ class LiveEngine:
                 findings.append("BAR_STALE:%s:%s" % (item.symbol, latest.isoformat()))
         for symbol, quality in (bar_quality or {}).items():
             for reason in quality.get("blocking_reasons", []):
-                if reason == "USABLE_SEGMENT_WALK_FORWARD_INSUFFICIENT":
-                    findings.append(
-                        "BAR_USABLE_SEGMENT_WALK_FORWARD_INSUFFICIENT:%s:可用段 %s 条 / 需要 %s 个完整 walk-forward 窗口（当前 %s）"
-                        % (
-                            symbol,
-                            quality["effective_bar_count"],
-                            quality["required_complete_walk_forward_windows"],
-                            quality["available_complete_walk_forward_windows"],
-                        )
-                    )
-                else:
-                    findings.append("BAR_INVALID_OHLCV:%s:%s" % (symbol, reason))
+                findings.append("BAR_INVALID_OHLCV:%s:%s" % (symbol, reason))
         return findings
 
     @staticmethod
@@ -1157,101 +1240,354 @@ class LiveEngine:
             "bars": {symbol: series[-1].day.isoformat() for symbol, series in sorted(bars.items()) if series},
         }
 
+
+    # ================================================================================================
+    # 实时层（每 60 秒）：读研究快照 -> 拉候选与 IWM 的批量报价 -> 时效门 -> 中枢 -> 记分簿 -> 报告
+    # ================================================================================================
+    @property
+    def research_dir(self) -> Path:
+        return Path(self.settings.research_dir) if self.settings.research_dir else self.settings.state_dir / "research" / "out"
+
+    @property
+    def backtest_dir(self) -> Path:
+        return Path(self.settings.backtest_dir) if self.settings.backtest_dir else self.settings.state_dir / "backtest"
+
+    def _research(self) -> ResearchView:
+        """研究层产物只读；latest.json 没变就复用上一次解析结果（分支结论文件约 10MB，不必每分钟重读）。"""
+        from .research_view import latest_day_dir
+        cached = getattr(self, "_research_cache", None)
+        day = latest_day_dir(self.research_dir) if self.research_dir.is_dir() else None
+        stamp = None
+        if day is not None:
+            info = (day / "latest.json").stat()
+            stamp = (str(day), info.st_mtime_ns, info.st_size)
+            if cached is not None and cached[0] == stamp:
+                return cached[1]
+        view = load_research(self.research_dir)
+        self._research_cache = (stamp, view) if stamp else None
+        return view
+
+    def _instruments(self, research: ResearchView) -> List[Instrument]:
+        items = [us_instrument(BENCHMARK_SYMBOL, "iShares 罗素2000 ETF", BENCHMARK_EXCHANGE)]
+        for entry in research.shortlist:
+            pool = research.pool.get(entry["symbol"]) or {}
+            items.append(us_instrument(entry["symbol"], entry.get("name") or entry["symbol"], pool.get("exchange")))
+        return items
+
+    @staticmethod
+    def _completed_us_closes(bars: List[Bar], now: datetime) -> List[Bar]:
+        """当日日线只有交易日结束后才算收盘值；盘中那一根（只含到此刻的半天）不进入任何指标。"""
+        exchange_now = now.astimezone(NEW_YORK)
+        us = us_instrument("X", "X", None)
+        complete = _trading_day_is_complete(us, exchange_now)
+        return [bar for bar in sorted(bars, key=lambda b: b.day) if complete or bar.day != exchange_now.date()]
+
+    def _liquidity(self, item: Instrument, now: datetime) -> dict | None:
+        """近 20 个已收盘交易日的成交额（收盘价 x 成交量）中位数；取不到日线返回 None，由中枢退回研究快照的同口径数值。"""
+        try:
+            bars = self._completed_us_closes(self.gateway.fetch_bars(item), now)
+        except MarketDataError:
+            return None
+        recent = [bar for bar in bars[-LIQUIDITY_WINDOW_DAYS:] if bar.volume is not None]
+        if len(recent) < LIQUIDITY_MIN_BARS:
+            return None
+        values = sorted(bar.close * bar.volume for bar in recent)
+        middle = len(values) // 2
+        median = values[middle] if len(values) % 2 else (values[middle - 1] + values[middle]) / 2.0
+        return {"median_dollar_volume_20d_usd": median, "source": "live_daily_bars", "last_bar_day": recent[-1].day.isoformat(),
+                "bars_used": len(recent)}
+
+    # ---- 记分簿 -------------------------------------------------------------------------
+    def _closes(self, item: Instrument, now: datetime, *, refresh: bool = False) -> List[Tuple[str, float]] | None:
+        """记分簿用的收盘价序列：只含已完成的交易日（盘中那一根只有半天，不算收盘价）。"""
+        try:
+            bars = self._completed_us_closes(self.gateway.fetch_bars(item, refresh=refresh), now)
+        except MarketDataError:
+            return None
+        return [(bar.day.isoformat(), bar.close) for bar in bars]
+
+    @staticmethod
+    def _ledger_day(now: datetime) -> str | None:
+        """现在该给哪个交易日记账：最近一个已收盘的交易日，从收盘后 5 分钟起，到下一个交易日开盘前为止。"""
+        exchange_now = now.astimezone(NEW_YORK)
+        last = nyse_calendar.last_closed_session_day(now)
+        close = nyse_calendar.close_time(last)
+        ready = datetime.combine(last, close, tzinfo=NEW_YORK) + timedelta(minutes=LEDGER_RECORD_DELAY_MINUTES)
+        next_open = datetime.combine(nyse_calendar.next_trading_day(last), nyse_calendar.OPEN_TIME, tzinfo=NEW_YORK)
+        return last.isoformat() if ready <= exchange_now < next_open else None
+
+    def _ledger_step(self, ledger: Ledger, now: datetime, decision: dict, research: ResearchView) -> dict:
+        """收盘后记一行（正式建议 / NO_ACTION，门没开时另记一行影子候选）、结算已满 20/60 个交易日的记录。
+        全程只用已收盘的日线；当日 bar 还没出来就按 15 分钟一次退避重试，直到次日开盘前。
+        任何一步失败只影响记分簿，不影响本轮结论。"""
+        day = self._ledger_day(now)
+        status: dict = {"trading_day": day, "recorded": False, "settled": [], "shadow_recorded": False, "shadow_settled": []}
+        iwm = us_instrument(BENCHMARK_SYMBOL, "iShares 罗素2000 ETF", BENCHMARK_EXCHANGE)
+        shadow = decision.get("shadow_candidate") if decision["state"] == "NO_ACTION" else None
+        need_record = bool(day) and not ledger.has_day(day) and decision["state"] in ("RECOMMENDATION", "NO_ACTION")
+        need_shadow = bool(day) and bool(shadow) and not ledger.has_shadow_day(day)
+        retry = self.store.ledger_retry(day) if day and (need_record or need_shadow) else None
+        retry_at = self.store._parse_timestamp(retry.get("next_attempt_at")) if retry else None
+        if retry_at is not None and now < retry_at:
+            status["deferred_until"] = _iso(retry_at)
+            status["deferred_reason"] = retry.get("reason")
+            need_record = need_shadow = False                 # 退避中：不刷新请求，也不再尝试记账
+        has_unsettled = bool(ledger.unsettled()) or bool(ledger.unsettled_shadow())
+        if not need_record and not need_shadow and not has_unsettled:
+            return status
+        iwm_bars = self._closes(iwm, now, refresh=need_record or need_shadow)
+        if iwm_bars is None:
+            status["error"] = "IWM_BARS_UNAVAILABLE"
+            self._defer_ledger(day, now, status, need_record or need_shadow)
+            return status
+        cache: Dict[str, List[Tuple[str, float]] | None] = {BENCHMARK_SYMBOL: iwm_bars}
+        refreshed: set = {BENCHMARK_SYMBOL} if (need_record or need_shadow) else set()
+
+        def bars_for(symbol: str, refresh: bool = False):
+            if symbol not in cache or (refresh and symbol not in refreshed):
+                pool = research.pool.get(symbol) or {}
+                cache[symbol] = self._closes(us_instrument(symbol, pool.get("name") or symbol, pool.get("exchange")), now, refresh=refresh)
+                if refresh:
+                    refreshed.add(symbol)
+            return cache[symbol]
+
+        status["settled"] = ledger.settle_due(bars_for, iwm_bars, now)
+        status["shadow_settled"] = ledger.settle_shadow_due(bars_for, iwm_bars, now)
+        calendar = {d for d, _ in iwm_bars}
+
+        def stock_close_and_control(symbol: str, market_cap: Any):
+            """当天收盘价 + 同市值档随机对照（顺延到有收盘价的下一只）。取不到收盘价返回 (None, None, None)。"""
+            close = dict(bars_for(symbol, refresh=True) or []).get(day)
+            if close is None:
+                return None, None, None
+            attempts = {"n": 0}
+
+            def has_close(candidate: str) -> bool:
+                attempts["n"] += 1
+                if attempts["n"] > LEDGER_CONTROL_MAX_ATTEMPTS:
+                    return False
+                return dict(bars_for(candidate, refresh=True) or []).get(day) is not None
+
+            control = draw_control(day, symbol, market_cap, [research.pool[s] for s in sorted(research.pool)], has_close)
+            control_close = dict(bars_for(control["symbol"]) or []).get(day) if control is not None else None
+            return close, control, control_close
+
+        def dollar_volumes(gates: Mapping, control: Mapping | None):
+            """成本分档要用的 20 日成交额中位数：建议股取硬门里量到的值，对照股取研究快照里的值。"""
+            stock = (((gates or {}).get("liquidity") or {}).get("median_dollar_volume_20d_usd"))
+            other = ((research.pool.get(control["symbol"]) or {}).get("median_dollar_volume_20d_usd")) if control else None
+            return stock, other
+
+        failed = False
+        if need_record and day in calendar:
+            iwm_close = dict(iwm_bars)[day]
+            close, control, control_close = None, None, None
+            if decision["state"] == "RECOMMENDATION":
+                close, control, control_close = stock_close_and_control(decision["primary_symbol"], decision.get("market_cap_usd"))
+                if close is None:
+                    status["error"] = "CLOSE_PRICE_NOT_YET_AVAILABLE:%s" % decision["primary_symbol"]
+                    self._defer_ledger(day, now, status, True)
+                    return status
+            stock_dv, control_dv = dollar_volumes(decision.get("gates"), control)
+            status["recorded"] = ledger.record_day(day, decision, close_price=close, iwm_close=iwm_close, control=control,
+                                                   control_close=control_close, now=now, dollar_volume=stock_dv, control_dollar_volume=control_dv)
+        elif need_record:
+            status["error"] = "TRADING_DAY_NOT_IN_CALENDAR_OR_BAR_NOT_YET_PUBLISHED"
+            failed = True
+        if need_shadow and day in calendar:
+            close, control, control_close = stock_close_and_control(shadow["symbol"], shadow.get("market_cap_usd"))
+            if close is None:
+                status["shadow_error"] = "CLOSE_PRICE_NOT_YET_AVAILABLE:%s" % shadow["symbol"]
+                failed = True
+            else:
+                stock_dv, control_dv = dollar_volumes(shadow.get("gates"), control)
+                status["shadow_recorded"] = ledger.record_shadow(day, decision, close_price=close, iwm_close=dict(iwm_bars)[day], control=control,
+                                                                 control_close=control_close, now=now, dollar_volume=stock_dv,
+                                                                 control_dollar_volume=control_dv)
+        elif need_shadow:
+            failed = True
+        if failed:
+            self._defer_ledger(day, now, status, True)
+        elif day and (need_record or need_shadow):
+            self.store.clear_ledger_retry()
+        return status
+
+    def _defer_ledger(self, day: str | None, now: datetime, status: dict, wanted: bool) -> None:
+        """当日 bar 没拿到：记下下次重试时间（15 分钟后）。次日开盘后 _ledger_day 不再指向这一天，重试自然结束。"""
+        if not day or not wanted:
+            return
+        previous = self.store.ledger_retry(day) or {}
+        reason = status.get("error") or status.get("shadow_error") or "BAR_NOT_YET_PUBLISHED"
+        self.store.set_ledger_retry(day, now + timedelta(minutes=LEDGER_RETRY_MINUTES), int(previous.get("attempts") or 0) + 1, reason)
+        status["retry_after"] = _iso(now + timedelta(minutes=LEDGER_RETRY_MINUTES))
+
+    # ---- 回测摘要 -----------------------------------------------------------------------
+    def _backtest_report(self) -> dict | None:
+        """私有完整回测报告（含全部数字）。只给规则自证门做判定用，不直接进任何公开响应。"""
+        try:
+            value = json.loads((self.backtest_dir / "hub-backtest.json").read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+            return None
+        return value if isinstance(value, dict) else None
+
+    def _backtest_summary(self) -> dict:
+        value = self._backtest_report()
+        if isinstance(value, dict) and isinstance(value.get("public"), dict):
+            return value["public"]
+        return {
+            "status": "NOT_RUN", "message": "中枢回测还没有产出（signal-lattice backtest）", "sample_sufficiency": "OOS_HISTORY_INSUFFICIENT: 0/6",
+            "sample_sufficiency_message": "样本外历史不足，仅供研究参考，不构成收益证据。", "profitability_status": "OOS_HISTORY_INSUFFICIENT: 0/6",
+            "method": {"minimum_oos_windows_for_profitability": 6}, "branches": {},
+        }
+
+    # ---- 报告 ---------------------------------------------------------------------------
+    def _shell(self, now: datetime, decision: dict, *, state: str | None = None, extra: dict | None = None) -> dict:
+        state = state or ("SYSTEM_BLOCKED" if decision["state"] == "SYSTEM_BLOCKED" else "DATA_READY")
+        return {
+            "application_version": APP_VERSION, "generated_at": _iso(now), "state": state, "automatic_trading": False,
+            "decision": decision, "message": decision.get("message") or decision.get("rationale"),
+            "data_cutoff": None, "data_cutoff_by_symbol": {}, "instruments": {}, "bar_sources": {}, "quote_observed_at": None,
+            "quote_sources": {}, "quotes": {}, "quote_freshness": {}, "market_fingerprint": {"quotes": {}, "bars": {}},
+            "freshness_findings": [], "blocking_findings": [decision["blocked_reason"]] if decision.get("blocked_reason") else [],
+            "degraded_symbols": {}, "branches": [], "receipts": [], "candidates": [], "ledger": None,
+            "proof_gate": decision.get("proof_gate"), "backtest": self._backtest_summary(), "us_market": us_market_status(now),
+            **(extra or {}),
+        }
+
+    def _blocked_report(self, now: datetime, reason: str, message: str, findings: List[str] | None = None,
+                        accounting: dict | None = None) -> dict:
+        report = self._shell(now, hub.blocked_decision(reason, message), extra={"blocked_reason": reason})
+        report["freshness_findings"] = list(findings or [reason])
+        report["blocking_findings"] = [reason]
+        if accounting is not None:
+            report["collection_request_accounting"] = accounting
+        return report
+
     def _serialization_blocked_report(self, now: datetime, findings: List[str]) -> dict:
         """严格 JSON 边界发现非有限数值时，保留阻断事实而不写出坏报告。"""
-        return {
-            "application_version": APP_VERSION,
-            "generated_at": _iso(now),
-            "state": "SYSTEM_BLOCKED",
-            "automatic_trading": False,
-            "data_cutoff": None,
-            "data_cutoff_by_symbol": {},
-            "instruments": {
-                item.symbol: {"name": item.name, "market": item.market, "asset_type": item.asset_type}
-                for item in self.settings.universe
-            },
-            "bar_sources": {},
-            "quote_observed_at": None,
-            "quote_sources": {},
-            "quotes": {},
-            "market_fingerprint": {"quotes": {}, "bars": {}},
-            "freshness_findings": [*findings, "SERIALIZATION_NONFINITE_VALUE"],
-            "message": "报告包含非有限数值，已阻断结论。",
-            "backtest": {
-                "status": "SYSTEM_BLOCKED",
-                "message": "报告包含非有限数值，未运行或发布回测结论。",
-                "profitability_status": "SYSTEM_BLOCKED",
-            },
-            **blocked_aggregate_report(),
-        }
+        return self._blocked_report(now, "SERIALIZATION_NONFINITE_VALUE", "报告包含非有限数值，已阻断结论。",
+                                    [*findings, "SERIALIZATION_NONFINITE_VALUE"])
 
     def _runtime_failure_blocked_report(self, now: datetime, exc: Exception) -> dict:
         """任何未预期运行期异常都用新报告覆盖旧的就绪结论。"""
-        failure_type = type(exc).__name__
-        return {
-            "application_version": APP_VERSION,
-            "generated_at": _iso(now),
-            "state": "SYSTEM_BLOCKED",
-            "blocked_reason": "UNEXPECTED_RUNTIME_FAILURE",
-            "runtime_failure_type": failure_type,
-            "automatic_trading": False,
-            "data_cutoff": None,
-            "data_cutoff_by_symbol": {},
-            "instruments": {
-                item.symbol: {"name": item.name, "market": item.market, "asset_type": item.asset_type}
-                for item in self.settings.universe
-            },
-            "bar_sources": {},
-            "quote_observed_at": None,
-            "quote_sources": {},
-            "quotes": {},
-            "market_fingerprint": {"quotes": {}, "bars": {}},
-            "freshness_findings": [f"UNEXPECTED_RUNTIME_FAILURE:{failure_type}"],
-            "message": "采集或计算发生未预期运行期异常，已阻断结论。",
-            "backtest": {
-                "status": "SYSTEM_BLOCKED",
-                "message": "运行期异常，未发布回测结论。",
-                "profitability_status": "SYSTEM_BLOCKED",
-            },
-            **blocked_aggregate_report(),
-        }
+        report = self._blocked_report(now, "UNEXPECTED_RUNTIME_FAILURE", "采集或计算发生未预期运行期异常，已阻断结论。",
+                                      ["UNEXPECTED_RUNTIME_FAILURE:%s" % type(exc).__name__])
+        report["runtime_failure_type"] = type(exc).__name__
+        return report
 
-    def _collection_control_blocked_report(
-        self,
-        now: datetime,
-        reason: str,
-        accounting: dict,
-    ) -> dict:
-        return {
-            "application_version": APP_VERSION,
-            "generated_at": _iso(now),
-            "state": "SYSTEM_BLOCKED",
-            "blocked_reason": reason,
-            "automatic_trading": False,
-            "data_cutoff": None,
-            "data_cutoff_by_symbol": {},
-            "instruments": {
-                item.symbol: {"name": item.name, "market": item.market, "asset_type": item.asset_type}
-                for item in self.settings.universe
-            },
-            "bar_sources": {},
-            "bar_completion": {},
-            "bar_quality": {},
-            "data_quality_findings": [],
-            "quote_observed_at": None,
-            "quote_sources": {},
-            "quotes": {},
-            "market_fingerprint": {"quotes": {}, "bars": {}},
-            "collection_request_accounting": accounting,
-            "freshness_findings": [reason],
-            "message": "采集请求预算或退避门处于阻断状态，未向上游发起新请求。",
-            "backtest": {
-                "status": "SYSTEM_BLOCKED",
-                "message": "采集请求未执行，未运行回测结论。",
-                "profitability_status": "SYSTEM_BLOCKED",
-            },
-            **blocked_aggregate_report(),
-        }
+    def _collection_control_blocked_report(self, now: datetime, reason: str, accounting: dict) -> dict:
+        report = self._blocked_report(now, reason, "采集请求预算或退避门处于阻断状态，未向上游发起新请求。", [reason], accounting)
+        return report
+
+    @staticmethod
+    def _receipts_view(research: ResearchView) -> List[dict]:
+        rows = []
+        for branch_id, receipt in research.receipts.items():
+            counts = receipt.get("verdict_counts") or {}
+            rows.append({
+                "branch_id": branch_id, "label": BRANCH_LABELS.get(branch_id, branch_id), "status": receipt.get("status"),
+                "role": "MARKET_ENVIRONMENT" if branch_id not in STOCK_BRANCHES else "STOCK_SELECTION",
+                "snapshot_hash": receipt.get("snapshot_hash"), "params_version": receipt.get("params_version"),
+                "params_sha256": receipt.get("params_sha256"), "skill_version": receipt.get("skill_version"),
+                "verdict_counts": {"PASS": counts.get("PASS", 0), "ABSTAIN": counts.get("ABSTAIN", 0), "FAILED": counts.get("FAILED", 0)},
+                "reason": receipt.get("reason"), "note": research.notes.get(branch_id), "started_at": receipt.get("started_at"), "finished_at": receipt.get("finished_at"),
+                "duration_seconds": receipt.get("duration_seconds"),
+            })
+        order = {b: i for i, b in enumerate(list(STOCK_BRANCHES) + ["global-equity-lead-lag-atlas"])}
+        return sorted(rows, key=lambda r: order.get(r["branch_id"], 99))
+
+    @staticmethod
+    def _weights_view(weights: dict) -> dict:
+        branches = [{"branch_id": b, "label": BRANCH_LABELS[b], "weight": v["weight"], "mode": v["mode"], "sample_count": v["settled_samples"],
+                     "note": v["note"], **({"hit_rate": v["hit_rate"]} if "hit_rate" in v else {})}
+                    for b, v in weights["branches"].items()]
+        return {"weight_mode": weights["mode"], "weight_sample_count": sum(v["settled_samples"] for v in weights["branches"].values()),
+                "minimum_contribution_samples": weights["min_samples"], "formula": weights["formula"],
+                "eligible_branch_ids": [b["branch_id"] for b in branches if b["mode"] == "HIT_RATE"], "branches": branches}
+
+    def _build_report(self, now: datetime) -> Tuple[dict, bool]:
+        """返回（报告, 本轮采集是否成功）。研究层缺失/过期不是行情源的错，不计入采集失败退避。"""
+        research = self._research()
+        pre = hub.system_block(research, now)
+        if pre is not None:
+            report = self._shell(now, pre, extra={"blocked_reason": pre["blocked_reason"], "receipts": self._receipts_view(research)})
+            report["research"] = pre["details"]
+            report["freshness_findings"] = list(research.problems) or [pre["blocked_reason"]]
+            return report, True
+
+        instruments = self._instruments(research)
+        by_symbol = {item.symbol: item for item in instruments}
+        quotes, errors = self.gateway.fetch_quotes(instruments)
+        freshness = {item.symbol: self._quote_freshness(item, quotes.get(item.symbol), now) for item in instruments}
+        findings = list(errors)
+        per_symbol: Dict[str, List[str]] = {}
+        for item in instruments:
+            found = self._quote_findings(item, quotes.get(item.symbol), now, freshness[item.symbol])
+            per_symbol[item.symbol] = found
+            findings.extend(found)
+        market: Dict[str, dict] = {}
+        for item in instruments:
+            quote = quotes.get(item.symbol)
+            usable = quote is not None and math.isfinite(quote.price) and not per_symbol[item.symbol]
+            market[item.symbol] = {
+                "price": quote.price if usable else None,       # 没通过时效门的报价不当作当前价格展示
+                "quote_status": "FRESH" if not per_symbol[item.symbol] else per_symbol[item.symbol][0].split(":")[0],
+                "source_time": freshness[item.symbol].get("source_time"),
+            }
+        quotes_available = any(entry["price"] is not None for entry in market.values())
+        weights = None
+        ledger = Ledger(self.settings.state_dir / "ledger.sqlite")
+        try:
+            weights = hub.branch_weights(ledger.branch_hit_stats(20))
+            forward = {**ledger.forward_evidence(20), **ledger.forward_evidence_overlap(20)}
+            proof = hub.proof_gate(self._backtest_report(), forward, expected_binding=hub.binding_from_receipts(research.receipts), now=now)
+            outcome = hub.decide(
+                research, market, now=now, weights=weights, state=self.store.hub_state(), quotes_available=quotes_available, proof=proof,
+                liquidity_fn=lambda symbol: self._liquidity(by_symbol[symbol], now) if symbol in by_symbol else None)
+            decision = outcome["decision"]
+            if outcome["state"] != self.store.hub_state():
+                self.store.save_hub_state(outcome["state"])
+            ledger_status: dict = {}
+            if decision["state"] in ("RECOMMENDATION", "NO_ACTION"):
+                try:
+                    ledger_status = self._ledger_step(ledger, now, decision, research)
+                except Exception as exc:                       # 记分簿故障不得撤回结论，但要在报告里露出来
+                    ledger_status = {"error": "LEDGER_STEP_FAILED:%s" % type(exc).__name__}
+            ledger_summary = ledger.summary()
+            ledger_summary["last_run"] = ledger_status
+        finally:
+            ledger.close()
+
+        degraded = {symbol: found for symbol, found in per_symbol.items() if found and symbol != BENCHMARK_SYMBOL}
+        reportable = {symbol: quote for symbol, quote in quotes.items()
+                      if math.isfinite(quote.price) and symbol not in degraded}
+        observed = min((quote.observed_at for quote in reportable.values()), default=None)
+        state = "SYSTEM_BLOCKED" if decision["state"] == "SYSTEM_BLOCKED" else "DATA_READY"
+        report = self._shell(now, decision, state=state)
+        report.update({
+            "data_cutoff": research.as_of,
+            "instruments": {item.symbol: {"name": item.name, "market": item.market, "asset_type": item.asset_type,
+                                          "declared_feed_delay_minutes": item.declared_feed_delay_minutes} for item in instruments},
+            "quote_observed_at": _iso(observed) if observed else None,
+            "quote_sources": {symbol: quote.source for symbol, quote in sorted(reportable.items())},
+            "quotes": {symbol: {"price": quote.price, "currency": quote.currency,
+                                "source_time": quote.source_time.isoformat() if quote.source_time else None}
+                       for symbol, quote in sorted(reportable.items())},
+            "quote_freshness": freshness,
+            "market_fingerprint": {"quotes": {symbol: round(quote.price, 8) for symbol, quote in sorted(reportable.items())}, "bars": {}},
+            "freshness_findings": findings, "blocking_findings": [decision["blocked_reason"]] if decision.get("blocked_reason") else [],
+            "degraded_symbols": degraded,
+            "receipts": self._receipts_view(research), "branches": self._receipts_view(research),
+            "research": decision.get("data_chain") or hub.data_chain(research, now),
+            "candidates": outcome["candidates"], "weights": weights, "contribution_weights": self._weights_view(weights),
+            "proof_gate": proof,
+            "ledger": ledger_summary,
+            "message": ("数据链路不完整，不出结论" if state == "SYSTEM_BLOCKED" else "研究快照与实时行情均通过时效门，已完成中枢决策"),
+        })
+        if state == "SYSTEM_BLOCKED":
+            report["message"] = decision["message"]
+        apply_profitability_disclosure(report, report["backtest"])
+        return report, quotes_available
 
     def run_once(self, now: datetime | None = None) -> dict:
         now = now or datetime.now(timezone.utc)
@@ -1260,123 +1596,12 @@ class LiveEngine:
             control = self.store.begin_collection_round(now)
             self.store.write_heartbeat(now)
             if not control["allowed"]:
-                report = self._collection_control_blocked_report(
-                    now,
-                    control["reason"],
-                    self.store.collection_accounting(now),
-                )
+                report = self._collection_control_blocked_report(now, control["reason"], self.store.collection_accounting(now))
                 self.store.save(report)
                 return report
-            quotes, fetched_bars, errors = self.gateway.fetch(self.settings.universe)
-            bars, bar_completion = self._completed_daily_bars(fetched_bars, now)
-            errors.extend(
-                "BAR_NO_COMPLETED_SESSION:%s" % symbol
-                for symbol, completion in bar_completion.items()
-                if completion["excluded_current_session_bar_count"] and completion["last_used_bar_date"] is None
-            )
-            bar_quality = self._bar_quality_report(
-                bars,
-                getattr(self.gateway, "last_bar_quality", {}),
-            )
-            bars = self._usable_bars(bars, bar_quality)
-            quote_freshness = {
-                item.symbol: self._quote_freshness(item, quotes.get(item.symbol), now)
-                for item in self.settings.universe
-                if item.realtime_quote
-            }
-            findings = self._validate(now, quotes, bars, errors, bar_quality, quote_freshness)
-            blocking_findings, coverage_findings = self._partition_findings(findings)
-            # 结论只在「它自己的输入」出问题时才撤回。一个对结论零贡献的标的
-            # 取不到行情，应该是这个标的降级、并在页面上写明，而不是整站不出结论。
-            state = "SYSTEM_BLOCKED" if blocking_findings else "DATA_READY"
-            degraded_symbols: dict = {}
-            for finding in coverage_findings:
-                degraded_symbols.setdefault(finding.split(":")[1], []).append(finding)
-            reportable_quotes = {
-                symbol: quote
-                for symbol, quote in quotes.items()
-                if math.isfinite(quote.price) and symbol not in degraded_symbols
-            }
-            cutoffs = {symbol: series[-1].day.isoformat() for symbol, series in bars.items() if series}
-            bar_sources = {
-                symbol: {
-                    "source": series[-1].source,
-                    "bar_count": len(series),
-                    "earliest_day": series[0].day.isoformat(),
-                    "latest_day": series[-1].day.isoformat(),
-                }
-                for symbol, series in sorted(bars.items())
-                if series
-            }
-            quote_observed_at = min((quote.observed_at for quote in reportable_quotes.values()), default=None)
-            if state == "DATA_READY":
-                backtest = run_backtest(self.settings.universe, bars, state_dir=self.settings.state_dir)
-                branch_report = build_branch_report(
-                    self.settings.universe,
-                    bars,
-                    backtest,
-                    state_dir=self.settings.state_dir,
-                )
-                apply_profitability_disclosure(branch_report, backtest)
-            else:
-                backtest = {
-                    "status": "SYSTEM_BLOCKED",
-                    "message": "数据不新鲜或数据链路不完整，未运行回测。",
-                    "profitability_status": "SYSTEM_BLOCKED",
-                }
-                branch_report = {
-                    "branches": [],
-                    "profitability_status": "SYSTEM_BLOCKED",
-                    **blocked_aggregate_report(),
-                }
-            report = {
-                "application_version": APP_VERSION,
-                "generated_at": _iso(now),
-                "state": state,
-                "automatic_trading": False,
-                "data_cutoff": min(cutoffs.values()) if cutoffs else None,
-                "data_cutoff_by_symbol": cutoffs,
-                "instruments": {
-                    item.symbol: {
-                        "name": item.name,
-                        "market": item.market,
-                        "asset_type": item.asset_type,
-                        "declared_feed_delay_minutes": item.declared_feed_delay_minutes,
-                    }
-                    for item in self.settings.universe
-                },
-                "bar_sources": bar_sources,
-                "bar_completion": bar_completion,
-                "bar_quality": bar_quality,
-                "data_quality_findings": [
-                    "BAR_QUALITY_%s:%s:%s:%s"
-                    % (
-                        sample["issue_type"],
-                        symbol,
-                        sample["day"] or "UNKNOWN_DATE",
-                        ",".join(sample["violations"]),
-                    )
-                    for symbol, quality in sorted(bar_quality.items())
-                    for sample in quality["samples"]
-                ],
-                "quote_observed_at": _iso(quote_observed_at) if quote_observed_at else None,
-                "quote_sources": {symbol: quote.source for symbol, quote in sorted(reportable_quotes.items())},
-                "quotes": {symbol: {"price": quote.price, "currency": quote.currency, "source_time": quote.source_time.isoformat() if quote.source_time else None} for symbol, quote in sorted(reportable_quotes.items())},
-                "quote_freshness": quote_freshness,
-                "market_fingerprint": self._market_fingerprint(reportable_quotes, bars),
-                "freshness_findings": findings,
-                "blocking_findings": blocking_findings,
-                "coverage_findings": coverage_findings,
-                "degraded_symbols": degraded_symbols,
-                "message": (
-                    "数据链路不完整，不出结论"
-                    if blocking_findings
-                    else "真实数据已就绪，已完成独立分支计算"
-                ),
-                "backtest": backtest,
-                **branch_report,
-            }
-            self.store.finish_collection_round(now, succeeded=state == "DATA_READY")
+            report, succeeded = self._build_report(now)
+            findings = list(report.get("freshness_findings") or [])
+            self.store.finish_collection_round(now, succeeded=succeeded)
             report["collection_request_accounting"] = self.store.collection_accounting(now)
             self.store.save(report)
         except CollectionBudgetExceeded as exc:

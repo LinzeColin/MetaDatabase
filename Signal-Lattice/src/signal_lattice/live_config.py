@@ -58,6 +58,9 @@ class LiveSettings:
     tencent_kline_url: str
     eastmoney_fund_url: str
     universe: List[Instrument]
+    # 研究层产物目录（实时层只读）与中枢回测产物目录；不设置时在 state_dir 下面
+    research_dir: Path | None = None
+    backtest_dir: Path | None = None
 
     @classmethod
     def from_env(cls, project_root: Path) -> "LiveSettings":
@@ -83,4 +86,6 @@ class LiveSettings:
             tencent_kline_url=os.environ.get("SIGNAL_LATTICE_TENCENT_KLINE_URL", "https://web.ifzq.gtimg.cn/appstock/app/{kind}/get?param={symbol},day,,,2000,qfq"),
             eastmoney_fund_url=os.environ.get("SIGNAL_LATTICE_EASTMONEY_FUND_URL", "https://fund.eastmoney.com/pingzhongdata/{code}.js"),
             universe=default_universe(),
+            research_dir=Path(os.environ["SIGNAL_LATTICE_RESEARCH_DIR"]).resolve() if os.environ.get("SIGNAL_LATTICE_RESEARCH_DIR") else None,
+            backtest_dir=Path(os.environ["SIGNAL_LATTICE_BACKTEST_DIR"]).resolve() if os.environ.get("SIGNAL_LATTICE_BACKTEST_DIR") else None,
         )

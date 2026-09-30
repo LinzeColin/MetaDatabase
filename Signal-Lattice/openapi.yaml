@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Signal Lattice V2 Read-only API",
-    "version": "0.0.0.3.5",
-    "description": "V2 只读研究服务。行情只由 marketdata provider 采集；系统不接收外部行情快照、不自动交易。DATA_READY 只在全部新鲜度和时间边界通过时出现。"
+    "version": "0.0.0.4.0",
+    "description": "V2 只读研究服务（0.0.0.4 重建）。研究层（signal-lattice research）产出五个分支的收据与 shortlist；实时层每 60 秒只读这些产物，拉候选与 IWM 的批量报价，由中枢发布唯一建议（研究跟进）/ NO_ACTION / SYSTEM_BLOCKED。系统不接收外部行情快照、不自动交易、不下单。DATA_READY = 研究快照未过期 + 分支收据齐全 + 行情源可用；证据不足的收益数字（样本外窗口不足 6、记分簿已结算不足 8）不出现在任何响应里。"
   },
   "paths": {
     "/": {
@@ -58,7 +58,7 @@
       "get": {
         "operationId": "getLatestReport",
         "summary": "最新公共研究报告",
-        "description": "SYSTEM_BLOCKED 时不发布行动；样本外收益历史不足时返回脱敏后的收益证据形状。",
+        "description": "内容：中枢决策（唯一建议或 NO_ACTION 与观察名单前 5）、各分支收据（snapshot_hash、params_version、PASS/ABSTAIN/FAILED 计数）、候选比较（shortlist 表）、前向记分簿摘要、回测摘要、数据时效。SYSTEM_BLOCKED 时不发布行动；证据不足时返回脱敏后的收益证据形状。",
         "responses": {
           "200": {"description": "DATA_READY 公共报告", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PublicReport"}}}},
           "503": {"description": "数据链路阻断或采集循环失联", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/BlockedReport"}}}}
@@ -102,7 +102,7 @@
       "Liveness": {
         "type": "object",
         "required": ["status", "version"],
-        "properties": {"status": {"const": "alive"}, "version": {"const": "0.0.0.3.5"}},
+        "properties": {"status": {"const": "alive"}, "version": {"const": "0.0.0.4.0"}},
         "additionalProperties": false
       },
       "Readiness": {
@@ -120,7 +120,7 @@
         "type": "object",
         "required": ["application_version", "server_time", "state", "quote_observed_at", "data_cutoff", "automatic_trading", "public_url"],
         "properties": {
-          "application_version": {"const": "0.0.0.3.5"},
+          "application_version": {"const": "0.0.0.4.0"},
           "server_time": {"type": "string", "format": "date-time"},
           "state": {"enum": ["DATA_READY", "SYSTEM_BLOCKED"]},
           "quote_observed_at": {"type": ["string", "null"], "format": "date-time"},
@@ -132,12 +132,31 @@
       },
       "Decision": {
         "type": "object",
-        "required": ["state", "action"],
+        "required": ["state", "action", "action_code"],
         "properties": {
-          "state": {"type": "string"},
-          "action": {"type": ["string", "null"]},
+          "state": {"enum": ["RECOMMENDATION", "NO_ACTION", "SYSTEM_BLOCKED"]},
+          "action": {"type": ["string", "null"], "description": "只有 RECOMMENDATION 时为「研究跟进（看多）」；系统不写「买入」"},
+          "action_code": {"enum": ["RESEARCH_FOLLOW_LONG", "NO_ACTION", "SYSTEM_BLOCKED"]},
           "primary_symbol": {"type": ["string", "null"]},
-          "conviction": {"type": ["number", "null"]},
+          "primary_name": {"type": ["string", "null"]},
+          "market_cap_usd": {"type": ["number", "null"]},
+          "price": {"type": ["number", "null"]},
+          "rationale": {"type": "string", "description": "NO_ACTION 且规则自证门没开时，就是那句人话原因：「这套选股规则在过去 N 个月的回测里平均跑输小盘基准 IWM（20 日 −X%），在它证明自己之前不给建议」"},
+          "not_wired_vetoes": {"type": "array", "description": "暂未接入的否决项（内部人净卖出、瓶颈 kill switch：研究层没有数据来源），不在硬门里、不会生效", "items": {"type": "object", "additionalProperties": true}},
+          "no_action_cause": {"enum": ["PROOF_GATE_CLOSED", "NO_QUALIFYING_CANDIDATE"], "description": "NO_ACTION 的原因：规则自证门没开 / 没有候选满足发布条件"},
+          "candidate_note": {"type": "string", "description": "候选层面的说明（多少只候选、离发布最近的是谁）"},
+          "proof_gate": {"$ref": "#/components/schemas/ProofGate"},
+          "shadow_candidate": {"oneOf": [{"$ref": "#/components/schemas/ShadowCandidate"}, {"type": "null"}], "description": "规则自证门没开时，「今天如果发布会选谁」。只记录、不发布。"},
+          "shadow_note": {"type": ["string", "null"]},
+          "support": {"type": "object", "description": "加权支持度合计、门槛 1.3、各计分分支（PASS 1.0 / 排序支持 0.3 x 权重）与证据根去重结果", "additionalProperties": true},
+          "reasons": {"type": "array", "description": "每个支持分支一句话理由与一条 SEC 原文链接", "items": {"type": "object", "additionalProperties": true}},
+          "sources": {"type": "array", "description": "SEC 一手原文清单", "items": {"type": "object", "additionalProperties": true}},
+          "conflicts": {"type": "array", "items": {"type": "object", "additionalProperties": true}},
+          "invalidation": {"type": ["object", "null"], "description": "发布时写死的失效条件、每轮核对结果、status_text（生效中 / 已失效）", "additionalProperties": true},
+          "invalidated_recommendations": {"type": "array", "items": {"type": "object", "additionalProperties": true}},
+          "watchlist": {"type": "array", "description": "NO_ACTION（及有建议时）的观察名单前 5，每只一句话说明差在哪一道门", "maxItems": 5, "items": {"type": "object", "additionalProperties": true}},
+          "data_chain": {"type": "object", "description": "研究快照日期、hash、年龄（小时）、过期上限 36 小时、链路问题", "additionalProperties": true},
+          "blocked_reason": {"type": "string"},
           "sample_sufficiency": {"type": "string"},
           "sample_sufficiency_message": {"type": "string"}
         },
@@ -170,7 +189,8 @@
             "properties": {
               "status": {"const": "INSUFFICIENT"},
               "minimum_oos_windows_for_profitability": {"type": ["integer", "null"]},
-              "message": {"type": "string"}
+              "message": {"type": "string"},
+              "why_not_published": {"type": "string", "description": "样本外窗口不足时，为什么不公布收益数字（人话）"}
             },
             "additionalProperties": false
           },
@@ -184,7 +204,8 @@
                 "sample_sufficiency": {"type": "string"},
                 "sample_sufficiency_message": {"type": "string"},
                 "profitability_evidence": {"type": "string"},
-                "profitability_evidence_note": {"type": "string"}
+                "profitability_evidence_note": {"type": "string"},
+                "oos_windows": {"type": "integer", "minimum": 0}
               },
               "additionalProperties": false
             }
@@ -203,28 +224,149 @@
         },
         "additionalProperties": true
       },
+      "BranchReceipt": {
+        "type": "object",
+        "required": ["branch_id", "status", "snapshot_hash", "verdict_counts"],
+        "properties": {
+          "branch_id": {"type": "string"},
+          "label": {"type": "string"},
+          "status": {"enum": ["PASS", "ABSTAIN", "FAILED"]},
+          "role": {"enum": ["STOCK_SELECTION", "MARKET_ENVIRONMENT"]},
+          "snapshot_hash": {"type": "string", "description": "五个分支收据必须是同一份研究快照"},
+          "params_version": {"type": ["string", "null"]},
+          "params_sha256": {"type": ["string", "null"]},
+          "skill_version": {"type": ["string", "null"]},
+          "verdict_counts": {"type": "object", "required": ["PASS", "ABSTAIN", "FAILED"], "properties": {"PASS": {"type": "integer"}, "ABSTAIN": {"type": "integer"}, "FAILED": {"type": "integer"}}},
+          "reason": {"type": ["string", "null"]},
+          "note": {"type": ["string", "null"], "description": "一句话说明：取自收据里的原因与逐股结论里的原因，不写死"}
+        },
+        "additionalProperties": true
+      },
+      "Candidate": {
+        "type": "object",
+        "required": ["rank", "symbol", "support_total", "gates"],
+        "properties": {
+          "rank": {"type": "integer"},
+          "symbol": {"type": "string"},
+          "name": {"type": ["string", "null"]},
+          "market_cap_usd": {"type": ["number", "null"]},
+          "price": {"type": ["number", "null"]},
+          "quote_status": {"type": ["string", "null"]},
+          "support_total": {"type": "number"},
+          "gates": {"type": "object", "description": "pool / quote / liquidity / veto / support 五道候选门，加上 proof（规则自证门）各自的 ok 与说明", "additionalProperties": true},
+          "passes_candidate_gates": {"type": "boolean", "description": "五道逐股候选门是否全过（不含规则自证门）"},
+          "branch_kinds": {"type": "object", "description": "每个选股分支对这只股的支持类型：PASS / RANK（排序支持）/ FAILED / NONE / NO_PRIMARY_SOURCE", "additionalProperties": {"type": "string"}},
+          "gate_summary": {"type": "string"}
+        },
+        "additionalProperties": true
+      },
+      "LedgerSummary": {
+        "type": "object",
+        "description": "前向记分簿摘要。已结算样本 < 8 的周期不含任何收益/命中率数字，只有样本数与「样本不足，暂不下结论」。",
+        "required": ["recorded_days", "sample_status", "message", "settled"],
+        "properties": {
+          "sample_status": {"enum": ["SAMPLE_INSUFFICIENT", "SUFFICIENT"]},
+          "message": {"type": "string"},
+          "recorded_days": {"type": "integer"},
+          "settled": {"type": "object", "additionalProperties": {"type": "integer"}},
+          "horizons": {"type": "object", "additionalProperties": true},
+          "recent": {"type": "array", "items": {"type": "object", "additionalProperties": true}},
+          "shadow": {"type": "object", "description": "影子候选（规则自证门没开时「如果发布会选谁」）的记分簿摘要，结构同正式记分簿，单独统计；已结算 < 8 的周期同样不含任何收益数字。", "additionalProperties": true}
+        },
+        "additionalProperties": true
+      },
+      "ProofGate": {
+        "type": "object",
+        "description": "规则自证门（B4.5）：满足 (a) 回测证据 或 (b) 前向证据 任一才允许发布唯一建议；前向证据够样本（>= 8 个独立样本）而不达标时一票否决。回测报告必须绑定当前规则版本与参数 sha256 且在 35 天有效期内，否则当没有回测证据。证据不足的一半（回测窗口 < 6、前向独立样本 < 8）不含任何收益数字。",
+        "required": ["schema", "open", "state", "rule", "backtest", "forward", "line"],
+        "properties": {
+          "schema": {"const": "signal-lattice-proof-gate/2"},
+          "open": {"type": "boolean"},
+          "state": {"enum": ["OPEN", "CLOSED"]},
+          "opened_by": {"type": "array", "items": {"enum": ["BACKTEST", "FORWARD"]}},
+          "vetoed_by": {"type": "array", "items": {"enum": ["FORWARD"]}, "description": "前向证据够样本而不达标时为 [\"FORWARD\"]：无论回测如何都不开门"},
+          "rule": {"type": "string"},
+          "line": {"type": "string", "description": "一行：关/开 + 依据"},
+          "evidence": {"type": "string", "description": "依据（回测一段 + 前向一段），不含「关/开」前缀；证据不足的一半只写样本数，不含收益数字"},
+          "headline": {"type": ["string", "null"], "description": "门关着时的人话原因；门开着为 null"},
+          "reasons": {"type": "array", "items": {"type": "string"}},
+          "backtest": {
+            "type": "object",
+            "required": ["available", "min_windows", "sufficient", "passed", "checks"],
+            "properties": {
+              "available": {"type": "boolean"}, "windows": {"type": ["integer", "null"]}, "min_windows": {"const": 6},
+              "sufficient": {"type": "boolean"}, "passed": {"type": "boolean"}, "generated_at": {"type": ["string", "null"]},
+              "usable": {"type": "boolean", "description": "报告绑定当前规则版本与参数 sha256 且在有效期内；否则视为没有回测证据"},
+              "validity": {"type": ["object", "null"], "description": "版本绑定与有效期：generated_at、valid_until（生成后 35 天）、age_days、expired、binding_matches、report/current_binding_sha256、mismatches、status（VALID/EXPIRED/UNBOUND/UNVERIFIABLE）", "additionalProperties": true},
+              "placebo": {"type": ["object", "null"], "description": "安慰剂与正式月份对齐的有效窗口数（>= 6 才算安慰剂证据）", "additionalProperties": true},
+              "checks": {"type": "object", "additionalProperties": {"type": ["boolean", "null"]}},
+              "formal_20d_vs_iwm": {"type": ["number", "null"], "description": "只在 sufficient=true 时出现"},
+              "formal_20d_vs_control": {"type": ["number", "null"], "description": "只在 sufficient=true 时出现"},
+              "placebo_20d_vs_iwm": {"type": ["number", "null"], "description": "只在 sufficient=true 时出现"},
+              "hit_rate_20d": {"type": ["number", "null"], "description": "只在 sufficient=true 时出现"}
+            },
+            "additionalProperties": false
+          },
+          "forward": {
+            "type": "object",
+            "required": ["settled", "min_settled", "sufficient", "passed", "checks"],
+            "properties": {
+              "settled": {"type": "integer", "description": "已结算的独立样本数（不同标的、20 日窗口不重叠）"}, "shadow_settled": {"type": "integer"}, "formal_settled": {"type": "integer"},
+              "raw_settled": {"type": ["integer", "null"], "description": "记分簿里已结算的全部条数（含不独立的）"}, "excluded_not_independent": {"type": ["integer", "null"]},
+              "vetoes_gate": {"type": "boolean", "description": "样本够而不达标：一票否决"},
+              "min_settled": {"const": 8}, "min_hit_rate": {"const": 0.55}, "sufficient": {"type": "boolean"}, "passed": {"type": "boolean"},
+              "checks": {"type": "object", "additionalProperties": {"type": ["boolean", "null"]}},
+              "hit_rate": {"type": "number", "description": "只在 sufficient=true 时出现"},
+              "mean_excess_vs_iwm": {"type": ["number", "null"], "description": "只在 sufficient=true 时出现"}
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "ShadowCandidate": {
+        "type": "object",
+        "description": "影子候选：规则自证门没开时，「今天如果发布会选谁」。只记录、不发布；收盘后进记分簿的 shadow 表，按 20/60 日结算并带随机对照。",
+        "required": ["symbol", "sentence", "why_not_published"],
+        "properties": {
+          "symbol": {"type": "string"}, "name": {"type": ["string", "null"]}, "market_cap_usd": {"type": ["number", "null"]}, "price": {"type": ["number", "null"]},
+          "support_total": {"type": "number"},
+          "support_branches": {"type": "array", "items": {"type": "object", "additionalProperties": true}},
+          "reasons": {"type": "array", "items": {"type": "object", "additionalProperties": true}},
+          "sources": {"type": "array", "items": {"type": "object", "additionalProperties": true}},
+          "sentence": {"type": "string"}, "why_not_published": {"type": "string"}, "publishable_if_gate_opens": {"const": true},
+          "gates": {"type": "object", "additionalProperties": true}
+        },
+        "additionalProperties": false
+      },
       "PublicReport": {
         "type": "object",
-        "required": ["application_version", "generated_at", "state", "automatic_trading", "data_cutoff", "data_cutoff_by_symbol", "instruments", "bar_sources", "quote_observed_at", "quote_sources", "quotes", "market_fingerprint", "freshness_findings", "message", "backtest"],
+        "required": ["application_version", "generated_at", "state", "automatic_trading", "data_cutoff", "quote_observed_at", "quotes", "freshness_findings", "message", "decision", "receipts", "candidates", "backtest"],
         "properties": {
-          "application_version": {"const": "0.0.0.3.5"},
+          "application_version": {"const": "0.0.0.4.0"},
           "generated_at": {"type": "string", "format": "date-time"},
           "state": {"enum": ["DATA_READY", "SYSTEM_BLOCKED"]},
           "automatic_trading": {"const": false},
-          "data_cutoff": {"type": ["string", "null"], "format": "date"},
-          "data_cutoff_by_symbol": {"type": "object", "additionalProperties": {"type": "string", "format": "date"}},
+          "us_market": {"type": "object", "description": "美股此刻开休市（NYSE 交易日历：假日、半日市）：state OPEN/CLOSED，reason，一句话 text", "additionalProperties": true},
+          "data_cutoff": {"type": ["string", "null"], "format": "date", "description": "研究快照日期"},
           "instruments": {"type": "object", "additionalProperties": {"type": "object", "additionalProperties": true}},
-          "bar_sources": {"type": "object", "additionalProperties": {"type": "object", "additionalProperties": true}},
           "quote_observed_at": {"type": ["string", "null"], "format": "date-time"},
           "quote_sources": {"type": "object", "additionalProperties": {"type": "string"}},
           "quotes": {"type": "object", "additionalProperties": {"type": "object", "additionalProperties": true}},
+          "quote_freshness": {"type": "object", "additionalProperties": {"type": "object", "additionalProperties": true}},
           "market_fingerprint": {"type": "object", "additionalProperties": true},
           "freshness_findings": {"type": "array", "items": {"type": "string"}},
+          "degraded_symbols": {"type": "object", "additionalProperties": {"type": "array", "items": {"type": "string"}}},
           "message": {"type": "string"},
-          "backtest": {"oneOf": [{"$ref": "#/components/schemas/ProfitabilityLimitedBacktest"}, {"type": "object", "additionalProperties": true}]},
           "decision": {"$ref": "#/components/schemas/Decision"},
-          "branches": {"type": "array", "items": {"type": "object", "additionalProperties": true}},
+          "receipts": {"type": "array", "items": {"$ref": "#/components/schemas/BranchReceipt"}},
+          "branches": {"type": "array", "items": {"$ref": "#/components/schemas/BranchReceipt"}},
+          "candidates": {"type": "array", "maxItems": 60, "items": {"$ref": "#/components/schemas/Candidate"}},
+          "research": {"type": "object", "additionalProperties": true},
+          "ledger": {"oneOf": [{"$ref": "#/components/schemas/LedgerSummary"}, {"type": "null"}]},
+          "backtest": {"oneOf": [{"$ref": "#/components/schemas/ProfitabilityLimitedBacktest"}, {"type": "object", "additionalProperties": true}]},
           "contribution_weights": {"$ref": "#/components/schemas/ContributionWeights"},
+          "proof_gate": {"$ref": "#/components/schemas/ProofGate"},
           "profitability_status": {"type": "string"},
           "profitability_disclosure": {"type": "object", "additionalProperties": true}
         },

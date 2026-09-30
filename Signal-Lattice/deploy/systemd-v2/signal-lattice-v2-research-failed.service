@@ -1,0 +1,6 @@
+[Unit]
+Description=Signal Lattice V2 research layer failure note (journal only)
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'echo "signal-lattice-v2-research.service 失败：实时层在研究快照过期后会标 SYSTEM_BLOCKED；原因见 journalctl -u signal-lattice-v2-research -n 100" | /usr/bin/systemd-cat -t signal-lattice-research -p err'

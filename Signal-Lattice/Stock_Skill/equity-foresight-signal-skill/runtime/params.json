@@ -1,0 +1,61 @@
+{
+  "schema": "equity-foresight-signal/params-v1",
+  "skill_id": "equity-foresight-signal",
+  "params_version": "0.0.0.1",
+  "label": {
+    "horizon_trading_days": 20,
+    "benchmark": "IWM",
+    "round_trip_cost": 0.003,
+    "entry_lag_trading_days": 1
+  },
+  "panel": {
+    "start": "2025-01-01",
+    "max_symbols": 250,
+    "seed": 20260930,
+    "min_bars": 200
+  },
+  "features": {
+    "baseline": [
+      "dist_52w_high",
+      "vol_60d"
+    ],
+    "extra": [
+      "bn_score",
+      "bn_gate_margin",
+      "bn_constraint",
+      "bn_capture",
+      "bn_mispricing",
+      "cm_score",
+      "cm_confidence",
+      "cm_maturity",
+      "ev_opportunistic_buy",
+      "ev_opportunistic_bps",
+      "ev_dilution_90d",
+      "ev_share_growth",
+      "share_change_yoy",
+      "lazy_prices_pct"
+    ],
+    "min_train_coverage": 0.3,
+    "na_indicator_above": 0.02,
+    "winsor_z": 4.0
+  },
+  "model": {
+    "l2": 5.0,
+    "max_iter": 40,
+    "tol": 1e-07
+  },
+  "walk_forward": {
+    "min_train_dates": 6,
+    "calibration_tail_fraction": 0.3,
+    "min_calibration_dates": 2,
+    "bootstrap_samples": 2000,
+    "bootstrap_seed": 20260930
+  },
+  "decision": {
+    "min_oos_rows": 500,
+    "min_oos_dates": 6,
+    "pass_min_probability_lift": 0.05,
+    "pass_min_efs": 55.0,
+    "min_train_rows": 300
+  }
+}

@@ -1,0 +1,37 @@
+[Unit]
+Description=Signal Lattice V2 research layer (SEC evidence, five branches, shortlist)
+After=network-online.target
+Wants=network-online.target
+OnFailure=signal-lattice-v2-research-failed.service
+
+[Service]
+Type=oneshot
+User=signal-lattice
+Group=signal-lattice
+# runtime.env 是公共配置；research.env（root:root 0600）只放 SIGNAL_LATTICE_SEC_UA，systemd 以 root 读取后才降权，服务进程读不到这个文件本身。
+EnvironmentFile=/etc/signal-lattice-v2/runtime.env
+EnvironmentFile=/etc/signal-lattice-v2/research.env
+# 休市日由程序自己判断并快速退出（--skip-if-market-closed）；SEC 请求限速 <=4 次/秒在代码里；原文缓存结束时压到 1 GiB。
+ExecStart=/opt/signal-lattice-v2/current/venv/bin/signal-lattice research --work-dir /var/lib/signal-lattice-v2/research/work --out-dir /var/lib/signal-lattice-v2/research/out --skip-if-market-closed --cache-max-bytes 1073741824
+TimeoutStartSec=90min
+Nice=10
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+LockPersonality=yes
+RestrictSUIDSGID=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+SystemCallArchitectures=native
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+UMask=0077
+ReadWritePaths=/var/lib/signal-lattice-v2
+ReadOnlyPaths=/opt/signal-lattice-v2
+MemoryMax=2G
+CPUQuota=150%
+TasksMax=256

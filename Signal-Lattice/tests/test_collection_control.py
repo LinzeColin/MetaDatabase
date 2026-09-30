@@ -9,6 +9,7 @@ from unittest.mock import patch
 from signal_lattice.live_config import LiveSettings, default_universe
 from signal_lattice.live_runtime import LiveEngine, LiveStore
 from signal_lattice.marketdata.base import CollectionBudgetExceeded
+from hub_fixtures import standard_pool, write_research_dir
 
 
 class CollectionControlTests(unittest.TestCase):
@@ -21,20 +22,21 @@ class CollectionControlTests(unittest.TestCase):
             sina_quote_url="http://unused/", sina_us_kline_url="http://unused/us/{symbol}",
             sina_cn_kline_url="http://unused/cn/{symbol}", tencent_quote_url="http://unused/",
             tencent_kline_url="http://unused/{kind}/{symbol}", eastmoney_fund_url="http://unused/{code}",
-            universe=[item],
+            universe=[item], research_dir=root / "research",
         )
 
     def test_runtime_report_exposes_actual_provider_request_counts(self):
         with tempfile.TemporaryDirectory() as temporary:
-            now = datetime(2026, 9, 14, 1, tzinfo=timezone.utc)
+            now = datetime(2026, 9, 14, 15, tzinfo=timezone.utc)
+            write_research_dir(Path(temporary) / "research", standard_pool(), generated_at=now - timedelta(hours=1))
             engine = LiveEngine(self._settings(Path(temporary)))
 
             class Gateway:
                 last_bar_quality = {}
 
-                def fetch(self, instruments):
+                def fetch_quotes(self, instruments):
                     engine.store.record_provider_request("sina_quote", now)
-                    return {}, {}, []
+                    return {}, []
 
             engine.gateway = Gateway()
             report = engine.run_once(now)
