@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # eei-pull-deploy.sh —— EEI 商域宇宙的拉取式部署。
 #
-# 派生自 LinzeHomeHub deploy/pull/linze-pull-deploy.sh（免令牌、免 Coolify API 的拉取式部署），做了 4 处扩展，
+# 派生自 LinzeHomeHub deploy/pull/linze-pull-deploy.sh（免令牌、免 Coolify API 的拉取式部署），做了 5 处扩展，
 # 其余流程（隔离网络探活 -> 接入 Traefik -> 停旧 -> 经 Traefik 回测 -> 失败回滚退避）保持一致：
 #   1. RUN_EXTRA_ARGS：给 docker run 追加参数（这里用来上只读根文件系统 / tmpfs / 丢全部 capability）；
 #   2. 变化检测看 SUBDIR 的 git tree 哈希而不是整仓提交号：monorepo 里别的目录的提交不会触发重建；
 #   3. EXTRA_DOMAINS：同一个容器多接受几个域名（EXTRA_DOMAINS_CERT=yes 才为它们向 Let's Encrypt 申请证书）；
-#   4. run --force：内容没变也重新部署一次（切换主域名、改了 env 里的标签相关配置后用）。
+#   4. run --force：内容没变也重新部署一次（切换主域名、改了 env 里的标签相关配置后用）；
+#   5. 接入 Traefik 网络后起停一个一次性容器，主动触发 Traefik 重读配置（首次部署没有旧容器可停时，模板会路由到不可达地址）。
 #
 # 以下为原模板说明：
 #
@@ -359,6 +360,10 @@ do_run() {
   docker network connect "$DOCKER_NETWORK" "$CAND" || fail "新容器接入网络 $DOCKER_NETWORK 失败"
   # update 会产生一个容器事件，Traefik 的 docker provider 据此重读配置、把新容器纳入；同时设上自动重启
   docker update --restart unless-stopped "$CAND" >/dev/null 2>&1 || log "警告：没能给 $CAND 设 restart=unless-stopped"
+  # 派生处修正：Traefik 的 docker provider 只在容器 start / die / health_status 事件时重读配置，network connect 与 update 都不触发。
+  # 模板靠「停旧容器（die 事件）」顺带触发；首次部署没有旧容器可停时，Traefik 会一直保留「新容器只挂在隔离网络上」的旧视图，
+  # 路由指向不可达地址（实测 TLS 通、请求挂起）。起停一个一次性容器（start + die）主动触发一次重读。
+  docker run --rm --network none --entrypoint true "$IMAGE:$sha" >/dev/null 2>&1 || log "警告：没能触发 Traefik 重读配置"
   sleep 3
 
   # 停旧：本脚本标签的旧容器 + RETIRE_FILTER 指定的遗留容器（如旧 Coolify 容器，只停不删）
