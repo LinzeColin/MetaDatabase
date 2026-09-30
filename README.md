@@ -1,5 +1,12 @@
 # MetaDatabase
 
+> **⛔ ABD 已退役（2026-09-30，Owner 决定）。** 线上入口、3 个容器、2 条 Cloudflare 隧道服务、4 个定时器（含红着的运维卫兵）已在 VPS-3 停止并 disable，
+> 部署 workflow 已删；`ABD/` 代码原样保留（其验收模块钉着自己文件的 SHA-256，所以 `ABD/README.md` 不改，退役声明放在这里）。
+> 退役时无业务数据（建议卡累计 0 张、生产采集 0/15）。
+> **备份**：私有仓 `LinzeColin/Private-Database` 的 Release `abd-retired-20260930`（`abd-retired-20260930-public.tar.gz`，约 20MB：docker 镜像、systemd 单元、运维脚本、容器参数、`RESTORE.md`）；
+> 含秘密的完整包只在 VPS-3 本机 `/srv/linze/backups/retired/` 下（root 0600），不上传。
+> **恢复**：按包内 `RESTORE.md`（`docker load` 镜像 → 还原单元 → `systemctl enable --now abd-cloudflared abd-shadow-cloudflared`）；Cloudflare 侧 `abd.linzezhang.com` 的隧道路由与 DNS 未删，隧道连上即恢复。
+
 多项目母仓库。从 LinzeColin/CodexProject 拆分而来，各项目保留完整提交历史。
 **本仓只放代码与治理；真实个人财务/业务数据存私有仓 `Private-Database/Private-MetaDatabase`**，见 [`WHERE_IS_PROJECT_DATA.md`](WHERE_IS_PROJECT_DATA.md)。
 
@@ -8,7 +15,7 @@
 | 项目 | 状态 | 说明 |
 |---|---|---|
 | Alpha | ✅ 已迁入 | |
-| ABD | ✅ 已迁入 | 验收/发布治理组件（abd_acceptance） |
+| ABD | ⛔ 已退役（2026-09-30） | 体育博彩每日建议卡；线上只有只读观察页，已停止；代码保留，备份与恢复见本页顶部 |
 | FIFA | ✅ 已迁入 | TAB 世界杯研究流水线；含 sqlite 的私有备份已移入 `Private-MetaDatabase`，仓内仅留 public-safe 件 |
 | QBVS | ✅ 已迁入 | |
 | LinzeDatabase | ✅ 已迁入 | 原 CodexProject 中的 MetaDatabase/ 目录（含其内嵌 PFI 数据与 MooMooAU）；支付宝流水已移入 `Private-MetaDatabase` |
