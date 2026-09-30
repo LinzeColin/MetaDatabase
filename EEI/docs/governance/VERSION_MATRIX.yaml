@@ -46,5 +46,5 @@ legacy_version_labels:
   - "README product version v0.1"
   - "package.json 0.1.0"
   - "pyproject.toml 0.1.0"
-changelog_ref: "CHANGELOG.md"
+changelog_ref: "文档/归档/CHANGELOG.md"
 ledger_ref: "docs/governance/DEVELOPMENT_LEDGER.md"

@@ -53,17 +53,17 @@ def main() -> int:
 
     required = [
         "README.md",
-        "REPORT.md",
+        "文档/归档/REPORT.md",
         "AGENTS.md",
-        "CODEX_MASTER_TASK.md",
-        "FUNCTION_CATALOG.md",
-        "MODEL_MANAGEMENT.md",
-        "DOMAIN_DATA_CATALOG.md",
-        "DEVELOPMENT_STATUS.md",
-        "RISK_AND_ACCEPTANCE.md",
-        "GITHUB_REPOSITORY_BACKUP_INDEX.md",
-        "US_Corporate_Power_Map_UIUX_Redesign_v4.2.md",
-        "US_Corporate_Power_Map_Governance_Blueprint_v4.2.pdf",
+        "文档/归档/CODEX_MASTER_TASK.md",
+        "文档/归档/FUNCTION_CATALOG.md",
+        "文档/归档/MODEL_MANAGEMENT.md",
+        "文档/归档/DOMAIN_DATA_CATALOG.md",
+        "文档/归档/DEVELOPMENT_STATUS.md",
+        "文档/归档/RISK_AND_ACCEPTANCE.md",
+        "文档/归档/GITHUB_REPOSITORY_BACKUP_INDEX.md",
+        "文档/归档/US_Corporate_Power_Map_UIUX_Redesign_v4.2.md",
+        "文档/归档/US_Corporate_Power_Map_Governance_Blueprint_v4.2.pdf",
         "prototype/index.html",
         "prototype/standalone.html",
         "prototype/app.js",
@@ -84,7 +84,7 @@ def main() -> int:
     if missing:
         raise AssertionError(f"missing pack files: {missing}")
 
-    pdf_path = ROOT / "US_Corporate_Power_Map_Governance_Blueprint_v4.2.pdf"
+    pdf_path = ROOT / "文档/归档/US_Corporate_Power_Map_Governance_Blueprint_v4.2.pdf"
     reader = PdfReader(str(pdf_path))
     if reader.is_encrypted or len(reader.pages) != 16:
         raise AssertionError(

@@ -168,9 +168,10 @@ for parameter in parameters:
         pass
 
 for required in [
-    "GOVERNANCE_INDEX.md", "FUNCTION_CATALOG.md", "MODEL_MANAGEMENT.md", "DOMAIN_DATA_CATALOG.md",
-    "DEVELOPMENT_STATUS.md", "RISK_AND_ACCEPTANCE.md", "CONTRIBUTING.md",
-    "REVIEW_AND_ITERATION_INDEX.md", "TEST_STRATEGY.md", "CONTINUITY_PLAN.md",
+    "文档/归档/GOVERNANCE_INDEX.md", "文档/归档/FUNCTION_CATALOG.md", "文档/归档/MODEL_MANAGEMENT.md",
+    "文档/归档/DOMAIN_DATA_CATALOG.md",
+    "文档/归档/DEVELOPMENT_STATUS.md", "文档/归档/RISK_AND_ACCEPTANCE.md", "文档/归档/CONTRIBUTING.md",
+    "文档/归档/REVIEW_AND_ITERATION_INDEX.md", "文档/归档/TEST_STRATEGY.md", "文档/归档/CONTINUITY_PLAN.md",
     "docs/phase/V5_TASK_PACK_SYNCHRONIZATION.md",
     "brand/BRAND_AND_COMPETITIVE_LANDSCAPE_RESEARCH.md", "config/brand_policy.yaml",
     "prototype/standalone.html", "prototype/index.html", "models/model_registry.json", "models/formula_registry.json",
