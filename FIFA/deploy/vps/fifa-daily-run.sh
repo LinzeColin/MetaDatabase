@@ -75,6 +75,7 @@ do_run() {
     rm -rf "$new"; log "新站点没通过校验，已丢弃；线上保持 $(basename "${cur:-无}")"; exit 2
   fi
   # current 放在 $DATA 根下，指向 releases/<ts>（相对链接，容器里同样解析得开）
+  touch "$new"   # cp -a 会把旧站点目录的修改时间带过来；清理与 status 按修改时间排序，这里对齐成「发布时间」
   ln -sfn "releases/$(basename "$new")" "$DATA/current.tmp" && mv -Tf "$DATA/current.tmp" "$DATA/current" || { log "切换 current 失败"; exit 74; }
   log "已发布 $(basename "$new")（$([ "$rc" = 0 ] && echo 今天有新报告 || echo '今天没有新报告，页面已写明原因')）"
   # 只保留最近 KEEP_SITES 份（线上这份一定在其中）
