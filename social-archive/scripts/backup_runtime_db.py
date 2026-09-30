@@ -30,6 +30,16 @@ T16 的标题一直是「549/549 制品三副本齐全」。那句话是真的�
 4. 写 manifest（明文哈希、密文哈希、字节数、两份回执）。
 5. 少于两份已验证副本 → 退出码非零。**「传上去了」不算数，「读回来一致」才算。**
 
+## OCI 退役之后（2026-09-30）
+
+OCI 账号过期，「R2 → OCI」这一腿不再存在（`SOCIAL_ARCHIVE_REPLICA_STORES=r2,github`，见
+`social_archive/replica_stores.py`）。快照现在是：
+
+    R2（每 15 分钟一轮，库没变就跳过）  +  GitHub 私有仓 Draft Release（每个 UTC 日期第一次跑时，`--github-daily`）
+
+「够不够」的标准随之改成：**这一轮打算放几处，就必须验成几处**——只放 R2 的那些轮次要 1 份，
+带 GitHub 的那一轮要 R2 与 GitHub 共 2 份。默认配置（没设这个变量）保持老标准：R2+OCI 共 2 份。
+
 ## 边界
 
 · 快照落在 data_root/backups/runtime-db/<时间戳>/ 下，与制品的 CAS 分开。
@@ -62,6 +72,7 @@ from github_release_backup import (  # noqa: E402  同上：Draft Release 那一
 )
 from social_archive.config import Settings  # noqa: E402
 from social_archive.encryption import AgeEncryptor  # noqa: E402
+from social_archive.replica_stores import oci_enabled  # noqa: E402
 from social_archive.storage import StoredObject  # noqa: E402
 from social_archive.utils import sha256_file, utcnow  # noqa: E402
 
@@ -105,8 +116,12 @@ def _gzip(source: Path, target: Path) -> Path:
     return target
 
 
-def previous_original_sha256(backups_root: Path) -> str | None:
-    """上一次成功的快照明文哈希。找不到就返回 None（当作「变了」）。"""
+def previous_original_sha256(backups_root: Path, min_copies: int = REQUIRED_VERIFIED_COPIES) -> str | None:
+    """上一次成功的快照明文哈希。找不到就返回 None（当作「变了」）。
+
+    `min_copies`：那一轮至少验成几处才算「成功」。默认 2（老标准，R2+OCI）；
+    OCI 退役后 15 分钟一轮只放 R2，调用方传 1。
+    """
     if not backups_root.is_dir():
         return None
     for directory in sorted(backups_root.iterdir(), reverse=True):
@@ -117,9 +132,33 @@ def previous_original_sha256(backups_root: Path) -> str | None:
             data = json.loads(manifest.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             continue
-        if int(data.get("verified_remote_copies") or 0) >= REQUIRED_VERIFIED_COPIES:
+        if int(data.get("verified_remote_copies") or 0) >= min_copies:
             return str(data.get("original_sha256") or "") or None
     return None
+
+
+def github_verified_on(backups_root: Path, day: str) -> bool:
+    """`day`（UTC，形如 20260930）当天有没有一份已验证的 GitHub 副本。
+
+    只看本地 manifest：本地快照保留 48 小时，够回答「今天」。读不到/坏了的 manifest 一律当作没有
+    ——宁可多放一份 Draft Release，也不因为读不懂而漏掉当天的异地副本。
+    """
+    if not backups_root.is_dir():
+        return False
+    for directory in backups_root.iterdir():
+        if not directory.name.startswith(day):
+            continue
+        manifest = directory / "manifest.json"
+        if not manifest.is_file():
+            continue
+        try:
+            data = json.loads(manifest.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        receipt = (data.get("receipts") or {}).get("github") or {}
+        if receipt.get("status") == "verified":
+            return True
+    return False
 
 
 def _fail(code: str, message: str, **extra: Any) -> int:
@@ -144,6 +183,10 @@ def main() -> int:
     # 制品有三份副本，索引原来只有两份（R2 + OCI）。**同一件事该有同一个标准。**
     parser.add_argument("--github", action="store_true",
                         help="额外把快照放进 GitHub 私有仓的 Draft Release，凑齐第三份")
+    # OCI 退役后，快照的异地副本就是「R2 + GitHub」。GitHub 那份不能每 15 分钟建一个 Draft Release
+    # （会把仓刷爆），所以：每个 UTC 日期第一次跑时放一份，当天后面的轮次只放 R2。
+    parser.add_argument("--github-daily", action="store_true",
+                        help="每个 UTC 日期只在当天还没有已验证的 GitHub 副本时，才放进 GitHub 私有仓的 Draft Release")
     args = parser.parse_args()
 
     settings = Settings.from_env()
@@ -153,13 +196,20 @@ def main() -> int:
         return _fail("RUNTIME_DB_MISSING", f"运行库不存在：{settings.runtime_db}")
 
     r2_config = _s3_config("r2")
-    oci_config = _s3_config("oci")
-    if not r2_config or not oci_config:
-        missing = [name for name, config in (("r2", r2_config), ("oci", oci_config)) if not config]
+    # OCI 退役（SOCIAL_ARCHIVE_REPLICA_STORES=r2,github）后不再有这一腿，也不再要求它配置。
+    oci_config = _s3_config("oci") if oci_enabled() else None
+    wanted = (("r2", r2_config),) + ((("oci", oci_config),) if oci_enabled() else ())
+    if any(not config for _, config in wanted):
+        missing = [name for name, config in wanted if not config]
         return _fail("OBJECT_STORE_NOT_CONFIGURED", f"对象仓未配置：{missing}")
 
     stamp = utcnow().replace("-", "").replace(":", "").replace(".", "")[:15] + "Z"
-    root = Path(args.output).resolve() if args.output else settings.data_root / "backups/runtime-db" / stamp
+    backups_root = settings.data_root / "backups/runtime-db"
+    root = Path(args.output).resolve() if args.output else backups_root / stamp
+    # 这一轮要不要带 GitHub：显式 --github 一定带；--github-daily 只在当天还没有已验证的 GitHub 副本时带。
+    want_github = bool(args.github) or (bool(args.github_daily) and not github_verified_on(backups_root, stamp[:8]))
+    # 「够不够」：老配置（带 OCI）沿用固定 2 份；OCI 退役后，这一轮打算放几处就必须验成几处。
+    required_copies = REQUIRED_VERIFIED_COPIES if oci_enabled() else (2 if want_github else 1)
 
     if args.dry_run:
         print(json.dumps({
@@ -193,8 +243,10 @@ def main() -> int:
                          error_type=exc.__class__.__name__)
 
         if args.skip_if_unchanged:
-            previous = previous_original_sha256(settings.data_root / "backups/runtime-db")
-            if previous and previous == encrypted.original_sha256:
+            previous = previous_original_sha256(
+                backups_root, REQUIRED_VERIFIED_COPIES if oci_enabled() else 1)
+            # 库没变、而且当天的 GitHub 副本也已经有了，才跳过；库没变但 GitHub 还欠今天这一份，照放。
+            if previous and previous == encrypted.original_sha256 and not (want_github and not oci_enabled()):
                 print(json.dumps({
                     "schema_version": "1.0", "generated_at": utcnow(), "status": "PASS",
                     "skipped": True, "reason": "RUNTIME_DB_UNCHANGED",
@@ -215,13 +267,15 @@ def main() -> int:
     except Exception as exc:  # noqa: BLE001 - 提供方边界
         receipts["r2"] = {"status": "failed", "error_code": exc.__class__.__name__}
         # **第一份没验成就不往下走**：免得两边都是坏的还各自报成功。
-        receipts["oci"] = {"status": "blocked_prerequisite", "error_code": "R2_BACKUP_NOT_VERIFIED"}
+        if oci_config:
+            receipts["oci"] = {"status": "blocked_prerequisite", "error_code": "R2_BACKUP_NOT_VERIFIED"}
     else:
-        try:
-            receipts["oci"] = _upload_and_verify(oci_config, ciphertext, key, encrypted,
-                                                 root / "readback" / "oci.age")
-        except Exception as exc:  # noqa: BLE001 - 提供方边界
-            receipts["oci"] = {"status": "failed", "error_code": exc.__class__.__name__}
+        if oci_config:
+            try:
+                receipts["oci"] = _upload_and_verify(oci_config, ciphertext, key, encrypted,
+                                                     root / "readback" / "oci.age")
+            except Exception as exc:  # noqa: BLE001 - 提供方边界
+                receipts["oci"] = {"status": "failed", "error_code": exc.__class__.__name__}
 
     # **第三份：GitHub 私有仓的 Draft Release。**
     #
@@ -230,7 +284,7 @@ def main() -> int:
     #
     # 复用 github_release_backup.py 里那一套（建 Draft、确认它真是 Draft、
     # 上传、下载回读比哈希），不抄第二遍。
-    if args.github and receipts.get("r2", {}).get("status") == "verified":
+    if want_github and receipts.get("r2", {}).get("status") == "verified":
         repository = str(getattr(settings, "github_archive_repository", "") or "").strip()
         github_env = github_cli_environment(settings.github_token_file)
         if not repository or github_env is None:
@@ -278,16 +332,16 @@ def main() -> int:
         "object_key": key,
         "receipts": receipts,
         "verified_remote_copies": verified,
-        "required_verified_copies": REQUIRED_VERIFIED_COPIES,
+        "required_verified_copies": required_copies,
     }
     (root / "manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
     manifest["manifest"] = str(root / "manifest.json")
     # **「传上去了」不算数，「读回来一致」才算。**
-    manifest["status"] = "PASS" if verified >= REQUIRED_VERIFIED_COPIES else "FAIL"
+    manifest["status"] = "PASS" if verified >= required_copies else "FAIL"
     print(json.dumps(manifest, ensure_ascii=False))
-    return 0 if verified >= REQUIRED_VERIFIED_COPIES else 4
+    return 0 if verified >= required_copies else 4
 
 
 if __name__ == "__main__":

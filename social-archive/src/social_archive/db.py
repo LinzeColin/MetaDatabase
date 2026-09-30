@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Iterator
 
 from .models import CaptureRequest
+from .replica_stores import replica_stores
 from .utils import clean_display_author, clean_display_title, canonicalize_url, json_bytes, sha256_bytes, stable_id, utcnow
 
 
@@ -2647,7 +2648,8 @@ class RuntimeStore:
                     (artifact_id,),
                 ).fetchall()
                 by_store = {row["store_id"]: row for row in rows}
-                required = {"r2", "oci", "github"}
+                # 必须有的副本集合可配置：OCI 退役后是 {"r2","github"}（见 replica_stores.py）。
+                required = set(replica_stores())
                 if required.issubset(by_store):
                     cipher_hashes = {str(by_store[item]["verified_sha256"] or "") for item in required}
                     original_hashes = {str(by_store[item]["original_sha256"] or "") for item in required}
@@ -2670,7 +2672,9 @@ class RuntimeStore:
             total = int(con.execute("SELECT COUNT(*) FROM artifact").fetchone()[0])
             complete = int(con.execute("SELECT COUNT(*) FROM artifact WHERE status='complete'").fetchone()[0])
             pending = max(0, total - complete)
-            return {"required_replicas": 3, "total_artifacts": total, "all_three_verified": complete, "pending": pending}
+            # 键名 all_three_verified 是对外契约（接口、界面、证据文件都读它），保留；
+            # 「几份」以 required_replicas 为准——OCI 退役后是 2。
+            return {"required_replicas": len(replica_stores()), "total_artifacts": total, "all_three_verified": complete, "pending": pending}
 
 
 class TenantScope:

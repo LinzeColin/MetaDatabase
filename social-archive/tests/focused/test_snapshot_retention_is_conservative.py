@@ -87,7 +87,9 @@ def test_the_prune_runs_only_after_a_fresh_snapshot_succeeded() -> None:
     就会在最需要旧快照的那天把它们清掉。
     """
     unit = (Path(__file__).resolve().parents[2]
-            / "deploy/systemd/social-archive-backup.service").read_text(encoding="utf-8")
+            / "deploy/systemd/social-archive-runtime-db-backup.service").read_text(encoding="utf-8")
+    # 索引快照 2026-09-30 拆成了独立单元（原来挂在 backup.service 里、排在会失败的 backup.py 后面）；
+    # 「先产出、再清旧的」这条顺序规矩原样搬了过来。
     lines = [l for l in unit.splitlines() if l.startswith("ExecStart=")]
     assert any("prune_runtime_db_snapshots.py" in l for l in lines), "备份单元里没人调清理脚本"
     produce = max(i for i, l in enumerate(lines) if "backup_runtime_db.py" in l)

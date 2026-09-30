@@ -6,6 +6,17 @@
 > **这里不补写**：隔了两版再靠回忆重建变更记录，写出来的东西看着像记录，
 > 其实是推测，比空着更容易被人当真。
 
+## 未发版（2026-09-30）— OCI 退役：备份链重新接通
+
+OCI 账号过期（Owner：以后没有 OCI）。`replicate_objects.py` 从 2026-09-05 起每轮失败，排在它后面的
+运行库快照 25 天没做，4,704 个新制品卡在 `staged`。
+
+- 新增 `replica_stores.py` 与 `SOCIAL_ARCHIVE_REPLICA_STORES`：必须有的远端副本可配置（默认 r2,oci,github；退役 r2,github）。
+- 索引快照拆成独立单元 `social-archive-runtime-db-backup`（R2 每 15 分钟 + GitHub Draft Release 每个 UTC 日期一份）。
+- `backup.py`、`backup_runtime_db.py`、`replicate_objects.py`、`github_release_backup.py`、`prune_r2_backup_replicas.py`、
+  `recovery.py`、`restore_object.py`、`db.py`：OCI 变为可选。
+- 详见 `HANDOFF.md` 第零节。
+
 ## v0.0.0.109 — 少开一个页面不该换掉一项能力
 
 v0.0.0.108 我为了不让扩展每天开 B 站的页，把它并进了 `server_handled`。

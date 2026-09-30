@@ -28,6 +28,8 @@ UNITS=(
   social-archive-private-database-sync.timer
   social-archive-replication.service
   social-archive-replication.timer
+  social-archive-runtime-db-backup.service
+  social-archive-runtime-db-backup.timer
   social-archive-status.service
   social-archive-status.timer
   social-archive-status-web.service
@@ -289,7 +291,8 @@ printf '未启用或启动任何 unit、Docker、Tunnel 或云资源；由 Owner
 printf '\n必须由 Owner 显式启用的 unit（缺一个就有数据只存在一份的风险）：\n'
 printf '  social-archive.service\n'
 printf '  social-archive-backup.timer                  —— 定时备份\n'
-printf '  social-archive-replication.timer             —— 三地副本\n'
+printf '  social-archive-replication.timer             —— 制品副本（R2 + GitHub Release）\n'
+printf '  social-archive-runtime-db-backup.timer       —— 索引快照（R2 + 每天一份 GitHub Release）\n'
 printf '  social-archive-private-database-sync.timer   —— 私有库同步\n'
 printf '  social-archive-status.timer\n'
 printf '  social-archive-cloudflared.service\n'

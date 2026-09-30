@@ -1,0 +1,12 @@
+[Unit]
+Description=Snapshot the Social Archive runtime index every fifteen minutes
+
+[Timer]
+OnBootSec=4min
+OnUnitActiveSec=15min
+Persistent=true
+RandomizedDelaySec=60
+Unit=social-archive-runtime-db-backup.service
+
+[Install]
+WantedBy=timers.target

@@ -18,6 +18,8 @@ REQUIRED = {
     "social-archive-replication.timer",
     "social-archive-private-database-sync.service",
     "social-archive-private-database-sync.timer",
+    "social-archive-runtime-db-backup.service",
+    "social-archive-runtime-db-backup.timer",
 }
 
 
@@ -107,6 +109,7 @@ def main() -> int:
         "social-archive-replication.service": "scripts/replicate_objects.py --store all --limit 200",
         "social-archive-private-database-sync.service": "scripts/sync_private_database.py --once",
         "social-archive-backup.service": "scripts/backup.py --once",
+        "social-archive-runtime-db-backup.service": "scripts/backup_runtime_db.py --skip-if-unchanged --github-daily",
     }.items():
         text = documents[name]
         _require(text, command, name)
@@ -129,7 +132,6 @@ def main() -> int:
     replication = documents["social-archive-replication.service"]
     for needle in (
         "LoadCredential=r2_access_key_id:/opt/social-archive/runtime/secrets/r2_access_key_id",
-        "LoadCredential=oci_secret_access_key:/opt/social-archive/runtime/secrets/oci_secret_access_key",
         # **凭据来源换成了 github_markdown_token**：只有它有私有仓权限。
         # runtime/secrets/github_token 只看得见公开仓，用它查 Private-Database
         # 报 not resolvable，第三份副本因此永远失败（实测 2026-08-04）。
@@ -142,11 +144,29 @@ def main() -> int:
     backup = documents["social-archive-backup.service"]
     for needle in (
         "LoadCredential=r2_access_key_id:/opt/social-archive/runtime/secrets/r2_access_key_id",
-        "LoadCredential=oci_secret_access_key:/opt/social-archive/runtime/secrets/oci_secret_access_key",
         "Environment=SOCIAL_ARCHIVE_R2_ACCESS_KEY_ID_FILE=%d/r2_access_key_id",
-        "Environment=SOCIAL_ARCHIVE_OCI_SECRET_ACCESS_KEY_FILE=%d/oci_secret_access_key",
     ):
         _require(backup, needle, "social-archive-backup.service")
+
+    # 索引快照是独立单元：R2 的两把 key + 能看见私有仓的 github_markdown_token；
+    # 而且它**不许**再排在别的备份链后面（这就是它被拆出来的原因）。
+    runtime_db = documents["social-archive-runtime-db-backup.service"]
+    for needle in (
+        "LoadCredential=r2_access_key_id:/opt/social-archive/runtime/secrets/r2_access_key_id",
+        "LoadCredential=r2_secret_access_key:/opt/social-archive/runtime/secrets/r2_secret_access_key",
+        "LoadCredential=github_token:/opt/social-archive/runtime/secrets/github_markdown_token",
+        "Environment=SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE=%d/github_token",
+    ):
+        _require(runtime_db, needle, "social-archive-runtime-db-backup.service")
+    for chained in ("backup_runtime_db.py",):
+        for other in ("social-archive-backup.service", "social-archive-replication.service"):
+            if chained in documents[other]:
+                _fail(f"{other} 不得再包含 {chained}：索引快照必须是独立单元，不能排在别的备份步骤后面")
+
+    # OCI 已于 2026-09-30 退役：任何单元都不许再加载 OCI 凭据。
+    for name, text in documents.items():
+        if "oci_access_key_id" in text or "oci_secret_access_key" in text:
+            _fail(f"{name} 不得再加载 OCI 凭据（OCI 已退役）")
 
     private_database_sync = documents["social-archive-private-database-sync.service"]
     for needle in (
@@ -177,6 +197,7 @@ def main() -> int:
         "social-archive-replication.timer": "social-archive-replication.service",
         "social-archive-private-database-sync.timer": "social-archive-private-database-sync.service",
         "social-archive-backup.timer": "social-archive-backup.service",
+        "social-archive-runtime-db-backup.timer": "social-archive-runtime-db-backup.service",
     }.items():
         _require(documents[timer_name], f"Unit={unit}", timer_name)
 
