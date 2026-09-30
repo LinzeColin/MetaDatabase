@@ -5252,6 +5252,7 @@ dd {
 :root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .timelineControl.active,
 :root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .lens.active,
 :root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .lens[aria-pressed="true"],
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .breadcrumb button[aria-current="page"],
 :root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .stagePill.focus {
   border-color: #3e66a8;
   background: #182a4b;
@@ -5332,6 +5333,39 @@ dd {
 }
 :root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .brandGlyph {
   color: var(--bg);
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .workspaceLayerStrip button,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .structureMatrix table {
+  border-color: var(--cloud-line);
+  background: var(--cloud-surface);
+  color: var(--ink);
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .workspaceLayerStrip button[data-layer-state="active"] {
+  border-color: #2b6b55;
+  background: #10281f;
+  color: #8fe3c8;
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .workspaceLayerStrip button[data-layer-state="stub"],
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .structureMatrix tr[data-scope="missing"] td {
+  color: var(--muted);
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .structureMatrix th,
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .structureMatrix td {
+  border-bottom-color: var(--cloud-line);
+  color: var(--ink);
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .structureMatrix tr[data-scope="missing"] td {
+  color: var(--muted);
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .crossIndustryReroot {
+  border-color: var(--cloud-line);
+  border-left-color: #2dd4bf;
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .crossIndustryReroot strong {
+  color: var(--ink);
+}
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .crossIndustryReroot span {
+  color: var(--cloud-link);
 }
 :root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .savedViewPanel header strong {
   color: var(--cloud-link);

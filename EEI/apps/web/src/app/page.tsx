@@ -4828,7 +4828,7 @@ export default function Home() {
             data-server-rendered-node-count={graphViewMode === "server" ? graphViewNodes.length : 0}
             data-testid="ecosystem-map-svg"
             viewBox="0 0 760 480"
-            role="group"
+            role={CLOUD_MODE ? "group" : "img"}
             aria-label={
               graphViewMode === "server"
                 ? "EEI 生产关系图（服务端递归展开）"
