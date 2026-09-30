@@ -36,6 +36,10 @@ TRACKED_PATH_EXCLUDES = {
     "apps/web/next-env.d.ts",
 }
 
+# 独立部署的静态站（商域宇宙）不进发布清单：它由服务器拉取式部署单独交付、迭代频繁，
+# 每改一次都重算校验和、重打 17MB 清洁室 ZIP 不现实。
+TRACKED_PATH_EXCLUDE_PREFIXES = ("apps/universe/",)
+
 CHECKSUM_EXCLUDES = {path_id(CHECKSUMS)}
 
 
@@ -62,7 +66,11 @@ def tracked_paths() -> list[str]:
     paths = [path for path in payload.decode("utf-8").split("\0") if path]
     combined = set(paths) | REQUIRED_RELEASE_PATHS
     combined -= TRACKED_PATH_EXCLUDES
-    return sorted(path for path in combined if path and not path.endswith("/"))
+    return sorted(
+        path
+        for path in combined
+        if path and not path.endswith("/") and not path.startswith(TRACKED_PATH_EXCLUDE_PREFIXES)
+    )
 
 
 def sha256_file(path: Path) -> str:

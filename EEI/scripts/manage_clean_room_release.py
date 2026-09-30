@@ -114,6 +114,10 @@ EXCLUDED_FROM_PACKAGE = {
     PACKAGE.as_posix(),
 }
 
+# 独立部署的静态站（商域宇宙，含固定版本的 three.js 与部署件）不属于清洁室治理包：
+# 它由服务器拉取式部署单独交付，且随部署迭代频繁；放进包里会让每次改它都要重打 17MB 的 ZIP。
+EXCLUDED_PREFIXES = ("apps/universe/",)
+
 
 def run_git(*args: str) -> str:
     return run_git_bytes(*args).decode("utf-8")
@@ -186,6 +190,7 @@ def tracked_paths() -> set[str]:
 def package_paths() -> list[str]:
     paths = tracked_paths() | REQUIRED_PACKAGE_PATHS
     paths -= EXCLUDED_FROM_PACKAGE
+    paths = {path for path in paths if not path.startswith(EXCLUDED_PREFIXES)}
     missing = sorted(path for path in paths if not (ROOT / path).is_file())
     if missing:
         raise AssertionError(f"missing package files: {missing}")
