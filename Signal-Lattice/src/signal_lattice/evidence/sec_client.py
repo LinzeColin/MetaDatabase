@@ -91,7 +91,9 @@ class SecClient:
         limiter: RateLimiter = GLOBAL_LIMITER,
         opener: Optional[Callable] = None,
         sleep: Callable[[float], None] = time.sleep,
+        compress_cache: bool = False,
     ) -> None:
+        self.compress_cache = compress_cache
         self.cache_dir = Path(cache_dir) if cache_dir is not None else None
         if self.cache_dir is not None:
             self.cache_dir.mkdir(parents=True, exist_ok=True)
@@ -108,15 +110,19 @@ class SecClient:
             return None
         digest = hashlib.sha256(url.encode("utf-8")).hexdigest()
         folder = self.cache_dir / digest[:2]
-        return folder / (digest + ".body"), folder / (digest + ".meta.json")
+        suffix = ".body.gz" if self.compress_cache else ".body"
+        return folder / (digest + suffix), folder / (digest + ".meta.json")
 
     def _load_cache(self, url: str) -> Optional[tuple[bytes, dict]]:
         paths = self._paths(url)
         if paths is None or not paths[0].is_file() or not paths[1].is_file():
             return None
         try:
-            return paths[0].read_bytes(), json.loads(paths[1].read_text("utf-8"))
-        except (OSError, ValueError):
+            body = paths[0].read_bytes()
+            if self.compress_cache:
+                body = gzip.decompress(body)
+            return body, json.loads(paths[1].read_text("utf-8"))
+        except (OSError, ValueError, EOFError):
             return None
 
     def _save_cache(self, url: str, body: bytes, meta: dict) -> None:
@@ -124,15 +130,20 @@ class SecClient:
         if paths is None:
             return
         paths[0].parent.mkdir(parents=True, exist_ok=True)
-        for target, data in ((paths[0], body), (paths[1], json.dumps(meta).encode("utf-8"))):
+        stored = gzip.compress(body, 6) if self.compress_cache else body
+        for target, data in ((paths[0], stored), (paths[1], json.dumps(meta).encode("utf-8"))):
             temporary = target.with_suffix(target.suffix + ".tmp")
             temporary.write_bytes(data)
             os.replace(temporary, target)
 
     # ---- 请求 -------------------------------------------------------------
-    def get_bytes(self, url: str) -> bytes:
-        cached = self._load_cache(url)
+    def get_bytes(self, url: str, *, cache: bool = True, immutable: bool = False) -> bytes:
+        """cache=False：高频文件（如 Form 4）不落盘，由调用方自己存解析结果。
+        immutable=True：申报原文、已收盘日的索引不会再变，命中缓存就不再发条件请求。"""
+        cached = self._load_cache(url) if cache else None
         headers = {"User-Agent": self.user_agent, "Accept-Encoding": "gzip", "Accept": "*/*"}
+        if immutable and cached is not None:
+            return cached[0]
         if cached is not None:
             etag = cached[1].get("etag")
             modified = cached[1].get("last_modified")
@@ -157,12 +168,13 @@ class SecClient:
                         close()
                 if (response_headers.get("Content-Encoding") or "").lower() == "gzip":
                     body = gzip.decompress(body)
-                self._save_cache(url, body, {
-                    "url": url,
-                    "etag": response_headers.get("ETag"),
-                    "last_modified": response_headers.get("Last-Modified"),
-                    "fetched_at": time.time(),
-                })
+                if cache:
+                    self._save_cache(url, body, {
+                        "url": url,
+                        "etag": response_headers.get("ETag"),
+                        "last_modified": response_headers.get("Last-Modified"),
+                        "fetched_at": time.time(),
+                    })
                 return body
             except urllib.error.HTTPError as exc:
                 if exc.code == 304 and cached is not None:

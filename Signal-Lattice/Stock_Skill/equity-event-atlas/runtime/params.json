@@ -1,0 +1,43 @@
+{
+  "schema": "equity-event-atlas/params-v1",
+  "skill_id": "equity-event-atlas",
+  "params_version": "0.0.0.1",
+  "insider": {
+    "min_purchase_usd": 25000,
+    "window_days": 90,
+    "routine_history_years": 3,
+    "pass_min_opportunistic_insiders": 1,
+    "pass_min_total_usd": 25000,
+    "cluster_min_insiders": 2,
+    "offering_like_min_buyers": 4
+  },
+  "dilution": {
+    "lookback_days": 90,
+    "offering_forms": ["424B5", "S-1"],
+    "shelf_forms": ["S-3", "S-3ASR"],
+    "share_growth_yoy_threshold": 0.10,
+    "share_growth_split_cap": 0.40,
+    "atm_terms": ["at the market", "at-the-market", "equity distribution agreement", "sales agreement", "controlled equity offering"]
+  },
+  "filings": {
+    "eight_k_items": {"1.01": "MATERIAL_AGREEMENT", "2.02": "EARNINGS_RESULTS", "5.02": "EXEC_CHANGE"},
+    "activist_forms": ["SC 13D", "SCHEDULE 13D"]
+  },
+  "study": {
+    "horizons_trading_days": [20, 60],
+    "benchmark": "IWM",
+    "entry_lag_trading_days": 1,
+    "dedupe_trading_days": 20,
+    "min_sample": 30,
+    "medium_confidence_sample": 100,
+    "high_confidence_sample": 200,
+    "interval_confidence": 0.9,
+    "control_samples": 20000,
+    "control_seed": 20260930
+  },
+  "verdict": {
+    "positive_kinds": ["INSIDER_BUY_OPPORTUNISTIC"],
+    "score": {"per_insider": 10, "max_insiders": 4, "bps_of_cap_cap": 40, "senior_buyer_bonus": 15, "activist_bonus": 10},
+    "top_n": 10
+  }
+}
