@@ -164,13 +164,13 @@ test('限速：同一 arXiv 主机的请求起点至少间隔 minIntervalMs；�
   await f('https://export.arxiv.org/a');
   await f('https://oaipmh.arxiv.org/b');                       // 不同子域也算同一个 arXiv
   await Promise.all([f('https://arxiv.org/c'), f('https://export.arxiv.org/d'), f('https://arxiv.org/e')]);   // 并发：仍然各隔一个间隔
-  const t0 = Date.now();
-  await f('https://feeds.example.test/rss');                    // 其它主机：不等
-  await f('https://api.biorxiv.org/x');
-  assert.ok(Date.now() - t0 < GAP, '非 arXiv 主机不应被限速');
+  let slept = 0;   // 非 arXiv 主机：不应调用 sleep（用计数判定，不靠墙钟，负载再高也不抖）
+  const g = makePoliteFetch(inner, { minIntervalMs: GAP, sleep: async () => { slept++; } });
+  await g('https://feeds.example.test/rss'); await g('https://feeds.example.test/rss2'); await g('https://api.biorxiv.org/x');
+  assert.equal(slept, 0, '非 arXiv 主机不应被限速');
   const arxiv = starts.filter(([, h]) => /arxiv\.org$/.test(h)).map(([t]) => t);
   assert.equal(arxiv.length, 5);
-  for (let i = 1; i < arxiv.length; i++) assert.ok(arxiv[i] - arxiv[i - 1] >= GAP - 3, `第 ${i} 次与上一次只隔 ${arxiv[i] - arxiv[i - 1]}ms`);
+  for (let i = 1; i < arxiv.length; i++) assert.ok(arxiv[i] - arxiv[i - 1] >= GAP, `第 ${i} 次与上一次只隔 ${arxiv[i] - arxiv[i - 1]}ms`);
 });
 
 test('限速：minIntervalMs=0 关闭；installPoliteFetch 幂等（不套两层）并能还原', async () => {
@@ -200,7 +200,7 @@ test('限速接入每日任务：真实 runJob 的 arXiv 翻页请求之间有�
     const s = await runJob({ job: 'daily', dataDir: t.dir, backoff: [], sleep: async () => { }, log: () => { }, doBackup: false, arxivMinIntervalMs: 50 });
     assert.equal(s.exit_code, 0, JSON.stringify(s));
     assert.ok(stamps.length >= 2, `应至少翻 2 页，实际 ${stamps.length}`);
-    assert.ok(stamps[1] - stamps[0] >= 49, `两页之间只隔 ${stamps[1] - stamps[0]}ms`);
+    assert.ok(stamps[1] - stamps[0] >= 50, `两页之间只隔 ${stamps[1] - stamps[0]}ms`);
     assert.equal(globalThis.fetch.isPolite, undefined, 'runJob 结束后必须还原 fetch');
   } finally { globalThis.fetch = orig; t.cleanup(); }
 });
