@@ -142,5 +142,42 @@ class UniverseCacheTests(unittest.TestCase):
         self.assertTrue((root / "a.json").is_file())
 
 
+class CliWiringTests(unittest.TestCase):
+    def _args(self, *extra):
+        import argparse
+        from signal_lattice import research_cycle as RC
+        parser = argparse.ArgumentParser()
+        RC.add_arguments(parser)
+        tmp = Path(tempfile.mkdtemp(prefix="sl-dbcap-"))
+        return RC, parser.parse_args(["--work-dir", str(tmp / "w"), "--out-dir", str(tmp / "o"), "--offline", *extra])
+
+    def test_defaults_are_the_documented_caps(self):
+        _, args = self._args()
+        self.assertEqual(args.facts_max_bytes, 2 << 30)
+        self.assertEqual(args.universe_cache_max_bytes, 256 << 20)
+        self.assertEqual(args.text_sim_max_requests, 1500)
+        RC, args = self._args("--facts-max-bytes", "5", "--text-sim-max-requests", "7")
+        cfg = RC.config_from_args(args, ROOT)
+        self.assertEqual((cfg.facts_max_bytes, cfg.text_sim_max_requests), (5, 7))
+
+    def test_caps_run_after_a_successful_cycle_but_facts_are_untouched_when_it_fails(self):
+        import contextlib
+        import io
+        from unittest import mock
+        RC, args = self._args("--facts-max-bytes", "7", "--universe-cache-max-bytes", "9")
+        ok = {"receipts": [], "shortlist_file": "x"}
+        with mock.patch.object(RC, "run_cycle", return_value=ok), mock.patch.object(RC, "render_report", return_value=""), \
+             mock.patch.object(RC.db_cap, "prune_facts", return_value={"deleted_rows": 0}) as facts, \
+             mock.patch.object(RC.db_cap, "prune_universe_cache", return_value={"before": 0, "after": 0, "removed_files": 0}) as universe, \
+             contextlib.redirect_stdout(io.StringIO()):
+            RC.cli_main(args, ROOT)
+        self.assertEqual(facts.call_args.args[1], 7)
+        self.assertEqual(universe.call_args.args[1], 9)
+        with mock.patch.object(RC, "run_cycle", side_effect=RC.UniverseIncompleteError(1, 600, "t")), \
+             mock.patch.object(RC.db_cap, "prune_facts") as facts, contextlib.redirect_stderr(io.StringIO()):
+            RC.cli_main(args, ROOT)
+        facts.assert_not_called()
+
+
 if __name__ == "__main__":
     unittest.main()
