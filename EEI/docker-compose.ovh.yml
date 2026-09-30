@@ -87,8 +87,8 @@ services:
       # Publish (--apply) leg -> the public worker's authenticated internal
       # channel. A narrow publish token only - NEVER an account-level
       # Cloudflare credential on this shared box.
-      EEI_PUBLISH_URL: ${EEI_PUBLISH_URL:-https://eei.linzezhang.com/v1/internal/publish/exec}
-      EEI_PUBLISH_TOKEN: ${EEI_PUBLISH_TOKEN:?set EEI_PUBLISH_TOKEN}
+      EEI_PUBLISH_URL: ""   # 2026-10-01 公开接口改由同机 eei-api 直读 eei-db，不再往 Cloudflare D1 发布（空 = 跳过发布）
+      EEI_PUBLISH_TOKEN: ""
       # Never let a first publish wipe live D1 (entrypoint guard).
       EEI_ABORT_IF_EMPTY_UNIVERSE: ${EEI_ABORT_IF_EMPTY_UNIVERSE:-1}
     # Enrich+GLEIF sweep runs every interval (default hourly) to backfill/
@@ -155,8 +155,8 @@ services:
     environment:
       DATABASE_URL: postgresql://${EEI_DB_USER:-eei}:${EEI_DB_PASSWORD:?set EEI_DB_PASSWORD}@eei-db:5432/${EEI_DB_NAME:-eei}
       SEC_USER_AGENT: ${SEC_USER_AGENT:?set SEC_USER_AGENT}
-      EEI_PUBLISH_URL: ${EEI_PUBLISH_URL:-https://eei.linzezhang.com/v1/internal/publish/exec}
-      EEI_PUBLISH_TOKEN: ${EEI_PUBLISH_TOKEN:?set EEI_PUBLISH_TOKEN}
+      EEI_PUBLISH_URL: ""   # 2026-10-01 公开接口改由同机 eei-api 直读 eei-db，不再往 Cloudflare D1 发布（空 = 跳过发布）
+      EEI_PUBLISH_TOKEN: ""
       EEI_ABORT_IF_EMPTY_UNIVERSE: ${EEI_ABORT_IF_EMPTY_UNIVERSE:-1}
       # The refresh service owns migrations; the watcher must not race them.
       EEI_SKIP_MIGRATE: "1"
