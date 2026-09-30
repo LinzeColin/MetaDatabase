@@ -1,5 +1,12 @@
 # Signal Lattice V2 重建交接
 
+## 2026-10-01 补丁（未合并/未部署）：Lazy Prices 接进研究层 + 缓存总量上限
+
+- **Lazy Prices 根因**：`evidence/text_similarity.py` 只有独立 CLI，研究层从未调用；`--text-similarity` 只读"已算好的文件"，systemd 单元没传也没有步骤生成，所以恒为 `no records file`。现在 `LiveHooks.collect` 每轮调 `text_similarity.collect_records`：用事实库 filings（filed ≤ as_of）选最新 10-K/10-Q 与上期同类，结果落 `work/text-similarity/text-similarity-<as_of>.json` 并进证据快照；单轮请求上限 `--text-sim-max-requests`（默认 1500）、SEC ≤4 次/秒沿用全局限速、已算过的不重下。测试 `tests/test_text_similarity_collect.py`。
+- **未做（需 Owner 定规则）**：商业机会分支（`branches/commercial.py`）的 8 项风险扣分里没有措辞项，任务书说的"按原有规则扣分"在代码与 Skill 里找不到对应规则；评分规则一个数字都不许动，所以没有加。现在只有股势前瞻读 `lazy_prices_pct`（且因为历史日期没有时点相似度，训练覆盖率不足时会被自动剔除）。
+- **缓存总量上限**：新增 `db_cap.py`：`universe-cache` 默认 256 MiB（LRU）、`facts.sqlite` 默认 2 GiB（超限才清 `keep_from` 之前的旧期事实 + VACUUM，读取窗口内数据不动）；`DiskCache` 命中会 touch，`FactStore.min_period_end` 防止清掉的旧期被重新装回。规则与验证见 `文档/06_运维手册.md` 第 4 节，测试 `tests/test_db_cap.py`。
+- 版本号未改（避免与并行 PR 冲突）；部署前主线需要按 `pyproject.toml` 等同步升版本。
+
 ## 2026-10-01 0.0.0.4.0 / 0.0.0.4.1：推翻重建上线（最新）
 
 Owner 原话（2026-09-30）：「Signal-Lattice不合格 因为你们和初始目标严重偏离 且长期推荐大盘股 根本不可信」。

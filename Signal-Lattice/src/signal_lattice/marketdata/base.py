@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, Dict, Optional, TypeVar
 
+from .. import cache_cap
 
 USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36"
 ParsedPayload = TypeVar("ParsedPayload")
@@ -82,9 +83,11 @@ class DiskCache:
         if not path.is_file() or time.time() - path.stat().st_mtime > max_age_seconds:
             return None
         try:
-            return path.read_bytes()
+            payload = path.read_bytes()
         except OSError:
             return None
+        cache_cap.touch(path)              # 命中 = 最近使用，总量上限淘汰时最后才轮到它
+        return payload
 
     def save(self, key: str, payload: bytes) -> None:
         path = self.root / (key + ".json")
