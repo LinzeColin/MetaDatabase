@@ -1,7 +1,7 @@
 # Serenity Alipay Backup Sync
 
 Generated at: 20260614T024300Z UTC
-Source workspace: /Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5
+Source workspace: ~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5
 Source package: outputs/package/serenity_daily_analysis_delivery.zip
 Package status: pass
 

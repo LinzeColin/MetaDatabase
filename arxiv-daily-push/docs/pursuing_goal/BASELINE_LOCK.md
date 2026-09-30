@@ -11,11 +11,11 @@ integrity record, not a second editable fact source. Governance facts remain in
 
 ## Source Package
 
-- Source ZIP: `/Users/linzezhang/Downloads/arxiv_daily_push_two_stage_text_delivery_codex_pack_v5_2026-06-22.zip`
+- Source ZIP: `~/Downloads/arxiv_daily_push_two_stage_text_delivery_codex_pack_v5_2026-06-22.zip`
 - Source ZIP SHA-256: `b2b2a7ce490e7c89b1fc29adcf40d51bcc478dbfc8fa33d46c16b56fa74e3106`
-- Source prompt: `/Users/linzezhang/Downloads/FULL_PURSUING_GOAL_PROMPT_TWO_STAGE_TEXT_DELIVERY_V5.txt`
+- Source prompt: `~/Downloads/FULL_PURSUING_GOAL_PROMPT_TWO_STAGE_TEXT_DELIVERY_V5.txt`
 - Source prompt SHA-256: `a79af57bce62caa8176773f76f10e058ee8f7bed96e7140592137674877b812a`
-- Source roadmap: `/Users/linzezhang/Downloads/ARXIV_DAILY_PUSH_TWO_STAGE_ROADMAP_V6.md`
+- Source roadmap: `~/Downloads/ARXIV_DAILY_PUSH_TWO_STAGE_ROADMAP_V6.md`
 - Source roadmap SHA-256: `76b2d29a6d5cd62de472f1a8c265a89fcf03dc7031f7d4e209f85c650b498f10`
 - Import date: `2026-06-22`
 - V6 roadmap import date: `2026-06-23`

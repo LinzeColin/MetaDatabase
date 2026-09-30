@@ -12,7 +12,7 @@
   - `assets/app_icon/generate_app_icon.py`
   - `assets/app_icon/design_notes.md`
 - 已更新 `scripts/build_downloads_app_entry.py`，每次重建 app 会自动复制 `TABFIFAResearch.icns` 到 `Contents/Resources/`，并写入 `CFBundleIconFile=TABFIFAResearch`。
-- 已重建并刷新 `/Users/linzezhang/Downloads/TAB FIFA盘口研究系统.app`；当前 app bundle 已包含 `Contents/Resources/TABFIFAResearch.icns`。
+- 已重建并刷新 `~/Downloads/TAB FIFA盘口研究系统.app`；当前 app bundle 已包含 `Contents/Resources/TABFIFAResearch.icns`。
 - `generate_app_icon.py` 默认清理 `.iconset` 中间目录；当前源目录只保留正式 PNG、ICNS、脚本和设计说明，无 `__pycache__`/`.iconset` 缓存。
 - 已验证：`CFBundleIconFile=TABFIFAResearch`、ICNS 文件有效、`py_compile` 通过、app 入口 contract 单测通过。
 
@@ -60,7 +60,7 @@
 - 已保留必要例外：`TAB_FIFA_HEADLESS=0` 仅用于私有 My Bets 用户授权只读 bootstrap，不用于公开 raw 或 Live discovery。私有链仍禁止下注、赔率点击、Bet Slip 修改，并且不保存密码/OTP。
 - 已更新运行态 API：`/api/public-raw-refresh` 返回 `started=false`、`blocked=true`、`mode=public_raw_access_policy_blocked`；`/api/live-board-discovery` 返回 `mode=live_board_discovery_access_policy_blocked`；`/api/status.raw_refresh` 现在强制包含 `access_policy.status=blocked_by_access_policy`、`blocker_code=ai_controlled_access_rejected`、`automated_public_raw_refresh_allowed=false` 和授权/导入 next action，即使旧 raw health artifact 仍带 route mismatch 文案也不会误导用户去重试抓取。
 - 已更新 Downloads/Web 文案：按钮从“刷新/重试”改为“检查Raw合规状态”“检查Live合规状态”；Live 区块改为 `TAB Live 访问合规状态`；`active_timeline_report_latest.*` 已重新生成，旧提示“先刷新公开盘口 raw”已替换为“先接入授权 raw 或导入用户导出快照”。
-- 已重建真实产物：`/Users/linzezhang/Downloads/FIFA Report/TAB FIFA盘口研究系统.html`、`/Users/linzezhang/Downloads/FIFA Report/app_assets/*`、`/Users/linzezhang/Downloads/TAB FIFA盘口研究系统.app`、工作区 `outputs/tab_fifa_app_entry_runtime.html`。
+- 已重建真实产物：`~/Downloads/FIFA Report/TAB FIFA盘口研究系统.html`、`~/Downloads/FIFA Report/app_assets/*`、`~/Downloads/TAB FIFA盘口研究系统.app`、工作区 `outputs/tab_fifa_app_entry_runtime.html`。
 - 已重启本地 app server：当前 `http://127.0.0.1:8767/` 监听进程为 PID `75915`，已验证 `/api/status`、`/api/public-raw-refresh`、`/api/live-board-discovery` 均加载新逻辑。
 - 验证通过：`python3 -m py_compile ...`；`bash -n scripts/run_tab_fifa_daily_automation.sh scripts/tab_real_refresh_smoke.sh`；`node --check scripts/refresh_tab_readonly.mjs`；`node --check scripts/discover_tab_live_boards.mjs`；`python3 -m unittest tests.test_pipeline` -> `Ran 152 tests in 95.243s OK`。Downloads HTML/assets 关键文案命中，旧 `Headed fallback`、`重试 Live 板块发现`、`先刷新公开盘口 raw` 等文案未命中。
 - 当前仍不能进入完整正式 automation：正式 raw 仍未 5/5 ready，Australia Markets 仍缺失/route mismatch，私有 My Bets 仍需用户本机授权登录。新增可执行下注金额继续为 `AUD 0`。
@@ -72,7 +72,7 @@
 - 已更新 runner 合约：`scripts/run_tab_fifa_daily_automation.sh` 新增 `--allow-research-only-success` / `TAB_FIFA_ALLOW_RESEARCH_ONLY_SUCCESS=1`，summary 写入 `formal_exit_code`、`effective_exit_code`、`research_only_success_exit_override`、`partial_daily_research`；正式 run 失败仍保留 formal exit code，research-only 成功只影响报告生成层。
 - 已修复 readiness 生成性能：`automation_readiness` 不再每次扫描整个 outputs 或 95MB SQLite；改为复扫当前非 SQLite 公开产物，并复用 latest_commit 已验证的 public safety 结论。`safety.public_artifact_hits` 也改为每文件只 lower 一次并先 substring 过滤，再跑边界 regex，避免大文本安全扫描卡住。
 - 已更新首页和成熟度矩阵：Downloads 首页“今日决策中心”新增“研究日报 automation”卡片，显示 research-only PDF ready / 候选就绪 / 正式日报 blocked；`automation_maturity_latest.*` 新增 `research_only_daily_report` 与 `report_intelligence_dashboard` 验收项，当前 maturity 为 `7/15 ready`、状态 `blocked`。
-- 已重建真实产物：`automation_candidate_latest.*`、`automation_readiness_latest.*`、`automation_maturity_latest.*`、`/Users/linzezhang/Downloads/FIFA Report/TAB FIFA盘口研究系统.html`、`/Users/linzezhang/Downloads/FIFA Report/app_assets/*`、`/Users/linzezhang/Downloads/TAB FIFA盘口研究系统.app`。
+- 已重建真实产物：`automation_candidate_latest.*`、`automation_readiness_latest.*`、`automation_maturity_latest.*`、`~/Downloads/FIFA Report/TAB FIFA盘口研究系统.html`、`~/Downloads/FIFA Report/app_assets/*`、`~/Downloads/TAB FIFA盘口研究系统.app`。
 - 验证通过：`python3 -m unittest tests.test_pipeline` -> `Ran 150 tests in 98.731s OK`；`py_compile` 通过；公开产物安全审计覆盖 Downloads HTML、automation readiness/candidate/maturity JSON/MD/PDF，`public_artifact_safety_ready=True`、issue 0；`/api/status` 返回 `ok=true`、`raw_status=blocked`、`partial_status=ready_research_only`、`partial_ready=true`、`partial_stake=0`、`private_status=profile_login_required`。
 - 当前仍不能进入完整每日 automation：正式 raw 仍未 5/5 ready，Australia Markets 仍缺失/route mismatch，私有 TAB My Bets 持仓仍需本机授权登录。当前可进入的是“research-only 每4小时候选日报生成能力”，不是正式可执行下注日报，也不是自动下注。
 
@@ -88,8 +88,8 @@
 ## 当前状态
 
 - 本地网页主入口：`http://127.0.0.1:8767/`
-- Downloads HTML：`/Users/linzezhang/Downloads/FIFA Report/TAB FIFA盘口研究系统.html`
-- Downloads App：`/Users/linzezhang/Downloads/TAB FIFA盘口研究系统.app`
+- Downloads HTML：`~/Downloads/FIFA Report/TAB FIFA盘口研究系统.html`
+- Downloads App：`~/Downloads/TAB FIFA盘口研究系统.app`
 - 工作区入口副本：`work/tab-research-pipeline/outputs/tab_fifa_app_entry_runtime.html`
 - 当前页面首屏优先展示“推荐下注板块”，包含时间、板块、盘口、下注、赔率、金额、分析一致性、盘口价值、EV、Edge、套利率、Risk of ruin、概率赔率编辑、置信度、市场资金倾向分等字段。
 - 当前有效研究范围为 `4/5`：Matches、Futures、Group Betting、Team Futures Multi 可进入 research-only 诊断；Australia Markets 仍不可用。

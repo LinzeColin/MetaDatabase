@@ -414,7 +414,7 @@ The append-only machine record is `development_events.jsonl`.
 - Validation: runtime report sha256 `123d516e640aa6549b32ff50ce927a71adc7a765175f8a16ea6a6f6be50f401e`; delivery refs M1 `smtp://message/smtp-delivery:cec442e1da5bdfcf`, M2 `smtp://message/smtp-delivery:b1053c91aec057f1`, M3 `smtp://message/smtp-delivery:98c7dcb43ba2b9d5`, M4 `smtp://message/smtp-delivery:6da07d3691f28db6`; blocking reasons `[]`; validation errors `[]`.
 - Runtime boundary: command ran in the foreground only, no launchctl kickstart, no background ADP process after closeout, `ADP_ALLOW_SMTP_SEND` raw value is `UNSET` or false-like after closeout, foreground process `ADP_ALLOW_SMTP_SEND` was false-like, and daily/health/watchdog LaunchAgents remain disabled.
 - Boundary: no scheduler enable/install, Release, production restore, CURRENT/V7 contract mutation, public schema/DB/source/ranking/queue mutation, P0/P1 historical baseline mutation, `DAILY_OPERATION`, Stage2/S3 production acceptance, integrated production acceptance, or standing SMTP permission.
-- Evidence: `governance/run_manifests/ADP-S2PMT07-AUTHORIZED-CONTROLLED-REAL-RUN-ACCEPTANCE-20260701.json`; `arxiv-daily-push/docs/phase_records/PHASE_S2PMT07_AUTHORIZED_CONTROLLED_REAL_RUN_ACCEPTANCE.md`; runtime backup `/Users/linzezhang/.adp/arxiv-daily-push/runs/20260701_before_authorized_controlled_acceptance_20260701T061024Z`.
+- Evidence: `governance/run_manifests/ADP-S2PMT07-AUTHORIZED-CONTROLLED-REAL-RUN-ACCEPTANCE-20260701.json`; `arxiv-daily-push/docs/phase_records/PHASE_S2PMT07_AUTHORIZED_CONTROLLED_REAL_RUN_ACCEPTANCE.md`; runtime backup `~/.adp/arxiv-daily-push/runs/20260701_before_authorized_controlled_acceptance_20260701T061024Z`.
 
 ### `ITER-20260701-ADP-S2PMT07-INTEGRATED-PRODUCTION-ACCEPTANCE-OWNER-DECISION-PACKET`
 
@@ -529,7 +529,7 @@ The append-only machine record is `development_events.jsonl`.
 - Summary: S2PLT02 scheduler proof capture now blocks LaunchAgents whose command root does not match the expected canonical checkout or whose repo root is not current with `origin/main`.
 - Live audit: `status=blocked`; `scheduler_proof_ready=false`; `real_scheduler_proven=false`; `state_hash=89b033448ce4ef8de096f847658c0a0beb3b02f5115965b10b30c3f5661ae878`.
 - Blocking reasons: `launchagents_disabled_not_terminal_scheduler_proof`; `launchagent_repo_head_not_current_main`; `scheduler_run_manifest_missing`.
-- Runtime finding: installed ADP LaunchAgents point at `/Users/linzezhang/Documents/Codex/2026-06-19/current-phase-phase-0-goal-scope/work/CodexProject`; that root currently has HEAD `9266a609eed3f8143f939abad29e7295e8d52f53` while `origin/main=0e205f71ed29091752cf0964212329f873f7d4ca`.
+- Runtime finding: installed ADP LaunchAgents point at `~/Documents/Codex/2026-06-19/current-phase-phase-0-goal-scope/work/CodexProject`; that root currently has HEAD `9266a609eed3f8143f939abad29e7295e8d52f53` while `origin/main=0e205f71ed29091752cf0964212329f873f7d4ca`.
 - Remaining blockers: update the installed ADP LaunchAgent checkout so its `HEAD` matches `origin/main`, capture valid real scheduler proof, then build/review/write/validate `FINAL_ACCEPTANCE_BUNDLE/s2plt02_terminal_delivery_proof.json`.
 - Boundary: No scheduler enable/install/kickstart, SMTP send, terminal/final artifact write, Release, restore, CURRENT/V7 change, public schema/DB/source/ranking/queue mutation, P0/P1 closure claim, S2PLT02/S2PLT03/S2PLT04/S2PMT07 acceptance, DAILY_OPERATION, Stage2/S3 production acceptance, or integrated production acceptance.
 - Evidence: `governance/run_manifests/ADP-S2PLT02-LAUNCHAGENT-ROOT-CURRENT-MAIN-GUARD-20260701.json`; `arxiv-daily-push/docs/phase_records/PHASE_S2PLT02_LAUNCHAGENT_ROOT_CURRENT_MAIN_GUARD.md`; `arxiv-daily-push/src/arxiv_daily_push/stage2_final_gate.py`; `arxiv-daily-push/src/arxiv_daily_push/cli.py`; `arxiv-daily-push/tests/test_stage2_final_gate.py`.
@@ -5330,7 +5330,7 @@ None for this new project baseline.
 ### `ITER-20260623-S1P5T04-ROADMAP-V6`
 
 - Date: 2026-06-23
-- Fact level: EXTRACTED from `/Users/linzezhang/Downloads/ARXIV_DAILY_PUSH_TWO_STAGE_ROADMAP_V6.md`, GitHub Actions run `28002478689`, and scheduled-execution artifact `7811543123`.
+- Fact level: EXTRACTED from `~/Downloads/ARXIV_DAILY_PUSH_TWO_STAGE_ROADMAP_V6.md`, GitHub Actions run `28002478689`, and scheduled-execution artifact `7811543123`.
 - Version before: 0.22.0
 - Version after: 0.22.0
 - Base commit: 66d11bc2ad98b17fd3e5b9889941f69bdbaf5b90
@@ -5950,11 +5950,11 @@ None for this new project baseline.
 - Fact level: EXTRACTED from launchctl print output, local runner checkout state, health/watchdog readiness JSON, historical SMTP report, no-write daily smoke, and targeted Email V1 tests.
 - Status: local runner runtime attested, no replay.
 - Task IDs: `EMAIL-V1-LOCAL-RUNNER-ATTESTATION`, `S2PK`, `EMAIL_LEARNING_V1`.
-- Root cause: The 2026-06-26 real SMTP email used the old template because launchd was still pointed at `/Users/linzezhang/Documents/Codex/2026-06-21/readme-first-md-01-execution-contract/work/CodexProject_adp_stage1_daily_operation`, an old checkout without `EMAIL_LEARNING_V1`.
-- Current runtime: daily/health/watchdog launchd ProgramArguments point at `/Users/linzezhang/Documents/Codex/2026-06-21/readme-first-md-01-execution-contract/work/CodexProject_adp_local_runner_current`, currently `2eaa872033147a13a0c54d1ca097d146e8d7602c`, with certifi `SSL_CERT_FILE`.
-- Health evidence: `/Users/linzezhang/.adp/arxiv-daily-push/health/latest-preflight.json` status `pass`, generated at `2026-06-26T06:18:04Z`, project_root is the new runner checkout.
-- Watchdog evidence: `/Users/linzezhang/.adp/arxiv-daily-push/watchdog/latest-readiness.json` status `pass`, generated at `2026-06-26T06:19:51Z`, project_root is the new runner checkout.
-- Historical SMTP evidence: `/Users/linzezhang/.adp/arxiv-daily-push/runs/20260626/adp-smtp-delivery-report.json` status `sent`, generated at `2026-06-25T19:00:05Z`; this old-template email was not replayed or corrected by duplicate SMTP.
+- Root cause: The 2026-06-26 real SMTP email used the old template because launchd was still pointed at `~/Documents/Codex/2026-06-21/readme-first-md-01-execution-contract/work/CodexProject_adp_stage1_daily_operation`, an old checkout without `EMAIL_LEARNING_V1`.
+- Current runtime: daily/health/watchdog launchd ProgramArguments point at `~/Documents/Codex/2026-06-21/readme-first-md-01-execution-contract/work/CodexProject_adp_local_runner_current`, currently `2eaa872033147a13a0c54d1ca097d146e8d7602c`, with certifi `SSL_CERT_FILE`.
+- Health evidence: `~/.adp/arxiv-daily-push/health/latest-preflight.json` status `pass`, generated at `2026-06-26T06:18:04Z`, project_root is the new runner checkout.
+- Watchdog evidence: `~/.adp/arxiv-daily-push/watchdog/latest-readiness.json` status `pass`, generated at `2026-06-26T06:19:51Z`, project_root is the new runner checkout.
+- Historical SMTP evidence: `~/.adp/arxiv-daily-push/runs/20260626/adp-smtp-delivery-report.json` status `sent`, generated at `2026-06-25T19:00:05Z`; this old-template email was not replayed or corrected by duplicate SMTP.
 - No-write smoke: with launchd-equivalent certifi CA, `local-runner daily --no-write --json` produced `preflight_status=pass`, `daily_input_ready=true`, `real_smtp_sent=false`, `email_template_contract=EMAIL_LEARNING_V1`, `mail_product_id=M1`, `mail_products_supported=M1/M2/M3/M4`; overall smoke status remains blocked because no write/send was allowed.
 - Tests: Email V1 targeted tests 21 OK.
 - Decisions: This attestation does not accept `S2PLT02`, start a live two-day run, send SMTP, enable new production switches, change SMTP/scheduler code, upload Release assets, change public schema/DB/production queues, change source adapters or ranking, edit CURRENT or V7.1/V7.2 contracts, close inherited P0/P1, enable DAILY_OPERATION, or claim integrated production acceptance.

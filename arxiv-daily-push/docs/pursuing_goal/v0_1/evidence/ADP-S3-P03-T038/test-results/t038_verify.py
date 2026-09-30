@@ -6,7 +6,7 @@ Deterministic. 50 leads = 28 resolvable to an official original (20 by cited 发
 title, with reposts of the same doc) + 22 real board3 news leads with no official original (ABSTAIN).
 """
 import sys, json, pathlib
-V01 = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
+V01 = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
 T038 = V01 / "evidence" / "ADP-S3-P03-T038"
 sys.path.insert(0, str(V01 / "tools"))
 import media_resolver as M  # noqa: E402

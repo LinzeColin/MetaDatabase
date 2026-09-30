@@ -2,7 +2,7 @@
   "generated_at": "2026-06-14T10:37:29+08:00",
   "status": "pass",
   "compared": true,
-  "baseline_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/audit/history_integrity_baseline.json",
+  "baseline_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/audit/history_integrity_baseline.json",
   "baseline_exists": true,
   "baseline_written": false,
   "violations": [],
@@ -10,7 +10,7 @@
   "current_manifest": {
     "schema_version": 1,
     "generated_at": "2026-06-14T10:37:28+08:00",
-    "db_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/serenity_daily.sqlite",
+    "db_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/serenity_daily.sqlite",
     "protected_tables": [
       "run_log",
       "asset_master",
@@ -16718,9 +16718,9 @@
       }
     }
   },
-  "json_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/audit/history_integrity_latest.json",
-  "markdown_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/audit/history_integrity_latest.md",
-  "artifact_timeline_csv_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/audit/history_artifact_timeline.csv",
-  "snapshot_timeline_csv_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/audit/history_snapshot_table_timeline.csv",
-  "artifact_timeline_markdown_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/audit/history_artifact_timeline.md"
+  "json_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/audit/history_integrity_latest.json",
+  "markdown_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/audit/history_integrity_latest.md",
+  "artifact_timeline_csv_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/audit/history_artifact_timeline.csv",
+  "snapshot_timeline_csv_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/audit/history_snapshot_table_timeline.csv",
+  "artifact_timeline_markdown_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/audit/history_artifact_timeline.md"
 }

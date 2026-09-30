@@ -14,7 +14,7 @@ Record the runtime launchd state behind S2PLT02 real-proof capture readiness so 
 
 | Field | Value |
 |---|---|
-| `cli_command` | `adp audit-s2plt02-real-proof-capture-readiness --repo-root . --state-dir /Users/linzezhang/.adp/arxiv-daily-push --service-date 2026-06-29 --json` |
+| `cli_command` | `adp audit-s2plt02-real-proof-capture-readiness --repo-root . --state-dir ~/.adp/arxiv-daily-push --service-date 2026-06-29 --json` |
 | `cli_exit_code` | `2` |
 | `status` | `blocked` |
 | `all_required_launchagents_disabled` | `true` |

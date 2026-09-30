@@ -6,7 +6,7 @@ Deliverables: at-least-once envelope + DLQ + idempotency test + step/operation c
 Deterministic; no clock/random/network.
 """
 import sys, pathlib
-V01 = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
+V01 = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
 sys.path.insert(0, str(V01 / "tools"))
 import idempotency_harness as H  # noqa: E402
 

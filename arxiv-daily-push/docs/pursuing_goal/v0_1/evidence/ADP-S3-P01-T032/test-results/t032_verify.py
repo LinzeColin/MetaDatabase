@@ -6,7 +6,7 @@ Deterministic; no network. Positives (normal/attachment/pagination) pass against
 each drift type (field / attachment / pagination) is shown to FAIL the matching contract.
 """
 import sys, json, pathlib, shutil, tempfile
-V01 = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
+V01 = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
 T032 = V01 / "evidence" / "ADP-S3-P01-T032"
 FX, EXP = T032 / "fixtures", T032 / "expected"
 sys.path.insert(0, str(V01 / "tools"))

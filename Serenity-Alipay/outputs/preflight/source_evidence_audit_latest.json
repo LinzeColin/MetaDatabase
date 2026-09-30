@@ -19,8 +19,8 @@
   },
   "pack_dir": null,
   "files": {
-    "markdown": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/source_evidence_audit_latest.md",
-    "csv": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/source_evidence_audit_latest.csv",
-    "json": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/source_evidence_audit_latest.json"
+    "markdown": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/source_evidence_audit_latest.md",
+    "csv": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/source_evidence_audit_latest.csv",
+    "json": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/source_evidence_audit_latest.json"
   }
 }

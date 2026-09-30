@@ -12,7 +12,7 @@
   },
   "commands": [
     {
-      "command": "source /Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/stage/test_stage2_domestic.py tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_scan_platform_isolation.py",
+      "command": "source ~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/stage/test_stage2_domestic.py tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_scan_platform_isolation.py",
       "command_sha256": "89dc1509a94ed68d0b2e506a9e5063db9ccc95ef46f416c22b92d44d5347c604",
       "executed": true,
       "exit_code": 0,
@@ -20,7 +20,7 @@
       "summary": "17 passed. This is the frozen v0.0.0.6 SA-205 pytest target after the minimal pause-boundary adaptation."
     },
     {
-      "command": "source /Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/stage/test_stage2_domestic.py tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_account_mirror_sync.py tests/focused/test_extension_account_mirror_core.py tests/focused/test_extension_account_sync_bridge.py tests/focused/test_xhs_connector.py tests/focused/test_openapi_probe_connector.py tests/focused/test_health_gated_connector.py tests/focused/test_bilibili_connector.py tests/focused/test_command_connectors.py tests/focused/test_scan_platform_isolation.py tests/focused/test_scan_scope_isolation.py tests/focused/test_worker_profiles.py tests/focused/test_platform_canary.py tests/focused/test_generic_web_connector.py tests/focused/test_status_projection.py",
+      "command": "source ~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/stage/test_stage2_domestic.py tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_account_mirror_sync.py tests/focused/test_extension_account_mirror_core.py tests/focused/test_extension_account_sync_bridge.py tests/focused/test_xhs_connector.py tests/focused/test_openapi_probe_connector.py tests/focused/test_health_gated_connector.py tests/focused/test_bilibili_connector.py tests/focused/test_command_connectors.py tests/focused/test_scan_platform_isolation.py tests/focused/test_scan_scope_isolation.py tests/focused/test_worker_profiles.py tests/focused/test_platform_canary.py tests/focused/test_generic_web_connector.py tests/focused/test_status_projection.py",
       "command_sha256": "63afa644c228f1fbab79536d96024ed11b279a70fa12f17689a65ad16192b47e",
       "executed": true,
       "exit_code": 0,
@@ -28,7 +28,7 @@
       "summary": "75 passed. Related Stage 2, account-mirror, Extension, connector, scope, worker, fallback, status, and Canary regressions."
     },
     {
-      "command": "source /Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 python3 scripts/platform_canary.py all-cn --read-only --limit 1",
+      "command": "source ~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 python3 scripts/platform_canary.py all-cn --read-only --limit 1",
       "command_sha256": "642728fd52822fd91b557b7cea12deb47ece07cac05a6948ec86e0656d8a792f",
       "executed": true,
       "exit_code": 0,
@@ -92,7 +92,7 @@
       "summary": "Remote main and local origin/main both resolve to 7925695c0078bb3b98d71636f5a1315270d9de87; it is an ancestor of the current validated head."
     },
     {
-      "command": "PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' /Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/python -m pytest -q tests/focused/test_extension_account_mirror_core.py tests/focused/test_extension_account_sync_bridge.py tests/focused/test_v005_extension_package.py tests/focused/test_extension_e2n_contract.py tests/focused/test_cloud_pairing.py tests/stage/test_stage2_domestic.py tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_scan_platform_isolation.py",
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' ~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/python -m pytest -q tests/focused/test_extension_account_mirror_core.py tests/focused/test_extension_account_sync_bridge.py tests/focused/test_v005_extension_package.py tests/focused/test_extension_e2n_contract.py tests/focused/test_cloud_pairing.py tests/stage/test_stage2_domestic.py tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_scan_platform_isolation.py",
       "command_sha256": "9a883f1fbbd3c6910911b3e0dd8e557bc3fc4bda12683721731c7691864b3ece",
       "executed": true,
       "exit_code": 0,
@@ -100,7 +100,7 @@
       "summary": "47 passed in 2.26s; includes the persistent-profile tab-reuse regression and v0.0.0.6 extension, pairing and Stage 2 checks."
     },
     {
-      "command": "PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' /Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/python -m pytest -q tests/stage/test_stage2_domestic.py tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_scan_platform_isolation.py",
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' ~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/python -m pytest -q tests/stage/test_stage2_domestic.py tests/focused/test_account_mirror_batch_protocol.py tests/focused/test_scan_platform_isolation.py",
       "command_sha256": "7d83104529e70c17779170bc6440773d7f0b4be0cdb0556333fe00a6849222fb",
       "executed": true,
       "exit_code": 0,

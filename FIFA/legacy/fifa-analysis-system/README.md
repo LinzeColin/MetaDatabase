@@ -14,7 +14,7 @@ It does not implement automatic betting, account automation, captcha/login/paywa
 ## Quick Start
 
 ```bash
-cd /Users/linzezhang/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/work/fifa-analysis-system
+cd ~/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/work/fifa-analysis-system
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt

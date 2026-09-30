@@ -37,7 +37,7 @@
 - Persistent `ADP_ALLOW_SMTP_SEND` remained `false` after the run.
 - ADP `daily`, `health`, and `watchdog` LaunchAgents remained disabled after the run.
 - No ADP background process was left running after the run.
-- The prior 2026-06-30 dry-run directory was backed up to `/Users/linzezhang/.adp/arxiv-daily-push/runs/20260630_before_controlled_real_send_20260630T225439Z` before replacement.
+- The prior 2026-06-30 dry-run directory was backed up to `~/.adp/arxiv-daily-push/runs/20260630_before_controlled_real_send_20260630T225439Z` before replacement.
 
 ## Evidence
 

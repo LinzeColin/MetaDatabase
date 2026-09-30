@@ -14,7 +14,7 @@ Expose the current launchd runtime state inside the S2PLT02 terminal capture-win
 
 | Field | Value |
 |---|---|
-| CLI | `audit-s2plt02-terminal-capture-window --repo-root . --state-dir /Users/linzezhang/.adp/arxiv-daily-push --candidate-service-dates 2026-06-28,2026-06-29,2026-06-30 --json` |
+| CLI | `audit-s2plt02-terminal-capture-window --repo-root . --state-dir ~/.adp/arxiv-daily-push --candidate-service-dates 2026-06-28,2026-06-29,2026-06-30 --json` |
 | CLI exit | `2` |
 | State hash | `cebee97e51f4cc6231a10b787aa65b17eed10c951330dea4328cd18d73ed912a` |
 | Candidate service dates | `2026-06-28`, `2026-06-29`, `2026-06-30` |

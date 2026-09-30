@@ -1,6 +1,6 @@
 # Local Cleanup Plan - 2026-06-13
 - GitHub repo: https://github.com/LinzeColin/FIFA
-- Repo worktree: `/Users/linzezhang/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/github_sync/FIFA`
+- Repo worktree: `~/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/github_sync/FIFA`
 - Current repo files prepared: 204
 - Backup archives prepared: 3 / 23.29 MiB
 - Source files prepared: 90

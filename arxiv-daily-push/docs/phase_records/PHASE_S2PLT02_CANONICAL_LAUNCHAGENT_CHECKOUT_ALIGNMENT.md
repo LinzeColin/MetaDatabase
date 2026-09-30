@@ -14,7 +14,7 @@
 | CLI status | `blocked` |
 | State hash | `1ce7c3dc8bf1a20c6aed90182a4c43f056f4f01b504c159781c15c0afbc332df` |
 | Scheduler proof ready | `false` |
-| Expected repo root | `/Users/linzezhang/Documents/Codex/2026-06-19/current-phase-phase-0-goal-scope/work/CodexProject` |
+| Expected repo root | `~/Documents/Codex/2026-06-19/current-phase-phase-0-goal-scope/work/CodexProject` |
 | Repo root matches expected | `true` for daily, health, watchdog |
 | Project root matches expected | `true` for daily, health, watchdog |
 | Repo HEAD matches `origin/main` | `true` for daily, health, watchdog |

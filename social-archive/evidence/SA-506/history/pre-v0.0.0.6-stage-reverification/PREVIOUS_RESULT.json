@@ -8,7 +8,7 @@
   "verdict": "PASS",
   "target_repository": "LinzeColin/MetaDatabase",
   "target_branch": "main",
-  "execution_worktree": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/MetaDatabase-social-archive-v005-s5-runtime",
+  "execution_worktree": "~/Documents/Codex/GithubProject/_scratch/MetaDatabase-social-archive-v005-s5-runtime",
   "candidate_identity": {
     "latest_main": "7b3b4d7546a66332444594fca824c3ad9a67e2a6",
     "deployed_source_main": "034d46747b39a2cd00b897b022ba2550c3772a4d",

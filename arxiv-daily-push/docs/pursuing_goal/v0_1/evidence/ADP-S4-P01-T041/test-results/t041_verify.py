@@ -5,7 +5,7 @@ Acceptance (TASK_INDEX): 同分片执行三次无重复；中断后从最后确�
 Deterministic. Uses content-addressed (sha256) ids so the ordering + resume logic match real keys.
 """
 import sys, hashlib, pathlib, dataclasses
-V01 = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
+V01 = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
 sys.path.insert(0, str(V01 / "tools"))
 import backfill_planner as B  # noqa: E402
 

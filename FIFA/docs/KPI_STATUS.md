@@ -201,7 +201,7 @@ Latest local verification in this run:
 - API smoke `/api/status.provider_manual_workbench` -> `manual_intake_contract` returns `TT-001`, import target, rebuild command, missing `64`, next-batch pair rows `16`, stake `0`.
 - Browser smoke desktop `1280px` and mobile `390px` -> Provider 采集控制台 visible, `Credit Runway` visible, `下一批会破保底` visible, `TT-001 Intake Contract` visible, import target and rebuild command visible, Team Total `0/64`, stake `AUD 0`, page overflow `0`, console error `0`.
 - Copy-command smoke -> Clipboard-blocked browser path falls back to a clear manual-copy message without console errors.
-- LaunchAgent smoke -> `/Users/linzezhang/Library/LaunchAgents/com.linzezhang.tab-fifa-research.plist` has `KeepAlive=true`; `/api/health` returns OK.
+- LaunchAgent smoke -> `~/Library/LaunchAgents/com.linzezhang.tab-fifa-research.plist` has `KeepAlive=true`; `/api/health` returns OK.
 - `git diff --check` -> OK.
 - Tracked secret scan for the known The Odds API key and key-like env assignments -> no hits in tracked files.
 

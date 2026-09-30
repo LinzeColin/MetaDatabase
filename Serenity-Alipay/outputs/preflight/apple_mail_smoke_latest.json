@@ -4,7 +4,7 @@
   "recipient_email": "LinzeColin@users.noreply.github.com",
   "mail_send_enabled": true,
   "draft_ready": true,
-  "draft_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/notifications/mail_smoke_20260613T064343.md",
+  "draft_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/notifications/mail_smoke_20260613T064343.md",
   "apple_mail": {
     "osascript": "/usr/bin/osascript",
     "app_scriptable": true,
@@ -15,6 +15,6 @@
   "send_requested": false,
   "send_status": "not_requested",
   "send_error": "",
-  "json_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/apple_mail_smoke_latest.json",
-  "markdown_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/apple_mail_smoke_latest.md"
+  "json_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/apple_mail_smoke_latest.json",
+  "markdown_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/apple_mail_smoke_latest.md"
 }

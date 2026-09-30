@@ -287,7 +287,7 @@ machine_summary:
 
 - Task: `S2PMT07-AUTHORIZED-CONTROLLED-REAL-RUN-ACCEPTANCE`
 - Result: `pass_controlled_real_run_evidence_rechecked_no_new_send`
-- Evidence: `governance/run_manifests/ADP-S2PMT07-AUTHORIZED-CONTROLLED-REAL-RUN-ACCEPTANCE-20260701.json`; `arxiv-daily-push/docs/phase_records/PHASE_S2PMT07_AUTHORIZED_CONTROLLED_REAL_RUN_ACCEPTANCE.md`; runtime report `/Users/linzezhang/.adp/arxiv-daily-push/runs/20260701/adp-local-runner-report.json`.
+- Evidence: `governance/run_manifests/ADP-S2PMT07-AUTHORIZED-CONTROLLED-REAL-RUN-ACCEPTANCE-20260701.json`; `arxiv-daily-push/docs/phase_records/PHASE_S2PMT07_AUTHORIZED_CONTROLLED_REAL_RUN_ACCEPTANCE.md`; runtime report `~/.adp/arxiv-daily-push/runs/20260701/adp-local-runner-report.json`.
 - Controlled run state: `status=pass`; `service_date=2026-07-01`; `sent_mail_count=4/4`; `newly_sent_mail_products=[]`; `historical_sent_mail_products=M1,M2,M3,M4`; `duplicate_smtp_send_avoided=true`; runtime report sha256 `123d516e640aa6549b32ff50ce927a71adc7a765175f8a16ea6a6f6be50f401e`.
 - Runtime boundary: foreground command only; no launchctl kickstart; no duplicate SMTP; persistent `ADP_ALLOW_SMTP_SEND=false`; daily/health/watchdog LaunchAgents disabled; no ADP background process.
 - Production boundary: no `INTEGRATED_PRODUCTION_ACCEPTED` write, no `DAILY_OPERATION`, no scheduler enable/install, no Release, no production restore, no public schema/DB/source/ranking/queue mutation, and no Stage2/S3 production acceptance.

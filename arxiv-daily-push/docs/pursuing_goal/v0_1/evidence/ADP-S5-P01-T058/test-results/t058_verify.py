@@ -8,7 +8,7 @@ carry per-source provenance (nothing unsourced), and (3) the confidence boundary
 low-confidence merge is NOT auto-applied (held for review) while a high-confidence one is.
 """
 import sys, json, pathlib
-V01 = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/"
+V01 = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/"
                    "arxiv-daily-push/docs/pursuing_goal/v0_1")
 sys.path.insert(0, str(V01 / "tools"))
 import entity_resolver as ER

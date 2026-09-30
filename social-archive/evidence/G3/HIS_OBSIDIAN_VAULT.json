@@ -3,7 +3,7 @@
   "notes_to_read_zh": [
     "1 篇标题仍是播放进度（如 34:04/42:37）。2026-08-12 已用 B 站公开接口把 55 篇修回真标题（原标题存在 metadata_json.title_before_repair，可回滚）；**剩下的是稿件已不可见（code=62002）那种，修不回来**。新进来的由 CaptureRequest 那道校验器挡着（播放进度形状一律置空）——但**取数侧仍然会挑错元素**，那个要等 Owner 登录后的历史页才能定位。"
   ],
-  "vault": "/Users/linzezhang/Documents/Obsidian/Social Archive",
+  "vault": "~/Documents/Obsidian/Social Archive",
   "measured": {
     "notes": 209,
     "platforms": [
