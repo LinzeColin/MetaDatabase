@@ -8,7 +8,7 @@ jobs:
     uses: LinzeColin/CodexProject/.github/workflows/linze-golden-path.reusable.yml@main
     with:
       service_name: serenity-public
-      coolify_app_uuid: "zb7nt6zsf988arh3gukfnwrm"
+      coolify_app_uuid: "67daf697-ce55-413a-8a66-ee0672744497"
       home_live_url: "https://serenity.linzezhang.com"
     secrets:
       COOLIFY_BASE_URL: ${{ secrets.COOLIFY_BASE_URL }}

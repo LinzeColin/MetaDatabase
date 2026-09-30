@@ -70,11 +70,23 @@ class Settings:
     candidate_universe_max_nav_backfills: int = 8
     candidate_universe_rule_autofill_enabled: bool = True
     candidate_universe_max_rule_autofills: int = 8
+    # 无人值守（云端服务）模式：只读公开数据，不碰 MooMoo/OpenD、不写邮件草稿、不落全量净值历史。
+    headless: bool = False
+    moomoo_enabled: bool = True
+    persist_price_history: bool = True
+    # 运行产物根目录；None 表示沿用 root_dir/outputs（本机老用法）。
+    outputs_dir: Path | None = None
+
+    def output_root(self) -> Path:
+        return self.outputs_dir or (self.root_dir / "outputs")
 
     @classmethod
     def load(cls, root_dir: Path | None = None) -> "Settings":
         root = root_dir or Path(__file__).resolve().parents[1]
-        data = root / "data"
+        state_dir_env = os.getenv("SERENITY_STATE_DIR", "").strip()
+        state_dir = Path(state_dir_env) if state_dir_env else None
+        data = (state_dir / "data") if state_dir else (root / "data")
+        headless = _bool_env("SERENITY_HEADLESS", False)
         db_path = Path(os.getenv("SERENITY_DB_PATH", data / "serenity_daily.sqlite"))
         return cls(
             root_dir=root,
@@ -87,20 +99,24 @@ class Settings:
             exports_dir=data / "exports",
             dry_run_default=_bool_env("SERENITY_DRY_RUN", True),
             fallback_aggregated_enabled=_bool_env("SERENITY_FALLBACK_AGGREGATED", True),
-            mail_send_enabled=_bool_env("SERENITY_MAIL_SEND_ENABLED", False),
+            mail_send_enabled=_bool_env("SERENITY_MAIL_SEND_ENABLED", False) and not headless,
             secret_storage_enabled=_bool_env("SERENITY_SECRET_STORAGE_ENABLED", False),
-            opend_auto_start_enabled=_bool_env("SERENITY_OPEND_AUTO_START", True),
+            opend_auto_start_enabled=_bool_env("SERENITY_OPEND_AUTO_START", True) and not headless,
             opend_keep_auto_started=_bool_env("SERENITY_OPEND_KEEP_AUTO_STARTED", True),
             opend_wait_seconds=_float_env("SERENITY_OPEND_WAIT_SECONDS", 45.0),
             candidate_universe_auto_expand_enabled=_bool_env("SERENITY_CANDIDATE_UNIVERSE_AUTO_EXPAND", True),
             candidate_universe_live_fetch_enabled=_bool_env("SERENITY_FUND_UNIVERSE_LIVE_FETCH", True),
             candidate_universe_max_additions=_int_env("SERENITY_FUND_UNIVERSE_MAX_ADDITIONS", 25),
             candidate_universe_min_theme_score=_int_env("SERENITY_FUND_UNIVERSE_MIN_THEME_SCORE", 3),
-            candidate_universe_fetch_timeout_seconds=_float_env("SERENITY_FUND_UNIVERSE_FETCH_TIMEOUT_SECONDS", 8.0),
-            candidate_universe_nav_backfill_enabled=_bool_env("SERENITY_FUND_UNIVERSE_NAV_BACKFILL", True),
+            candidate_universe_fetch_timeout_seconds=_float_env("SERENITY_FUND_UNIVERSE_FETCH_TIMEOUT_SECONDS", 20.0 if headless else 8.0),
+            candidate_universe_nav_backfill_enabled=_bool_env("SERENITY_FUND_UNIVERSE_NAV_BACKFILL", True) and not headless,
             candidate_universe_max_nav_backfills=_int_env("SERENITY_FUND_UNIVERSE_MAX_NAV_BACKFILLS", 8),
             candidate_universe_rule_autofill_enabled=_bool_env("SERENITY_FUND_RULE_AUTOFILL", True),
             candidate_universe_max_rule_autofills=_int_env("SERENITY_FUND_RULE_AUTOFILLS", 8),
+            headless=headless,
+            moomoo_enabled=not headless,
+            persist_price_history=not headless,
+            outputs_dir=(state_dir / "outputs") if state_dir else None,
         )
 
     def ensure_dirs(self) -> None:
