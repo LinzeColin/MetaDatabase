@@ -8,8 +8,9 @@
 ------------------------------------
 候选   = 研究层 shortlist（<= 60 只）。
 硬门   = ① 在候选池内；② 实时报价按交易时间口径新鲜；③ 流动性（价格、20 日成交额中位数、市值上限）；
-         ④ 没有生效的失效条件（事件航图 FAILED：近 90 天增发/ATM 或股数大增；内部人净卖出；瓶颈 kill switch；
-         以及此前发布过、之后已失效的建议）。④ 是一票否决，列入「冲突」。
+         ④ 没有生效的失效条件（事件航图 FAILED：近 90 天增发/ATM 或股数大增；以及此前发布过、之后已失效的建议）。
+         ④ 是一票否决，列入「冲突」。（内部人净卖出、瓶颈 kill switch 暂未接入：研究层没有这两项的数据来源，
+         所以它们不是硬门，页面上如实写「暂未接入」，不假装生效。）
 支持度 = 每个选股分支对该股：PASS = 1.0；未 PASS 但该分支分数在全池前 10%（且不是 FAILED）= 0.3（排序支持）；否则 0。
          没有 SEC 一手原文链接的论点不计分。
 独立性 = 两个分支若引用的申报（accession）全部落在已计分分支引用过的申报里，只算一次。
@@ -17,24 +18,32 @@
          权重只会把支持度往下调（上限 1.0），不会让门槛变低。
 发布   = 加权支持度合计 >= 1.3（至少一个分支 PASS 且至少另一个独立分支排序支持）且全部硬门通过；取合计最高者，
          平局按支持它的事件的新近程度。否则 NO_ACTION，并给观察名单前 5。
-自证门 = 规则自证门（B4.5）：发布唯一建议前，规则必须先自己证明有信息量，满足任一即开——
-         (a) 回测证据：样本外窗口 >= 6，且唯一建议 20 日净超额均值相对 IWM > 0、相对同档随机 > 0，且安慰剂均值 < 正式结果均值；
-         (b) 前向证据：记分簿里已结算的候选（影子候选 + 正式建议）>= 8 条，命中率 >= 55%，平均超额 > 0。
+自证门 = 规则自证门（B4.5）：发布唯一建议前，规则必须先自己证明有信息量。
+         (a) 回测证据：样本外窗口 >= 6，且唯一建议 20 日净超额均值相对 IWM > 0、相对同档随机 > 0，且安慰剂均值 < 正式结果均值，
+             安慰剂本身要有 >= 6 个有效窗口且与正式窗口的月份对齐；回测报告必须绑定当前规则版本与各分支参数 sha256（报告里记录、读取时核对，
+             对不上就当没有回测证据），并且没过 35 天有效期（过期同样当没有回测证据）；
+         (b) 前向证据：记分簿里已结算的候选（影子候选 + 正式建议）里「独立样本」>= 8 条（不同标的、20 日窗口不重叠），
+             命中率 >= 55%，平均超额 > 0（下一交易日收盘入场、扣与回测同一份成本）。
+         开门 = (a) 或 (b) 达标，且前向证据没有否决——前向证据一旦够样本下限而不达标（命中率 < 55% 或平均超额 <= 0），一票否决，无论回测如何。
          门没开：决策一律 NO_ACTION（原因写人话），照常算出「如果发布会选谁」记为影子候选，只记录、不发布，并给观察名单前 5。
-         证据不足（回测窗口 < 6、前向已结算 < 8）时，门的判定里不含任何收益数字。
+         证据不足（回测窗口 < 6、前向独立样本 < 8）时，门的判定里不含任何收益数字。
 阻断   = 研究快照过期（> 36 小时没确认）、分支收据不全或有分支运行失败、行情源全断 -> SYSTEM_BLOCKED。
 动作只写「研究跟进（看多）」，不写「买入」；系统不下单。
 """
 
 from __future__ import annotations
 
+import hashlib
+import json
 import math
 import re
+import statistics
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 
-from .research_view import BRANCH_LABELS, ENVIRONMENT_BRANCH, STOCK_BRANCHES, ResearchView
+from . import nyse_calendar
+from .research_view import BRANCH_LABELS, ENVIRONMENT_BRANCH, RANK_TOP_FRACTION, STOCK_BRANCHES, ResearchView
 
 # ---- 常量（Owner 定的门槛，不许为了凑出建议而改） -------------------------------------------
 SUPPORT_PASS = 1.0
@@ -53,11 +62,18 @@ PUBLISHED_TTL_DAYS = 60
 PROOF_MIN_OOS_WINDOWS = 6
 PROOF_FORWARD_MIN_SETTLED = 8
 PROOF_FORWARD_MIN_HIT_RATE = 0.55
-PROOF_GATE_SCHEMA = "signal-lattice-proof-gate/1"
+PROOF_BACKTEST_MAX_AGE_DAYS = 35
+PROOF_GATE_SCHEMA = "signal-lattice-proof-gate/2"
+HUB_RULE_VERSION = "hub-rule/3"
+# 回测重放的分支（股势前瞻线上整分支 ABSTAIN，回测不重放，它的参数变化不影响回测结论）
+BACKTEST_BOUND_BRANCHES = ("bottleneck-serenity-skill", "equity-event-atlas", "stock-commercial-opportunities")
+PROOF_MIN_PLACEBO_WINDOWS = 6
 PROOF_GATE_RULE = ("规则自证门：满足任一才允许发布唯一建议。(a) 回测：样本外窗口 >= %d，唯一建议 20 日净超额均值相对 IWM > 0、相对同档随机 > 0，"
-                   "且安慰剂（事件日期后移 60 个交易日）均值低于正式结果；(b) 前向：记分簿里已结算的候选（影子候选 + 正式建议）>= %d 条，"
-                   "命中率（相对 IWM 超额 > 0）>= %d%%，平均超额 > 0。证据不足时不显示任何收益数字。"
-                   % (PROOF_MIN_OOS_WINDOWS, PROOF_FORWARD_MIN_SETTLED, int(PROOF_FORWARD_MIN_HIT_RATE * 100)))
+                   "且安慰剂（事件日期后移 60 个交易日，有效窗口 >= %d 且月份与正式对齐）均值低于正式结果；回测报告必须绑定当前规则版本与参数 sha256，"
+                   "且在 %d 天有效期内，否则当没有回测证据；(b) 前向：记分簿里已结算的候选（影子候选 + 正式建议）中独立样本（不同标的、20 日窗口不重叠）>= %d 条，"
+                   "命中率（相对 IWM 净超额 > 0）>= %d%%，平均超额 > 0。前向证据够样本而不达标时一票否决，无论回测如何。证据不足时不显示任何收益数字。"
+                   % (PROOF_MIN_OOS_WINDOWS, PROOF_MIN_PLACEBO_WINDOWS, PROOF_BACKTEST_MAX_AGE_DAYS, PROOF_FORWARD_MIN_SETTLED,
+                      int(PROOF_FORWARD_MIN_HIT_RATE * 100)))
 
 ACTION_FOLLOW = "研究跟进（看多）"
 # 展示层按这个机器码上色；颜色只绑机器码，不绑中文文案（改文案不会让颜色静默失效）。
@@ -234,13 +250,6 @@ def vetoes_for(research: ResearchView, symbol: str, invalidated: Optional[Mappin
     if event is not None and event["verdict"] == "FAILED":
         found.append({"id": "EVENT_ATLAS_FAILED", "branch_id": "equity-event-atlas", "label": event.get("label"),
                       "text": "事件航图：%s" % ((event["reasons"] or [event.get("label")])[0]), "links": [x for x in event["links"] if is_sec_link(x)][:4]})
-    if event is not None and (event.get("evidence") or {}).get("insider_net_sell"):
-        found.append({"id": "INSIDER_NET_SELL", "branch_id": "equity-event-atlas", "label": "INSIDER_NET_SELL",
-                      "text": "近期内部人公开市场净卖出", "links": []})
-    bottleneck = research.verdict("bottleneck-serenity-skill", symbol)
-    if bottleneck is not None and ((bottleneck.get("evidence") or {}).get("hard_flags") or {}).get("kill_switch_triggered") is True:
-        found.append({"id": "BOTTLENECK_KILL_SWITCH", "branch_id": "bottleneck-serenity-skill", "label": "KILL_SWITCH",
-                      "text": "瓶颈：kill switch 已触发", "links": []})
     previous = (invalidated or {}).get(symbol)
     if previous is not None:
         found.append({"id": "PREVIOUSLY_INVALIDATED", "branch_id": None, "label": "INVALIDATED",
@@ -261,6 +270,14 @@ def conflicts_for(research: ResearchView, symbol: str, vetoes: Sequence[dict]) -
                            "text": "%s：%s（%s）" % (BRANCH_LABELS[branch], record.get("label"), (record["reasons"] or [""])[0][:120])})
     return result
 
+
+# 暂未接入的否决项：研究层没有这两项的数据来源，所以它们不在硬门里、也不会生效。页面如实写「暂未接入」，不假装在拦。
+NOT_WIRED_VETOES = [
+    {"id": "INSIDER_NET_SELL", "text": "内部人公开市场净卖出", "status": "NOT_WIRED",
+     "reason": "研究层只采集 Form 4 的公开市场买入（代码 P），没有采集卖出（代码 S），没有数据来源，暂未接入"},
+    {"id": "BOTTLENECK_KILL_SWITCH", "text": "瓶颈分支 kill switch", "status": "NOT_WIRED",
+     "reason": "瓶颈分支目前不输出 kill switch 结论，没有数据来源，暂未接入"},
+]
 
 # ---- 失效条件：发布时写死，之后每轮核对 ---------------------------------------------------
 NOT_MONITORED = [{"id": "INSIDER_SELL", "text": "内部人公开市场卖出",
@@ -426,12 +443,23 @@ def blocked_decision(reason: str, message: str, *, details: Optional[Mapping] = 
     }
 
 
+def research_age_hours(research: ResearchView, now: datetime) -> Optional[float]:
+    """研究快照多久没确认（小时），扣掉之间整天休市的周末与美股假日：那些天没有新申报，快照不会因此变旧。
+    休市当天与交易日的时间照常按墙钟计，所以行为只在长周末/假日里比纯墙钟宽——上限仍是 36 小时。"""
+    age, fresh = research.age_hours(now), research.fresh_at
+    if age is None or fresh is None:
+        return age
+    return max(0.0, age - 24.0 * nyse_calendar.closed_full_days_between(fresh, now))
+
+
 def data_chain(research: ResearchView, now: datetime) -> dict:
     age = research.age_hours(now)
+    trading_age = research_age_hours(research, now)
     return {"research_as_of": research.as_of or None, "snapshot_sha256": research.snapshot_sha256 or None,
             "snapshot_generated_at": research.generated_at.isoformat() if research.generated_at else None,
             "research_checked_at": research.checked_at.isoformat() if research.checked_at else None,
             "research_age_hours": None if age is None else round(age, 2), "research_max_age_hours": RESEARCH_MAX_AGE_HOURS,
+            "research_age_trading_hours": None if trading_age is None else round(trading_age, 2),
             "problems": list(research.problems)}
 
 
@@ -441,9 +469,9 @@ def system_block(research: ResearchView, now: datetime, *, quotes_available: boo
     if research.problems:
         message = "数据链不完整：" + humanize_problems(research.problems) + "。本轮不出结论。"
         return blocked_decision("RESEARCH_CHAIN_INCOMPLETE", message, details=chain)
-    age = research.age_hours(now)
+    age = research_age_hours(research, now)
     if age is None or age > RESEARCH_MAX_AGE_HOURS:
-        message = "研究快照已经 %s 小时没有更新（上限 %d 小时），不拿旧的研究结果出结论。" % (
+        message = "研究快照已经 %s 小时没有更新（上限 %d 小时，周末与美股假日不计），不拿旧的研究结果出结论。" % (
             "未知" if age is None else "%.0f" % age, int(RESEARCH_MAX_AGE_HOURS))
         return blocked_decision("RESEARCH_SNAPSHOT_STALE", message, details=chain)
     if not quotes_available:
@@ -461,12 +489,136 @@ def signed_pct(value: float) -> str:
     return "%s%.1f%%" % ("+" if value >= 0 else "\u2212", abs(value) * 100)
 
 
-def backtest_proof(report: Optional[Mapping]) -> dict:
-    """(a) 回测证据。report = 私有完整回测报告（hub-backtest.json）；没有或读不懂就当没有证据。
+# ---- 回测报告与当前规则的绑定 + 有效期 ------------------------------------------------------
+def _canonical_sha(body: Mapping) -> str:
+    return hashlib.sha256(json.dumps(body, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode("utf-8")).hexdigest()
 
-    收益数字只在样本外窗口 >= 6 时才写进结果：证据不足的数字在这里就不存在，不靠调用方去隐藏。"""
+
+def rule_fingerprint() -> dict:
+    """中枢规则本体：全部 Owner 定的门槛与权重公式。任何一个数字变了，指纹就变，旧回测就不再算这套规则的证据。"""
+    body = {
+        "version": HUB_RULE_VERSION,
+        "support": {"pass": SUPPORT_PASS, "rank": SUPPORT_RANK, "publish_threshold": PUBLISH_THRESHOLD, "rank_top_fraction": RANK_TOP_FRACTION},
+        "weights": {"min_samples": WEIGHT_MIN_SAMPLES, "neutral_hit_rate": WEIGHT_NEUTRAL_HIT_RATE},
+        "hard_gates": {"min_price_usd": MIN_PRICE_USD, "min_median_dollar_volume_usd": MIN_MEDIAN_DOLLAR_VOLUME_USD,
+                       "max_market_cap_usd": MAX_MARKET_CAP_USD, "vetoes": ["EVENT_ATLAS_FAILED", "PREVIOUSLY_INVALIDATED"]},
+        "proof": {"min_oos_windows": PROOF_MIN_OOS_WINDOWS, "min_placebo_windows": PROOF_MIN_PLACEBO_WINDOWS,
+                  "forward_min_settled": PROOF_FORWARD_MIN_SETTLED, "forward_min_hit_rate": PROOF_FORWARD_MIN_HIT_RATE,
+                  "backtest_max_age_days": PROOF_BACKTEST_MAX_AGE_DAYS},
+        "bound_branches": list(BACKTEST_BOUND_BRANCHES),
+    }
+    return {"hub_rule_version": HUB_RULE_VERSION, "hub_rule_sha256": _canonical_sha(body)}
+
+
+def rule_binding(branch_params: Mapping[str, Mapping[str, Any]]) -> dict:
+    """回测报告与线上必须一致的东西：中枢规则版本 + 指纹，加上回测重放的各分支「参数版本 + 参数 sha256」。
+    branch_params：{分支: {"params_version", "params_sha256"}}（研究层收据里就有这两项）。"""
+    body = {"schema": "signal-lattice-rule-binding/1", **rule_fingerprint(),
+            "branch_params": {b: {"params_version": (branch_params.get(b) or {}).get("params_version"),
+                                  "params_sha256": (branch_params.get(b) or {}).get("params_sha256")} for b in BACKTEST_BOUND_BRANCHES}}
+    return {**body, "sha256": _canonical_sha(body)}
+
+
+def binding_from_receipts(receipts: Mapping[str, Mapping[str, Any]]) -> dict:
+    return rule_binding({b: receipts.get(b) or {} for b in BACKTEST_BOUND_BRANCHES})
+
+
+def _parse_time(value: Any) -> Optional[datetime]:
+    if not isinstance(value, str):
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return (parsed if parsed.tzinfo is not None else parsed.replace(tzinfo=timezone.utc)).astimezone(timezone.utc)
+
+
+def _binding_mismatches(recorded: Mapping, expected: Mapping) -> List[str]:
+    found: List[str] = []
+    body = {k: v for k, v in recorded.items() if k != "sha256"}
+    if recorded.get("sha256") != _canonical_sha(body):
+        found.append("绑定记录自身的校验值对不上（报告被改过）")
+    if recorded.get("hub_rule_version") != expected.get("hub_rule_version"):
+        found.append("中枢规则版本：回测时 %s，现在 %s" % (recorded.get("hub_rule_version"), expected.get("hub_rule_version")))
+    elif recorded.get("hub_rule_sha256") != expected.get("hub_rule_sha256"):
+        found.append("中枢规则的门槛/权重内容变了（版本号没变）")
+    for branch in BACKTEST_BOUND_BRANCHES:
+        old = (recorded.get("branch_params") or {}).get(branch) or {}
+        new = (expected.get("branch_params") or {}).get(branch) or {}
+        if old.get("params_sha256") != new.get("params_sha256") or old.get("params_version") != new.get("params_version"):
+            found.append("%s 的参数：回测时 %s（%s），现在 %s（%s）" % (BRANCH_LABELS.get(branch, branch), old.get("params_version") or "-",
+                                                                     (old.get("params_sha256") or "-")[:8], new.get("params_version") or "-",
+                                                                     (new.get("params_sha256") or "-")[:8]))
+    return found
+
+
+def backtest_validity(report: Mapping, expected_binding: Optional[Mapping], now: Optional[datetime]) -> dict:
+    """回测报告能不能当「当前规则」的证据：(1) 报告里记录的绑定要与当前规则版本 + 参数 sha256 逐项一致；(2) 生成后不超过 35 天。
+    核对不了（没给当前绑定/没给当前时间/报告没写生成时间）一律当作不成立——不因为漏传参数而放行。"""
+    generated = _parse_time(report.get("generated_at"))
+    recorded = report.get("binding") if isinstance(report.get("binding"), Mapping) else None
+    valid_until = None if generated is None else generated + timedelta(days=PROOF_BACKTEST_MAX_AGE_DAYS)
+    info: Dict[str, Any] = {
+        "generated_at": report.get("generated_at"), "valid_days": PROOF_BACKTEST_MAX_AGE_DAYS,
+        "valid_until": None if valid_until is None else valid_until.isoformat(),
+        "age_days": None if generated is None or now is None else round((now - generated).total_seconds() / 86400.0, 2),
+        "expired": None if valid_until is None or now is None else now > valid_until,
+        "binding_recorded": recorded is not None, "binding_matches": None, "mismatches": [],
+        "report_binding_sha256": None if recorded is None else recorded.get("sha256"),
+        "current_binding_sha256": None if expected_binding is None else expected_binding.get("sha256"),
+        "rule_version": None if recorded is None else recorded.get("hub_rule_version"),
+    }
+    if recorded is None:
+        info["binding_matches"], info["mismatches"] = False, ["报告里没有记录它对应的规则版本与参数 sha256"]
+    elif expected_binding is None:
+        info["mismatches"] = ["没有拿到当前规则版本与参数 sha256，无法核对"]
+    else:
+        info["mismatches"] = _binding_mismatches(recorded, expected_binding)
+        info["binding_matches"] = not info["mismatches"]
+    info["usable"] = info["binding_matches"] is True and info["expired"] is False
+    if info["usable"]:
+        info["status"] = "VALID"
+    elif info["expired"] is True:
+        info["status"] = "EXPIRED"
+    elif info["binding_matches"] is not True:
+        info["status"] = "UNBOUND" if info["binding_matches"] is False else "UNVERIFIABLE"
+    else:
+        info["status"] = "UNVERIFIABLE"
+    return info
+
+
+def _month_excess(block: Any) -> Optional[float]:
+    outcome = (((block or {}).get("pick") or {}).get("outcomes") or {}).get("20") if isinstance(block, Mapping) else None
+    return _finite((outcome or {}).get("excess_vs_iwm")) if isinstance(outcome, Mapping) else None
+
+
+def placebo_alignment(report: Mapping) -> dict:
+    """安慰剂与正式结果必须在「同样的月份」上比：两边都有已成熟 20 日结果的月份才是对齐的窗口，均值也只在这些月份上算。"""
+    formal: Dict[str, float] = {}
+    placebo: Dict[str, float] = {}
+    for month in report.get("months") or []:
+        if not isinstance(month, Mapping) or not isinstance(month.get("as_of"), str):
+            continue
+        for target, name in ((formal, "actual"), (placebo, "placebo")):
+            value = _month_excess(month.get(name))
+            if value is not None:
+                target[month["as_of"]] = value
+    aligned = sorted(set(formal) & set(placebo))
+    out: Dict[str, Any] = {"formal_months": len(formal), "placebo_months": len(placebo), "aligned_months": len(aligned),
+                           "min_windows": PROOF_MIN_PLACEBO_WINDOWS, "sufficient": len(aligned) >= PROOF_MIN_PLACEBO_WINDOWS}
+    if out["sufficient"]:
+        out["formal_mean_on_aligned"] = statistics.fmean(formal[m] for m in aligned)
+        out["placebo_mean_on_aligned"] = statistics.fmean(placebo[m] for m in aligned)
+    return out
+
+
+def backtest_proof(report: Optional[Mapping], expected_binding: Optional[Mapping] = None, now: Optional[datetime] = None) -> dict:
+    """(a) 回测证据。report = 私有完整回测报告（hub-backtest.json）；没有或读不懂就当没有证据。
+    报告必须绑定当前规则版本与参数 sha256、且在 35 天有效期内，否则同样当没有回测证据（不含任何收益数字）。
+    收益数字只在报告有效且样本外窗口 >= 6 时才写进结果：证据不足的数字在这里就不存在，不靠调用方去隐藏。"""
     out: Dict[str, Any] = {"available": False, "min_windows": PROOF_MIN_OOS_WINDOWS, "windows": None, "sufficient": False, "passed": False,
-                           "checks": {"windows_ok": False, "beats_iwm": None, "beats_control": None, "beats_placebo": None}, "generated_at": None}
+                           "usable": False, "checks": {"windows_ok": False, "beats_iwm": None, "beats_control": None, "beats_placebo": None,
+                                                       "placebo_evidence_ok": None}, "generated_at": None, "validity": None, "placebo": None}
     if not isinstance(report, Mapping):
         return out
     try:
@@ -475,30 +627,41 @@ def backtest_proof(report: Optional[Mapping]) -> dict:
         windows = int(report.get("oos_windows", actual.get("windows", 0)) or 0)
     except (KeyError, TypeError, ValueError, AttributeError):
         return out
-    out.update({"available": True, "windows": windows, "generated_at": report.get("generated_at")})
+    validity = backtest_validity(report, expected_binding, now)
+    out.update({"available": True, "windows": windows, "generated_at": report.get("generated_at"), "validity": validity,
+                "usable": validity["usable"]})
+    if not validity["usable"]:
+        return out                                     # 过期 / 没绑定当前规则：视为没有回测证据，数字也不出
     out["sufficient"] = out["checks"]["windows_ok"] = windows >= PROOF_MIN_OOS_WINDOWS
     if not out["sufficient"]:
         return out
     formal_iwm = _finite((actual.get("excess_vs_iwm") or {}).get("mean"))
     formal_control = _finite((actual.get("excess_vs_control") or {}).get("mean"))
-    placebo_iwm = _finite((placebo.get("excess_vs_iwm") or {}).get("mean"))
-    out["formal_20d_vs_iwm"], out["formal_20d_vs_control"], out["placebo_20d_vs_iwm"] = formal_iwm, formal_control, placebo_iwm
+    summary_placebo = _finite((placebo.get("excess_vs_iwm") or {}).get("mean"))
+    alignment = placebo_alignment(report)
+    out["placebo"] = alignment
+    out["formal_20d_vs_iwm"], out["formal_20d_vs_control"] = formal_iwm, formal_control
+    out["placebo_20d_vs_iwm"] = alignment.get("placebo_mean_on_aligned") if alignment["sufficient"] else None
     out["hit_rate_20d"] = _finite((actual.get("excess_vs_iwm") or {}).get("hit_rate"))
     checks = out["checks"]
     checks["beats_iwm"] = formal_iwm is not None and formal_iwm > 0
     checks["beats_control"] = formal_control is not None and formal_control > 0
-    checks["beats_placebo"] = formal_iwm is not None and placebo_iwm is not None and placebo_iwm < formal_iwm
-    out["passed"] = all(checks[k] is True for k in ("windows_ok", "beats_iwm", "beats_control", "beats_placebo"))
+    checks["placebo_evidence_ok"] = alignment["sufficient"] and summary_placebo is not None
+    checks["beats_placebo"] = bool(checks["placebo_evidence_ok"] and alignment["placebo_mean_on_aligned"] < alignment["formal_mean_on_aligned"])
+    out["passed"] = all(checks[k] is True for k in ("windows_ok", "beats_iwm", "beats_control", "placebo_evidence_ok", "beats_placebo"))
     return out
 
 
 def forward_proof(stats: Optional[Mapping]) -> dict:
-    """(b) 前向证据。stats 来自记分簿：{settled, shadow_settled, formal_settled, hits, mean_excess}（20 日已结算的候选，影子 + 正式）。"""
+    """(b) 前向证据。stats 来自记分簿：{settled, shadow_settled, formal_settled, hits, mean_excess}（20 日已结算的独立样本，影子 + 正式）；
+    可带 raw_settled / independent_settled（说明有多少条因为不独立被挡掉）。
+    样本够了（>= 8）而不达标 = 否决（vetoes_gate）：这时无论回测如何都不开门。"""
     stats = stats or {}
     settled = int(stats.get("settled") or 0)
     out: Dict[str, Any] = {"settled": settled, "shadow_settled": int(stats.get("shadow_settled") or 0), "formal_settled": int(stats.get("formal_settled") or 0),
+                           "raw_settled": stats.get("raw_settled"), "excluded_not_independent": stats.get("excluded_not_independent"),
                            "min_settled": PROOF_FORWARD_MIN_SETTLED, "min_hit_rate": PROOF_FORWARD_MIN_HIT_RATE,
-                           "sufficient": settled >= PROOF_FORWARD_MIN_SETTLED, "passed": False,
+                           "sufficient": settled >= PROOF_FORWARD_MIN_SETTLED, "passed": False, "vetoes_gate": False,
                            "checks": {"enough_samples": settled >= PROOF_FORWARD_MIN_SETTLED, "hit_rate_ok": None, "mean_excess_positive": None}}
     if not out["sufficient"]:
         return out
@@ -508,12 +671,26 @@ def forward_proof(stats: Optional[Mapping]) -> dict:
     out["checks"]["hit_rate_ok"] = hit_rate >= PROOF_FORWARD_MIN_HIT_RATE - 1e-12
     out["checks"]["mean_excess_positive"] = mean_excess is not None and mean_excess > 0
     out["passed"] = all(out["checks"].values())
+    out["vetoes_gate"] = not out["passed"]
     return out
+
+
+def _validity_tail(validity: Optional[Mapping]) -> str:
+    if not validity:
+        return ""
+    until = (validity.get("valid_until") or "")[:10]
+    return "；报告 %s 生成、有效至 %s、已绑定当前规则版本与参数" % ((validity.get("generated_at") or "")[:10], until)
 
 
 def _backtest_piece(bt: Mapping) -> str:
     if not bt["available"]:
         return "回测：还没有产出"
+    validity = bt.get("validity") or {}
+    if not bt["usable"]:
+        why = {"EXPIRED": "报告已过期（%s 生成，有效期 %d 天）" % ((validity.get("generated_at") or "")[:10], PROOF_BACKTEST_MAX_AGE_DAYS),
+               "UNBOUND": "报告对应的不是当前规则版本与参数（%s）" % "；".join(validity.get("mismatches") or []),
+               }.get(validity.get("status"), "无法核对报告是否对应当前规则版本与参数")
+        return "回测：%s，视为没有回测证据，不显示收益数字" % why
     if not bt["sufficient"]:
         return "回测：样本外窗口 %d/%d，样本不足，不显示收益数字" % (bt["windows"], bt["min_windows"])
     text = "回测：过去 %d 个月，20 日净超额相对 IWM %s" % (bt["windows"], signed_pct(bt["formal_20d_vs_iwm"]) if bt["formal_20d_vs_iwm"] is not None else "—")
@@ -521,20 +698,35 @@ def _backtest_piece(bt: Mapping) -> str:
         text += "、相对同档随机 %s" % signed_pct(bt["formal_20d_vs_control"])
     if bt["placebo_20d_vs_iwm"] is not None:
         text += "，安慰剂 %s" % signed_pct(bt["placebo_20d_vs_iwm"])
-    return text + ("（通过）" if bt["passed"] else "（未通过）")
+    elif bt.get("placebo") is not None:
+        text += "，安慰剂证据不足（与正式月份对齐的有效窗口 %d/%d）" % (bt["placebo"]["aligned_months"], bt["placebo"]["min_windows"])
+    return text + ("（通过" if bt["passed"] else "（未通过") + _validity_tail(validity) + "）"
 
 
 def _forward_piece(fw: Mapping) -> str:
+    extra = ""
+    if fw.get("raw_settled") is not None and fw.get("excluded_not_independent"):
+        extra = "（记分簿共已结算 %d 条，其中 %d 条与别的记录同一只股票或窗口重叠，不算独立样本）" % (fw["raw_settled"], fw["excluded_not_independent"])
     if not fw["sufficient"]:
-        return "前向：已结算的影子候选 %d/%d 条，样本不足，不显示收益数字" % (fw["settled"], fw["min_settled"])
-    text = "前向：已结算 %d 条，命中率 %.0f%%" % (fw["settled"], fw["hit_rate"] * 100)
+        return "前向：已结算的独立样本 %d/%d 条，样本不足，不显示收益数字%s" % (fw["settled"], fw["min_settled"], extra)
+    text = "前向：已结算独立样本 %d 条，命中率 %.0f%%" % (fw["settled"], fw["hit_rate"] * 100)
     if fw["mean_excess_vs_iwm"] is not None:
         text += "、平均超额 %s" % signed_pct(fw["mean_excess_vs_iwm"])
-    return text + ("（通过）" if fw["passed"] else "（未通过）")
+    return text + ("（通过）" if fw["passed"] else "（未通过，一票否决）") + extra
 
 
-def _closed_headline(bt: Mapping) -> str:
+def _closed_headline(bt: Mapping, fw: Optional[Mapping] = None) -> str:
     tail = "在它证明自己之前不给建议。"
+    if fw is not None and fw.get("vetoes_gate"):
+        return ("这套选股规则上线后的前向成绩不达标：已结算 %d 个独立样本，命中率 %.0f%%、平均超额 %s（要求命中率 >= %d%% 且平均超额为正），"
+                "前向成绩一票否决，无论回测怎样，%s" % (fw["settled"], fw["hit_rate"] * 100,
+                                                  "—" if fw["mean_excess_vs_iwm"] is None else signed_pct(fw["mean_excess_vs_iwm"]),
+                                                  int(PROOF_FORWARD_MIN_HIT_RATE * 100), tail))
+    if bt["available"] and not bt["usable"]:
+        status = (bt.get("validity") or {}).get("status")
+        if status == "EXPIRED":
+            return "这套选股规则的回测报告已经过了 %d 天有效期，不能再当证据，也还没有前向成绩，%s" % (PROOF_BACKTEST_MAX_AGE_DAYS, tail)
+        return "这套选股规则现在的版本或参数，和当初跑回测时的不一致（或无法核对），旧回测不算证据，也还没有前向成绩，%s" % tail
     if bt["sufficient"]:
         n, iwm = bt["windows"], bt["formal_20d_vs_iwm"]
         if not bt["checks"]["beats_iwm"]:
@@ -544,6 +736,10 @@ def _closed_headline(bt: Mapping) -> str:
             ctrl = bt["formal_20d_vs_control"]
             return "这套选股规则在过去 %d 个月的回测里虽然平均跑赢了 IWM（20 日 %s），但没有跑赢同市值档的随机抽样（%s），%s" % (
                 n, signed_pct(iwm), "—" if ctrl is None else signed_pct(ctrl), tail)
+        if not bt["checks"]["placebo_evidence_ok"]:
+            aligned = (bt.get("placebo") or {}).get("aligned_months", 0)
+            return "这套选股规则在过去 %d 个月的回测里（20 日 %s）虽然跑赢了基准，但安慰剂对照只有 %d 个与正式月份对齐的有效窗口（至少要 %d 个），安慰剂证据不足，%s" % (
+                n, signed_pct(iwm), aligned, PROOF_MIN_PLACEBO_WINDOWS, tail)
         placebo = bt["placebo_20d_vs_iwm"]
         return "这套选股规则在过去 %d 个月的回测里（20 日 %s）并不比把事件日期后移 60 个交易日的安慰剂（%s）更好，成绩不像来自规则本身，%s" % (
             n, signed_pct(iwm), "—" if placebo is None else signed_pct(placebo), tail)
@@ -552,16 +748,33 @@ def _closed_headline(bt: Mapping) -> str:
     return "这套选股规则还没有可用的回测，也没有前向成绩，还没有被证明，" + tail
 
 
-def proof_gate(backtest_report: Optional[Mapping] = None, forward_stats: Optional[Mapping] = None) -> dict:
-    """规则自证门：(a) 回测证据 或 (b) 前向证据 满足任一即开。纯函数。"""
-    bt, fw = backtest_proof(backtest_report), forward_proof(forward_stats)
-    opened_by = [name for name, part in (("BACKTEST", bt), ("FORWARD", fw)) if part["passed"]]
+def proof_gate(backtest_report: Optional[Mapping] = None, forward_stats: Optional[Mapping] = None, *,
+               expected_binding: Optional[Mapping] = None, now: Optional[datetime] = None) -> dict:
+    """规则自证门：(a) 回测证据 或 (b) 前向证据 满足任一即开；但前向证据够样本而不达标时一票否决。纯函数。
+
+    expected_binding：线上当前的规则绑定（rule_binding()）；now：当前时间（判有效期）。不给就核对不了，回测证据一律不成立。"""
+    now = now.astimezone(timezone.utc) if now is not None else None
+    bt, fw = backtest_proof(backtest_report, expected_binding, now), forward_proof(forward_stats)
+    veto = bool(fw["vetoes_gate"])
+    opened_by = [] if veto else [name for name, part in (("BACKTEST", bt), ("FORWARD", fw)) if part["passed"]]
     is_open = bool(opened_by)
     pieces = "；".join((_backtest_piece(bt), _forward_piece(fw)))
     reasons: List[str] = []
+    if veto:
+        reasons.append("前向成绩一票否决：已结算的独立样本 %d 条，命中率 %.0f%%（要求 >= %d%%），平均超额 %s（要求为正）。无论回测怎样都不开门。" % (
+            fw["settled"], fw["hit_rate"] * 100, int(PROOF_FORWARD_MIN_HIT_RATE * 100),
+            "—" if fw["mean_excess_vs_iwm"] is None else signed_pct(fw["mean_excess_vs_iwm"])))
     if not bt["passed"]:
+        validity = bt.get("validity") or {}
         if not bt["available"]:
             reasons.append("回测还没有产出。")
+        elif not bt["usable"]:
+            for line in validity.get("mismatches") or []:
+                reasons.append("回测报告与当前规则不一致：%s。" % line)
+            if validity.get("expired") is True:
+                reasons.append("回测报告生成于 %s，已超过 %d 天有效期，视为没有回测证据。" % ((validity.get("generated_at") or "")[:10], PROOF_BACKTEST_MAX_AGE_DAYS))
+            elif validity.get("expired") is None:
+                reasons.append("回测报告的生成时间读不出或没有当前时间，无法核对有效期。")
         elif not bt["sufficient"]:
             reasons.append("回测样本外窗口只有 %d 个，少于 %d 个，不足以证明规则有信息量。" % (bt["windows"], bt["min_windows"]))
         else:
@@ -570,21 +783,17 @@ def proof_gate(backtest_report: Optional[Mapping] = None, forward_stats: Optiona
                 reasons.append("正式结果相对 IWM 没有正超额（20 日 %s）。" % ("—" if bt["formal_20d_vs_iwm"] is None else signed_pct(bt["formal_20d_vs_iwm"])))
             if not checks["beats_control"]:
                 reasons.append("正式结果没有跑赢同档随机抽样（%s）。" % ("—" if bt["formal_20d_vs_control"] is None else signed_pct(bt["formal_20d_vs_control"])))
-            if not checks["beats_placebo"]:
+            if not checks["placebo_evidence_ok"]:
+                reasons.append("安慰剂证据不足：与正式月份对齐的有效窗口只有 %d 个，少于 %d 个。" % ((bt.get("placebo") or {}).get("aligned_months", 0), PROOF_MIN_PLACEBO_WINDOWS))
+            elif not checks["beats_placebo"]:
                 reasons.append("安慰剂（事件后移 60 个交易日）%s，不低于正式结果，说明成绩不像来自规则本身。" % (
                     "—" if bt["placebo_20d_vs_iwm"] is None else signed_pct(bt["placebo_20d_vs_iwm"])))
-    if not fw["passed"]:
-        if not fw["sufficient"]:
-            reasons.append("前向影子候选已结算 %d 条，少于 %d 条，样本不足。" % (fw["settled"], fw["min_settled"]))
-        else:
-            if not fw["checks"]["hit_rate_ok"]:
-                reasons.append("前向命中率 %.0f%%，低于 %d%%。" % (fw["hit_rate"] * 100, int(PROOF_FORWARD_MIN_HIT_RATE * 100)))
-            if not fw["checks"]["mean_excess_positive"]:
-                reasons.append("前向平均超额不为正。")
+    if not fw["passed"] and not veto:
+        reasons.append("前向影子候选已结算的独立样本 %d 条，少于 %d 条，样本不足。" % (fw["settled"], fw["min_settled"]))
     return {
         "schema": PROOF_GATE_SCHEMA, "open": is_open, "opened_by": opened_by, "state": "OPEN" if is_open else "CLOSED", "rule": PROOF_GATE_RULE,
-        "backtest": bt, "forward": fw, "reasons": [] if is_open else reasons,
-        "headline": None if is_open else _closed_headline(bt), "evidence": pieces,
+        "vetoed_by": ["FORWARD"] if veto else [], "backtest": bt, "forward": fw, "reasons": [] if is_open else reasons,
+        "headline": None if is_open else _closed_headline(bt, fw), "evidence": pieces,
         "line": ("规则自证门：开。依据（%s）。" if is_open else "规则自证门：关。%s。") % (
             "、".join({"BACKTEST": "回测", "FORWARD": "前向"}[x] for x in opened_by) + "达标：" + pieces if is_open else pieces),
     }
@@ -697,6 +906,7 @@ def decide(research: ResearchView, market: Mapping[str, Mapping[str, Any]], *, n
     qualifying = sum(1 for c in candidates if c["passes_candidate_gates"])
     common = {"qualifying_candidates": qualifying, "weights_mode": weights["mode"], "data_chain": chain, "market_environment": environment, "support_rule": SUPPORT_RULE,
               "weight_formula": WEIGHT_FORMULA, "publish_threshold": PUBLISH_THRESHOLD, "proof_gate": proof,
+              "not_wired_vetoes": deepcopy(NOT_WIRED_VETOES),
               "invalidated_recommendations": [_published_view(s, r) for s, r in sorted(invalidated.items())]}
 
     if winner is None or gate_closed:

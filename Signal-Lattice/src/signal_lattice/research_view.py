@@ -91,7 +91,7 @@ def _slim(record: Mapping) -> dict:
     evidence = record.get("evidence") or {}
     keep = {}
     for key in ("invalidation_risk", "invalidation_conditions", "hard_flags", "falsifiers", "maturity_code", "status",
-               "insider_window", "positive_events", "insider_net_sell"):
+               "insider_window", "positive_events"):
         if key in evidence:
             keep[key] = evidence[key]
     return {"verdict": record["verdict"], "label": record.get("label"), "score": record.get("score"),

@@ -47,16 +47,14 @@ from .. import branch_entries, hub
 from ..ledger import cap_tier, control_order
 from ..research_cycle import shortlist_from_records
 from ..research_view import ENVIRONMENT_BRANCH, STOCK_BRANCHES, ResearchView, _rank_table, _slim
-from .fees import FeeModel
+from ..costs import (BENCHMARK_DOLLAR_VOLUME, COST_BELOW_TIERS_BPS, COST_TIERS_BPS_PER_SIDE, POSITION_USD,  # noqa: F401  重新导出：既有调用与测试沿用这些名字
+                     cost_bps_per_side as _cost_bps_per_side, round_trip_cost)
 
 MIN_OOS_WINDOWS = 6
 HORIZONS = (20, 60)
 PLACEBO_SHIFT_TRADING_DAYS = 60
-POSITION_USD = 10_000.0
 CAPACITY_FRACTION_OF_DOLLAR_VOLUME = 0.01
 CONTROL_DRAWS = 200
-COST_TIERS_BPS_PER_SIDE = ((50e6, 10.0), (10e6, 25.0), (3e6, 50.0))
-COST_BELOW_TIERS_BPS = 80.0
 MIN_HISTORY_BARS = 60
 EVENT_ATLAS, BOTTLENECK, COMMERCIAL, FORESIGHT = ("equity-event-atlas", "bottleneck-serenity-skill", "stock-commercial-opportunities",
                                                   "equity-foresight-signal")
@@ -70,20 +68,6 @@ ASSUMPTIONS = [
     "行情为前复权日线（含分红调整）；同档随机对照 = 同一天同一市值档随机 200 只均值（种子=日期+档位），同样扣成本。",
     "安慰剂 = 事件日期整体后移 60 个交易日重跑，只改事件航图的可见事件，其它分支与成交不变。",
 ]
-
-
-def _cost_bps_per_side(median_dollar_volume: Optional[float]) -> float:
-    for threshold, bps in COST_TIERS_BPS_PER_SIDE:
-        if median_dollar_volume is not None and median_dollar_volume >= threshold:
-            return bps
-    return COST_BELOW_TIERS_BPS
-
-
-def round_trip_cost(median_dollar_volume: Optional[float], price: float) -> float:
-    """往返成本占仓位的比例：两边的分档成本 + 固定费用（佣金、SEC、CAT）。"""
-    quantity = max(1, int(POSITION_USD / price)) if price > 0 else 1
-    fixed = FeeModel.default().round_trip_cost_usd(quantity=quantity, price=price) / POSITION_USD
-    return 2.0 * _cost_bps_per_side(median_dollar_volume) / 1e4 + fixed
 
 
 # ---- 日历与行情 -------------------------------------------------------------------------------
@@ -171,7 +155,7 @@ def compute_date_pack(args: Tuple[str, str, Optional[str], str]) -> dict:
 
 def _pack(record: Mapping) -> dict:
     evidence = record.get("evidence") or {}
-    keep = {k: evidence[k] for k in ("invalidation_risk", "hard_flags", "insider_net_sell") if k in evidence}
+    keep = {k: evidence[k] for k in ("invalidation_risk", "hard_flags") if k in evidence}
     return {"symbol": record["symbol"], "cik": record["cik"], "name": record["name"], "market_cap_usd": record["market_cap_usd"],
             "verdict": record["verdict"], "label": record.get("label"), "score": record.get("score"), "rank_key": record.get("rank_key") or 0.0,
             "reasons": list(record.get("reasons") or [])[:1], "links": [dict(x) for x in (record.get("links") or [])[:6]], "evidence": keep}
@@ -296,7 +280,7 @@ def evaluate(packs: Sequence[Mapping], bar_store: Any, calendar: Sequence[str]) 
                     outcomes = {}
                     for horizon in HORIZONS:
                         stock = trade_return(bar_store.load(pick["symbol"]) or [], calendar, day, horizon, pick["median_dollar_volume_20d_usd"])
-                        iwm = trade_return(iwm_rows, calendar, day, horizon, 1e12)      # IWM 流动性极好：只算固定费用
+                        iwm = trade_return(iwm_rows, calendar, day, horizon, BENCHMARK_DOLLAR_VOLUME)      # IWM 流动性极好：只算固定费用
                         control = control_return(pack["pool"], bar_store, calendar, day, horizon, pick["symbol"], pick["market_cap_usd"])
                         if stock is None or iwm is None:
                             outcomes[str(horizon)] = None
@@ -362,11 +346,15 @@ def public_view(summary: Mapping, windows: int) -> dict:
             "branches": {"hub": branch}}
 
 
-def build_report(months_result: Mapping, *, snapshot_sha256: str, start: str, end: str, dates: Sequence[str]) -> dict:
+def build_report(months_result: Mapping, *, snapshot_sha256: str, start: str, end: str, dates: Sequence[str],
+                 binding: Optional[Mapping] = None) -> dict:
+    """binding：hub.rule_binding(...)——这份回测对应的中枢规则版本与各分支参数 sha256。规则自证门读取时核对，
+    对不上（规则或参数变了）就不再把它当证据；生成后 35 天过期。"""
     summary = months_result["summary"]
     windows = summary["actual"]["pick_20"]["windows"]
     return {
         "schema": "signal-lattice-hub-backtest/1", "generated_at": datetime.now(timezone.utc).isoformat(), "snapshot_sha256": snapshot_sha256,
+        "binding": None if binding is None else dict(binding), "valid_days": hub.PROOF_BACKTEST_MAX_AGE_DAYS,
         "window": {"start": start, "end": end, "decision_dates": list(dates), "count": len(dates)},
         "oos_windows": windows, "published": windows >= MIN_OOS_WINDOWS, "minimum_oos_windows": MIN_OOS_WINDOWS,
         "assumptions": ASSUMPTIONS, "summary": summary, "months": months_result["months"], "public": public_view(summary, windows),
@@ -435,7 +423,8 @@ def run(cfg: BacktestConfig, log: Any = print) -> dict:
                 log("  %s done in %.0fs (pool %d)" % (pack["as_of"], pack["seconds"], len(pack["pool"])))
     ordered = [packs[d] for d in dates]
     result = evaluate(ordered, CachedBars(bar_store), calendar)
-    report = build_report(result, snapshot_sha256=snapshot.sha256, start=cfg.start, end=cfg.end, dates=dates)
+    binding = hub.rule_binding({branch: snapshot.params_info(branch) for branch in hub.BACKTEST_BOUND_BRANCHES})
+    report = build_report(result, snapshot_sha256=snapshot.sha256, start=cfg.start, end=cfg.end, dates=dates, binding=binding)
     cfg.out_dir.mkdir(parents=True, exist_ok=True)
     path = cfg.out_dir / "hub-backtest.json"
     temporary = path.with_suffix(".tmp")

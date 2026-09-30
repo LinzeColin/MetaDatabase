@@ -17,7 +17,7 @@ from signal_lattice.ledger import Ledger
 from signal_lattice.live_api import handler, public_report_view
 from signal_lattice.live_config import LiveSettings
 from signal_lattice.live_runtime import BENCHMARK_SYMBOL, LiveEngine, LiveStore
-from hub_fixtures import (COMMERCIAL, EVENT, backtest_report, build_view, closed_proof, forward_stats, open_proof, run_decision, sec_link,
+from hub_fixtures import (COMMERCIAL, EVENT, FIXTURE_BINDING, NOW, backtest_report, build_view, closed_proof, forward_stats, gate as prove, open_proof, run_decision, sec_link,
                           seed_shadow_evidence, standard_pool, write_research_dir, record, filler)
 from test_live_engine import AFTER_CLOSE, SESSION, FakeGateway, make_bars, weekdays
 
@@ -30,7 +30,7 @@ class ProofGateRuleTests(unittest.TestCase):
     """规则本身：满足任一才开，回测里四条缺一不可。"""
 
     def test_the_backtest_leg_needs_every_condition(self):
-        self.assertTrue(hub.proof_gate(backtest_report(), None)["open"])
+        self.assertTrue(prove(backtest_report(), None)["open"])
         cases = {
             "窗口不足 6": backtest_report(windows=5),
             "相对 IWM 没有正超额": backtest_report(formal_iwm=-0.01),
@@ -41,7 +41,7 @@ class ProofGateRuleTests(unittest.TestCase):
         }
         for name, report in cases.items():
             with self.subTest(name):
-                gate = hub.proof_gate(report, None)
+                gate = prove(report, None)
                 self.assertFalse(gate["open"], name)
                 self.assertEqual(gate["opened_by"], [])
                 self.assertTrue(gate["headline"])
@@ -49,16 +49,16 @@ class ProofGateRuleTests(unittest.TestCase):
     def test_no_placebo_or_no_control_in_the_report_means_no_proof(self):
         report = backtest_report()
         del report["summary"]["placebo"]
-        self.assertFalse(hub.proof_gate(report, None)["open"])
+        self.assertFalse(prove(report, None)["open"])
         report = backtest_report()
         report["summary"]["actual"]["pick_20"]["excess_vs_control"] = {"n": 0}
-        self.assertFalse(hub.proof_gate(report, None)["open"])
+        self.assertFalse(prove(report, None)["open"])
         for junk in (None, {}, {"summary": 3}, "x", {"oos_windows": "abc", "summary": {"actual": {"pick_20": {}}}}):
             with self.subTest(junk=junk):
-                self.assertFalse(hub.proof_gate(junk, None)["open"])
+                self.assertFalse(prove(junk, None)["open"])
 
     def test_the_forward_leg_needs_eight_settled_a_55_percent_hit_rate_and_a_positive_mean(self):
-        gate = hub.proof_gate(None, forward_stats(settled=8, hits=5, mean_excess=0.01))            # 62.5%
+        gate = prove(None, forward_stats(settled=8, hits=5, mean_excess=0.01))            # 62.5%
         self.assertTrue(gate["open"])
         self.assertEqual(gate["opened_by"], ["FORWARD"])
         cases = {
@@ -70,13 +70,13 @@ class ProofGateRuleTests(unittest.TestCase):
         }
         for name, stats in cases.items():
             with self.subTest(name):
-                self.assertFalse(hub.proof_gate(None, stats)["open"], name)
-        self.assertTrue(hub.proof_gate(None, forward_stats(settled=20, hits=11, mean_excess=0.001))["open"])     # 恰好 55%
+                self.assertFalse(prove(None, stats)["open"], name)
+        self.assertTrue(prove(None, forward_stats(settled=20, hits=11, mean_excess=0.001))["open"])     # 恰好 55%
 
     def test_either_leg_opens_the_gate_and_both_are_reported(self):
-        both = hub.proof_gate(backtest_report(), forward_stats())
+        both = prove(backtest_report(), forward_stats())
         self.assertEqual(both["opened_by"], ["BACKTEST", "FORWARD"])
-        bad_backtest_good_forward = hub.proof_gate(backtest_report(formal_iwm=-0.04), forward_stats())
+        bad_backtest_good_forward = prove(backtest_report(formal_iwm=-0.04), forward_stats())
         self.assertEqual(bad_backtest_good_forward["opened_by"], ["FORWARD"])
 
     def test_forgetting_to_pass_the_gate_never_publishes(self):
@@ -86,9 +86,148 @@ class ProofGateRuleTests(unittest.TestCase):
         self.assertEqual(outcome["decision"]["proof_gate"]["state"], "CLOSED")
 
     def test_the_gate_is_the_same_pure_function_of_its_inputs(self):
-        first = json.dumps(hub.proof_gate(backtest_report(formal_iwm=-0.03), forward_stats(settled=3)), sort_keys=True)
-        second = json.dumps(hub.proof_gate(backtest_report(formal_iwm=-0.03), forward_stats(settled=3)), sort_keys=True)
+        first = json.dumps(prove(backtest_report(formal_iwm=-0.03), forward_stats(settled=3)), sort_keys=True)
+        second = json.dumps(prove(backtest_report(formal_iwm=-0.03), forward_stats(settled=3)), sort_keys=True)
         self.assertEqual(first, second)
+
+
+class ForwardVetoTests(unittest.TestCase):
+    """缺陷 #1：以前 (a) 或 (b) 任一达标就开门，回测好看时前向再差也压不住。现在前向证据够样本而不达标，一票否决。"""
+
+    def test_a_passing_backtest_cannot_override_a_bad_forward_record(self):
+        # 复审复现：回测通过 + 前向 30 条命中 3 条、平均 −8%
+        opened = prove(backtest_report(), None)
+        self.assertTrue(opened["open"])
+        gate_ = prove(backtest_report(), forward_stats(settled=30, hits=3, mean_excess=-0.08))
+        self.assertFalse(gate_["open"])
+        self.assertEqual(gate_["state"], "CLOSED")
+        self.assertEqual(gate_["opened_by"], [])
+        self.assertEqual(gate_["vetoed_by"], ["FORWARD"])
+        self.assertTrue(gate_["forward"]["vetoes_gate"])
+        self.assertIn("一票否决", gate_["headline"])
+        self.assertIn("命中率 10%", gate_["headline"])
+        self.assertTrue(gate_["backtest"]["passed"])                  # 回测本身仍然是过的，只是被前向否决
+
+    def test_the_veto_applies_at_the_sample_floor_and_for_each_failed_check(self):
+        cases = {"刚好 8 条、命中 4 条（50%）": forward_stats(settled=8, hits=4, mean_excess=0.05),
+                 "命中率够但平均超额为 0": forward_stats(settled=10, hits=9, mean_excess=0.0),
+                 "命中率够但平均超额为负": forward_stats(settled=10, hits=9, mean_excess=-0.02)}
+        for name, stats in cases.items():
+            with self.subTest(name):
+                self.assertFalse(prove(backtest_report(), stats)["open"], name)
+                self.assertEqual(prove(backtest_report(), stats)["vetoed_by"], ["FORWARD"])
+
+    def test_below_the_sample_floor_the_forward_record_cannot_veto_and_shows_no_numbers(self):
+        gate_ = prove(backtest_report(), forward_stats(settled=7, hits=0, mean_excess=-0.5))
+        self.assertTrue(gate_["open"])
+        self.assertEqual(gate_["vetoed_by"], [])
+        self.assertNotIn("hit_rate", gate_["forward"])
+
+    def test_a_good_forward_record_does_not_veto(self):
+        self.assertEqual(prove(backtest_report(), forward_stats(settled=10, hits=7, mean_excess=0.02))["opened_by"], ["BACKTEST", "FORWARD"])
+
+
+class BacktestBindingAndExpiryTests(unittest.TestCase):
+    """缺陷 #1：回测证据必须绑定当前规则版本与参数 sha256（读取时核对），并有 35 天有效期。"""
+
+    def test_a_report_bound_to_the_current_rule_and_params_within_35_days_counts(self):
+        gate_ = prove(backtest_report(), None)
+        self.assertTrue(gate_["open"])
+        validity = gate_["backtest"]["validity"]
+        self.assertEqual(validity["status"], "VALID")
+        self.assertTrue(validity["binding_matches"])
+        self.assertEqual(validity["report_binding_sha256"], FIXTURE_BINDING["sha256"])
+        self.assertEqual(validity["current_binding_sha256"], FIXTURE_BINDING["sha256"])
+        self.assertEqual(validity["valid_days"], 35)
+        self.assertEqual(validity["valid_until"], "2026-11-04T00:00:00+00:00")
+        self.assertIn("有效至 2026-11-04", gate_["line"])
+        self.assertIn("已绑定当前规则版本与参数", gate_["line"])
+
+    def test_changing_any_bound_branch_params_sha_makes_the_old_backtest_no_evidence(self):
+        other = hub.rule_binding({b: {"params_version": "1", "params_sha256": ("c" if b == "equity-event-atlas" else "b") * 64}
+                                  for b in hub.BACKTEST_BOUND_BRANCHES})
+        gate_ = prove(backtest_report(), None, binding=other)
+        self.assertFalse(gate_["open"])
+        self.assertEqual(gate_["backtest"]["validity"]["status"], "UNBOUND")
+        self.assertTrue(any("事件航图" in m for m in gate_["backtest"]["validity"]["mismatches"]))
+        self.assertFalse(gate_["backtest"]["sufficient"])
+        self.assertNotIn("formal_20d_vs_iwm", gate_["backtest"])           # 没有回测证据，数字也不出
+        self.assertIn("不一致", gate_["headline"])
+
+    def test_a_params_version_change_alone_also_unbinds(self):
+        newer = hub.rule_binding({b: {"params_version": "2", "params_sha256": "b" * 64} for b in hub.BACKTEST_BOUND_BRANCHES})
+        self.assertFalse(prove(backtest_report(), None, binding=newer)["open"])
+
+    def test_a_report_without_a_recorded_binding_is_no_evidence(self):
+        gate_ = prove(backtest_report(binding=None), None)
+        self.assertFalse(gate_["open"])
+        self.assertFalse(gate_["backtest"]["validity"]["binding_recorded"])
+
+    def test_a_tampered_binding_record_is_no_evidence(self):
+        forged = dict(FIXTURE_BINDING)
+        forged["hub_rule_version"] = "hub-rule/9"
+        self.assertFalse(prove(backtest_report(binding=forged), None)["open"])
+        edited = {**FIXTURE_BINDING, "branch_params": {**FIXTURE_BINDING["branch_params"], "equity-event-atlas": {"params_version": "1", "params_sha256": "d" * 64}}}
+        self.assertFalse(prove(backtest_report(binding=edited), None)["open"])            # 改了内容没改 sha256：对不上
+
+    def test_the_hub_rule_fingerprint_moves_when_a_threshold_moves(self):
+        base = hub.rule_fingerprint()["hub_rule_sha256"]
+        original = hub.PUBLISH_THRESHOLD
+        try:
+            hub.PUBLISH_THRESHOLD = original - 0.1
+            self.assertNotEqual(hub.rule_fingerprint()["hub_rule_sha256"], base)
+        finally:
+            hub.PUBLISH_THRESHOLD = original
+        self.assertEqual(hub.rule_fingerprint()["hub_rule_sha256"], base)
+
+    def test_without_the_current_binding_or_time_nothing_can_be_verified_so_nothing_opens(self):
+        self.assertFalse(hub.proof_gate(backtest_report(), None)["open"])
+        self.assertFalse(hub.proof_gate(backtest_report(), None, expected_binding=FIXTURE_BINDING)["open"])
+        self.assertFalse(hub.proof_gate(backtest_report(), None, now=NOW)["open"])
+
+    def test_the_35_day_expiry(self):
+        generated = "2026-08-01T00:00:00+00:00"
+        report = backtest_report(generated_at=generated)
+        self.assertTrue(prove(report, None, now=datetime(2026, 9, 4, 23, 59, tzinfo=timezone.utc))["open"])      # 34.99 天
+        expired = prove(report, None, now=datetime(2026, 9, 5, 0, 1, tzinfo=timezone.utc))                       # 35.0007 天
+        self.assertFalse(expired["open"])
+        self.assertEqual(expired["backtest"]["validity"]["status"], "EXPIRED")
+        self.assertTrue(expired["backtest"]["validity"]["expired"])
+        self.assertIn("已经过了 35 天有效期", expired["headline"])
+        self.assertFalse(prove(backtest_report(generated_at="not a time"), None)["open"])
+
+    def test_an_expired_report_still_lets_a_good_forward_record_open_the_gate(self):
+        gate_ = prove(backtest_report(generated_at="2026-01-01T00:00:00+00:00"), forward_stats(settled=10, hits=7, mean_excess=0.02))
+        self.assertEqual(gate_["opened_by"], ["FORWARD"])
+
+
+class PlaceboEvidenceTests(unittest.TestCase):
+    """缺陷 #10：安慰剂有效窗口 >= 6 且与正式窗口的月份对齐，否则「安慰剂证据不足」，(a) 不成立。"""
+
+    def test_a_placebo_with_fewer_than_six_valid_windows_is_not_evidence(self):
+        gate_ = prove(backtest_report(formal_iwm=0.03, placebo_iwm=-0.05, placebo_windows=5), None)
+        self.assertFalse(gate_["open"])
+        self.assertFalse(gate_["backtest"]["checks"]["placebo_evidence_ok"])
+        self.assertFalse(gate_["backtest"]["checks"]["beats_placebo"])
+        self.assertIn("安慰剂证据不足", gate_["headline"])
+        self.assertTrue(any("安慰剂证据不足" in r for r in gate_["reasons"]))
+
+    def test_a_placebo_whose_months_do_not_line_up_with_the_formal_windows_is_not_evidence(self):
+        gate_ = prove(backtest_report(placebo_iwm=-0.05, placebo_windows=20, placebo_offset=17), None)         # 只有 3 个月重合
+        self.assertEqual(gate_["backtest"]["placebo"]["aligned_months"], 3)
+        self.assertFalse(gate_["open"])
+        self.assertIn("安慰剂证据不足", gate_["headline"])
+
+    def test_six_aligned_windows_is_enough_and_the_comparison_uses_only_those_months(self):
+        gate_ = prove(backtest_report(placebo_iwm=-0.05, placebo_windows=6), None)
+        self.assertEqual(gate_["backtest"]["placebo"]["aligned_months"], 6)
+        self.assertTrue(gate_["open"])
+        self.assertAlmostEqual(gate_["backtest"]["placebo_20d_vs_iwm"], -0.05)
+
+    def test_a_report_with_no_month_rows_cannot_show_alignment(self):
+        report = backtest_report()
+        del report["months"]
+        self.assertFalse(prove(report, None)["open"])
 
 
 class ClosedGateDecisionTests(unittest.TestCase):
@@ -159,20 +298,20 @@ class ClosedGateDecisionTests(unittest.TestCase):
         outcome = self.outcome()
         self.assertEqual(outcome["state"].get("published", {}), {})
 
-    def test_system_blocked_beats_the_gate(self):
+    def test_system_blocked_beats_the_prove(self):
         view = build_view(standard_pool(), generated_at=datetime(2026, 9, 30, 15, tzinfo=timezone.utc) - timedelta(hours=40))
         self.assertEqual(decision_of(run_decision(view, proof=closed_proof()))["state"], "SYSTEM_BLOCKED")
 
     def test_each_failed_check_is_named_in_the_headline(self):
-        control = hub.proof_gate(backtest_report(formal_iwm=0.02, formal_control=-0.01, placebo_iwm=-0.02), None)
+        control = prove(backtest_report(formal_iwm=0.02, formal_control=-0.01, placebo_iwm=-0.02), None)
         self.assertIn("没有跑赢同市值档的随机抽样", control["headline"])
-        placebo = hub.proof_gate(backtest_report(formal_iwm=0.02, formal_control=0.01, placebo_iwm=0.03), None)
+        placebo = prove(backtest_report(formal_iwm=0.02, formal_control=0.01, placebo_iwm=0.03), None)
         self.assertIn("安慰剂", placebo["headline"])
         self.assertIn("+3.0%", placebo["headline"])
-        few = hub.proof_gate(backtest_report(windows=4), None)
+        few = prove(backtest_report(windows=4), None)
         self.assertIn("只有 4 个样本外月份", few["headline"])
         self.assertIn("样本外窗口 4/6", few["line"])
-        none = hub.proof_gate(None, None)
+        none = prove(None, None)
         self.assertIn("还没有可用的回测", none["headline"])
 
 
@@ -184,7 +323,7 @@ class NoNumbersWithoutEvidenceTests(unittest.TestCase):
     NUMBERS = ("0.07771", "7.8%", "0.06662", "6.7%", "0.05551", "5.6%", "0.41273", "0.04444", "4.4%")
 
     def test_the_gate_object_itself_has_no_numbers_when_evidence_is_insufficient(self):
-        gate = hub.proof_gate(self.THIN_BACKTEST, self.THIN_FORWARD)
+        gate = prove(self.THIN_BACKTEST, self.THIN_FORWARD)
         text = json.dumps(gate, ensure_ascii=False)
         for number in self.NUMBERS:
             self.assertNotIn(number, text)
@@ -193,14 +332,14 @@ class NoNumbersWithoutEvidenceTests(unittest.TestCase):
         self.assertIsNone(gate["backtest"]["checks"]["beats_iwm"])           # 没评估，不是「假」
 
     def test_sufficient_evidence_does_publish_its_numbers_including_the_bad_ones(self):
-        gate = hub.proof_gate(backtest_report(windows=20, formal_iwm=-0.0393, formal_control=-0.0319, placebo_iwm=0.0238), None)
+        gate = prove(backtest_report(windows=20, formal_iwm=-0.0393, formal_control=-0.0319, placebo_iwm=0.0238), None)
         self.assertEqual(gate["backtest"]["formal_20d_vs_iwm"], -0.0393)
         self.assertEqual(gate["backtest"]["placebo_20d_vs_iwm"], 0.0238)
         self.assertIn("−3.9%", gate["line"])
         self.assertIn("+2.4%", gate["line"])
 
     def test_the_public_view_strips_numbers_even_if_a_private_report_smuggled_them_in(self):
-        smuggled = hub.proof_gate(backtest_report(), forward_stats())
+        smuggled = prove(backtest_report(), forward_stats())
         smuggled["backtest"]["sufficient"] = False
         smuggled["forward"]["sufficient"] = False
         report = {"state": "DATA_READY", "proof_gate": smuggled, "decision": {"state": "NO_ACTION", "proof_gate": smuggled},
@@ -267,13 +406,14 @@ class ShadowLedgerTests(unittest.TestCase):
         self.ledger.record_shadow(day, self.decision(), close_price=dict(self.book["ALPHA"])[day], iwm_close=dict(self.iwm)[day],
                                   control={"symbol": "CTRL", "tier": "10-20亿美元", "seed": "s", "pool_size": 3, "pool_sha": "p"},
                                   control_close=dict(self.book["CTRL"])[day])
-        early = self.ledger.settle_shadow_due(self.book.get, self.iwm[: 5 + 21], datetime(2026, 10, 1, tzinfo=timezone.utc))
+        # 出场日（下一交易日入场 + 20 个交易日 = days[26] = 2026-10-07）必须已收盘：now 放在 10-08，而不是原来随手写的 10-01
+        early = self.ledger.settle_shadow_due(self.book.get, self.iwm[: 5 + 22], datetime(2026, 10, 8, 21, tzinfo=timezone.utc))
         self.assertEqual([(d["horizon"], d["kind"]) for d in early], [(20, "shadow")])
         row = self.ledger.db.execute("SELECT * FROM shadow_settlement WHERE horizon = 20").fetchone()
         self.assertEqual(row["hit"], 1)
         self.assertIsNotNone(row["excess_vs_control"])
-        self.assertEqual(self.ledger.settle_shadow_due(self.book.get, self.iwm[: 5 + 21], datetime(2026, 10, 1, tzinfo=timezone.utc)), [])       # 幂等
-        later = self.ledger.settle_shadow_due(self.book.get, self.iwm, datetime(2026, 12, 1, tzinfo=timezone.utc))
+        self.assertEqual(self.ledger.settle_shadow_due(self.book.get, self.iwm[: 5 + 22], datetime(2026, 10, 8, 21, tzinfo=timezone.utc)), [])       # 幂等
+        later = self.ledger.settle_shadow_due(self.book.get, self.iwm, datetime(2026, 12, 3, 21, tzinfo=timezone.utc))      # 60 日出场 days[66] = 12-02
         self.assertEqual([d["horizon"] for d in later], [60])
         self.assertEqual(self.ledger.db.execute("SELECT COUNT(*) FROM settlement").fetchone()[0], 0)
 
@@ -388,6 +528,30 @@ class EngineEndToEndTests(unittest.TestCase):
         report = self.engine(FakeGateway(SESSION)).run_once(SESSION)
         self.assertEqual(report["decision"]["state"], "NO_ACTION")
         self.assertIn("安慰剂", report["decision"]["rationale"])
+
+    def test_a_passing_backtest_is_overruled_by_a_bad_forward_record_in_the_live_round(self):
+        self.write_backtest()
+        seed_shadow_evidence(self.settings.state_dir / "ledger.sqlite", settled=10, hits=2, excess=0.05)
+        report = self.engine(FakeGateway(SESSION)).run_once(SESSION)
+        self.assertEqual(report["decision"]["state"], "NO_ACTION")
+        self.assertEqual(report["proof_gate"]["vetoed_by"], ["FORWARD"])
+        self.assertIn("一票否决", report["decision"]["rationale"])
+
+    def test_the_live_report_carries_the_backtest_binding_and_validity(self):
+        self.write_backtest()
+        report = self.engine(FakeGateway(SESSION)).run_once(SESSION)
+        validity = report["proof_gate"]["backtest"]["validity"]
+        self.assertEqual(validity["status"], "VALID")
+        self.assertEqual(validity["report_binding_sha256"], FIXTURE_BINDING["sha256"])
+        self.assertEqual(validity["valid_until"], "2026-11-04T00:00:00+00:00")
+
+    def test_a_backtest_run_against_different_branch_params_no_longer_opens_the_gate(self):
+        other = hub.rule_binding({b: {"params_version": "1", "params_sha256": "c" * 64} for b in hub.BACKTEST_BOUND_BRANCHES})
+        (self.root / "bt").mkdir(exist_ok=True)
+        (self.root / "bt" / "hub-backtest.json").write_text(json.dumps(backtest_report(binding=other)), "utf-8")
+        report = self.engine(FakeGateway(SESSION)).run_once(SESSION)
+        self.assertEqual(report["decision"]["state"], "NO_ACTION")
+        self.assertEqual(report["proof_gate"]["backtest"]["validity"]["status"], "UNBOUND")
 
     def test_eight_settled_shadow_candidates_with_a_good_record_open_the_gate_without_any_backtest(self):
         seed_shadow_evidence(self.settings.state_dir / "ledger.sqlite", settled=8, hits=5)

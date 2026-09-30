@@ -265,15 +265,21 @@ class VetoTests(unittest.TestCase):
         conflicts = hub.conflicts_for(view, "VETOED", row["vetoes"])
         self.assertEqual(conflicts[0]["kind"], "VETO")
 
-    def test_insider_net_selling_and_bottleneck_kill_switch_also_veto(self):
+    def test_insider_net_selling_and_bottleneck_kill_switch_are_not_faked_as_vetoes(self):
+        """缺陷 #9：这两项否决没有数据来源（研究层不采集内部人卖出，瓶颈分支也不输出 kill switch）。
+        以前 hub 里写了它们、看起来在拦，实际永远不会触发；现在从硬门里删掉，决策里如实列在「暂未接入」。"""
         pool = self.veto_pool()
         pool[EVENT][0] = record("VETOED", "ABSTAIN", score=0.0, evidence={"insider_net_sell": True})
-        self.assertEqual(hub.vetoes_for(build_view(pool), "VETOED")[0]["id"], "INSIDER_NET_SELL")
+        self.assertEqual(hub.vetoes_for(build_view(pool), "VETOED"), [])
         pool = self.veto_pool()
         pool[EVENT][0] = record("VETOED", "ABSTAIN", score=0.0)
         pool[BOTTLENECK][0] = record("VETOED", "PASS", score=88.0, links=[sec_link("0000000021-26-000021", supports="x")],
                                      evidence={"hard_flags": {"kill_switch_triggered": True}})
-        self.assertEqual(hub.vetoes_for(build_view(pool), "VETOED")[0]["id"], "BOTTLENECK_KILL_SWITCH")
+        self.assertEqual(hub.vetoes_for(build_view(pool), "VETOED"), [])
+        decision = decision_of(run_decision(build_view(standard_pool())))
+        self.assertEqual([v["id"] for v in decision["not_wired_vetoes"]], ["INSIDER_NET_SELL", "BOTTLENECK_KILL_SWITCH"])
+        self.assertTrue(all(v["status"] == "NOT_WIRED" and "暂未接入" in v["reason"] for v in decision["not_wired_vetoes"]))
+        self.assertNotIn("INSIDER_NET_SELL", hub.__doc__.split("硬门")[1].split("支持度")[0].replace("内部人净卖出、瓶颈 kill switch 暂未接入", ""))
 
     def test_other_branches_opposition_is_a_conflict_but_not_a_veto(self):
         pool = standard_pool()

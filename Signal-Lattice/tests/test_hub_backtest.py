@@ -2,8 +2,9 @@
 
 import json
 import unittest
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 
+from signal_lattice import hub
 from signal_lattice.backtest import hub_backtest as H
 from hub_fixtures import BOTTLENECK, COMMERCIAL, EVENT, filler, pool_entry, record, sec_link
 
@@ -232,6 +233,23 @@ class PublicationGateTests(unittest.TestCase):
         self.assertIn("stitched", branch)
         self.assertIn("placebo_pick_20", branch["stitched"])
         self.assertIsNone(report["public"]["why_not_published"])
+
+    def test_the_report_records_the_rule_binding_and_its_validity_days_for_the_proof_gate(self):
+        """缺陷 #1：报告里记录它对应的规则版本与参数 sha256，规则自证门读取时核对；35 天有效期。"""
+        params = {b: {"params_version": "7", "params_sha256": "e" * 64} for b in hub.BACKTEST_BOUND_BRANCHES}
+        binding = hub.rule_binding(params)
+        packs = [make_pack(day, alpha_event="PASS") for day in MONTH_ENDS[:9]]
+        result = H.evaluate(packs, bars_table(alpha_daily=0.01), DAYS)
+        report = H.build_report(result, snapshot_sha256="f" * 64, start="2025-01-31", end="2025-09-30", dates=MONTH_ENDS[:9], binding=binding)
+        self.assertEqual(report["binding"], binding)
+        self.assertEqual(report["valid_days"], 35)
+        now = datetime.now(timezone.utc)
+        self.assertTrue(hub.proof_gate(report, None, expected_binding=binding, now=now)["backtest"]["usable"])
+        changed = hub.rule_binding({**params, "equity-event-atlas": {"params_version": "7", "params_sha256": "f" * 64}})
+        self.assertFalse(hub.proof_gate(report, None, expected_binding=changed, now=now)["backtest"]["usable"])
+        unbound = H.build_report(result, snapshot_sha256="f" * 64, start="2025-01-31", end="2025-09-30", dates=MONTH_ENDS[:9])
+        self.assertIsNone(unbound["binding"])
+        self.assertFalse(hub.proof_gate(unbound, None, expected_binding=binding, now=now)["backtest"]["usable"])
 
     def test_the_assumptions_are_part_of_the_report(self):
         report = self.report(5)

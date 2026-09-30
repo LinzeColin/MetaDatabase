@@ -8,8 +8,10 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from signal_lattice import ledger as L
+from signal_lattice.costs import BENCHMARK_DOLLAR_VOLUME, round_trip_cost
 
-T0 = datetime(2026, 10, 1, 21, 0, tzinfo=timezone.utc)
+# 结算要求出场日相对 now 已收盘（缺陷 #3）。这里的合成日历（90 个工作日）一直走到 2027 年 1 月，所以「现在」放在它之后。
+T0 = datetime(2027, 3, 1, 21, 0, tzinfo=timezone.utc)
 
 
 def calendar(start="2026-09-01", n=90):
@@ -137,21 +139,28 @@ class SettlementTests(Base):
         self.assertEqual(self.ledger.settle_due(self.book.get, early, T0), [])
 
     def test_20_day_settlement_computes_excess_vs_iwm_and_vs_the_control(self):
-        done = self.ledger.settle_due(self.book.get, self.iwm[: 5 + 21], T0)
-        self.assertEqual([(d["horizon"], d["exit_day"]) for d in done], [(20, self.days[25])])
+        # 口径与回测对齐：决策日 d 的下一个交易日收盘入场（days[6]），再持有 20 个交易日（出场 days[26]），每条腿都扣成本模型的往返成本。
+        done = self.ledger.settle_due(self.book.get, self.iwm[: 5 + 22], T0)
+        self.assertEqual([(d["horizon"], d["entry_day"], d["exit_day"]) for d in done], [(20, self.days[6], self.days[26])])
         row = self.ledger.db.execute("SELECT * FROM settlement WHERE horizon = 20").fetchone()
-        stock = dict(self.stock)[self.days[25]] / dict(self.stock)[self.day0] - 1
-        iwm = dict(self.iwm)[self.days[25]] / dict(self.iwm)[self.day0] - 1
-        control = dict(self.control)[self.days[25]] / dict(self.control)[self.day0] - 1
+        entry, exit_ = self.days[6], self.days[26]
+        stock = dict(self.stock)[exit_] / dict(self.stock)[entry] - 1
+        iwm = dict(self.iwm)[exit_] / dict(self.iwm)[entry] - 1
+        control = dict(self.control)[exit_] / dict(self.control)[entry] - 1
+        stock_cost = round_trip_cost(None, dict(self.stock)[entry])                 # 记录时没给成交额：按最差一档
+        iwm_cost = round_trip_cost(BENCHMARK_DOLLAR_VOLUME, dict(self.iwm)[entry])
+        control_cost = round_trip_cost(None, dict(self.control)[entry])
         self.assertAlmostEqual(row["stock_return"], stock)
-        self.assertAlmostEqual(row["excess_vs_iwm"], stock - iwm)
-        self.assertAlmostEqual(row["excess_vs_control"], stock - control)
+        self.assertAlmostEqual(row["stock_cost"], stock_cost)
+        self.assertAlmostEqual(row["excess_vs_iwm"], (stock - stock_cost) - (iwm - iwm_cost))
+        self.assertAlmostEqual(row["excess_vs_control"], (stock - stock_cost) - (control - control_cost))
+        self.assertEqual(row["entry_day"], entry)
         self.assertEqual(row["hit"], 1)
         self.assertIsNone(row["brier"])                                       # 当时没有概率，不编 Brier
 
     def test_60_day_settles_later_and_settlement_is_idempotent(self):
-        self.ledger.settle_due(self.book.get, self.iwm[: 5 + 21], T0)
-        self.assertEqual(self.ledger.settle_due(self.book.get, self.iwm[: 5 + 21], T0), [])      # 不重复结算
+        self.ledger.settle_due(self.book.get, self.iwm[: 5 + 22], T0)
+        self.assertEqual(self.ledger.settle_due(self.book.get, self.iwm[: 5 + 22], T0), [])      # 不重复结算
         done = self.ledger.settle_due(self.book.get, self.iwm, T0)
         self.assertEqual([d["horizon"] for d in done], [60])
         self.assertEqual(self.ledger.db.execute("SELECT COUNT(*) FROM settlement").fetchone()[0], 2)
@@ -176,7 +185,7 @@ class SettlementTests(Base):
         other = L.Ledger(Path(self._tmp.name) / "brier.sqlite")
         self.addCleanup(other.close)
         other.record_day(self.day0, recommendation(), close_price=dict(self.stock)[self.day0], iwm_close=dict(self.iwm)[self.day0], now=T0, probability=0.7)
-        other.settle_due(self.book.get, self.iwm[: 5 + 21], T0)
+        other.settle_due(self.book.get, self.iwm[: 5 + 22], T0)
         self.assertAlmostEqual(other.db.execute("SELECT brier FROM settlement").fetchone()[0], (0.7 - 1.0) ** 2)
 
     def test_the_calendar_comes_from_iwm_so_holidays_do_not_count(self):
@@ -184,11 +193,124 @@ class SettlementTests(Base):
         self.assertEqual(L.trading_days_after(with_holiday, self.day0, 5), self.days[11])
 
     def test_branch_hit_stats_count_only_supporting_branches(self):
-        self.ledger.settle_due(self.book.get, self.iwm[: 5 + 21], T0)
+        self.ledger.settle_due(self.book.get, self.iwm[: 5 + 22], T0)
         stats = self.ledger.branch_hit_stats(20)
         self.assertEqual(stats["equity-event-atlas"], {"n": 1, "hits": 1})
         self.assertEqual(stats["stock-commercial-opportunities"], {"n": 1, "hits": 1})
         self.assertNotIn("bottleneck-serenity-skill", stats)
+
+
+class SettlementNeedsAClosedExitDayTests(Base):
+    """缺陷 #3：盘中那一根日线只有半天，不能当出场收盘价。settle_due 要求出场日已经收盘。"""
+
+    def setUp(self):
+        super().setUp()
+        self.iwm = bars(self.days, 200.0, 0.001)
+        self.stock = bars(self.days, 10.0, 0.004)
+        self.day0 = self.days[5]
+        self.ledger.record_day(self.day0, recommendation(), close_price=dict(self.stock)[self.day0], iwm_close=dict(self.iwm)[self.day0], now=T0)
+        self.exit_day = self.days[26]                                              # 2026-10-07
+
+    def test_at_eleven_in_the_morning_on_the_exit_day_nothing_settles(self):
+        intraday = datetime(2026, 10, 7, 15, 0, tzinfo=timezone.utc)                # 美东 11:00
+        self.assertEqual(self.ledger.settle_due({"ALPHA": self.stock}.get, self.iwm[: 5 + 22], intraday), [])
+        self.assertEqual(self.ledger.db.execute("SELECT COUNT(*) FROM settlement").fetchone()[0], 0)
+
+    def test_after_the_close_the_same_bars_settle(self):
+        before = datetime(2026, 10, 7, 19, 59, tzinfo=timezone.utc)                 # 美东 15:59
+        after = datetime(2026, 10, 7, 20, 0, tzinfo=timezone.utc)                   # 美东 16:00
+        self.assertEqual(self.ledger.settle_due({"ALPHA": self.stock}.get, self.iwm[: 5 + 22], before), [])
+        self.assertEqual([d["exit_day"] for d in self.ledger.settle_due({"ALPHA": self.stock}.get, self.iwm[: 5 + 22], after)], [self.exit_day])
+
+    def test_the_day_after_thanksgiving_closes_at_one_so_two_pm_settles(self):
+        ledger_days = [d for d in calendar(start="2026-10-01", n=60) if d not in ("2026-11-26",)]
+        iwm, stock = bars(ledger_days, 200.0, 0.001), bars(ledger_days, 10.0, 0.004)
+        record_day = ledger_days[ledger_days.index("2026-11-27") - 21]              # 入场 +1，出场 +21 = 11-27（半日市）
+        self.ledger.record_day(record_day, recommendation("HALF"), close_price=dict(stock)[record_day], iwm_close=dict(iwm)[record_day], now=T0)
+        book = {"HALF": stock}.get
+        self.assertEqual(self.ledger.settle_due(book, iwm[: ledger_days.index("2026-11-27") + 1], datetime(2026, 11, 27, 17, 30, tzinfo=timezone.utc)), [])   # 12:30
+        done = self.ledger.settle_due(book, iwm[: ledger_days.index("2026-11-27") + 1], datetime(2026, 11, 27, 19, 0, tzinfo=timezone.utc))                      # 14:00
+        self.assertEqual([d["exit_day"] for d in done if d["symbol"] == "HALF" and d["horizon"] == 20], ["2026-11-27"])
+
+
+class ForwardEvidenceIndependenceTests(unittest.TestCase):
+    """缺陷 #2：前向证据只数独立样本（不同标的、20 日窗口不重叠）；口径与回测一致（次日收盘入场、扣成本）。"""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        self.ledger = L.Ledger(Path(self._tmp.name) / "ledger.sqlite")
+        self.addCleanup(self.ledger.close)
+        self.days = calendar(start="2025-01-02", n=400)
+        self.iwm = bars(self.days, 200.0, 0.0)
+        self.up_10_percent_per_window = (1.1) ** (1 / 20) - 1
+
+    def shadow(self, symbol, day_index, book):
+        day = self.days[day_index]
+        decision = {"state": "NO_ACTION", "watchlist": [], "data_chain": {"snapshot_sha256": "a" * 64},
+                    "shadow_candidate": {"symbol": symbol, "name": symbol, "market_cap_usd": 1.2e9, "support_branches": []}}
+        self.ledger.record_shadow(day, decision, close_price=dict(book[symbol])[day], iwm_close=200.0, now=T0, dollar_volume=8e6)
+
+    def settle(self, book):
+        return self.ledger.settle_shadow_due(book.get, self.iwm, T0)
+
+    def test_eight_consecutive_days_of_one_stock_are_one_sample_not_eight(self):
+        book = {"ABCD": bars(self.days, 10.0, self.up_10_percent_per_window)}
+        for i in range(8):
+            self.shadow("ABCD", 30 + i, book)
+        self.assertEqual(len([d for d in self.settle(book) if d["horizon"] == 20]), 8)         # 八条都结算了……
+        evidence = self.ledger.forward_evidence(20)
+        self.assertEqual(evidence["settled"], 1)                                                # ……但只算一个独立样本
+        self.assertEqual(evidence["hits"], 1)
+        detail = self.ledger.forward_evidence_overlap(20)
+        self.assertEqual((detail["raw_settled"], detail["independent_settled"], detail["excluded_not_independent"]), (8, 1, 7))
+        from signal_lattice import hub
+        gate = hub.proof_gate(None, {**evidence, **detail})
+        self.assertFalse(gate["open"])
+        self.assertFalse(gate["forward"]["sufficient"])
+
+    def test_different_stocks_whose_holding_windows_overlap_still_count_once(self):
+        book = {"S%d" % i: bars(self.days, 10.0, self.up_10_percent_per_window) for i in range(8)}
+        for i in range(8):
+            self.shadow("S%d" % i, 30 + i, book)                                                # 每天换一只，但窗口叠在一起
+        self.settle(book)
+        self.assertEqual(self.ledger.forward_evidence(20)["settled"], 1)
+
+    def test_windows_that_do_not_overlap_on_different_stocks_all_count(self):
+        book = {"S%d" % i: bars(self.days, 10.0, self.up_10_percent_per_window) for i in range(8)}
+        for i in range(8):
+            self.shadow("S%d" % i, 10 + 25 * i, book)                                           # 相隔 25 个交易日：窗口 [d+1, d+21] 互不相交
+        self.settle(book)
+        evidence = self.ledger.forward_evidence(20)
+        self.assertEqual((evidence["settled"], evidence["hits"], evidence["shadow_settled"], evidence["formal_settled"]), (8, 8, 8, 0))
+        self.assertGreater(evidence["mean_excess"], 0.05)
+
+    def test_the_same_stock_twice_far_apart_counts_once(self):
+        book = {"ABCD": bars(self.days, 10.0, self.up_10_percent_per_window)}
+        self.shadow("ABCD", 10, book)
+        self.shadow("ABCD", 60, book)
+        self.settle(book)
+        self.assertEqual(self.ledger.forward_evidence(20)["settled"], 1)
+
+    def test_the_forward_return_is_net_of_the_same_cost_model_the_backtest_charges(self):
+        book = {"ABCD": bars(self.days, 10.0, self.up_10_percent_per_window)}
+        self.shadow("ABCD", 30, book)
+        self.settle(book)
+        row = self.ledger.db.execute("SELECT * FROM shadow_settlement WHERE horizon = 20").fetchone()
+        gross = row["stock_return"]
+        self.assertAlmostEqual(gross, 0.1, places=6)
+        self.assertAlmostEqual(row["stock_cost"], round_trip_cost(8e6, row["entry_close"]))
+        self.assertAlmostEqual(row["excess_vs_iwm"], (gross - row["stock_cost"]) - (0.0 - row["iwm_cost"]))
+        self.assertLess(row["excess_vs_iwm"], gross)                                            # 扣了成本
+        self.assertEqual(row["entry_day"], self.days[31])                                       # 决策日 d 的下一个交易日入场
+
+    def test_rows_settled_under_the_old_caliber_never_count_as_forward_evidence(self):
+        with self.ledger.db:
+            self.ledger.db.execute("INSERT INTO shadow_record (trading_day, recorded_at, symbol, decision_json, supporters_json, close_price, iwm_close) "
+                                   "VALUES ('2025-02-03','x','OLD','{}','[]',10,200)")
+            self.ledger.db.execute("INSERT INTO shadow_settlement (record_id, horizon, exit_day, settled_at, exit_close, iwm_exit_close, stock_return, "
+                                   "iwm_return, excess_vs_iwm, hit) VALUES (1,20,'2025-03-03','x',11,200,0.1,0,0.1,1)")
+        self.assertEqual(self.ledger.forward_evidence(20)["settled"], 0)
 
 
 class SummaryTests(Base):

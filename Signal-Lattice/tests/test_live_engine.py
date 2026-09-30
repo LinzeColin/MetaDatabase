@@ -248,8 +248,58 @@ class LedgerIntegrationTests(EngineCase):
         self.assertEqual(report["ledger"]["recorded_days"], 0)
         self.assertIn("error", report["ledger"]["last_run"])
         days, bars = self.bars_through("2026-09-30")
-        engine.gateway = FakeGateway(AFTER_CLOSE, bars=bars)
-        self.assertEqual(engine.run_once(AFTER_CLOSE + timedelta(minutes=1))["ledger"]["recorded_days"], 1)
+        retry_time = AFTER_CLOSE + timedelta(minutes=16)
+        engine.gateway = FakeGateway(retry_time, bars=bars)
+        # 缺陷 #8：当日 bar 没出来时按 15 分钟一次重试（以前每分钟都刷新请求），所以重试要等到 15 分钟之后
+        self.assertEqual(engine.run_once(retry_time)["ledger"]["recorded_days"], 1)
+
+    def test_while_todays_bar_is_late_the_ledger_retries_every_fifteen_minutes_not_every_minute(self):
+        """缺陷 #8：当日 bar 迟迟不出，以前每分钟都删缓存、重新请求。现在 15 分钟一次，直到次日开盘前。"""
+        days, late = self.bars_through("2026-09-29")
+        gateway = FakeGateway(AFTER_CLOSE, bars=late)
+        engine = self.engine(gateway)
+        first = engine.run_once(AFTER_CLOSE)
+        refreshes = lambda: len([call for call in gateway.bar_calls if call[1]])
+        first_refreshes = refreshes()
+        self.assertGreater(first_refreshes, 0)
+        self.assertIn("error", first["ledger"]["last_run"])
+        for minute in (1, 2, 7, 14):
+            gateway.now = AFTER_CLOSE + timedelta(minutes=minute)
+            again = engine.run_once(AFTER_CLOSE + timedelta(minutes=minute))
+            self.assertEqual(refreshes(), first_refreshes, "第 %d 分钟不该再刷新请求" % minute)
+            self.assertIn("deferred_until", again["ledger"]["last_run"])
+        gateway.now = AFTER_CLOSE + timedelta(minutes=16)
+        engine.run_once(AFTER_CLOSE + timedelta(minutes=16))
+        self.assertGreater(refreshes(), first_refreshes)                      # 15 分钟到了，重试一次
+        after_midnight = datetime(2026, 10, 1, 5, 0, tzinfo=timezone.utc)      # 美东 1 日 01:00：仍在次日开盘之前，9-30 还能补记
+        days, full = self.bars_through("2026-09-30")
+        engine.gateway = FakeGateway(after_midnight, bars=full)
+        self.assertEqual(engine.run_once(after_midnight)["ledger"]["recorded_days"], 1)
+
+    def test_a_late_night_run_after_the_next_open_no_longer_backfills_yesterday(self):
+        next_morning = datetime(2026, 10, 1, 14, 0, tzinfo=timezone.utc)      # 美东 10-01 10:00，10-01 已开市
+        days, bars = self.bars_through("2026-09-30")
+        engine = self.engine(FakeGateway(next_morning, bars=bars))
+        self.assertEqual(engine.run_once(next_morning)["ledger"]["recorded_days"], 0)
+
+    def test_an_intraday_run_never_settles_with_the_half_day_bar_of_today(self):
+        """缺陷 #3：美东 11:00 盘中运行，出场日正好是今天时，不得用今天那根盘中半天的 bar 结算。"""
+        days, bars = self.bars_through("2026-09-30", n=60)              # 含今天（9-30）那根
+        ledger = Ledger(self.settings.state_dir / "ledger.sqlite")
+        try:
+            decision = {"state": "RECOMMENDATION", "primary_symbol": "ALPHA", "primary_name": "ALPHA Inc", "market_cap_usd": 1.2e9, "watchlist": [],
+                        "support": {"branches": []}, "data_chain": {"snapshot_sha256": "a" * 64}}
+            day0 = days[-22].isoformat()                                # 入场 days[-21]，第 20 个交易日出场 = days[-1] = 今天
+            ledger.record_day(day0, decision, close_price=dict((b.day.isoformat(), b.close) for b in bars["ALPHA"])[day0],
+                              iwm_close=dict((b.day.isoformat(), b.close) for b in bars[BENCHMARK_SYMBOL])[day0], now=SESSION - timedelta(days=40))
+        finally:
+            ledger.close()
+        during = self.engine(FakeGateway(SESSION, bars=bars)).run_once(SESSION)           # 美东 11:00
+        self.assertEqual(during["ledger"]["settled"]["20"], 0)
+        self.assertEqual(during["ledger"]["last_run"]["settled"], [])
+        after = self.engine(FakeGateway(AFTER_CLOSE, bars=bars)).run_once(AFTER_CLOSE)      # 美东 16:10：今天已收盘
+        self.assertEqual(after["ledger"]["settled"]["20"], 1)
+        self.assertEqual(after["ledger"]["last_run"]["settled"][0]["exit_day"], "2026-09-30")
 
     def test_a_broken_ledger_never_withdraws_the_conclusion(self):
         engine = self.engine(FakeGateway(AFTER_CLOSE, bars={}))                             # 没有任何日线

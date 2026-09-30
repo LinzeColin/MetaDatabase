@@ -145,14 +145,41 @@ def write_research_dir(root: Path, view_records: Mapping[str, Sequence[dict]], *
     return root
 
 
+# 固定夹具里研究层收据的参数版本与 sha256（build_view / write_research_dir 写的都是这一对）；夹具回测报告绑定的就是它们。
+FIXTURE_PARAMS = {"params_version": "1", "params_sha256": "b" * 64}
+FIXTURE_BINDING = hub.rule_binding({b: FIXTURE_PARAMS for b in hub.BACKTEST_BOUND_BRANCHES})
+MONTHS_2025 = ["2024-12-31", "2025-01-31", "2025-02-28", "2025-03-31", "2025-04-30", "2025-05-30", "2025-06-30", "2025-07-31", "2025-08-29",
+               "2025-09-30", "2025-10-31", "2025-11-28", "2025-12-31", "2026-01-30", "2026-02-27", "2026-03-31", "2026-04-30", "2026-05-29",
+               "2026-06-30", "2026-07-31", "2026-08-31", "2026-09-30"]
+
+
 def backtest_report(*, windows: int = 20, formal_iwm: float = 0.03, formal_control: float = 0.02, placebo_iwm: float = -0.01,
-                    hit_rate: float = 0.6) -> dict:
-    """私有完整回测报告里中枢自证门读的那几个字段（默认：全部达标）。"""
+                    hit_rate: float = 0.6, generated_at: str = "2026-09-30T00:00:00+00:00", binding: Optional[dict] = "FIXTURE",
+                    placebo_windows: Optional[int] = None, placebo_offset: int = 0) -> dict:
+    """私有完整回测报告里中枢自证门读的那几个字段（默认：全部达标、绑定夹具里的规则版本与参数、刚生成）。
+    months：每个月一行，正式与安慰剂各有一个已成熟 20 日结果的唯一建议——自证门要在「对齐的月份」上比安慰剂。
+    placebo_windows：安慰剂只有这么多个月有结果；placebo_offset：安慰剂的月份整体往后错这么多个月（不与正式对齐）。"""
     def block(iwm, control, rate):
         return {"windows": windows, "excess_vs_iwm": {"n": windows, "mean": iwm, "hit_rate": rate},
                 "excess_vs_control": {"n": windows, "mean": control, "hit_rate": rate}}
-    return {"schema": "signal-lattice-hub-backtest/1", "generated_at": "2026-09-30T00:00:00+00:00", "oos_windows": windows,
+    placebo_windows = windows if placebo_windows is None else placebo_windows
+    months = []
+    for index, day in enumerate(MONTHS_2025):
+        row = {"as_of": day}
+        if index < windows:
+            row["actual"] = {"pick": {"outcomes": {"20": {"excess_vs_iwm": formal_iwm, "excess_vs_control": formal_control}}}}
+        placebo_index = index - placebo_offset
+        if 0 <= placebo_index < placebo_windows:
+            row["placebo"] = {"pick": {"outcomes": {"20": {"excess_vs_iwm": placebo_iwm, "excess_vs_control": placebo_iwm}}}}
+        months.append(row)
+    return {"schema": "signal-lattice-hub-backtest/1", "generated_at": generated_at, "oos_windows": windows,
+            "binding": FIXTURE_BINDING if binding == "FIXTURE" else binding, "months": months,
             "summary": {"actual": {"pick_20": block(formal_iwm, formal_control, hit_rate)}, "placebo": {"pick_20": block(placebo_iwm, placebo_iwm, 0.4)}}}
+
+
+def gate(report: Optional[Mapping] = None, stats: Optional[Mapping] = None, *, now: datetime = NOW, binding: Optional[Mapping] = FIXTURE_BINDING) -> dict:
+    """带着「当前规则绑定」和「当前时间」调用规则自证门（线上就是这样调的）。"""
+    return hub.proof_gate(report, stats, expected_binding=binding, now=now)
 
 
 def forward_stats(*, settled: int = 10, hits: int = 7, mean_excess: float = 0.02, formal: int = 0) -> dict:
@@ -160,14 +187,18 @@ def forward_stats(*, settled: int = 10, hits: int = 7, mean_excess: float = 0.02
 
 
 def seed_shadow_evidence(ledger_path, *, settled: int = 8, hits: Optional[int] = None, excess: float = 0.03) -> None:
-    """往记分簿里直接写入 settled 条已结算（20 日）的影子候选，用来让规则自证门的 (b) 前向证据达标（或按参数不达标）。"""
+    """往记分簿里直接写入 settled 条已结算（20 日）的影子候选，用来让规则自证门的 (b) 前向证据达标（或按参数不达标）。
+
+    这些是「独立样本」：每条一只不同的股票，持有窗口（入场日到出场日）互相错开 30 个日历日、互不重叠，
+    并且带着新口径（下一交易日入场、扣成本）的 entry_day——前向证据只数这样的行。"""
     from signal_lattice.ledger import Ledger
     hits = settled if hits is None else hits
     ledger = Ledger(ledger_path)
     try:
         with ledger.db:
             for i in range(settled):
-                day = "2026-08-%02d" % (i + 1)
+                decision = datetime(2026, 1, 5) + timedelta(days=30 * i)
+                day, entry, exit_ = ((decision + timedelta(days=d)).date().isoformat() for d in (0, 1, 29))
                 ledger.db.execute(
                     "INSERT INTO shadow_record (trading_day, recorded_at, symbol, name, market_cap_usd, decision_json, supporters_json, snapshot_sha256, "
                     "close_price, iwm_close) VALUES (?,?,?,?,?,?,?,?,?,?)", (day, day + "T21:00:00+00:00", "SH%02d" % i, "Shadow %d" % i, 1.2e9, "{}", "[]", "a" * 64, 10.0, 200.0))
@@ -175,22 +206,23 @@ def seed_shadow_evidence(ledger_path, *, settled: int = 8, hits: Optional[int] =
                 hit = i < hits
                 ledger.db.execute(
                     "INSERT INTO shadow_settlement (record_id, horizon, exit_day, settled_at, exit_close, iwm_exit_close, stock_return, iwm_return, "
-                    "excess_vs_iwm, hit) VALUES (?,?,?,?,?,?,?,?,?,?)",
-                    (record_id, 20, "2026-09-%02d" % (i + 1), "2026-09-30T21:00:00+00:00", 10.5, 201.0, 0.05, 0.005, excess if hit else -excess, 1 if hit else 0))
+                    "excess_vs_iwm, hit, entry_day, entry_close, iwm_entry_close) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (record_id, 20, exit_, "2026-09-30T21:00:00+00:00", 10.5, 201.0, 0.05, 0.005, excess if hit else -excess, 1 if hit else 0,
+                     entry, 10.0, 200.0))
     finally:
         ledger.close()
 
 
 def open_proof() -> dict:
     """一个打开着的规则自证门（回测证据达标）。"""
-    gate = hub.proof_gate(backtest_report(), None)
-    assert gate["open"] and gate["opened_by"] == ["BACKTEST"]
-    return gate
+    opened = gate(backtest_report(), None)
+    assert opened["open"] and opened["opened_by"] == ["BACKTEST"]
+    return opened
 
 
 def closed_proof() -> dict:
     """与真实产物同一形状：回测 20 个窗口、正式 20 日 -3.9%、安慰剂反而 +2.4%；影子候选 0 条。"""
-    return hub.proof_gate(backtest_report(formal_iwm=-0.0393, formal_control=-0.0319, placebo_iwm=0.0238, hit_rate=0.3), forward_stats(settled=0, hits=0, mean_excess=0.0))
+    return gate(backtest_report(formal_iwm=-0.0393, formal_control=-0.0319, placebo_iwm=0.0238, hit_rate=0.3), forward_stats(settled=0, hits=0, mean_excess=0.0))
 
 
 def run_decision(view: ResearchView, *, market: Optional[Mapping] = None, weights: Optional[Mapping] = None, state: Optional[Mapping] = None,

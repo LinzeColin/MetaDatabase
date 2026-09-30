@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Dict, List, Mapping, Tuple
 from zoneinfo import ZoneInfo
 
-from . import hub
+from . import hub, nyse_calendar
 from .ledger import HORIZONS, Ledger, draw_control
 from .live_config import APP_VERSION, LiveSettings
 from .research_view import BRANCH_LABELS, STOCK_BRANCHES, ResearchView, load_research
@@ -72,7 +72,8 @@ US_EXCHANGE_KLINE_SUFFIX = {"Nasdaq": "OQ", "NYSE": "N", "NYSE American": "AM"}
 BENCHMARK_SYMBOL = "IWM"
 BENCHMARK_EXCHANGE = "NYSE American"
 NEW_YORK = ZoneInfo("America/New_York")
-LEDGER_RECORD_AFTER = time(16, 5)           # 美股收盘（16:00）后留 5 分钟等日线出来
+LEDGER_RECORD_DELAY_MINUTES = 5             # 收盘（16:00，半日市 13:00）后留 5 分钟等日线出来
+LEDGER_RETRY_MINUTES = 15                   # 当日 bar 迟迟不出：15 分钟重试一次，直到次日开盘前（不再每分钟刷新请求）
 LEDGER_CONTROL_MAX_ATTEMPTS = 5             # 随机对照取不到收盘价时，顺延最多试这么多只
 LIQUIDITY_WINDOW_DAYS = 20
 LIQUIDITY_MIN_BARS = 15
@@ -94,22 +95,29 @@ def _iso(value: datetime) -> str:
     return value.astimezone(timezone.utc).replace(microsecond=0).isoformat()
 
 
+def _sessions_on(instrument: Instrument, day) -> tuple:
+    """某个交易所当地日期的交易时段。美股按 NYSE 交易日历（假日休市、半日市 13:00 收盘）；
+    A 股/港股目前只有周一到周五的固定时段（没有接入它们的假日日历，行情陈旧度仍由来源时间兜底）。"""
+    if day.weekday() >= 5:
+        return ()
+    if instrument.market == "US":
+        close = nyse_calendar.close_time(day)
+        return () if close is None else ((nyse_calendar.OPEN_TIME, close),)
+    return MARKET_OPEN_SESSIONS.get(instrument.market, ())
+
+
 def _market_is_open(instrument: Instrument, exchange_now: datetime) -> bool:
     """当前是否处在某个交易时段内。只回答「行情此刻该不该推进」。
 
     不要用它判断当日 K 线是否已定稿：港股 12:00-13:00、A 股 11:30-13:00 的午休
     同样不在时段内，但交易日远未结束，当日 bar 只含上午半场。
     """
-    if exchange_now.weekday() >= 5:
-        return False
-    return any(start <= exchange_now.time() < end for start, end in MARKET_OPEN_SESSIONS.get(instrument.market, ()))
+    return any(start <= exchange_now.time() < end for start, end in _sessions_on(instrument, exchange_now.date()))
 
 
 def _trading_day_is_complete(instrument: Instrument, exchange_now: datetime) -> bool:
-    """交易所当天的最后一个时段是否已经结束——当日日线是否可以当作收盘值使用。"""
-    if exchange_now.weekday() >= 5:
-        return True
-    sessions = MARKET_OPEN_SESSIONS.get(instrument.market, ())
+    """交易所当天的最后一个时段是否已经结束——当日日线是否可以当作收盘值使用。休市日没有当日 bar，视为已完成。"""
+    sessions = _sessions_on(instrument, exchange_now.date())
     if not sessions:
         return True
     return exchange_now.time() >= max(end for _start, end in sessions)
@@ -117,9 +125,7 @@ def _trading_day_is_complete(instrument: Instrument, exchange_now: datetime) -> 
 
 def _in_intraday_break(instrument: Instrument, exchange_now: datetime) -> bool:
     """是否处在交易日内的休息时段（已开盘、未收盘，但当前不在任何时段内）。"""
-    if exchange_now.weekday() >= 5:
-        return False
-    sessions = MARKET_OPEN_SESSIONS.get(instrument.market, ())
+    sessions = _sessions_on(instrument, exchange_now.date())
     if not sessions:
         return False
     first_start = min(start for start, _end in sessions)
@@ -129,7 +135,7 @@ def _in_intraday_break(instrument: Instrument, exchange_now: datetime) -> bool:
 
 def _current_session_elapsed_seconds(instrument: Instrument, exchange_now: datetime) -> float | None:
     """当前所在时段已经开了多久；不在任何时段内时为 None。"""
-    for start, end in MARKET_OPEN_SESSIONS.get(instrument.market, ()):
+    for start, end in _sessions_on(instrument, exchange_now.date()):
         if start <= exchange_now.time() < end:
             opened_at = exchange_now.replace(
                 hour=start.hour, minute=start.minute, second=0, microsecond=0
@@ -146,23 +152,22 @@ def _trading_seconds_between(instrument: Instrument, start: datetime, end: datet
     允许值，于是每天复盘都阻断一次。按交易时间算，11:35→13:00 之间只有 11:35-12:00
     这 25 分钟属于交易时段，恰好等于申报延迟，判定为新鲜；而如果到 13:10 来源时间仍是
     11:35，交易时间已累计 35 分钟，超出允许值——那才是真的停滞。
+    休市日（周末、美股假日）与半日市的提前收盘都按交易日历计算。
     """
     if end <= start:
         return 0.0
-    sessions = MARKET_OPEN_SESSIONS.get(instrument.market, ())
-    if not sessions:
+    if instrument.market not in MARKET_OPEN_SESSIONS:
         return max(0.0, (end - start).total_seconds())
     total = 0.0
     day = start.date()
     while day <= end.date():
-        if day.weekday() < 5:
-            for session_start, session_end in sessions:
-                window_start = datetime.combine(day, session_start, tzinfo=start.tzinfo)
-                window_end = datetime.combine(day, session_end, tzinfo=start.tzinfo)
-                overlap_start = max(window_start, start)
-                overlap_end = min(window_end, end)
-                if overlap_end > overlap_start:
-                    total += (overlap_end - overlap_start).total_seconds()
+        for session_start, session_end in _sessions_on(instrument, day):
+            window_start = datetime.combine(day, session_start, tzinfo=start.tzinfo)
+            window_end = datetime.combine(day, session_end, tzinfo=start.tzinfo)
+            overlap_start = max(window_start, start)
+            overlap_end = min(window_end, end)
+            if overlap_end > overlap_start:
+                total += (overlap_end - overlap_start).total_seconds()
         day += timedelta(days=1)
     return total
 
@@ -171,12 +176,32 @@ def _intraday_break_started_at(instrument: Instrument, exchange_now: datetime) -
     """当前休息时段的起点（上一个已结束时段的收盘时刻）。"""
     if not _in_intraday_break(instrument, exchange_now):
         return None
-    ended = [end for _start, end in MARKET_OPEN_SESSIONS.get(instrument.market, ()) if end <= exchange_now.time()]
+    ended = [end for _start, end in _sessions_on(instrument, exchange_now.date()) if end <= exchange_now.time()]
     if not ended:
         return None
     return exchange_now.replace(
         hour=max(ended).hour, minute=max(ended).minute, second=0, microsecond=0
     )
+
+
+def us_market_status(now: datetime) -> dict:
+    """页面用的一句话：美股此刻开市还是休市、为什么（假日/周末/盘前/盘后/半日市已收盘）。"""
+    exchange_now = now.astimezone(NEW_YORK)
+    day, clock = exchange_now.date(), exchange_now.time()
+    base = {"exchange_time": exchange_now.isoformat(), "exchange_date": day.isoformat()}
+    if day.weekday() >= 5:
+        return {**base, "state": "CLOSED", "reason": "WEEKEND", "text": "美股休市：周末"}
+    holiday = nyse_calendar.holiday_zh(day)
+    if holiday is not None:
+        return {**base, "state": "CLOSED", "reason": "HOLIDAY", "text": "美股休市：%s" % holiday}
+    close = nyse_calendar.close_time(day)
+    half = nyse_calendar.is_half_day(day)
+    label = "半日市 %s 收盘" % close.strftime("%H:%M")
+    if clock < nyse_calendar.OPEN_TIME:
+        return {**base, "state": "CLOSED", "reason": "PRE_MARKET", "text": "美股盘前（9:30 开市）%s" % ("，今天是" + label if half else "")}
+    if clock < close:
+        return {**base, "state": "OPEN", "reason": "SESSION", "text": "美股开市中%s" % ("（今天是" + label + "）" if half else "")}
+    return {**base, "state": "CLOSED", "reason": "AFTER_CLOSE", "text": "美股已收盘（%s）" % (label if half else "16:00 收盘")}
 
 
 def apply_profitability_disclosure(branch_report: dict, backtest: dict) -> None:
@@ -466,6 +491,28 @@ class LiveStore:
 
     def save_hub_state(self, state: dict) -> None:
         self._write_json(self.hub_state_path, state)
+
+    @property
+    def ledger_retry_path(self) -> Path:
+        """记分簿当日 bar 没出来时的重试退避状态（只属于 state_dir）。"""
+        return self.root / "ledger_retry.json"
+
+    def ledger_retry(self, trading_day: str) -> dict | None:
+        try:
+            value = json.loads(self.ledger_retry_path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+            return None
+        return value if isinstance(value, dict) and value.get("trading_day") == trading_day else None
+
+    def set_ledger_retry(self, trading_day: str, next_attempt_at: datetime, attempts: int, reason: str) -> None:
+        self._write_json(self.ledger_retry_path, {"trading_day": trading_day, "next_attempt_at": _iso(next_attempt_at),
+                                                  "attempts": attempts, "reason": reason})
+
+    def clear_ledger_retry(self) -> None:
+        try:
+            self.ledger_retry_path.unlink()
+        except OSError:
+            pass
 
     def write_heartbeat(self, observed_at: datetime) -> None:
         self._write_json(self.heartbeat_path, {"observed_at": _iso(observed_at)})
@@ -1251,29 +1298,47 @@ class LiveEngine:
                 "bars_used": len(recent)}
 
     # ---- 记分簿 -------------------------------------------------------------------------
-    def _closes(self, item: Instrument, *, refresh: bool = False) -> List[Tuple[str, float]] | None:
+    def _closes(self, item: Instrument, now: datetime, *, refresh: bool = False) -> List[Tuple[str, float]] | None:
+        """记分簿用的收盘价序列：只含已完成的交易日（盘中那一根只有半天，不算收盘价）。"""
         try:
-            return [(bar.day.isoformat(), bar.close) for bar in sorted(self.gateway.fetch_bars(item, refresh=refresh), key=lambda b: b.day)]
+            bars = self._completed_us_closes(self.gateway.fetch_bars(item, refresh=refresh), now)
         except MarketDataError:
             return None
+        return [(bar.day.isoformat(), bar.close) for bar in bars]
+
+    @staticmethod
+    def _ledger_day(now: datetime) -> str | None:
+        """现在该给哪个交易日记账：最近一个已收盘的交易日，从收盘后 5 分钟起，到下一个交易日开盘前为止。"""
+        exchange_now = now.astimezone(NEW_YORK)
+        last = nyse_calendar.last_closed_session_day(now)
+        close = nyse_calendar.close_time(last)
+        ready = datetime.combine(last, close, tzinfo=NEW_YORK) + timedelta(minutes=LEDGER_RECORD_DELAY_MINUTES)
+        next_open = datetime.combine(nyse_calendar.next_trading_day(last), nyse_calendar.OPEN_TIME, tzinfo=NEW_YORK)
+        return last.isoformat() if ready <= exchange_now < next_open else None
 
     def _ledger_step(self, ledger: Ledger, now: datetime, decision: dict, research: ResearchView) -> dict:
         """收盘后记一行（正式建议 / NO_ACTION，门没开时另记一行影子候选）、结算已满 20/60 个交易日的记录。
+        全程只用已收盘的日线；当日 bar 还没出来就按 15 分钟一次退避重试，直到次日开盘前。
         任何一步失败只影响记分簿，不影响本轮结论。"""
-        exchange_now = now.astimezone(NEW_YORK)
-        after_close = exchange_now.weekday() < 5 and exchange_now.time() >= LEDGER_RECORD_AFTER
-        day = exchange_now.date().isoformat() if after_close else None
+        day = self._ledger_day(now)
         status: dict = {"trading_day": day, "recorded": False, "settled": [], "shadow_recorded": False, "shadow_settled": []}
         iwm = us_instrument(BENCHMARK_SYMBOL, "iShares 罗素2000 ETF", BENCHMARK_EXCHANGE)
         shadow = decision.get("shadow_candidate") if decision["state"] == "NO_ACTION" else None
         need_record = bool(day) and not ledger.has_day(day) and decision["state"] in ("RECOMMENDATION", "NO_ACTION")
         need_shadow = bool(day) and bool(shadow) and not ledger.has_shadow_day(day)
+        retry = self.store.ledger_retry(day) if day and (need_record or need_shadow) else None
+        retry_at = self.store._parse_timestamp(retry.get("next_attempt_at")) if retry else None
+        if retry_at is not None and now < retry_at:
+            status["deferred_until"] = _iso(retry_at)
+            status["deferred_reason"] = retry.get("reason")
+            need_record = need_shadow = False                 # 退避中：不刷新请求，也不再尝试记账
         has_unsettled = bool(ledger.unsettled()) or bool(ledger.unsettled_shadow())
         if not need_record and not need_shadow and not has_unsettled:
             return status
-        iwm_bars = self._closes(iwm, refresh=need_record or need_shadow)
+        iwm_bars = self._closes(iwm, now, refresh=need_record or need_shadow)
         if iwm_bars is None:
             status["error"] = "IWM_BARS_UNAVAILABLE"
+            self._defer_ledger(day, now, status, need_record or need_shadow)
             return status
         cache: Dict[str, List[Tuple[str, float]] | None] = {BENCHMARK_SYMBOL: iwm_bars}
         refreshed: set = {BENCHMARK_SYMBOL} if (need_record or need_shadow) else set()
@@ -1281,7 +1346,7 @@ class LiveEngine:
         def bars_for(symbol: str, refresh: bool = False):
             if symbol not in cache or (refresh and symbol not in refreshed):
                 pool = research.pool.get(symbol) or {}
-                cache[symbol] = self._closes(us_instrument(symbol, pool.get("name") or symbol, pool.get("exchange")), refresh=refresh)
+                cache[symbol] = self._closes(us_instrument(symbol, pool.get("name") or symbol, pool.get("exchange")), now, refresh=refresh)
                 if refresh:
                     refreshed.add(symbol)
             return cache[symbol]
@@ -1307,6 +1372,13 @@ class LiveEngine:
             control_close = dict(bars_for(control["symbol"]) or []).get(day) if control is not None else None
             return close, control, control_close
 
+        def dollar_volumes(gates: Mapping, control: Mapping | None):
+            """成本分档要用的 20 日成交额中位数：建议股取硬门里量到的值，对照股取研究快照里的值。"""
+            stock = (((gates or {}).get("liquidity") or {}).get("median_dollar_volume_20d_usd"))
+            other = ((research.pool.get(control["symbol"]) or {}).get("median_dollar_volume_20d_usd")) if control else None
+            return stock, other
+
+        failed = False
         if need_record and day in calendar:
             iwm_close = dict(iwm_bars)[day]
             close, control, control_close = None, None, None
@@ -1314,19 +1386,40 @@ class LiveEngine:
                 close, control, control_close = stock_close_and_control(decision["primary_symbol"], decision.get("market_cap_usd"))
                 if close is None:
                     status["error"] = "CLOSE_PRICE_NOT_YET_AVAILABLE:%s" % decision["primary_symbol"]
+                    self._defer_ledger(day, now, status, True)
                     return status
+            stock_dv, control_dv = dollar_volumes(decision.get("gates"), control)
             status["recorded"] = ledger.record_day(day, decision, close_price=close, iwm_close=iwm_close, control=control,
-                                                   control_close=control_close, now=now)
+                                                   control_close=control_close, now=now, dollar_volume=stock_dv, control_dollar_volume=control_dv)
         elif need_record:
             status["error"] = "TRADING_DAY_NOT_IN_CALENDAR_OR_BAR_NOT_YET_PUBLISHED"
+            failed = True
         if need_shadow and day in calendar:
             close, control, control_close = stock_close_and_control(shadow["symbol"], shadow.get("market_cap_usd"))
             if close is None:
                 status["shadow_error"] = "CLOSE_PRICE_NOT_YET_AVAILABLE:%s" % shadow["symbol"]
+                failed = True
             else:
+                stock_dv, control_dv = dollar_volumes(shadow.get("gates"), control)
                 status["shadow_recorded"] = ledger.record_shadow(day, decision, close_price=close, iwm_close=dict(iwm_bars)[day], control=control,
-                                                                 control_close=control_close, now=now)
+                                                                 control_close=control_close, now=now, dollar_volume=stock_dv,
+                                                                 control_dollar_volume=control_dv)
+        elif need_shadow:
+            failed = True
+        if failed:
+            self._defer_ledger(day, now, status, True)
+        elif day and (need_record or need_shadow):
+            self.store.clear_ledger_retry()
         return status
+
+    def _defer_ledger(self, day: str | None, now: datetime, status: dict, wanted: bool) -> None:
+        """当日 bar 没拿到：记下下次重试时间（15 分钟后）。次日开盘后 _ledger_day 不再指向这一天，重试自然结束。"""
+        if not day or not wanted:
+            return
+        previous = self.store.ledger_retry(day) or {}
+        reason = status.get("error") or status.get("shadow_error") or "BAR_NOT_YET_PUBLISHED"
+        self.store.set_ledger_retry(day, now + timedelta(minutes=LEDGER_RETRY_MINUTES), int(previous.get("attempts") or 0) + 1, reason)
+        status["retry_after"] = _iso(now + timedelta(minutes=LEDGER_RETRY_MINUTES))
 
     # ---- 回测摘要 -----------------------------------------------------------------------
     def _backtest_report(self) -> dict | None:
@@ -1357,7 +1450,8 @@ class LiveEngine:
             "quote_sources": {}, "quotes": {}, "quote_freshness": {}, "market_fingerprint": {"quotes": {}, "bars": {}},
             "freshness_findings": [], "blocking_findings": [decision["blocked_reason"]] if decision.get("blocked_reason") else [],
             "degraded_symbols": {}, "branches": [], "receipts": [], "candidates": [], "ledger": None,
-            "proof_gate": decision.get("proof_gate"), "backtest": self._backtest_summary(), **(extra or {}),
+            "proof_gate": decision.get("proof_gate"), "backtest": self._backtest_summary(), "us_market": us_market_status(now),
+            **(extra or {}),
         }
 
     def _blocked_report(self, now: datetime, reason: str, message: str, findings: List[str] | None = None,
@@ -1445,7 +1539,8 @@ class LiveEngine:
         ledger = Ledger(self.settings.state_dir / "ledger.sqlite")
         try:
             weights = hub.branch_weights(ledger.branch_hit_stats(20))
-            proof = hub.proof_gate(self._backtest_report(), ledger.forward_evidence(20))
+            forward = {**ledger.forward_evidence(20), **ledger.forward_evidence_overlap(20)}
+            proof = hub.proof_gate(self._backtest_report(), forward, expected_binding=hub.binding_from_receipts(research.receipts), now=now)
             outcome = hub.decide(
                 research, market, now=now, weights=weights, state=self.store.hub_state(), quotes_available=quotes_available, proof=proof,
                 liquidity_fn=lambda symbol: self._liquidity(by_symbol[symbol], now) if symbol in by_symbol else None)
