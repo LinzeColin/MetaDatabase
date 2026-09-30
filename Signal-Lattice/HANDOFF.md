@@ -1,6 +1,6 @@
 # Signal Lattice V2 重建交接
 
-## 2026-10-01 0.0.0.4.0：推翻重建上线（最新）
+## 2026-10-01 0.0.0.4.0 / 0.0.0.4.1：推翻重建上线（最新）
 
 Owner 原话（2026-09-30）：「Signal-Lattice不合格 因为你们和初始目标严重偏离 且长期推荐大盘股 根本不可信」。
 
@@ -9,6 +9,7 @@ Owner 原话（2026-09-30）：「Signal-Lattice不合格 因为你们和初始�
 - **独立复审（第 5 关）**：blocker/major 全部修完——前向一票否决、回测绑定规则版本与参数 sha256 且 35 天过期、独立样本与同口径成本、只用已收盘日线结算、NYSE 日历、参数只许收紧、候选池缩水拒绝出快照并阻断实时层、FAILED 收据不缓存、SEC UA 只读环境变量。
 - **部署件（本次新增）**：`signal-lattice-v2-research.{service,timer}`（美东工作日 12:00 与 16:40；休市日 `--skip-if-market-closed` 由程序按 NYSE 日历自判退出；MemoryMax 2G、CPUQuota 150%、超时 90 分钟、`OnFailure` 写 journal）、`signal-lattice-v2-backtest.{service,timer}`（每月 3 日刷新回测，报告 35 天过期）、`/etc/signal-lattice-v2/research.env`（root 0600，只放 `SIGNAL_LATTICE_SEC_UA`）。研究层数据在 `/var/lib/signal-lattice-v2/research`；SEC 响应缓存 + 正文缓存合计 ≤ 1 GiB，研究层结束时按最近使用淘汰（`cache_cap.py`）。
 - **部署顺序**：`deploy_v2.sh` 支持两段式（`SIGNAL_LATTICE_STAGE_ONLY=1` 只装 release 与单元；先在新 release 上 `systemd-run` 跑一次研究层；成功后再跑一遍 `deploy_v2.sh` 切 current）。命令与回滚见 `文档/06_运维手册.md` 第 6 节。
+- **0.0.0.4.1（上线时发现的两处生产路径缺陷）**：① 研究层增量采集没装 SEC 官方内部人季度数据集（DERA），把窗口内全部 Form 4（候选池两年约 9.5 万份）逐份取原文，首跑要 6 个多小时——现在先装 DERA，只对它筛出的买入取原文，数据集不可用且库里从没装过时直接失败、不退化成全量原文；② 事件航图参数只认源码树里的 `Stock_Skill`，已安装的 release 里没有这个目录——改为读 Registry 校验后落在 `work/params/active` 的那一份。测试：`tests/test_research_incremental_collect.py`。0.0.0.4.0 只装到 `releases/` 没有切 current，未对外生效。
 - **E2E 旅程**：`tools/e2e/旅程/Signal-Lattice.yaml`（Owner 验收旅程，主 agent 编写，不要改）。
 - **阻塞项**：`B-OVH-RELAUNCH-VERIFY`（核实/重上线 v2）已关闭——2026-09-30 已核实 VPS-3 上 v2 在跑，本次按 06 第 6 节两段式上线并复验；不再需要 Owner 动作。
 - **已知边界**：自证门 (a)/(b) 两条开门路径只在合成数据的单元测试里走通，真实数据上尚未开过门；前向已结算独立样本 < 8 之前，页面写「样本不足」是正常状态；第一次记分簿写入要等上线后的下一个美股收盘；A 股/港股中小盘是第二期。

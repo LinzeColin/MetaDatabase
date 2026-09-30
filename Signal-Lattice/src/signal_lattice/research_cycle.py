@@ -33,7 +33,7 @@ from .branch_runner import BranchReceipt, BranchSpec, run_branches
 from .evidence.eventstore import EventStore
 from .evidence.factstore import FactStore
 from .evidence.history_prices import BENCHMARK, BarStore
-from .evidence.sec_client import RateLimiter, SecClient, SecUserAgentMissing, user_agent_from_env
+from .evidence.sec_client import RateLimiter, SecClient, SecFetchError, SecUserAgentMissing, user_agent_from_env
 from .evidence.structure_text import FilingExtraction
 from .evidence_snapshot import BENCHMARK_SYMBOL, build_body, load_snapshot, write_snapshot, write_structure_file
 from .params_registry import ParamsResolver, Resolution, http_fetcher
@@ -201,12 +201,20 @@ class LiveHooks(Hooks):
             events.add_submissions(cik, payload)
         out["companyfacts_refreshed"] = len(new_periodic)
         out["submissions_refreshed"] = len(new_ciks)
+        # 先装 SEC 官方内部人交易季度数据集（DERA）：只有它筛出的「买入」才去取 Form 4 原文。不装就要把窗口内全部 Form 4
+        # （候选池两年约 9.5 万份）逐份取原文，首跑要 6 个多小时；数据集不可用且库里从没装过时宁可失败，也不退化成全量原文。
+        try:
+            EC.stage_dera(client, events, pool, log)
+        except SecFetchError as exc:
+            log("dera: 取数据集失败 %s" % exc)
+            if EC.dera_coverage_end(events) is None:
+                raise
         form4 = EC.stage_form4(client, events, pool, date.fromisoformat(cfg.event_start), as_of, cfg.min_insider_purchase_usd, log)
         out["form4"] = dict(form4)
         if form4.get("OK", 0) > 0:
             out["owners_checked"] = EC.stage_owners(client, events, log, cfg.min_insider_purchase_usd)
         if new_ciks:
-            atm = json.loads((cfg.project_root / "Stock_Skill" / "equity-event-atlas" / "runtime" / "params.json").read_text("utf-8"))["dilution"]["atm_terms"]
+            atm = _event_atlas_params(cfg)["dilution"]["atm_terms"]
             out["prospectus"] = EC.stage_prospectus(client, events, pool, date.fromisoformat(cfg.event_start), atm, log)
         if new_periodic:
             out["shares_observations"] = EC.stage_shares(client, events, pool, as_of - timedelta(days=120), as_of, log)
@@ -248,6 +256,18 @@ class LiveHooks(Hooks):
                 except Exception as exc:             # 取不到只让全球联动分支 ABSTAIN，不拖垮整轮
                     log("market env %s via %s unavailable: %s" % (instrument.symbol, type(provider).__name__, exc))
         return bars
+
+
+def _event_atlas_params(cfg: "CycleConfig") -> dict:
+    """事件航图参数：本轮 Registry 校验后落在 work_dir/params/active 的那一份；没有才退回源码树里的文件。
+    已安装的 release 里没有 Stock_Skill 目录，不能只认 project_root。"""
+    for path in (Path(cfg.work_dir) / "params" / "active" / "equity-event-atlas.json",
+                 Path(cfg.project_root) / "Stock_Skill" / "equity-event-atlas" / "runtime" / "params.json"):
+        try:
+            return json.loads(path.read_text("utf-8"))
+        except (OSError, ValueError):
+            continue
+    raise FileNotFoundError("equity-event-atlas 参数文件不在 %s/params/active，也不在源码树" % cfg.work_dir)
 
 
 def _structure_from_cache(facts: FactStore, pool: Sequence[int], as_of: str, extraction_cache: Any) -> Dict[int, List[FilingExtraction]]:
