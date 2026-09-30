@@ -105,6 +105,10 @@ def evaluate_health(*, session_factory, heartbeats, kill_switch, now: datetime,
     now = _aware(now)
     m = truth.mode()
     expects = truth.expects_evaluation(m)
+    started = frozen_at(rt)
+    # 影子盘在装配成功时冻结本金 = 记账起点;没有起点就是还没开始(装配卡住由 blocked 项报),
+    # 首次部署不能为「还没发生」的评估与净值点发误报。券商模式本金首笔成交才冻结,不适用。
+    not_started = started is None and m is SystemMode.SHADOW
     hb = heartbeats.snapshot() if heartbeats is not None else {}
     items: list[HealthItem] = []
 
@@ -113,7 +117,7 @@ def evaluate_health(*, session_factory, heartbeats, kill_switch, now: datetime,
     result = last_eval_result(rt)
     missed, why, due = missed_evaluation(
         now.astimezone(ET), last_completed_tag=str((result or {}).get("date", "")),
-        expects=expects, since=frozen_at(rt))
+        expects=expects and not not_started, since=started)
     if missed and kill_switch is not None and kill_switch.active():
         why += " 另:紧急刹车当前处于拉下状态。"
     items.append(HealthItem(
@@ -159,6 +163,18 @@ def evaluate_health(*, session_factory, heartbeats, kill_switch, now: datetime,
         hold_seconds=float(th["blocked_minutes"]) * 60,
         held_seconds=(now - since).total_seconds() if since else 0.0))
 
+    # ---- 交易进程反复崩溃:心跳 ERROR(worker 先写 ERROR 再退出,systemd 拉起,心跳始终新鲜) ----
+    crashing = tw.get("status") == "ERROR"
+    since_err = alerts.bad_since("crash_loop:trading-worker") if (alerts is not None and crashing) else None
+    items.append(HealthItem(
+        key="crash_loop:trading-worker", bad=crashing,
+        title="交易进程反复崩溃",
+        detail=(f"交易进程心跳持续报 ERROR:{str(tw.get('detail', ''))[:160]}" if crashing
+                else "交易进程没有崩溃记录"),
+        action="需要代理排查:systemd 会不断拉起它,但每次都在同一处崩溃;看系统日志里的报错。",
+        hold_seconds=float(th["blocked_minutes"]) * 60,
+        held_seconds=(now - since_err).total_seconds() if since_err else 0.0))
+
     # ---- 净值快照停更 ----
     hist = _read_json(rt / "equity_history.json")
     last_at = None
@@ -168,12 +184,16 @@ def evaluate_health(*, session_factory, heartbeats, kill_switch, now: datetime,
         except Exception:
             last_at = None
     limit = float(th["equity_stale_minutes"])
-    age_min = (now - last_at).total_seconds() / 60 if last_at else None
+    # 还没有任何净值点时按记账起点起算宽限;影子盘没有起点 = 还没开始,不判红
+    ref_at = last_at or started
+    age_min = (now - ref_at).total_seconds() / 60 if ref_at else None
     items.append(HealthItem(
-        key="equity_stale", bad=expects and (age_min is None or age_min > limit),
+        key="equity_stale",
+        bad=expects and (age_min > limit if age_min is not None else not not_started),
         title="净值快照停更",
-        detail=(f"最后一个净值点在 {age_min:.0f} 分钟前(阈值 {limit:g} 分钟)" if age_min is not None
-                else "还没有任何净值点"),
+        detail=((f"最后一个净值点在 {age_min:.0f} 分钟前(阈值 {limit:g} 分钟)" if last_at
+                 else f"记账 {age_min:.0f} 分钟了还没有任何净值点(阈值 {limit:g} 分钟)")
+                if age_min is not None else "还没有任何净值点"),
         action="不用:定时任务会继续尝试;持续红说明快照任务或行情源有问题,代理会排查。"))
 
     # ---- 行情源连续失败(净值快照写入) ----

@@ -181,7 +181,12 @@ class Outbox:
             ).all())
 
     def process_once(self, sender: EmailSender) -> DeliveryReport:
-        """投递一轮到期的 PENDING 事件。失败退避重试;超限置 FAILED;超出每小时上限置 FOLDED。"""
+        """投递一轮到期的 PENDING 事件。失败退避重试;超限置 FAILED;超出每小时上限置 FOLDED。
+
+        **发信绝不在持写锁的事务里**:SMTP 最长 15 秒,占着 SQLite 写锁会让交易进程的心跳/网关写入
+        超过 busy_timeout 抛错崩溃。分三步,每步都是短事务:①领取(折叠汇总入队、挑出到期行)
+        并提交;②事务外逐封发信;③每封发完立刻用短事务回写结果。
+        """
         report = DeliveryReport()
         now = self._now()
         with self._sessions() as session, session.begin():
@@ -191,7 +196,7 @@ class Outbox:
                        OutboxEvent.delivered_at >= now - timedelta(hours=1))
             ).all()
             budget = self._hourly_cap - sum(1 for t in sent if t not in CAP_EXEMPT_EVENTS)
-            due: list[OutboxEvent] = []
+            due_ids: list[str] = []
             summary_id = ""
             folded = session.scalars(
                 select(OutboxEvent).where(OutboxEvent.delivery_status == "FOLDED")
@@ -208,50 +213,75 @@ class Outbox:
                 summary_id = enqueue_in_session(
                     session, event_type="ALERTS_FOLDED",
                     payload={"count": len(folded), "by_title": by_title}, created_at=now)
-                due.append(session.get(OutboxEvent, summary_id))
-            due += session.scalars(
-                select(OutboxEvent)
+                due_ids.append(summary_id)
+            due_ids += session.scalars(
+                select(OutboxEvent.event_id)
                 .where(OutboxEvent.delivery_status == "PENDING",
                        OutboxEvent.event_id != summary_id)
                 .order_by(OutboxEvent.created_at)
             ).all()
-            for row in due:
-                next_at = row.next_attempt_at
-                if next_at is not None:
-                    if next_at.tzinfo is None:
-                        next_at = next_at.replace(tzinfo=timezone.utc)
-                    if next_at > now:
-                        continue
-                capped = row.event_type not in CAP_EXEMPT_EVENTS
-                if capped and budget <= 0:
-                    row.delivery_status = "FOLDED"
-                    report.folded += 1
+
+        delivered_any = False
+        for event_id in due_ids:
+            with self._sessions() as session:
+                row = session.get(OutboxEvent, event_id)
+                if row is None or row.delivery_status != "PENDING":
                     continue
-                payload = json.loads(row.payload)
-                subject, body = render_email(row.event_type, payload)
-                if row.event_type in CRITICAL_EVENTS and row.attempts == 0:
-                    # 第二通道:与邮件并行、互不依赖;只推首发,重试不再重复推
-                    post_alert_webhook(subject, body)
-                try:
-                    sender.send(subject=subject, body=body)
-                except Exception as exc:  # 任何发送失败都进入退避,不吞事件
-                    row.attempts += 1
-                    row.last_error = str(exc)[:500]
-                    if row.attempts >= MAX_ATTEMPTS:
-                        row.delivery_status = "FAILED"
-                        report.failed_permanently += 1
-                    else:
-                        delay = BACKOFF_BASE_SECONDS * (BACKOFF_FACTOR ** (row.attempts - 1))
-                        row.next_attempt_at = now + timedelta(seconds=delay)
-                        report.retried += 1
+                next_at, attempts = row.next_attempt_at, row.attempts
+                event_type, raw_payload = row.event_type, row.payload
+            if next_at is not None:
+                if next_at.tzinfo is None:
+                    next_at = next_at.replace(tzinfo=timezone.utc)
+                if next_at > now:
                     continue
-                row.delivery_status = "DELIVERED"
-                row.delivered_at = now
-                row.attempts += 1
-                report.delivered += 1
-                if capped:
-                    budget -= 1
+            capped = event_type not in CAP_EXEMPT_EVENTS
+            if capped and budget <= 0:
+                self._mark(event_id, delivery_status="FOLDED")
+                report.folded += 1
+                continue
+            subject, body = render_email(event_type, json.loads(raw_payload))
+            if event_type in CRITICAL_EVENTS and attempts == 0:
+                # 第二通道:与邮件并行、互不依赖;只推首发,重试不再重复推
+                post_alert_webhook(subject, body)
+            try:
+                sender.send(subject=subject, body=body)
+            except Exception as exc:  # 任何发送失败都进入退避,不吞事件
+                attempts += 1
+                fields: dict = {"attempts": attempts, "last_error": str(exc)[:500]}
+                if attempts >= MAX_ATTEMPTS:
+                    fields["delivery_status"] = "FAILED"
+                    report.failed_permanently += 1
+                else:
+                    delay = BACKOFF_BASE_SECONDS * (BACKOFF_FACTOR ** (attempts - 1))
+                    fields["next_attempt_at"] = now + timedelta(seconds=delay)
+                    report.retried += 1
+                self._mark(event_id, **fields)
+                continue
+            self._mark(event_id, delivery_status="DELIVERED", delivered_at=now,
+                       attempts=attempts + 1)
+            report.delivered += 1
+            delivered_any = True
+            if capped:
+                budget -= 1
+        if delivered_any:
+            self._revive_failed(now)
         return report
+
+    def _mark(self, event_id: str, **fields) -> None:
+        """短事务回写一行的投递结果。"""
+        with self._sessions() as session, session.begin():
+            row = session.get(OutboxEvent, event_id)
+            for k, v in fields.items():
+                setattr(row, k, v)
+
+    def _revive_failed(self, now: datetime) -> None:
+        """邮件中继恢复(刚有一封送达)后,把近 24 小时内永久失败的告警重新排队:
+        中继重启超过退避总长(约 13 分钟)不该让告警永久丢失。重投仍受每小时上限约束。"""
+        with self._sessions() as session, session.begin():
+            for row in session.scalars(select(OutboxEvent).where(
+                    OutboxEvent.delivery_status == "FAILED",
+                    OutboxEvent.created_at >= now - timedelta(hours=24))):
+                row.delivery_status, row.attempts, row.next_attempt_at = "PENDING", 0, None
 
     def prune(self, days: int = 30) -> int:
         """删掉 days 天前已送达/已汇报的行,库不臃肿;PENDING/FAILED/FOLDED 一律保留。"""

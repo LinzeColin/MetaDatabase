@@ -30,6 +30,8 @@ def green(shadow_env):
     (rt / "last_eval_result.json").write_text(json.dumps(
         {"date": due, "completed_at": (now - timedelta(days=1)).isoformat(), "plan": [],
          "submitted": 0, "rejected": 0, "skipped": 0}))
+    (rt / "LIVE_START_CAPITAL.json").write_text(json.dumps(
+        {"start_capital_usd": 1950.0, "frozen_at": (now - timedelta(days=10)).isoformat()}))
     (rt / "equity_history.json").write_text(json.dumps(
         [{"at": now.isoformat(), "equity_aud": 3012.5}]))
     (rt / "facts").mkdir()
@@ -72,7 +74,16 @@ def test_digest_enqueues_daily_digest_with_mode_and_next_eval(green):
     assert nd["at_syd"] in text and "悉尼" in text
     assert "最近一次评估:" in text and "无需调仓" in text
     assert "3,012.50" in text and "基线 3,000" in text
+    assert "较本月应达 3,000.00 为 +12.50" in text          # 与看盘页同一口径(首笔成交前要求线 = 本金)
     assert "体检结论:系统在岗" in text
+
+
+@pytest.mark.parametrize("mode", ["PAPER", "MICRO_LIVE", "", "shadw"])
+def test_check_env_rejects_non_shadow_mode(shadow_env, monkeypatch, capsys, mode):
+    """启用前检查必须断言 ALPHA_MODE==SHADOW:其它模式、空值、拼错都拒绝(install.sh 走同一函数)。"""
+    monkeypatch.setenv("ALPHA_MODE", mode)
+    assert doctor.main(["--check-env"]) == 1
+    assert "ALPHA_MODE 必须为 SHADOW" in capsys.readouterr().out
 
 
 def test_check_env_flags_forbidden_keys(shadow_env, monkeypatch, capsys):

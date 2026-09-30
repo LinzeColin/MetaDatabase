@@ -285,6 +285,16 @@ class SimOrder(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
 
 
+class LedgerMeta(Base):
+    """账本元数据(键值)。目前只有 ledger_mode:本账本属于哪个运行模式(见 store/ledger_stamp.py)。"""
+
+    __tablename__ = "ledger_meta"
+
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    value: Mapped[str] = mapped_column(String(128), nullable=False)
+    stamped_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
 class AlertState(Base):
     """告警状态(持久化去重):同一 key 只在状态变化时发信,进程重启不重发。
 

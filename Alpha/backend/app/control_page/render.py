@@ -378,6 +378,7 @@ _STRAT_COL_CLS = {
 
 def render_strategy_html(d: dict) -> str:
     ch = d["champion"]
+    mode_word = d.get("mode_word", "实盘")
     limits = "".join(f"<li>{_esc(x)}</li>" for x in d["hard_limits"])
     gates = "".join(
         f"<div class=light><i class='dot g'></i><div><b>{_esc(g['name'])}</b>"
@@ -392,7 +393,7 @@ def render_strategy_html(d: dict) -> str:
         tds = ""
         for c in cols:
             cls = _STRAT_COL_CLS.get(c, "")
-            val = _esc(r.get(c, ""))
+            val = _esc(r.get(c, "")).replace("现役实盘", f"现役{_esc(mode_word)}")
             if c == "策略" and live:
                 val = f"{val}<span class=livemark>● 现役</span>"
             tds += f"<td class={cls}>{val}</td>"
@@ -406,7 +407,7 @@ def render_strategy_html(d: dict) -> str:
 
     body = f"""
 <div class="card span2 live-hero">
-  <span class=tag>● 当前实盘策略</span>
+  <span class=tag>● 当前{_esc(mode_word)}策略</span>
   <div class=live-name>{_esc(ch['name_cn'])}</div>
   <div class=kv>
     <b>怎么赚钱</b><span>{_esc(ch['logic_cn'])}</span>
@@ -564,7 +565,7 @@ def render_dashboard_html(d: dict) -> str:
   <div class=muted style="margin-top:6px">{_esc(mkt['next'])}</div>
 </div>
 <div class=card>
-  <h2>{'实盘运行阶段' if d.get('live_stage') else '三日模拟盘考核'}</h2>
+  <h2>{_esc(d['live_stage'].get('card_title', '实盘运行阶段')) if d.get('live_stage') else '三日模拟盘考核'}</h2>
   {exam_block}
 </div>
 <div class=card>

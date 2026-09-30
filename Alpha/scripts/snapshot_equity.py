@@ -98,7 +98,8 @@ def main(*, quotes=None, fx: tuple[float, bool] | None = None,
         equity_usd = cash_usd + pos_usd
         funded_usd = min(authorized_usd, start_cap)
         # 本金以澳元记账,只有交易盈亏过实时汇率(与看盘同口径;否则本金汇率往返会造出假盈亏)
-        equity_aud = capital_aud + (equity_usd - start_cap) / fx_rate
+        equity_aud = truth.equity_aud(capital_aud=capital_aud,
+                                      trading_pnl_usd=equity_usd - start_cap, fx_aud_usd=fx_rate)
     else:
         funds_cls = wiring.resolve(m, "funds")
         if funds_cls is None:

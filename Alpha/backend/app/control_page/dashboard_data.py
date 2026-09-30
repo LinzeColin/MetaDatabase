@@ -237,6 +237,9 @@ def last_eval_summary(runtime_dir: Path, session_factory=None) -> dict:
         head = f"{at.astimezone(SYD):%m月%d日 %H:%M}(悉尼)评估:"
     except Exception:
         head = f"{rec['date']} 评估:"
+    if rec.get("market_closed"):
+        return {"text": head + f"当日美股休市,评估顺延到 {rec.get('deferred_to', '下一个交易日')}",
+                "date": rec["date"], "ok": True}
     plan = list(rec.get("plan") or [])
     submitted = int(rec.get("submitted", 0))
     rules = [f"{RULE_CN.get(r, r).split(',')[0]}({r})" for r in rec.get("reject_rules") or []]
@@ -277,20 +280,34 @@ def _latest_report(reports_dir: Path) -> Optional[dict]:
 
 
 def _next_decision(now_utc: datetime, runtime_dir: Path) -> dict:
-    """下一次决策时间:有补评估标记 → 下一个交易日开盘后;否则周二正常节拍。"""
+    """下一次决策时间。
+
+    ①补评估标记的日期是今天且窗口(美东 10:30-11:30)还没过、今天又没评估过 -> 今天补评估窗起点;
+    日期早于今天的旧标记忽略;②否则周二例行节拍:本周二已评估过(开始标记 = 今天)或已过 11:00,
+    就是下周二。
+    """
+    from backend.app.workers.live_cycle import EVAL_WINDOW_END_MINUTE, MAKEUP_WINDOW_MINUTES
+
     et_now = now_utc.astimezone(ET)
-    makeup = (runtime_dir / "makeup_eval.txt").exists()
-    if makeup:
-        cand = et_now.replace(hour=10, minute=0, second=0, microsecond=0)
-        if et_now.hour >= 11:
-            cand += timedelta(days=1)
-        while cand.weekday() >= 5:
-            cand += timedelta(days=1)
-        kind = "补评估(上次评估被拦下,下个交易日开盘后补做)"
+    minute = et_now.hour * 60 + et_now.minute
+    today = et_now.date().isoformat()
+
+    def _read(name: str) -> str:
+        try:
+            return (runtime_dir / name).read_text().strip()
+        except OSError:
+            return ""
+
+    evaluated_today = _read("last_s1_eval.txt") == today
+    if (_read("makeup_eval.txt") == today and not evaluated_today
+            and et_now.weekday() < 5 and minute < MAKEUP_WINDOW_MINUTES[1]):
+        cand = et_now.replace(hour=MAKEUP_WINDOW_MINUTES[0] // 60,
+                              minute=MAKEUP_WINDOW_MINUTES[0] % 60, second=0, microsecond=0)
+        kind = "补评估(上次评估被拦下,今天开盘后补做)"
     else:
         days_ahead = (1 - et_now.weekday()) % 7
         cand = et_now.replace(hour=10, minute=0, second=0, microsecond=0) + timedelta(days=days_ahead)
-        if days_ahead == 0 and et_now.hour >= 11:
+        if days_ahead == 0 and (evaluated_today or minute > EVAL_WINDOW_END_MINUTE):
             cand += timedelta(days=7)
         kind = "每周例行决策(美股周二开盘后一小时内)"
     syd = cand.astimezone(SYD)
@@ -499,8 +516,8 @@ def build_strategy_view(*, promotion_path: str | Path = "configs/strategy_promot
     now = now or datetime.now(timezone.utc)
     # 已在实盘时,"晋级四道门"是已走完的准入条件,不是待过的关卡——标题与说明随之切换,
     # 避免"已实盘却像还在等晋级"的第二处自相矛盾(2026-07-25 深度自查)。
-    from backend.app.truth import is_micro_live
-    is_live = is_micro_live()
+    from backend.app import truth
+    is_live = truth.is_micro_live()
     gates = []
     try:
         import yaml
@@ -539,7 +556,8 @@ def build_strategy_view(*, promotion_path: str | Path = "configs/strategy_promot
         "gates": gates,
         "is_live": is_live,
         "gates_title": ("准入门禁(已于 2026-07-24 由 owner 书面裁定直接实盘,以下为契约留档条件)"
-                        if is_live else "晋级实盘的四道门(实时读契约配置)"),
+                        if is_live else truth.STRATEGY_WORDS[truth.mode()][1]),
+        "mode_word": truth.STRATEGY_WORDS[truth.mode()][0],
         "honesty_note": honesty,
         "research_cols": RESEARCH_COLS,
         "research": research,
@@ -551,7 +569,7 @@ def build_strategy_view(*, promotion_path: str | Path = "configs/strategy_promot
 
 def build_overview(*, session_factory, heartbeats, kill_switch,
                    quotes: Optional[QuoteSource] = None,
-                   fx_aud_usd: float = 0.65, capital_aud: float = 3000.0,
+                   fx_aud_usd: Optional[float] = None, capital_aud: Optional[float] = None,
                    reports_dir: str | Path = "reports/paper_3day",
                    runtime_dir: Optional[str | Path] = None,
                    real_power_usd: Optional[float] = None,
@@ -559,10 +577,14 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
                    now: Optional[datetime] = None) -> dict:
     """聚合看盘页全部数据(纯只读)。所有金额人话口径:管理切片 = 3000 澳元。"""
     from backend.app import truth
-    from backend.app.health import heartbeat_mode
+    from backend.app.adapters.brokers.base import SystemMode
+    from backend.app.health import frozen_at, heartbeat_mode
     from backend.app.store.orders import fold_own_executions
 
     now = now or datetime.now(timezone.utc)
+    # 本金与契约汇率只认 truth(缺省不再各写一份 3000 / 0.65)
+    capital_aud = truth.capital_aud() if capital_aud is None else capital_aud
+    fx_aud_usd = truth.contract_fx_aud_usd() if fx_aud_usd is None else fx_aud_usd
     runtime_dir = Path(runtime_dir) if runtime_dir is not None else truth.runtime_dir()
     # 实时汇率(owner 2026-07-24 要求):取到就用真汇率,取不到回落契约固定口径并如实标注
     fx_live, fx_at = (None, None)
@@ -650,7 +672,8 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
     # 否则本金先用契约汇率 0.65 折成美元、再用实时汇率折回澳元,会凭空造出几百澳元的假盈亏
     # (2026-07-28 实测 -194.65)。交易盈亏 = 策略现金流 + 持仓市值(未交易时恒为 0)。
     trading_pnl_usd = cash_flow_usd + mark_value_usd
-    equity_aud = capital_aud + trading_pnl_usd / fx_display
+    equity_aud = truth.equity_aud(capital_aud=capital_aud, trading_pnl_usd=trading_pnl_usd,
+                                  fx_aud_usd=fx_display)
     # 券商实际可动用资金只用于"资金是否到位"提示,绝不参与净值与盈亏计算
     account_cash_usd = float(real_power_usd) if funded_known else None
     funded_usd = (min(authorized_usd, account_cash_usd + mark_value_usd)
@@ -659,19 +682,20 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
     baseline_aud = capital_aud
 
     # ---------- 滚动复利要求线 + 目标进度条(owner 2026-07-24 指定口径) ----------
-    # 无期限滚动复利要求:本月应达 = 期初本金 × (1+月回报率)^(自 2026-07 起已过月数),逐月复利;
+    # 无期限滚动复利要求:本月应达 = 期初本金 × (1+月回报率)^(自本账本冻结月起已过月数),逐月复利;
     # 横框满额 = 本日历年年末应达。二者皆为「按回测月均推算的要求线」,不是收益承诺。
-    rate = float(os.environ.get("ALPHA_TARGET_MONTHLY_PCT", "1.245")) / 100.0
+    # 起算月与每日摘要同源(truth.required_line);首笔成交前要求线 = 本金,盈亏恒为 0。
     syd_now = now.astimezone(SYD)
-    elapsed = max(0, (syd_now.year - 2026) * 12 + (syd_now.month - 7))
-    to_year_end = max(elapsed, (syd_now.year - 2026) * 12 + (12 - 7))
-    month_target_aud = capital_aud * ((1.0 + rate) ** elapsed)
-    year_target_aud = capital_aud * ((1.0 + rate) ** to_year_end)
-    # 累计盈亏 = 净值 − 本月应达(相对滚动复利要求线,不是相对期初本金)。owner 2026-07-24 三次纠正:
-    # "这是无期限滚动复利要求";7 月为第 0 月、要求线恰为 3000,故本月数值与旧口径相同,但下月起分离。
+    line = truth.required_line(capital_aud, anchor=frozen_at(Path(runtime_dir)), now=now,
+                               traded=bool(execs))
+    rate, elapsed = line.rate, line.months_elapsed
+    month_target_aud, year_target_aud = line.month_target_aud, line.year_target_aud
+    # 累计盈亏 = 净值 − 本月应达(相对滚动复利要求线,不是相对期初本金)。
     total_pnl_aud = equity_aud - month_target_aud
     invested_usd = sum(p["market_value_usd"] for p in positions)
-    exposure_pct = round(100.0 * (invested_usd / fx_display) / capital_aud, 1) if capital_aud else 0.0
+    # 敞口占上限与风控同源:上限按契约汇率折算(资金上限只紧不松),不用实时汇率
+    exposure_pct = (round(100.0 * invested_usd * float(truth.fx_usd_aud(fx_contract))
+                          / capital_aud, 1) if capital_aud else 0.0)
     ahead = equity_aud >= month_target_aud
     progress = {
         "monthly_rate_pct": round(rate * 100, 3),
@@ -752,8 +776,9 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
     # 否则会出现"页头写微实盘、门禁写保持 Paper"的自相矛盾(2026-07-25 外部复审抓到)。
     from backend.app.truth import is_micro_live
     _env_live = is_micro_live()
+    _shadow = truth.mode() is SystemMode.SHADOW
     exam = None
-    if report and not _env_live:
+    if report and not _env_live and not _shadow:     # 影子盘与纸面三日考核无关,不展示历史报告
         promo = report.get("promotion", {})
         exam = {
             "report_date": report.get("_report_date", ""),
@@ -776,8 +801,12 @@ def build_overview(*, session_factory, heartbeats, kill_switch,
         }
     #: 实盘阶段替代卡:纸面考核已是历史,这里只说当前实盘事实,不再展示已被推翻的旧结论
     live_stage = None
-    if _env_live:
+    if _shadow:
+        live_stage = {"title": "影子盘运行中(考核不适用)", "card_title": "影子盘运行阶段",
+                      "lines": list(truth.SHADOW_STAGE_NOTE), "archived_report_date": ""}
+    elif _env_live:
         live_stage = {
+            "card_title": "实盘运行阶段",
             "title": "实盘运行中(纸面考核已完成使命)",
             "lines": [
                 "已于 2026-07-24 按 owner 书面裁定换帅并直接进入微实盘,真实资金、真实订单。",

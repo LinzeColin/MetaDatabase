@@ -201,7 +201,9 @@ def test_makeup_eval_window_any_weekday():
     wed = datetime(2026, 7, 22, 10, 45, tzinfo=ET)   # 周三 10:45 ET,窗口内
     assert in_eval_window(wed) is False               # 正常节拍仍然只认周二
     minute = wed.hour * 60 + wed.minute
-    assert (9 * 60 + 60) <= minute <= (9 * 60 + 120)  # 但补评估窗口覆盖它
+    from backend.app.workers.live_cycle import MAKEUP_WINDOW_MINUTES
+    assert MAKEUP_WINDOW_MINUTES == (10 * 60 + 30, 11 * 60 + 30)   # 美东 10:30-11:30
+    assert MAKEUP_WINDOW_MINUTES[0] <= minute <= MAKEUP_WINDOW_MINUTES[1]   # 补评估窗口覆盖它
 
 
 # ---------- 080:模式解析与 REAL 桥红线 ----------
@@ -306,7 +308,7 @@ def _paper_deps(tmp_path, client, read_client, now_fn):
         shadow=ShadowRecorder(factory), lease=lease, kill_switch=KillSwitch(tmp_path / "KS"),
         cfg=load_s1_config("configs/strategies/s1_gem_plus.yaml"), capital_usd=1950.0,
         fx_usd_aud=Decimal("1.538462"), marker_path=Path(tmp_path / "rt" / "last_s1_eval.txt"),
-        fee_estimate=lambda side, qty, px: 0.99, mode="PAPER", now_fn=now_fn)
+        fee_estimate=lambda side, qty, px: 0.99, slippage_bps=0.0, mode="PAPER", now_fn=now_fn)
 
 
 def test_paper_path_jurisdiction_still_deny(tmp_path, monkeypatch, make_clock, make_market):

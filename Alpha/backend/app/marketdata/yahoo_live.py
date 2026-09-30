@@ -9,9 +9,10 @@
 
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
-from typing import Callable, Optional
+from typing import Callable, Iterator, Optional
 from zoneinfo import ZoneInfo
 
 from backend.app.backtest import data_sources
@@ -22,6 +23,9 @@ QUOTE_URL = "https://query1.finance.yahoo.com/v8/finance/chart/{sym}?range=1d&in
 #: 实盘日线抓取上限:6 个标的最坏 6×10 秒,远低于 WatchdogSec=300
 DAILY_TIMEOUT_SECONDS = 10
 DAILY_RETRIES = 1
+#: 一次取多只报价的总预算(秒):超时后不再开新请求,没取到的标的按缺失处理(调用方不落评估标记)。
+#: 单只最坏 8×2+4.5=20.5 秒,6 只可达 123 秒,会超过守护的心跳陈旧阈值,所以必须封顶。
+SNAPSHOT_BUDGET_SECONDS = 40.0
 
 
 class QuoteUnavailable(Exception):
@@ -37,10 +41,22 @@ class LiveQuote:
 
 class YahooQuoteSource:
     def __init__(self, *, fetch_json: Optional[Callable[..., dict]] = None,
-                 timeout: int = 8, retries: int = 2) -> None:
+                 timeout: int = 8, retries: int = 2,
+                 budget_seconds: float = SNAPSHOT_BUDGET_SECONDS,
+                 clock: Callable[[], float] = time.monotonic) -> None:
         self._fetch = fetch_json or data_sources._http_json
         self._timeout = timeout
         self._retries = retries
+        self._budget = budget_seconds
+        self._clock = clock
+
+    def _within_budget(self, symbols: list[str]) -> Iterator[str]:
+        """逐只产出标的;总预算用完就停,不再开新请求。"""
+        deadline = self._clock() + self._budget
+        for sym in symbols:
+            if self._clock() > deadline:
+                return
+            yield sym
 
     # ---------- 交易循环协议 ----------
 
@@ -64,7 +80,7 @@ class YahooQuoteSource:
     def get_snapshot(self, symbols: list[str]) -> dict[str, dict]:
         """symbol -> {price, update_time};update_time 为美东无时区字符串(与 quote_age_seconds 约定一致)。"""
         out: dict[str, dict] = {}
-        for sym in symbols:
+        for sym in self._within_budget(symbols):
             try:
                 q = self.get_quote(sym)
             except QuoteUnavailable:
@@ -85,7 +101,7 @@ class YahooQuoteSource:
 
     def snapshots(self, symbols: list[str]) -> dict[str, dict]:
         out: dict[str, dict] = {}
-        for sym in symbols:
+        for sym in self._within_budget(symbols):
             try:
                 q = self.get_quote(sym)
             except QuoteUnavailable:

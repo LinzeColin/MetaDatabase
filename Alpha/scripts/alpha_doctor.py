@@ -234,7 +234,13 @@ def digest(checks: list[Check], *, now: Optional[datetime] = None) -> str:
     try:
         last = json.loads((rt / "equity_history.json").read_text())[-1]
         eq = float(last["equity_aud"])
-        eq_txt = f"{eq:,.2f} 澳元(期初基线 {capital:,.0f} 澳元,{eq - capital:+,.2f})"
+        # 与看盘页同一口径函数:累计 = 净值 − 本月应达(起算月 = 本账本冻结月,首笔成交前恒为 0)
+        from backend.app.health import frozen_at
+        from backend.app.store.orders import OrderStore
+        line = truth.required_line(capital, anchor=frozen_at(rt), now=now,
+                                   traded=OrderStore(factory).has_executions())
+        eq_txt = (f"{eq:,.2f} 澳元(期初基线 {capital:,.0f} 澳元,"
+                  f"较本月应达 {line.month_target_aud:,.2f} 为 {eq - line.month_target_aud:+,.2f})")
     except Exception:
         eq_txt = f"尚无净值点(期初基线 {capital:,.0f} 澳元)"
     nd = _next_decision(now, rt)

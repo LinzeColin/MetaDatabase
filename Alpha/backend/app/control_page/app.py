@@ -65,6 +65,7 @@ def build_control_app(
         return build_overview(
             session_factory=session_factory, heartbeats=heartbeats,
             kill_switch=kill_switch, quotes=quotes, fx_aud_usd=fx,
+            capital_aud=truth.capital_aud(),
             reports_dir=reports_dir, runtime_dir=runtime_dir,
             real_power_usd=power, fx_source=fx_source)
 

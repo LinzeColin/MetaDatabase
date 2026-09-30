@@ -192,14 +192,18 @@ def test_book_survives_restart_and_recovery_adopts(tmp_path):
 
 
 def test_module_imports_no_moomoo():
-    """AST 扫描:影子链四个文件不 import 任何 moomoo 模块。"""
+    """AST 扫描:影子链文件不 import 任何 moomoo 模块;live_cycle(两条路径共用)只许在
+    函数内(券商装配)延迟导入,顶层导入不得含 moomoo。"""
     root = pathlib.Path(__file__).resolve().parents[1] / "backend" / "app"
     files = ["adapters/brokers/sim_broker.py", "marketdata/yahoo_live.py",
-             "workers/shadow_cycle.py", "wiring.py"]
+             "workers/shadow_cycle.py", "wiring.py", "workers/live_cycle.py",
+             "store/ledger_stamp.py", "control_page/dashboard_data.py"]
     for rel in files:
         tree = ast.parse((root / rel).read_text(encoding="utf-8"))
         names = []
-        for node in ast.walk(tree):
+        nodes = tree.body if rel in ("workers/live_cycle.py", "control_page/dashboard_data.py") \
+            else list(ast.walk(tree))
+        for node in nodes:
             if isinstance(node, ast.Import):
                 names += [a.name for a in node.names]
             elif isinstance(node, ast.ImportFrom):

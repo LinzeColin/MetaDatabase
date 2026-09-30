@@ -21,7 +21,9 @@ from backend.app.notify.outbox import AlertBook, Outbox
 from backend.app.workers.heartbeat import HeartbeatStore
 from backend.app.workers.killswitch import KillSwitch
 
-DEFAULT_STALE_SECONDS = 90.0
+#: 心跳陈旧阈值。必须大于「节拍间隔 + 评估拍最坏取数耗时」:取数阶段心跳不更新,
+#: 行情源挂起时也不能被误判成交易进程失联(见 test_supervisor_and_worker 的预算断言)。
+DEFAULT_STALE_SECONDS = 180.0
 #: 失联持续多久后动用受限重启权(给 systemd 自身的 Restart 留足先手)
 RESTART_AFTER_SECONDS = 300.0
 #: 两次自动重启之间的最小间隔(防抖:绝不允许重启风暴)
@@ -196,8 +198,8 @@ class Supervisor:
             return
         rt = self._runtime_dir if self._runtime_dir is not None else truth.runtime_dir()
         makeup, marker = rt / "makeup_eval.txt", rt / "last_s1_eval.txt"
-        if makeup.exists():
-            return
+        if makeup.exists() and makeup.read_text().strip() == today:
+            return                      # 今天的补评估已武装;旧日期的残留标记不算,直接覆盖
         if marker.exists() and marker.read_text().strip() == today:
             return
         rt.mkdir(parents=True, exist_ok=True)

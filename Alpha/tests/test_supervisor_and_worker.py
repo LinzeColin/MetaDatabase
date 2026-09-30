@@ -41,7 +41,7 @@ def test_supervisor_stale_heartbeat_fails_closed(tmp_path):
     _, clock, hb, ob, ks, sup = make_stack(tmp_path)
     hb.beat("trading-worker")
     hb.beat("notify-worker")
-    clock["t"] = NOW + timedelta(seconds=120)      # 超过 90s 容忍
+    clock["t"] = NOW + timedelta(seconds=200)      # 超过 180s 容忍
     report = sup.check_once()
     assert set(report.stale) == {"trading-worker", "notify-worker"}
     assert report.kill_switch_engaged and ks.active()   # 杀开关第一拍就拍下
@@ -144,13 +144,13 @@ def test_supervisor_limited_restart_after_persistent_loss(tmp_path):
                      restart_fn=lambda u: (restarted.append(u), True)[1],
                      restart_after_seconds=300, restart_cooldown_seconds=1800)
     hb.beat("trading-worker")
-    clock["t"] = NOW + timedelta(seconds=120)      # 失联,但未满 300 秒
+    clock["t"] = NOW + timedelta(seconds=200)      # 失联,但未满 300 秒
     sup.check_once()
     assert restarted == []
-    clock["t"] = NOW + timedelta(seconds=500)      # 失联持续 380 秒 → 动用重启权
+    clock["t"] = NOW + timedelta(seconds=600)      # 失联持续 400 秒 → 动用重启权
     sup.check_once()
     assert restarted == ["alpha-opend", "alpha-trading-worker"]
-    clock["t"] = NOW + timedelta(seconds=700)      # 冷却期内不再重启
+    clock["t"] = NOW + timedelta(seconds=800)      # 冷却期内不再重启
     sup.check_once()
     assert len(restarted) == 2
 

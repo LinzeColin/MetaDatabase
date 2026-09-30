@@ -10,7 +10,6 @@ import json
 import os
 import socket
 from datetime import datetime, timezone
-from decimal import Decimal
 from typing import Callable, Mapping, Optional
 
 from backend.app import truth
@@ -20,10 +19,9 @@ from backend.app.backtest.fees import FeeModel
 from backend.app.execution.gateway import ExecutionGateway
 from backend.app.execution.lease import LeaseManager
 from backend.app.marketdata.yahoo_live import YahooQuoteSource
-from backend.app.shadow.recorder import ShadowRecorder
+from backend.app.store.ledger_stamp import claim_ledger
 from backend.app.store.orders import OrderStore
-from backend.app.strategies.s1_momentum import load_s1_config
-from backend.app.workers.live_cycle import LiveCycleDeps, _freeze_start_capital, run_live_cycle
+from backend.app.workers.live_cycle import _freeze_start_capital, make_deps, run_live_cycle
 
 #: 影子盘环境里不得出现的键(非空即拒)。末两个是测试专用覆盖键:生产出现就等于绕过 truth。
 FORBIDDEN_ENV = (
@@ -36,7 +34,10 @@ FORBIDDEN_ENV = (
 
 def check_shadow_env(environ: Mapping[str, str] = os.environ) -> list[str]:
     """影子盘环境体检;返回问题清单(空 = 可以启动)。install.sh 与体检也调用它。"""
-    problems = [f"{k} 不应出现在影子盘环境" for k in FORBIDDEN_ENV if environ.get(k)]
+    problems = []
+    if truth.mode(environ) is not SystemMode.SHADOW:
+        problems.append(f"ALPHA_MODE 必须为 SHADOW,实为 {environ.get('ALPHA_MODE', '')!r}")
+    problems += [f"{k} 不应出现在影子盘环境" for k in FORBIDDEN_ENV if environ.get(k)]
     if environ.get("LIVE_TRADING_ENABLED", "") not in ("", "0"):
         problems.append("LIVE_TRADING_ENABLED 必须为 0")
     if (truth.runtime_dir() / "LIVE_AUTHORIZATION.json").exists():
@@ -50,6 +51,8 @@ def build_shadow_cycle(*, factory, kill_switch, quotes=None,
     if problems:
         raise RuntimeError(f"影子盘拒绝启动(失败关闭): {problems}")
     now_fn = now_fn or (lambda: datetime.now(timezone.utc))
+    # 账本与运行目录必须属于影子盘(或全新):券商模式的账不能被影子盘沿用,反之亦然
+    claim_ledger(factory, SystemMode.SHADOW, truth.runtime_dir())
 
     # 本金 = 契约本金 × 契约汇率,首次装配即冻结并读回;读不回就不启动(不能带着猜的本金记账)
     fx_aud_usd = truth.contract_fx_aud_usd()
@@ -58,7 +61,7 @@ def build_shadow_cycle(*, factory, kill_switch, quotes=None,
     try:
         start_usd = float(json.loads(frozen.read_text())["start_capital_usd"])
     except Exception as exc:
-        raise RuntimeError(f"期初本金冻结文件读不回 {frozen}: {exc}") from exc
+        raise RuntimeError(f"期初本金冻结文件损坏或读不回(人工检查后删除再重启) {frozen}: {exc}") from exc
 
     quotes = quotes or YahooQuoteSource()
     fee_model = FeeModel.from_yaml()
@@ -72,17 +75,8 @@ def build_shadow_cycle(*, factory, kill_switch, quotes=None,
     gateway.recover_in_flight()
     lease.acquire()
 
-    deps = LiveCycleDeps(
-        read_client=quotes, trade_client=sim, store=store, gateway=gateway,
-        shadow=ShadowRecorder(factory), lease=lease, kill_switch=kill_switch,
-        cfg=load_s1_config(truth.strategy_config_path()),
-        capital_usd=start_usd,
-        fx_usd_aud=Decimal(str(round(1.0 / fx_aud_usd, 6))),
-        marker_path=truth.runtime_dir() / "last_s1_eval.txt",
-        fee_estimate=lambda side, qty, px: fee_model.order_cost_usd(
-            side=side, quantity=qty, price=px),
-        mode=SystemMode.SHADOW.value,
-        now_fn=now_fn,
-        funds_fn=sim.get_funds,
-    )
+    deps = make_deps(
+        factory=factory, read_client=quotes, trade_client=sim, store=store, gateway=gateway,
+        lease=lease, kill_switch=kill_switch, mode=SystemMode.SHADOW, capital_usd=start_usd,
+        fee_model=fee_model, now_fn=now_fn, funds_fn=sim.get_funds)
     return lambda: run_live_cycle(deps)

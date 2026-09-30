@@ -149,12 +149,24 @@ def test_data_gap_no_marker_then_retry(shadow):
     assert r3["submitted"] == 1
 
 
-def test_stale_quote_rejected_by_risk(shadow):
-    """快照行情 6 秒:风控拒(RULE_MARKET_DATA_STALE),不成交,完成记录可见拦截原因。"""
+def test_stale_quote_retries_then_evaluates_when_fresh(shadow):
+    """快照行情 6 秒:窗内不落标记、按间隔重试(否则整周作废);行情恢复后照常评估。"""
     sh = shadow()
     sh.market.snapshot_lag = sh.market.quote_lag = 6.0
     r = sh.tick()
-    assert r["submitted"] == 0 and r["rejected"] == 1
+    assert r["evaluated"] is False and "行情过旧" in r["data_error"]
+    assert not (sh.runtime / "last_s1_eval.txt").exists()
+    sh.market.snapshot_lag = sh.market.quote_lag = 1.0
+    r = sh.tick(seconds=121)
+    assert r["evaluated"] is True and r["submitted"] == 1
+
+
+def test_stale_quote_last_chance_rejected_by_risk(shadow):
+    """窗口最后一次机会(周二 10:58:30 ET)行情仍过旧:才落标记,由风控拒并留下拦截原因。"""
+    sh = shadow(start=datetime(2026, 7, 21, 14, 58, 30, tzinfo=UTC))
+    sh.market.snapshot_lag = sh.market.quote_lag = 6.0
+    r = sh.tick()
+    assert r["evaluated"] is True and r["submitted"] == 0 and r["rejected"] == 1
     assert "RULE_MARKET_DATA_STALE" in sh.result()["reject_rules"]
     sh.tick(seconds=30)
     assert sh.executions() == []
@@ -271,3 +283,187 @@ _assert_clean()
 print("OK")
 '''
     _run_isolated(tmp_path, body, {})
+
+
+# ---------- 复审修复:租约/取数预算/休市/余量/账本模式戳 ----------
+
+def _slow_fetch(sh, *, snapshot_s=0.0, bars_s=0.0):
+    """让假行情的取数变慢:每次快照/日线调用把注入时钟推进指定秒数,并记录调用次数。"""
+    m = sh.market
+    calls = {"snapshot": 0, "bars": 0}
+    orig_snap, orig_bars = m.get_snapshot, m.get_daily_bars
+
+    def snap(symbols):
+        calls["snapshot"] += 1
+        sh.clock.advance(seconds=snapshot_s)
+        return orig_snap(symbols)
+
+    def bars(*a):
+        calls["bars"] += 1
+        sh.clock.advance(seconds=bars_s)
+        return orig_bars(*a)
+
+    m.get_snapshot, m.get_daily_bars = snap, bars
+    return calls
+
+
+def test_slow_fetch_does_not_lose_lease(shadow):
+    """取数共 33 秒(超过租约 TTL 30 秒):提交前续约,单子照常提交,当周不作废。"""
+    sh = shadow()
+    _slow_fetch(sh, snapshot_s=18.0, bars_s=3.0)
+    r = sh.tick()
+    assert r["evaluated"] is True and r["submitted"] == 1 and r["skipped"] == 0
+
+
+def test_fetch_over_budget_is_data_gap_not_marker(shadow):
+    """取数总预算 45 秒:超了按数据不齐处理(不落标记、稍后重试),不拖到守护判失联。"""
+    sh = shadow()
+    _slow_fetch(sh, bars_s=20.0)
+    r = sh.tick()
+    assert r["evaluated"] is False and "取数超过总预算" in r["data_error"]
+    assert not (sh.runtime / "last_s1_eval.txt").exists()
+
+
+def test_market_closed_tuesday_defers_without_marker_or_alarm(shadow):
+    """休市的周二(2028-07-04):行情停在前一交易日 -> 不落标记、不算漏评估,顺延到周三补评估。"""
+    sh = shadow(start=datetime(2028, 7, 4, 14, 15, tzinfo=UTC))
+    sh.market.snapshot_lag = sh.market.quote_lag = 18 * 3600.0
+    calls = _slow_fetch(sh)
+    r = sh.tick()
+    assert r["market_closed"] is True and r["deferred_to"] == "2028-07-05" and not r["evaluated"]
+    assert not (sh.runtime / "last_s1_eval.txt").exists()
+    assert (sh.runtime / "makeup_eval.txt").read_text() == "2028-07-05"
+    res = sh.result()
+    assert res["market_closed"] is True and res["plan"] == [] and res["date"] == "2028-07-04"
+    n = calls["snapshot"]
+    r2 = sh.tick(seconds=30)
+    assert r2["market_closed"] is True and calls["snapshot"] == n       # 当天不再重复取数
+    from backend.app.control_page.dashboard_data import last_eval_summary
+    assert "休市" in last_eval_summary(sh.runtime, sh.factory)["text"]
+    from backend.app.health import evaluate_health
+    from backend.app.workers.heartbeat import HeartbeatStore
+    items = evaluate_health(session_factory=sh.factory, heartbeats=HeartbeatStore(sh.factory),
+                            kill_switch=None, now=datetime(2028, 7, 4, 15, 30, tzinfo=UTC),
+                            runtime_dir=sh.runtime)
+    assert next(i for i in items if i.key.startswith("eval_missed:")).bad is False
+
+
+def test_stale_makeup_marker_is_cleared(shadow):
+    """日期早于今天的旧补评估标记被清掉,不会一直留着挡住新的补评估。"""
+    sh = shadow()
+    (sh.runtime / "makeup_eval.txt").write_text("2026-07-14")
+    r = sh.tick()
+    assert r["evaluated"] is True and not (sh.runtime / "makeup_eval.txt").exists()
+
+
+@pytest.mark.parametrize("price,expect_qty", [(650.0, 2), (97.4, 19)])
+def test_plan_leaves_headroom_so_last_slice_is_not_rejected(shadow, price, expect_qty):
+    """整股市值贴着本金:取整前扣留限价上浮+滑点+佣金余量,最后一笔不再被总敞口上限拒掉。"""
+    sh = shadow()
+    sh.market.prices["QQQ"] = price
+    r = sh.tick()
+    assert r["rejected"] == 0 and r["skipped"] == 0 and r["submitted"] == len(r["plan"])
+    total = sum(int(item.rsplit("x", 1)[1]) for item in r["plan"])
+    assert total == expect_qty
+    sh.tick(seconds=30)
+    assert sh.store.net_positions() == {"QQQ": expect_qty}
+
+
+def _plant_orders(factory, *, sim=False, broker=False):
+    from backend.app.domain.models import BrokerOrder, OrderIntent, SimOrder
+    with factory() as s, s.begin():
+        if broker:
+            i = OrderIntent(idempotency_key="X-1", symbol="QQQ", side="BUY", quantity=1,
+                            currency="USD", strategy_source="t")
+            s.add(i)
+            s.flush()
+            s.add(BrokerOrder(intent_id=i.intent_id, state="FILLED"))
+        if sim:
+            s.add(SimOrder(sim_order_id="SIM-x", remark="X-1", symbol="QQQ", side="BUY",
+                           quantity=1, status="FILLED_ALL"))
+
+
+def test_ledger_stamp_forces_fresh_ledger_on_mode_change(shadow, tmp_path):
+    """影子盘账本与运行目录带模式戳:改成 PAPER/MICRO_LIVE 沿用旧账一律拒绝装配;反向同理。"""
+    from backend.app.store.ledger_stamp import claim_ledger
+    sh = shadow()
+    sh.tick()
+    sh.tick(seconds=30)
+    assert sh.store.net_positions() == {"QQQ": 4}
+    for m in (SystemMode.PAPER, SystemMode.MICRO_LIVE):
+        with pytest.raises(RuntimeError, match="SHADOW"):
+            claim_ledger(sh.factory, m, sh.runtime)                     # 旧库 + 旧目录
+        fresh_db = create_session_factory(init_engine(f"sqlite:///{tmp_path / f'f_{m.value}.sqlite'}"))
+        with pytest.raises(RuntimeError, match="运行目录"):
+            claim_ledger(fresh_db, m, sh.runtime)                       # 新库 + 旧目录
+    claim_ledger(sh.factory, SystemMode.SHADOW, sh.runtime)             # 本模式重复认领没问题
+
+    # 全新库 + 全新目录:券商模式可以认领,认领后影子盘反过来被拒
+    db2 = create_session_factory(init_engine(f"sqlite:///{tmp_path / 'live.sqlite'}"))
+    claim_ledger(db2, SystemMode.MICRO_LIVE, tmp_path / "rt_live")
+    with pytest.raises(RuntimeError, match="MICRO_LIVE"):
+        claim_ledger(db2, SystemMode.SHADOW, tmp_path / "rt_live")
+    with pytest.raises(RuntimeError, match="MICRO_LIVE"):
+        build_shadow_cycle(factory=db2, kill_switch=KillSwitch(tmp_path / "KS2"),
+                           quotes=sh.market)
+
+
+def test_ledger_stamp_judges_unstamped_legacy_by_content(tmp_path):
+    """没有戳的旧账本按内容判归属:含模拟订单只属影子盘;含券商订单只属券商类;空的谁都能认领。"""
+    from backend.app.store.ledger_stamp import claim_ledger
+
+    def fresh(name):
+        return create_session_factory(init_engine(f"sqlite:///{tmp_path / name}.sqlite"))
+
+    a = fresh("a")
+    _plant_orders(a, sim=True, broker=True)
+    for m in (SystemMode.PAPER, SystemMode.MICRO_LIVE):
+        with pytest.raises(RuntimeError, match="影子盘"):
+            claim_ledger(a, m, tmp_path / "rt_a")
+    claim_ledger(a, SystemMode.SHADOW, tmp_path / "rt_a")
+
+    b = fresh("b")
+    _plant_orders(b, broker=True)
+    with pytest.raises(RuntimeError, match="券商类"):
+        claim_ledger(b, SystemMode.SHADOW, tmp_path / "rt_b")
+    claim_ledger(b, SystemMode.PAPER, tmp_path / "rt_b")
+
+    rt = tmp_path / "rt_c"
+    rt.mkdir()
+    (rt / "LIVE_START_CAPITAL.json").write_text("{}")                   # 无戳旧运行目录 + 空库
+    with pytest.raises(RuntimeError, match="券商类"):
+        claim_ledger(fresh("c"), SystemMode.SHADOW, rt)
+
+
+def test_shadow_full_surface_never_imports_moomoo_subprocess(tmp_path):
+    """影子盘整个外围面(真实装配的 Yahoo 行情源、控制页、净值快照、盘前自检、体检)也不碰券商 SDK。
+    子进程内不联网:行情源的 HTTP 打桩,评估拍落在窗外不取数。"""
+    body = '''
+from datetime import datetime, timezone
+from backend.app.backtest import data_sources
+def _no_net(*a, **k):
+    raise ConnectionError("子进程测试禁止联网")
+data_sources._http_json = _no_net
+from backend.app.workers.main_trading import build_worker
+s = build_worker()._run_cycle()                 # 真实 build_live_cycle + 真实 YahooQuoteSource
+assert s["mode"] == "SHADOW", s
+from backend.app.marketdata.yahoo_live import YahooQuoteSource
+assert YahooQuoteSource().get_snapshot(["SPY"]) == {}       # 取不到就省略,不编造
+from backend.app.control_page.main import build_app
+build_app()
+class Q:
+    def snapshots(self, syms):
+        return {s: {"price": 400.0, "at": "x"} for s in syms}
+    def get_quote(self, sym):
+        return None
+import scripts.snapshot_equity as se
+assert se.main(quotes=Q(), fx=(0.66, False)) == 0
+import scripts.preflight_check as pf
+pf.main(quotes=Q())
+import scripts.alpha_doctor as doc
+doc.main(["--check-env"])
+doc.collect(systemctl=lambda unit: "active")
+_assert_clean()
+print("OK")
+'''
+    _run_isolated(tmp_path, body, {"ALPHA_MODE": "SHADOW"})

@@ -25,11 +25,20 @@ from zoneinfo import ZoneInfo
 from backend.app import truth, wiring
 from backend.app.adapters.brokers.base import SystemMode
 from backend.app.domain.state_machine import OrderState
+from backend.app.marketdata.guard import DEFAULT_FRESHNESS_THRESHOLD_SECONDS
 from backend.app.risk.engine import RiskContext
 from backend.app.strategies.bars import Bar, slice_until
 from backend.app.strategies.s1_momentum import evaluate_s1, load_s1_config
 
 ET = ZoneInfo("America/New_York")
+
+#: 限价相对快照价的上浮(买)/下浮(卖)比例。下单与整股取整留余量共用这一个数。
+LIMIT_MARKUP = 0.001
+#: 补评估窗口(美东分钟):开盘 09:30 后 60-120 分钟 = 10:30-11:30
+MAKEUP_WINDOW_MINUTES = (9 * 60 + 30 + 60, 9 * 60 + 30 + 120)
+#: 评估拍取数阶段(快照+日线)的总预算(秒)。每次请求自带超时;总预算保证一拍不会久到
+#: 超过守护的心跳陈旧阈值(supervisor.DEFAULT_STALE_SECONDS)。
+FETCH_BUDGET_SECONDS = 45.0
 
 #: 券商状态 -> 网关回调状态(None=本状态不经 on_order_event:成交走 on_fill,过程态跳过)
 BROKER_STATUS_MAP: dict[str, Optional[str]] = {
@@ -83,7 +92,7 @@ def eval_trigger(now_et: datetime, *, force_exists: bool, makeup_today: bool) ->
     """评估触发判定(纯函数,可脱离真实时间测试)。返回 (是否触发, 是否为强制触发)。
 
     三条通路:①周二常规窗;②FORCE_EVAL 立即触发(任意开市时刻,owner 说跑就跑);
-    ③补评估(当日标记 + 开盘后 60-120 分钟)。只决定"何时评估",绝不影响任何风控。
+    ③补评估(当日标记 + 开盘后 60-120 分钟 = 美东 10:30-11:30)。只决定"何时评估",绝不影响任何风控。
     """
     minute = now_et.hour * 60 + now_et.minute
     # 强制评估只改"哪一天",不改"一天里的哪一刻":沿用策略回测验证过的开盘后 30-90 分钟
@@ -91,7 +100,7 @@ def eval_trigger(now_et: datetime, *, force_exists: bool, makeup_today: bool) ->
     in_exec_window = (9 * 60 + 60) <= minute <= (9 * 60 + 120)
     forced = force_exists and now_et.weekday() < 5 and in_exec_window
     makeup_ok = (makeup_today and now_et.weekday() < 5
-                 and (9 * 60 + 60) <= minute <= (9 * 60 + 120))
+                 and MAKEUP_WINDOW_MINUTES[0] <= minute <= MAKEUP_WINDOW_MINUTES[1])
     return (in_eval_window(now_et) or forced or makeup_ok), forced
 
 
@@ -141,8 +150,14 @@ def plan_rebalance(
     capital_usd: float,
     threshold_pct: float,
     single_order_cap_usd: Optional[float] = None,
+    reserve_ratio: float = 0.0,
+    reserve_usd: float = 0.0,
 ) -> list[tuple[str, str, int]]:
     """目标权重 × 资金上限 -> 整股目标 -> 差分 -> 切片后的 (side, symbol, qty) 列表。
+
+    取整前先从资金里扣留余量:reserve_ratio(限价上浮+滑点的比例)与 reserve_usd(整套计划的
+    佣金与卖出费用)。否则整股市值与本金只差一两美元时,最后一笔会被总敞口上限或现金不足拒掉,
+    一周最后一片仓位就空着。
 
     卖单在前(先腾现金);小于阈值(占资金 %)的差分忽略;买不起 1 股即跳过。
     单笔名义超过 single_order_cap_usd 时切成多笔(实机 2026-07-21:QQQ 一笔 2172 澳元
@@ -150,13 +165,14 @@ def plan_rebalance(
     """
     orders: list[tuple[str, str, int]] = []
     threshold_usd = capital_usd * threshold_pct / 100.0
+    budget_usd = max(0.0, capital_usd * (1.0 - reserve_ratio) - reserve_usd)
     targets: dict[str, int] = {}
     for sym, w in target_weights.items():
         p = prices.get(sym)
         if p is None or p <= 0 or w <= 0:
             targets[sym] = 0
             continue
-        targets[sym] = int(capital_usd * w // p)
+        targets[sym] = int(budget_usd * w // p)
     for sym in sorted(set(positions) | set(targets)):
         p = prices.get(sym)
         if p is None or p <= 0:
@@ -176,21 +192,28 @@ def plan_rebalance(
     return orders
 
 
+def _write_json_atomic(path: Path, payload: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(json.dumps(payload, ensure_ascii=False, default=str))
+    os.replace(tmp, path)
+
+
 def _freeze_start_capital(start_capital_usd: float) -> None:
     """把策略初始本金落盘冻结(已存在则不覆盖)。看盘据此把策略净值与 owner 隔离。
 
-    券商路径在首笔交易时调用;影子盘在装配时调用并读回校验(本函数吞异常,影子盘不能吞)。
+    原子写(写一半崩溃不会留下截断文件);券商路径在首笔交易时调用;
+    影子盘在装配时调用并读回校验(本函数吞异常,影子盘不能吞)。
     """
     p = truth.runtime_dir() / "LIVE_START_CAPITAL.json"
     if p.exists():
         return
     try:
-        p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(json.dumps({
+        _write_json_atomic(p, {
             "start_capital_usd": round(float(start_capital_usd), 2),
             "frozen_at": datetime.now(timezone.utc).isoformat(),
             "note": "策略期初可动用本金;净值基线,与 owner 自有交易/出入金隔离",
-        }, ensure_ascii=False))
+        })
     except Exception:
         pass
 
@@ -222,13 +245,16 @@ class LiveCycleDeps:
     fx_usd_aud: Decimal
     marker_path: Path
     fee_estimate: Callable[[str, int, float], float]
-    mode: str = "PAPER"          # 真实运行模式,供心跳/看盘如实上报(勿再写死字面量)
+    slippage_bps: float          # 每边滑点(基点),整股取整留余量用;出处 FeeModel.slippage_bps
+    mode: str                    # 真实运行模式,供心跳/看盘如实上报;必填,没有缺省
     now_fn: Callable[[], datetime] = lambda: datetime.now(timezone.utc)
     #: 非 None 时直接取资金(影子盘 = 模拟券商按账本算),异常上抛不吞;None 走券商只读查询
     funds_fn: Optional[Callable[[], dict]] = None
     #: 取数不齐时的重试间隔(秒);期间不落评估标记
     data_retry_seconds: float = 120
     data_retry_at: Optional[datetime] = None     # 下次允许重试取数的时刻(进程内存)
+    closed_day: Optional[str] = None             # 已判定休市的评估日(进程内存,当天不再重复取数)
+    fetch_budget_seconds: float = FETCH_BUDGET_SECONDS
 
 
 def _ensure_lease(lease) -> None:
@@ -334,11 +360,39 @@ def _data_gap(d: LiveCycleDeps, summary: dict, now_utc: datetime, reason: str) -
     return summary
 
 
-def _write_json_atomic(path: Path, payload: dict) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_name(path.name + ".tmp")
-    tmp.write_text(json.dumps(payload, ensure_ascii=False, default=str))
-    os.replace(tmp, path)
+def _quote_day(update_time: str) -> Optional[date]:
+    """快照 update_time(美东无时区字符串)-> 行情所在美东日期;解析失败 None。"""
+    try:
+        return datetime.fromisoformat(update_time).date()
+    except (ValueError, TypeError):
+        return None
+
+
+def _can_retry_in_window(d: LiveCycleDeps, now_et: datetime, *, regular: bool) -> bool:
+    """本窗口内(距窗口结束还够再拍一次)是否还有重试机会。"""
+    end_minute = EVAL_WINDOW_END_MINUTE if regular else MAKEUP_WINDOW_MINUTES[1]
+    left = end_minute * 60 - (now_et.hour * 3600 + now_et.minute * 60 + now_et.second)
+    return left > d.data_retry_seconds
+
+
+def _market_closed(d: LiveCycleDeps, summary: dict, now_et: datetime, today_tag: str,
+                   now_utc: datetime) -> dict:
+    """休市评估日:写「休市顺延」完成记录(不算漏评估),下一个工作日补评估;当天不再重复取数。"""
+    nxt = now_et.date() + timedelta(days=1)
+    while nxt.weekday() >= 5:
+        nxt += timedelta(days=1)
+    rt = d.marker_path.parent
+    (rt / "makeup_eval.txt").write_text(nxt.isoformat())
+    _write_json_atomic(rt / "last_eval_result.json", {
+        "date": today_tag, "mode": d.mode, "market_closed": True, "deferred_to": nxt.isoformat(),
+        "started_at": now_utc.isoformat(), "completed_at": d.now_fn().isoformat(),
+        "plan": [], "submitted": 0, "rejected": 0, "skipped": 0, "skip_reasons": [],
+        "reject_rules": [],
+    })
+    d.closed_day = today_tag
+    summary["market_closed"] = True
+    summary["deferred_to"] = nxt.isoformat()
+    return summary
 
 
 def run_live_cycle(d: LiveCycleDeps) -> dict:
@@ -358,6 +412,8 @@ def run_live_cycle(d: LiveCycleDeps) -> dict:
     # 事故与补救均入报告)。正常节拍仍是周二;补评估不改变周频纪律本身。
     today_tag = now_et.date().isoformat()
     makeup = d.marker_path.parent / "makeup_eval.txt"
+    if makeup.exists() and makeup.read_text().strip() < today_tag:
+        makeup.unlink(missing_ok=True)      # 日期早于今天的旧标记永远用不上,清掉免得它挡住新的补评估
     makeup_today = makeup.exists() and makeup.read_text().strip() == today_tag
     # 立即评估开关(owner 2026-07-26:"不能用真实时间等待浪费"):放一个 FORCE_EVAL 文件,
     # 下一个开市时刻立刻评估并按纪律下单,不必枯等周二。用后即焚,只生效一次;
@@ -368,6 +424,9 @@ def run_live_cycle(d: LiveCycleDeps) -> dict:
     already = d.marker_path.exists() and d.marker_path.read_text().strip() == today_tag
     if not trigger or already:
         return summary
+    if d.closed_day == today_tag:
+        summary["market_closed"] = True
+        return summary
     if d.data_retry_at is not None and now_utc < d.data_retry_at:
         summary["data_error"] = "上次取数不齐,等待重试"
         summary["retry_at"] = d.data_retry_at.isoformat()
@@ -377,11 +436,14 @@ def run_live_cycle(d: LiveCycleDeps) -> dict:
     universe = list(d.cfg["universe"])
     symbols = list(dict.fromkeys(universe + [d.cfg["cash_proxy"]]))  # 兜底标的也要有价才买得进
     as_of = now_et.date() - timedelta(days=1)     # 信号口径 T-1(与回测一致,不用当天未收盘日线)
+    fetch_deadline = now_utc + timedelta(seconds=d.fetch_budget_seconds)
     try:
         snapshot = d.read_client.get_snapshot(symbols)
         start = (as_of - timedelta(days=450)).isoformat()
         bars_by_symbol = {}
         for sym in universe:
+            if d.now_fn() > fetch_deadline:
+                raise TimeoutError(f"取数超过总预算 {d.fetch_budget_seconds:g} 秒")
             rows = d.read_client.get_daily_bars(sym, start, as_of.isoformat())
             bars_by_symbol[sym] = [
                 Bar(day=date.fromisoformat(r["day"]), open=r["open"], high=r["high"],
@@ -390,6 +452,11 @@ def run_live_cycle(d: LiveCycleDeps) -> dict:
             ]
     except Exception as exc:
         return _data_gap(d, summary, now_utc, f"取数失败 {type(exc).__name__}: {exc}")
+    # 休市的评估日(如周二遇独立日):行情停在上一个交易日,不是「行情过旧」——
+    # 不落标记、不算漏评估,顺延到下一个交易日按补评估处理。
+    if snapshot and not any(_quote_day(v.get("update_time", "")) == now_et.date()
+                            for v in snapshot.values()):
+        return _market_closed(d, summary, now_et, today_tag, now_utc)
     gap = _data_complete(bars_by_symbol, d.cfg, as_of)
     if gap:
         return _data_gap(d, summary, now_utc, f"日线不齐: {gap}")
@@ -421,15 +488,28 @@ def run_live_cycle(d: LiveCycleDeps) -> dict:
     if funds is not None:
         power = float(funds.get("power", funds.get("cash", 0.0)))
         effective_capital_usd = min(d.capital_usd, power + gross_usd)
-    plan = plan_rebalance(dict(result.target_weights), positions, prices,
-                          capital_usd=effective_capital_usd,
-                          threshold_pct=float(d.cfg.get("rebalance_threshold_pct", 5)),
-                          single_order_cap_usd=cap_usd)
+    plan_args = dict(capital_usd=effective_capital_usd,
+                     threshold_pct=float(d.cfg.get("rebalance_threshold_pct", 5)),
+                     single_order_cap_usd=cap_usd)
+    # 整股取整留余量:限价上浮 + 滑点按比例扣,整套计划的佣金与卖出费用(FeeModel)按额扣。
+    # 先按无余量出初稿只为估费用,再按余量重排;否则整股市值贴着本金时最后一笔会被拒。
+    draft = plan_rebalance(dict(result.target_weights), positions, prices, **plan_args)
+    reserve_usd = sum(d.fee_estimate(side, qty, prices[sym]) for side, sym, qty in draft)
+    plan = plan_rebalance(dict(result.target_weights), positions, prices, **plan_args,
+                          reserve_ratio=LIMIT_MARKUP + d.slippage_bps / 10000.0,
+                          reserve_usd=reserve_usd)
     # plan_rebalance 会静默跳过无价标的:目标标的与持仓标的缺价 = 数据不齐,不能带病评估
     needed = {s for s, w in result.target_weights.items() if w > 0} | set(positions)
     missing = sorted(s for s in needed if not prices.get(s))
     if missing:
         return _data_gap(d, summary, now_utc, f"缺实时价: {missing}")
+    # 行情年龄与风控同一常量;过旧不落标记(否则整周作废),按间隔重试,直到窗口最后一次机会
+    # 才放行(此时落标记、由风控拒并告警,不再无限等)。
+    stale = sorted(s for s in needed
+                   if age_by_sym.get(s) is None
+                   or not 0.0 <= age_by_sym[s] <= DEFAULT_FRESHNESS_THRESHOLD_SECONDS)
+    if stale and _can_retry_in_window(d, now_et, regular=in_eval_window(now_et) or forced):
+        return _data_gap(d, summary, now_utc, f"行情过旧: {stale}")
 
     # ---- 4) 数据齐了:消耗一次性开关,先落标记再下单(崩溃重启宁可错过,不重复下单) ----
     d.data_retry_at = None
@@ -459,7 +539,7 @@ def run_live_cycle(d: LiveCycleDeps) -> dict:
     def submit(side: str, sym: str, qty: int, gross_aud: Decimal) -> bool:
         nonlocal reserved_aud
         px = prices[sym]
-        limit = round(px * (1.001 if side == "BUY" else 0.999), 2)
+        limit = round(px * (1 + LIMIT_MARKUP if side == "BUY" else 1 - LIMIT_MARKUP), 2)
         n = part_seen.get((sym, side), 0) + 1
         part_seen[(sym, side)] = n
         key = f"S1-{today_tag}-{sym}-{side}-{qty}" + (f"-p{n}" if n > 1 else "")
@@ -474,6 +554,8 @@ def run_live_cycle(d: LiveCycleDeps) -> dict:
             jurisdiction_verdict=jurisdiction,
         )
         try:
+            # 取数慢会吃掉租约 TTL(30 秒);提交前续约,免得网关因租约过期把整拍单子当 skipped 吞掉
+            _ensure_lease(d.lease)
             order_id = d.gateway.submit_intent(
                 idempotency_key=key, symbol=sym, side=side, quantity=qty,
                 currency="USD", strategy_source=str(d.cfg.get("strategy_id", "S1")),
@@ -534,7 +616,7 @@ def resolve_mode(mode_name: str, acc_trd_env: str, *, live_flag: str,
     """模式解析(纯函数,失败关闭):
     PAPER 必须绑 SIMULATE 账户;MICRO_LIVE 必须绑 REAL 账户 + 实盘总开关=1 +
     预签授权文件有效。任何不合规直接抛错拒绝启动,绝不静默降级。"""
-    m = (mode_name or "PAPER").upper()
+    m = (mode_name or "").upper()
     env = (acc_trd_env or "").upper()
     if m == "PAPER":
         if env != "SIMULATE":
@@ -548,9 +630,25 @@ def resolve_mode(mode_name: str, acc_trd_env: str, *, live_flag: str,
         if not auth_ok:
             raise RuntimeError(f"预签授权无效: {list(auth_reasons)}")
         return SystemMode.MICRO_LIVE
-    raise RuntimeError(f"未知模式 {mode_name}(只认 PAPER/MICRO_LIVE)")
+    raise RuntimeError(f"未知或缺失的模式 {mode_name!r}(只认 PAPER/MICRO_LIVE)")
 
 
+
+
+def make_deps(*, factory, read_client, trade_client, store, gateway, lease, kill_switch,
+              mode: SystemMode, capital_usd: float, fee_model, **extra) -> LiveCycleDeps:
+    """两条装配路径(影子盘/券商)共用的依赖包装配:汇率折算、标记路径、费用估计只在这里算一次。"""
+    from backend.app.shadow.recorder import ShadowRecorder
+
+    return LiveCycleDeps(
+        read_client=read_client, trade_client=trade_client, store=store, gateway=gateway,
+        shadow=ShadowRecorder(factory), lease=lease, kill_switch=kill_switch,
+        cfg=load_s1_config(truth.strategy_config_path()),
+        capital_usd=capital_usd, fx_usd_aud=truth.fx_usd_aud(),
+        marker_path=truth.runtime_dir() / "last_s1_eval.txt",
+        fee_estimate=lambda side, qty, px: fee_model.order_cost_usd(
+            side=side, quantity=qty, price=px),
+        slippage_bps=fee_model.slippage_bps, mode=mode.value, **extra)
 
 
 def build_live_cycle(*, factory, kill_switch, **overrides) -> Callable[[], dict]:
@@ -577,7 +675,7 @@ def build_broker_cycle(*, factory, kill_switch) -> Callable[[], dict]:
     from backend.app.execution.gates import validate_authorization
     from backend.app.execution.gateway import ExecutionGateway
     from backend.app.execution.lease import LeaseManager
-    from backend.app.shadow.recorder import ShadowRecorder
+    from backend.app.store.ledger_stamp import claim_ledger
     from backend.app.store.orders import OrderStore
 
     acc_id = os.environ.get("ALPHA_EXPECTED_ACC_ID", "")
@@ -599,6 +697,8 @@ def build_broker_cycle(*, factory, kill_switch) -> Callable[[], dict]:
                         live_flag=os.environ.get("LIVE_TRADING_ENABLED", "0"),
                         auth_ok=auth_ok, auth_reasons=auth_reasons)
 
+    # 账本与运行目录必须属于本模式:影子盘/模拟盘的账不能被真单沿用(戳不符即拒绝装配)
+    claim_ledger(factory, mode, truth.runtime_dir())
     store = OrderStore(factory)
     lease = LeaseManager(factory, holder_id=f"trading-worker@{socket.gethostname()}")
     if mode is SystemMode.MICRO_LIVE:
@@ -611,19 +711,11 @@ def build_broker_cycle(*, factory, kill_switch) -> Callable[[], dict]:
     recover = gateway.recover_in_flight()
     lease.acquire()   # 慢活(SDK 上下文+悬单恢复)全部完成后才拿租约,避免拿了就过期
 
-    fee_model = FeeModel.from_yaml()
-    fx_aud_usd = truth.contract_fx_aud_usd()   # 契约保守汇率,资金上限只紧不松
-    deps = LiveCycleDeps(
-        read_client=read_client, trade_client=trade_client, store=store,
-        gateway=gateway, shadow=ShadowRecorder(factory), lease=lease,
-        kill_switch=kill_switch, cfg=load_s1_config(truth.strategy_config_path()),
-        capital_usd=truth.capital_aud() * fx_aud_usd,
-        fx_usd_aud=Decimal(str(round(1.0 / fx_aud_usd, 6))),
-        marker_path=truth.runtime_dir() / "last_s1_eval.txt",
-        fee_estimate=lambda side, qty, px: fee_model.order_cost_usd(
-            side=side, quantity=qty, price=px),
-        mode=getattr(mode, "value", str(mode)),
-    )
+    deps = make_deps(
+        factory=factory, read_client=read_client, trade_client=trade_client, store=store,
+        gateway=gateway, lease=lease, kill_switch=kill_switch, mode=mode,
+        capital_usd=truth.capital_aud() * truth.contract_fx_aud_usd(),   # 契约保守汇率,资金上限只紧不松
+        fee_model=FeeModel.from_yaml())
     if recover.get("adopted") or recover.get("submit_failed"):
         pass  # recover 结果已由网关落审计;此处不加工
     return lambda: run_live_cycle(deps)

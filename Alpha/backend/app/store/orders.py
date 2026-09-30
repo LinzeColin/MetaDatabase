@@ -54,6 +54,8 @@ def fold_own_executions(rows: Iterable[tuple[str, str, int, Decimal, Decimal]]) 
     """自有账的**唯一算法**(R4):只由本系统成交推导,绝不读任何券商余额。
 
     rows = 按成交时间排序的 (symbol, side, quantity, price, fees)。
+    持仓成本按加权平均成本结转:加仓并入成本,减仓/平仓按当前均价扣减成本(不是拿卖出额冲减),
+    清仓归零——清仓后再买回同一标的、部分减仓,均价与浮动盈亏才不会错。
     看盘、净值快照、体检、摘要都用这一个函数,不再各写一遍循环。
     """
     net: dict[str, int] = {}
@@ -61,9 +63,17 @@ def fold_own_executions(rows: Iterable[tuple[str, str, int, Decimal, Decimal]]) 
     cash_flow = 0.0
     for symbol, side, qty, price, fees in rows:
         sign = 1 if side == "BUY" else -1
-        net[symbol] = net.get(symbol, 0) + sign * qty
-        cost[symbol] = cost.get(symbol, 0.0) + sign * qty * float(price)
-        cash_flow += -sign * qty * float(price) - float(fees or 0)
+        px = float(price)
+        n, c = net.get(symbol, 0), cost.get(symbol, 0.0)
+        if n == 0 or (n > 0) == (sign > 0):
+            c += sign * qty * px                        # 开仓/加仓:并入成本
+        else:                                           # 减仓/平仓:按均价结转;越过零的部分反向开仓
+            closing = min(qty, abs(n))
+            c -= (1 if n > 0 else -1) * closing * (c / n)
+            c += sign * (qty - closing) * px
+        net[symbol] = n + sign * qty
+        cost[symbol] = 0.0 if net[symbol] == 0 else c
+        cash_flow += -sign * qty * px - float(fees or 0)
     held = {s: q for s, q in net.items() if q}
     return OwnBook(net=held, cost={s: cost[s] for s in held}, cash_flow_usd=cash_flow)
 
@@ -411,6 +421,11 @@ class OrderStore:
         for symbol, side, qty in rows:
             net[symbol] = net.get(symbol, 0) + (qty if side == "BUY" else -qty)
         return {s: q for s, q in net.items() if q != 0}
+
+    def has_executions(self) -> bool:
+        """本账本是否已有过成交(策略出手过没有)。"""
+        with self._sessions() as session:
+            return session.scalar(select(Execution.execution_id).limit(1)) is not None
 
     def own_book(self) -> OwnBook:
         """系统自有账(净持仓/成本/现金流),经 fold_own_executions 唯一算法。"""
