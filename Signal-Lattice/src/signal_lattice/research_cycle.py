@@ -48,6 +48,7 @@ MARKET_ENV_SYMBOLS = ("usSPY", "sh000300", "hk02800")
 UNIVERSE_MIN_COUNT = 600                    # 线上候选池约 1200 只；低于这个绝对值一定是取数不全
 UNIVERSE_MIN_RATIO_OF_RECENT_MEDIAN = 0.7
 UNIVERSE_HISTORY_RUNS = 5
+BACKFILL_MAX_PER_RUN = 2000               # 概念集合变更后的 companyfacts 补取：单轮请求上限
 EXIT_UNIVERSE_INCOMPLETE = 3
 EXIT_SEC_USER_AGENT_MISSING = 4
 
@@ -193,8 +194,18 @@ class LiveHooks(Hooks):
         else:
             out["index_new_by_form"] = {}
         out["companies_with_new_filings"] = len(new_ciks)
-        for cik in sorted(new_periodic):                       # 只有出了新 10-K/10-Q 的公司才重取 companyfacts
+        from .branches import sec_inputs
+        marker = sec_inputs.concept_set_marker()
+        for cik in sorted(new_periodic):                       # 出了新 10-K/10-Q 的公司重取 companyfacts
             facts.ingest_companyfacts(cik, prune(client.companyfacts(cik)), as_of)
+            sec_inputs.mark_concept_set(facts, cik, marker, as_of.isoformat())
+        # 入库概念集合变了（新增营收/债务标签）：其余公司也按新集合重取一次，之后不再重复（每家一条标记）。
+        # 单轮上限 BACKFILL_MAX_PER_RUN 次请求，超出的下一轮接着补；SEC 请求仍走全局 <= 4 次/秒限速。
+        backfill = sec_inputs.ciks_missing_concept_set(facts, pool, marker)[:BACKFILL_MAX_PER_RUN]
+        for cik in backfill:
+            facts.ingest_companyfacts(cik, prune(client.companyfacts(cik)), as_of)
+            sec_inputs.mark_concept_set(facts, cik, marker, as_of.isoformat())
+        out["companyfacts_concept_backfill"] = len(backfill)
         for cik in sorted(new_ciks):                           # 任何新申报都刷新 submissions（主文档名、8-K 事项）
             payload = client.submissions(cik)
             facts.ingest_submissions(cik, payload, as_of)

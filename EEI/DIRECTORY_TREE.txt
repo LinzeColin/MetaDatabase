@@ -755,6 +755,37 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── visual_first_workspace.svg
 │   └── visual_first_workspace_screenshot.png
 ├── 文档
+│   ├── 归档
+│   │   ├── AGENTS_旧版.md
+│   │   ├── CHANGELOG.md
+│   │   ├── CODEX_MASTER_TASK.md
+│   │   ├── CONTINUITY_PLAN.md
+│   │   ├── CONTRIBUTING.md
+│   │   ├── CURRENT_PHASE.md
+│   │   ├── DELIVERY_INDEX.md
+│   │   ├── DEVELOPMENT_STATUS.md
+│   │   ├── DOMAIN_DATA_CATALOG.md
+│   │   ├── FUNCTION_CATALOG.md
+│   │   ├── GITHUB_REPOSITORY_BACKUP_INDEX.md
+│   │   ├── GOVERNANCE_INDEX.md
+│   │   ├── HANDOFF_EEI.md
+│   │   ├── HANDOFF_旧版.md
+│   │   ├── MODEL_MANAGEMENT.md
+│   │   ├── PLANS.md
+│   │   ├── PURSUING_GOAL.md
+│   │   ├── README.md
+│   │   ├── README_旧版.md
+│   │   ├── REPORT.md
+│   │   ├── REVIEW_AND_ITERATION_INDEX.md
+│   │   ├── RISK_AND_ACCEPTANCE.md
+│   │   ├── RUN_CODEX.md
+│   │   ├── SOURCES.md
+│   │   ├── TEST_STRATEGY.md
+│   │   ├── US_Corporate_Power_Map_Governance_Blueprint_v4.2.pdf
+│   │   ├── US_Corporate_Power_Map_System_Model_Parameter_Architecture_v4.2.md
+│   │   ├── US_Corporate_Power_Map_UIUX_Redesign_v4.2.md
+│   │   ├── VALIDATION_REPORT.md
+│   │   └── WHERE_IS_THE_DATA.md
 │   ├── 00_我在哪.md
 │   ├── 01_产品需求.md
 │   ├── 02_系统架构.md
@@ -765,38 +796,12 @@ Enterprise_Ecosystem_Intelligence_release
 ├── .env.example
 ├── .gitignore
 ├── AGENTS.md
-├── CHANGELOG.md
 ├── CHECKSUMS.sha256
-├── CODEX_MASTER_TASK.md
-├── CONTINUITY_PLAN.md
-├── CONTRIBUTING.md
-├── CURRENT_PHASE.md
-├── DELIVERY_INDEX.md
-├── DEVELOPMENT_STATUS.md
 ├── DIRECTORY_TREE.txt
-├── DOMAIN_DATA_CATALOG.md
-├── FUNCTION_CATALOG.md
-├── GITHUB_REPOSITORY_BACKUP_INDEX.md
-├── GOVERNANCE_INDEX.md
 ├── HANDOFF.md
-├── HANDOFF_EEI.md
-├── MODEL_MANAGEMENT.md
 ├── Makefile
-├── PLANS.md
-├── PURSUING_GOAL.md
 ├── README.md
-├── REPORT.md
-├── REVIEW_AND_ITERATION_INDEX.md
-├── RISK_AND_ACCEPTANCE.md
-├── RUN_CODEX.md
-├── SOURCES.md
-├── TEST_STRATEGY.md
-├── US_Corporate_Power_Map_Governance_Blueprint_v4.2.pdf
-├── US_Corporate_Power_Map_System_Model_Parameter_Architecture_v4.2.md
-├── US_Corporate_Power_Map_UIUX_Redesign_v4.2.md
-├── VALIDATION_REPORT.md
 ├── VERSION
-├── WHERE_IS_THE_DATA.md
 ├── docker-compose.ovh.yml
 ├── docker-compose.yml
 ├── manifest.txt

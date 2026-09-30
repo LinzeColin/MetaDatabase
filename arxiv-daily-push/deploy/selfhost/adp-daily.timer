@@ -1,0 +1,13 @@
+[Unit]
+Description=ADP daily pipeline at 20:30 UTC (= 06:30 Sydney AEST / 04:30 China), the same slot the Cloudflare cron used
+Documentation=https://github.com/LinzeColin/MetaDatabase/tree/main/arxiv-daily-push/deploy/selfhost
+
+[Timer]
+OnCalendar=*-*-* 20:30:00 UTC
+# 服务器停机错过了点就开机后补跑一次（当天已成功的话任务自己会幂等跳过）
+Persistent=true
+RandomizedDelaySec=120
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target
