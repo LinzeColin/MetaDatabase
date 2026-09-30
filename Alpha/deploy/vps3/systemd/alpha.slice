@@ -1,0 +1,6 @@
+[Unit]
+Description=Alpha 影子盘资源上限(与同机其它项目共用主机,不许挤占)
+
+[Slice]
+MemoryMax=1G
+CPUQuota=100%

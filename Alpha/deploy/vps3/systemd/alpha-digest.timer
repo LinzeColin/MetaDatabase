@@ -1,0 +1,10 @@
+[Unit]
+Description=Alpha 每日在岗摘要定时器(悉尼清晨)
+
+[Timer]
+OnCalendar=*-*-* 21:30:00 UTC
+RandomizedDelaySec=120
+Persistent=true
+
+[Install]
+WantedBy=timers.target

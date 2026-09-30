@@ -1,0 +1,33 @@
+name: Alpha CI
+
+# Alpha 唯一专属 CI:Linux 上跑全量测试(全程离线,行情与 SMTP 全用假件),并检查部署脚本语法。
+on:
+  push:
+    branches: [main]
+    paths: ["Alpha/**", ".github/workflows/alpha-ci.yml"]
+  pull_request:
+    paths: ["Alpha/**", ".github/workflows/alpha-ci.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: alpha-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+      - name: 安装 Alpha 与测试依赖
+        run: python -m pip install --quiet -e "Alpha[dev]"
+      - name: 全量测试
+        working-directory: Alpha
+        run: python -m pytest -q -p no:cacheprovider
+      - name: 部署脚本语法与静态检查
+        run: bash -n Alpha/deploy/vps3/install.sh && shellcheck -S warning Alpha/deploy/vps3/install.sh
