@@ -17,6 +17,32 @@
   Owner-only Access, plus the existing LinzeHomeHub global Status collector
   (`CB-530`/`CB-540`); no MetaDatabase GitHub publication yet.
 
+## 2026-09-30 — OCI retired; OCI cold-copy leg is now optional
+
+- Owner decision: OCI is expired and retired. The nightly R2 + OCI double cold
+  copy (`cyberboss-backup.service`, `app/scripts/cb530-cloud-backup.js backup`)
+  had been failing every night with `CB530_OCI_PUT_FAILED`, leaving the overall
+  status permanently `degraded`.
+- Change: the OCI leg is optional. If the OCI PAR credential file does not exist
+  (`ENOENT`), `loadConfig()` yields `ociParUrl: null` and `runCloudBackup()`
+  makes no OCI request; `oci` is the frozen
+  `{ state: "disabled", reason: "OCI_NOT_CONFIGURED", provider_requests: 0 }`.
+  `status` is `passed` when every enabled leg landed (R2 alone when OCI is not
+  configured), `degraded` when at least one landed but an enabled leg failed,
+  and the run still throws when nothing landed. `cold_copies_landed` counts
+  landed copies only. A PAR file that exists but is empty or invalid still throws
+  `CB530_OCI_PAR_FILE_INVALID` (fail closed). With OCI configured the behavior is
+  unchanged.
+- systemd: `LoadCredential=oci_par_url` and `CB_OCI_PAR_FILE` removed from both
+  `cyberboss-backup.service` and `cyberboss-restore@.service` (restore only reads
+  R2). `scripts/validate_cb530.py` now asserts OCI is optional instead of
+  requiring the OCI credential in the units, and its focused-test count is 24.
+- Production: the two backup script files of release `a0e201baa4f6-r2-standard`
+  were updated in place to match this commit; the next release ships them.
+- Known follow-up: `readLatestBackupColdCopies()` in `src/core/app.js` still
+  treats any non-`failed` leg (including `disabled`) as a copy, so the status
+  panel keeps reporting two copies; it does not yet distinguish "OCI retired".
+
 ## Current state
 
 Latest accepted node: `P8.5 / CB-840` passed as CONDITIONAL PASS, and Stage 8
