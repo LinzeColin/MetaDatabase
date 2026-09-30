@@ -1,6 +1,17 @@
 # Signal Lattice V2 重建交接
 
-## 2026-09-26 恢复轮（最新）
+## 2026-09-30 合并前修正（最新）
+
+- 版本升到 `0.0.0.3.4`。生产机已有 `releases/0.0.0.3.3`，`install_release.sh` 对同版本、不同 wheel 会
+  `VERSION_COLLISION` 退出，不升版本 `deploy_v2.sh` 在生产上必然失败。版本唯一手写源仍是 `pyproject.toml`，
+  `openapi.yaml`、`config/default.json`、`machine/facts/*.json` 同步。
+- `tests/test_deployment_northstar.py` 造「上一版本」时改为替换 `VERSION`，不再写死当前版本号，以后升版本不用改测试。
+- 恢复被减法误删的 Owner 北极星原文（从 `ee80b41ff` 原样取回）：`PURSUING_GOAL.txt`、`docs/NORTH_STAR_CONTRACT.md`、
+  `docs/PRODUCT_RESULT.md`、`docs/USER_VISIBLE_RESULT.md`、`docs/architecture/NORTHSTAR_ARCHITECTURE.md`。
+- 09-26 的减法已由本 PR 第 3 个提交执行，`B-REDUCTION-AUTH` 移除；`文档/06_运维手册.md` 第 5 节改为「已执行」，不再列删除命令。
+- 2026-09-30 核实：VPS-3 上 v2 `0.0.0.3.3` 在跑（`/health/live` 返回 0.0.0.3.3，api 与 loop.timer 均 active）。
+
+## 2026-09-26 恢复轮
 
 - 修复：`tests/test_deployment_northstar.py` 不再写死 Mac 的 uv Python 路径，改用 `sys.executable`（可用 `SIGNAL_LATTICE_TEST_PYTHON` 覆盖）。Linux 全量 269 过 / 0 败 / 1 跳过。
 - 新分支：`global-equity-lead-lag-atlas`（`src/signal_lattice/branches/lead_lag.py`）：SPY 收盘 → 次日沪深300/盈富基金，GELA 全部证据门通过才给方向；`sh000300`、`hk02800` 因此成为决策输入，这两只的数据故障现在会阻断结论。
