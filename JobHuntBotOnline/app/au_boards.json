@@ -1,0 +1,8 @@
+{
+  "_note": "Employer career boards published through the applicant-tracking vendors' public, unauthenticated posting APIs (no key, no login). Only Australian-located postings are kept. Each slug was probed and returned Australian postings on 2026-09-30.",
+  "greenhouse": ["block", "firmus", "cultureamp", "prospa"],
+  "lever": ["megaport", "mable", "plenti", "deputy", "immutable", "wisr"],
+  "ashby": ["xero", "airwallex", "zip", "netwealth", "harvey"],
+  "smartrecruiters": ["gilberttobin", "kordamentha", "judobank", "canva", "carsales", "nextdc", "wise", "coinjar", "seek"],
+  "workable": ["legalvision", "rokt"]
+}
