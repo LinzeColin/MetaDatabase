@@ -23,6 +23,7 @@ REQUIRED=(
   social-archive.service
   social-archive-backup.timer
   social-archive-replication.timer
+  social-archive-runtime-db-backup.timer
   social-archive-private-database-sync.timer
   social-archive-status.timer
   social-archive-cloudflared.service

@@ -82,9 +82,11 @@ def test_the_backup_unit_uses_the_same_github_credential_too() -> None:
     GITHUB_VAULT_NOT_CONFIGURED`——单元根本没加载 github_token。
     **代码写好了、单元没给它钥匙**，又一次「建好了没接上」。
     """
-    backup = (ROOT / "deploy/systemd/social-archive-backup.service").read_text(encoding="utf-8")
+    # 索引快照 2026-09-30 拆成独立单元 social-archive-runtime-db-backup.service，
+    # 「索引的第三份副本放进 GitHub 私有仓」这件事现在由它做，钥匙也跟着搬过去了。
+    backup = (ROOT / "deploy/systemd/social-archive-runtime-db-backup.service").read_text(encoding="utf-8")
     assert _source_file(backup) == _source_file(REPLICATION.read_text(encoding="utf-8")), (
-        "备份单元与复制单元加载的 GitHub 令牌来源不一致"
+        "索引快照单元与复制单元加载的 GitHub 令牌来源不一致"
     )
     assert "SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE=%d/github_token" in backup, (
         "加载了凭据却没把路径告诉程序"

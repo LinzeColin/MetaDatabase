@@ -51,7 +51,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE = ROOT / "evidence" / "G5" / "THREE_COPIES_TODAY.json"
-STORES = ("r2", "oci", "github")
+# 要核对哪几家：默认 r2、oci、github；OCI 退役后设 SOCIAL_ARCHIVE_REPLICA_STORES=r2,github 就只核对两家
+# （这条判据量的是「必须有的副本」今天够不够得着，已退役的那家不该再算一个「够不着」）。
+sys.path.insert(0, str(ROOT / "src"))
+from social_archive.replica_stores import replica_stores  # noqa: E402
+STORES = replica_stores()
 
 
 def summarise(per_store: dict[str, list[dict]]) -> tuple[list[str], dict]:

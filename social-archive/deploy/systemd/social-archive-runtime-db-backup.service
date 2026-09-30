@@ -1,0 +1,45 @@
+[Unit]
+Description=Social Archive runtime index snapshot (R2 every 15 min, GitHub Release daily)
+After=social-archive.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=socialarchive
+Group=socialarchive
+WorkingDirectory=/opt/social-archive
+EnvironmentFile=/etc/social-archive/social-archive.env
+# **索引快照自己一个单元，不再挂在别的备份链后面。**（2026-09-30）
+#
+# 原来它是 social-archive-replication.service 的第三条 ExecStart、也是
+# social-archive-backup.service 的第二条。Type=oneshot 的 ExecStart 按顺序执行、
+# 前一条失败就不往下走——所以 2026-09-05 OCI 一挂，排在它前面的
+# replicate_objects.py 以 exit 4 失败，运行库快照 **25 天没有再做**，
+# 而索引（标题、链接、关系、artifact→content 的对应）全世界只有服务器磁盘上那一份。
+#
+# 现在任何别的备份步骤失败，都不会拦住它；它失败也不会拦住别的。
+#
+# 凭据只用服务器上本来就有的机制：R2 的两把 key（LoadCredential），
+# 以及能看见私有仓 Private-Database 的 github_markdown_token
+# （**必须是它**：runtime/secrets/github_token 只看得见公开仓，见 replication.service 里的实测记录）。
+# OCI 的 key 不再加载——OCI 已于 2026-09-30 退役（SOCIAL_ARCHIVE_REPLICA_STORES=r2,github）。
+LoadCredential=r2_access_key_id:/opt/social-archive/runtime/secrets/r2_access_key_id
+LoadCredential=r2_secret_access_key:/opt/social-archive/runtime/secrets/r2_secret_access_key
+LoadCredential=github_token:/opt/social-archive/runtime/secrets/github_markdown_token
+Environment=SOCIAL_ARCHIVE_R2_ACCESS_KEY_ID_FILE=%d/r2_access_key_id
+Environment=SOCIAL_ARCHIVE_R2_SECRET_ACCESS_KEY_FILE=%d/r2_secret_access_key
+Environment=SOCIAL_ARCHIVE_GITHUB_TOKEN_FILE=%d/github_token
+# 每 15 分钟一轮：库没变就跳过（一次 VACUUM INTO + 一次哈希，不产生流量）；变了就传 R2 并回读比哈希。
+# --github-daily：每个 UTC 日期第一次跑时，再把同一份密文放进 GitHub 私有仓 Private-Database 的
+# Draft Release（tag 前缀 social-archive-runtime-db-），回读比哈希。当天后面的轮次不再建 Release
+# ——每刻钟建一个会把仓刷爆。「异地副本」= R2 + 每天一份 GitHub。
+ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/backup_runtime_db.py --skip-if-unchanged --github-daily
+# 清掉超过保留期的本地旧快照。**保留期 48 小时是 Owner 2026-08-06 定的**。
+# 挂在最后一条，是因为 Type=oneshot 按顺序执行、前一条失败就不往下走：
+# **只有新快照真的做成了（或确认库没变），才去清旧的**。
+# 脚本自己还有两道底线：最新那一份永远不删；名字认不出的一律不动。
+ExecStart=/opt/social-archive/.venv/bin/python /opt/social-archive/scripts/prune_runtime_db_snapshots.py --apply
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/social-archive

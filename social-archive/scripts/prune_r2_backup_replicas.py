@@ -13,7 +13,19 @@
 而增长几乎全部来自这里：`backups/runtime-db/` 每 15 分钟一份 1.03 MB 快照、
 512 份、**从没清理过**，约 +99 MB/天。R2 免费额度只有 10 GB，这样下去必然收费。
 
-## 四条安全底线
+## OCI 退役之后（2026-09-30）
+
+OCI 账号过期，「删 R2 之前核对 OCI 同 key 同大小」这道门不再有对象可核。`SOCIAL_ARCHIVE_REPLICA_STORES=r2,github`
+时改成：
+
+· **只清 `backups/runtime-db/`**（索引快照）。`backups/private-database/` 是那份事实冷备**唯一**的异地副本
+  （每天 1 个约 1 KB 的对象），一个都不删。
+· 删之前必须确认「GitHub 那条腿是活的」：本地 manifest 里有一份 **30 小时内**、`receipts.github` 为
+  `verified` 的快照（`--github-daily` 每个 UTC 日期放一份）。没有就整批跳过并报出来——
+  宁可让 R2 多留几天，也不在没有异地副本兜底时删。
+· 最新那一批永远不删、默认只看不删、认不出时间戳的不动——这三条照旧。
+
+## 四条安全底线（OCI 还在的老配置）
 
 1. **删 R2 之前必须先确认 OCI 上有同 key 的对象、且大小一致。**
    这是「卸载」不是「删除」—— 没确认副本还在别处就删，等于数据丢失。
@@ -59,10 +71,15 @@ import boto3
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from social_archive.replica_stores import oci_enabled  # noqa: E402
+
 STAMP = re.compile(r"^(\d{8})T(\d{6})Z$")
 DEFAULT_HOURS = 72          # Owner 2026-08-10 定的：R2 上留 3 天
 PREFIX = "backups/"
 KEEP_PREFIXES = ("primary-objects/",)   # 绝不触碰
+RUNTIME_DB_PREFIX = "backups/runtime-db/"
+GITHUB_FRESH_HOURS = 30   # 与 /health 判「备份过期」同一口径：一天一次 + 余量
 
 
 def _read_secret(path: str | None) -> str:
@@ -90,6 +107,26 @@ def _client(store_id: str):
                         config=Config(s3={"addressing_style": style})), bucket
 
 
+def _github_copy_is_fresh(now: datetime) -> bool:
+    """本地 runtime-db manifest 里，有没有一份 30 小时内、GitHub 副本已验证的快照。"""
+    root = Path(os.getenv("SOCIAL_ARCHIVE_DATA_ROOT", "/var/lib/social-archive")) / "backups/runtime-db"
+    if not root.is_dir():
+        return False
+    for directory in root.iterdir():
+        manifest = directory / "manifest.json"
+        if not manifest.is_file():
+            continue
+        try:
+            when = datetime.strptime(directory.name, "%Y%m%dT%H%M%SZ").replace(tzinfo=timezone.utc)
+            data = json.loads(manifest.read_text(encoding="utf-8"))
+        except (ValueError, OSError):
+            continue
+        receipt = (data.get("receipts") or {}).get("github") or {}
+        if receipt.get("status") == "verified" and timedelta(0) <= now - when <= timedelta(hours=GITHUB_FRESH_HOURS):
+            return True
+    return False
+
+
 def _stamp_of(key: str) -> datetime | None:
     """key 形如 backups/<组>/<时间戳>/<文件>；取那个时间戳。"""
     parts = key.split("/")
@@ -113,8 +150,9 @@ def main() -> int:
     args = ap.parse_args()
 
     r2, r2_bucket = _client("r2")
-    oci, oci_bucket = _client("oci")
-    if r2 is None or oci is None:
+    oci_on = oci_enabled()
+    oci, oci_bucket = _client("oci") if oci_on else (None, None)
+    if r2 is None or (oci_on and oci is None):
         print(json.dumps({"status": "FAIL", "error_code": "STORE_NOT_CONFIGURED",
                           "r2": r2 is not None, "oci": oci is not None},
                          ensure_ascii=False, indent=2))
@@ -141,6 +179,7 @@ def main() -> int:
 
     freed = 0
     deleted, kept, skipped_no_replica, failed = [], 0, [], []
+    github_fresh = None if oci_on else _github_copy_is_fresh(now)
     for key, size, when in stamped:
         if any(key.startswith(p) for p in KEEP_PREFIXES):
             kept += 1
@@ -152,17 +191,27 @@ def main() -> int:
         if when >= cutoff:
             kept += 1
             continue
-        # 底线 1：OCI 上必须有同 key 同大小的对象，否则不删
-        try:
-            head = oci.head_object(Bucket=oci_bucket, Key=key)
-        except ClientError as exc:
-            skipped_no_replica.append({"key": key, "reason": "OCI_HEAD_FAILED",
-                                       "detail": exc.response.get("Error", {}).get("Code", "?")})
-            continue
-        if head["ContentLength"] != size:
-            skipped_no_replica.append({"key": key, "reason": "OCI_SIZE_MISMATCH",
-                                       "r2_bytes": size, "oci_bytes": head["ContentLength"]})
-            continue
+        if oci_on:
+            # 底线 1：OCI 上必须有同 key 同大小的对象，否则不删
+            try:
+                head = oci.head_object(Bucket=oci_bucket, Key=key)
+            except ClientError as exc:
+                skipped_no_replica.append({"key": key, "reason": "OCI_HEAD_FAILED",
+                                           "detail": exc.response.get("Error", {}).get("Code", "?")})
+                continue
+            if head["ContentLength"] != size:
+                skipped_no_replica.append({"key": key, "reason": "OCI_SIZE_MISMATCH",
+                                           "r2_bytes": size, "oci_bytes": head["ContentLength"]})
+                continue
+        else:
+            # OCI 退役：只清索引快照；事实冷备是唯一副本，一个都不删。
+            if not key.startswith(RUNTIME_DB_PREFIX):
+                kept += 1
+                continue
+            # 删之前 GitHub 那条腿必须是活的（30 小时内有已验证的 GitHub 副本），否则整批跳过。
+            if not github_fresh:
+                skipped_no_replica.append({"key": key, "reason": "GITHUB_DAILY_COPY_NOT_FRESH"})
+                continue
         if not args.apply:
             deleted.append(key)
             freed += size
@@ -191,10 +240,13 @@ def main() -> int:
         "unrecognised_left_alone": [k for k, _, _ in unrecognised][:20],
         "failed": failed[:10],
         "message_zh": ("保留 %d 小时：%d 个对象里%s %d 个，留 %d 个，释放 %.1f MB。"
-                       "**最新那一批永远不删。** OCI 上没核对上的 %d 个一律跳过没删。"
+                       "**最新那一批永远不删。** 没核对上异地副本的 %d 个一律跳过没删。"
                        % (args.hours, len(objs), "删掉" if args.apply else "将删",
                           len(deleted), kept, freed / 2 ** 20, len(skipped_no_replica))),
-        "what_this_does_not_touch": "primary-objects/(制品字节，三副本齐全)、OCI 与 GitHub 副本、本地快照",
+        "what_this_does_not_touch": "primary-objects/(制品字节)、OCI 与 GitHub 副本、本地快照"
+                                    + ("" if oci_on else "、backups/private-database/(事实冷备的唯一副本)"),
+        "oci_retired": not oci_on,
+        "github_copy_fresh": github_fresh,
         "cost_note": "全程 Standard 存储类，零 InfrequentAccess 操作",
     }
     print(json.dumps(out, ensure_ascii=False, indent=2))
