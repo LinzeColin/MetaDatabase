@@ -10,7 +10,7 @@
 | 商域宇宙（主站） | https://eei.linzezhang.com/ | 200，标题「商域宇宙 · EEI」 |
 | 线上是哪一版 | https://eei.linzezhang.com/version.txt | 返回一个 git commit（页面来源 `apps/universe/`） |
 | 数据总量与增长 | https://eei.linzezhang.com/v1/meta/pulse | 200；实体 14,819 / 关系 20,364 / 事件 990,050 |
-| 数据接口健康 | https://eei.linzezhang.com/health | **500**（当日 Cloudflare D1 读额度耗尽，见 `HANDOFF.md`） |
+| 数据接口健康 | https://eei.linzezhang.com/health | 时好时坏：20:00 UTC 500，20:17 UTC 200；`/v1/events` 等仍 500（疑为 D1 读额度耗尽，见 `HANDOFF.md`） |
 
 主站在服务器 VPS-3 上：静态页面由 nginx 容器直接给，`/v1/*` 等数据接口经 nginx 反代（带缓存）到上游。
 出处：`apps/universe/deploy/README.md`、`apps/universe/deploy/site.conf.template`。

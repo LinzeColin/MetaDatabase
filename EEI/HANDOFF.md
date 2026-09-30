@@ -19,7 +19,7 @@
 ## 已知问题
 
 1. **D1 读额度耗尽，数据接口大面积 500。** 2026-09-30 D1 免费额度（每天 500 万行读取，全账户共用，ADP 同受影响）被读光，预计到 UTC 零点恢复（出处：提交 #386 说明；恢复时间未核实）。
-   实测：`/health`、`/v1/events`、`/v1/meta/build`、`/v1/policy/overview`、`/v1/cloud/runs` 返回 500，直连 Worker 也一样；`/v1/meta/pulse` 靠 nginx 缓存还能返回旧结果。`/health` 不走缓存。
+   实测（UTC 20:00）：`/health`、`/v1/events`、`/v1/meta/build`、`/v1/policy/overview`、`/v1/cloud/runs` 返回 500，直连 Worker 也一样；`/v1/meta/pulse` 靠 nginx 缓存还能返回旧结果。`/health` 不走缓存。20:17 UTC 复测：`/health` 已回 200，其余四个仍 500，说明不是一刀切，恢复时间以实测为准。
 2. **搜索返回空。** `/v1/entities?q=nvidia` 返回 200 但 `entities: []`（主站与直连 Worker 一致），原因未核实，可能与问题 1 有关。
 3. **`apps/cloudflare-public/wrangler.jsonc` 仍声明 `routes: eei.linzezhang.com`（custom_domain）。** 而域名已切到 VPS-3、Worker 已解绑。从该目录 `wrangler deploy`（含 `scripts/deploy_cloud.sh`）很可能把主域名抢回 Worker。是推断，未试验。
 4. 伯克希尔等大公司：一跳超过 60 节点或两跳，上游返回 500（已在宇宙页规避为一跳 60 节点起请求），出处：提交 #384。
