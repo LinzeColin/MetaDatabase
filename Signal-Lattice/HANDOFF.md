@@ -10,6 +10,7 @@ Owner 原话（2026-09-30）：「Signal-Lattice不合格 因为你们和初始�
 - **部署件（本次新增）**：`signal-lattice-v2-research.{service,timer}`（美东工作日 12:00 与 16:40；休市日 `--skip-if-market-closed` 由程序按 NYSE 日历自判退出；MemoryMax 2G、CPUQuota 150%、超时 90 分钟、`OnFailure` 写 journal）、`signal-lattice-v2-backtest.{service,timer}`（每月 3 日刷新回测，报告 35 天过期）、`/etc/signal-lattice-v2/research.env`（root 0600，只放 `SIGNAL_LATTICE_SEC_UA`）。研究层数据在 `/var/lib/signal-lattice-v2/research`；SEC 响应缓存 + 正文缓存合计 ≤ 1 GiB，研究层结束时按最近使用淘汰（`cache_cap.py`）。
 - **部署顺序**：`deploy_v2.sh` 支持两段式（`SIGNAL_LATTICE_STAGE_ONLY=1` 只装 release 与单元；先在新 release 上 `systemd-run` 跑一次研究层；成功后再跑一遍 `deploy_v2.sh` 切 current）。命令与回滚见 `文档/06_运维手册.md` 第 6 节。
 - **E2E 旅程**：`tools/e2e/旅程/Signal-Lattice.yaml`（Owner 验收旅程，主 agent 编写，不要改）。
+- **阻塞项**：`B-OVH-RELAUNCH-VERIFY`（核实/重上线 v2）已关闭——2026-09-30 已核实 VPS-3 上 v2 在跑，本次按 06 第 6 节两段式上线并复验；不再需要 Owner 动作。
 - **已知边界**：自证门 (a)/(b) 两条开门路径只在合成数据的单元测试里走通，真实数据上尚未开过门；前向已结算独立样本 < 8 之前，页面写「样本不足」是正常状态；第一次记分簿写入要等上线后的下一个美股收盘；A 股/港股中小盘是第二期。
 
 ## 2026-09-30 0.0.0.3.5：once 不再每分钟打印整份报告
