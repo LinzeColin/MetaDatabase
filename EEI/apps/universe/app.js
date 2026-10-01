@@ -105,7 +105,7 @@ controls.dampingFactor = 0.06;
 controls.rotateSpeed = 0.55;
 controls.zoomSpeed = 0.9;
 controls.minDistance = 40;
-controls.maxDistance = 2600;
+controls.maxDistance = MOBILE ? 4600 : 2600; // 窄屏要拉得更远才装得下整个星图
 controls.maxPolarAngle = Math.PI * 0.86;
 controls.autoRotate = !REDUCED;
 controls.autoRotateSpeed = 0.22;
@@ -567,7 +567,7 @@ function applyInsets() {
       if (det) right = W - det.left + 8;
     } else {
       top = Math.max(search ? search.bottom : 0, brand ? brand.bottom : 0) + 8;
-      bottom = Math.max(legend ? H - legend.top : 0, bar ? H - bar.top : 0) + 36; // 恒星名字挂在星点下方，多留一行
+      bottom = Math.max(legend ? H - legend.top : 0, bar ? H - bar.top : 0) + 72; // 恒星名字挂在星点下方，多留一行
       if (det) bottom = Math.max(bottom, H - det.top + 8);
       if (dir) bottom = Math.max(bottom, H - dir.top + 8);
     }
@@ -604,7 +604,7 @@ function universeFrame() {
   const vfov = 2 * Math.atan(Math.tan((camera.fov * Math.PI) / 360) * insets.fh);
   const hfov = 2 * Math.atan(Math.tan(vfov / 2) * camera.aspect * insets.fw / insets.fh);
   const fit = Math.min(vfov, hfov);
-  return { center: c, distance: (r / Math.sin(fit / 2)) * (NARROW.matches ? 0.72 : 0.82) };
+  return { center: c, distance: (r / Math.sin(fit / 2)) * (NARROW.matches ? 0.62 : 0.82) };
 }
 // ---------- 相机飞行 ----------
 let flight = null;

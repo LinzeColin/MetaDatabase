@@ -90,8 +90,9 @@ button { font: inherit; color: inherit; }
 .directory[hidden] { display: none; }
 .directory h2 { margin: 0 0 8px; font-size: 13px; font-weight: 600; letter-spacing: .05em; flex: none; }
 .directory h2 small { font-weight: 400; color: var(--ink-2); margin-left: 6px; font-size: 11.5px; }
-.directory ul { list-style: none; margin: 0; padding: 0 6px 0 0; overflow: auto; min-height: 0; display: grid; gap: 2px; align-content: start; }
+.directory ul { list-style: none; margin: 0; padding: 3px 6px 3px 3px; overflow: auto; min-height: 0; display: grid; gap: 2px; align-content: start; }
 .directory li button { width: 100%; min-height: var(--tap); display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 6px 10px; border: 1px solid transparent; border-radius: 8px; background: none; cursor: pointer; text-align: left; font-size: 13px; }
+.directory li button:focus-visible { outline-offset: -2px; }
 .directory li button:hover { background: rgba(255,255,255,.06); }
 .directory li button[aria-current] { border-color: var(--glass-edge-hot); background: rgba(224,168,67,.1); }
 .directory .tag { color: var(--ink-2); font-size: 11.5px; flex: none; }
@@ -150,7 +151,6 @@ button { font: inherit; color: inherit; }
   .left-col { display: contents; }
   .search { left: 16px; right: 16px; transform: none; width: auto; min-width: 0; max-width: none; }
   .brand { position: fixed; left: 16px; right: 16px; top: calc(72px + env(safe-area-inset-top, 0px)); z-index: 5; padding: 12px 14px; }
-  .brand-sub { display: none; }
   .brand h1 { font-size: 16px; }
   .brand-mark { width: 22px; height: 22px; }
   .pulse dd { font-size: 15px; }
@@ -171,6 +171,7 @@ button { font: inherit; color: inherit; }
 @media (max-width: 900px) and (max-height: 520px) {
   .search { right: auto; width: 300px; top: calc(10px + env(safe-area-inset-top, 0px)); }
   .brand { right: auto; width: 300px; top: calc(64px + env(safe-area-inset-top, 0px)); }
+  .brand-sub { display: none; }
   .pulse { margin-top: 8px; }
   .pulse-foot { display: none; }
   .legend { right: auto; width: 300px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
