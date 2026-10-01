@@ -48,7 +48,7 @@ const ROUTES = () => ({
   '/api/grade/': { req: [`/api/grade/${enc(itemId)}/3`, { method: 'POST' }], status: 200 },
   '/api/study/': { req: [`/api/study/${enc(itemId)}`, { method: 'POST' }], status: 200 },
   '/api/raw-selftest': { req: ['/api/raw-selftest', { method: 'POST' }], status: 410 },
-  '/api/run': { req: ['/api/run', { method: 'POST' }], status: 200 },
+  '/api/run': { req: ['/api/run', { method: 'POST' }], status: 429 },   // 夹具里刚跑完一轮 → 冷却期内拒绝（放行见下方冷却测试）
   '/api/rum': { req: ['/api/rum', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{"metric":"LCP","value":1200,"theme":"warm","route":"today","device":"desktop","network":"4g"}' }], status: 202 },
   '/': { req: ['/'], status: 200 }, '/today': { req: ['/today'], status: 200 },
   '/review': { req: ['/review'], status: 200 }, '/queue': { req: ['/queue'], status: 200 },
@@ -77,6 +77,21 @@ test('路由对照：worker fetch 处理器里的每个路由字面量都在对�
       assert.equal(r.status, status, `${req[1]?.method || 'GET'} ${req[0]} → ${r.status}`);
     } finally { net?.restore(); }
   }
+});
+
+test('手动运行冷却：最近已完成的运行在冷却期内回 429 和人话说明；冷却设为 0 则照常运行', async () => {
+  const r = await fetch(base + '/api/run', { method: 'POST' });
+  const j = await r.json();
+  assert.equal(r.status, 429);
+  assert.equal(j.error, 'cooldown');
+  assert.match(j.message, /小时内不重复抓取/);
+  process.env.ADP_MANUAL_RUN_COOLDOWN_HOURS = '0';
+  const net = installFetch({ arxiv: 'ok' });
+  try {
+    const ok = await fetch(base + '/api/run', { method: 'POST' });
+    await ok.text();
+    assert.equal(ok.status, 200);
+  } finally { net.restore(); delete process.env.ADP_MANUAL_RUN_COOLDOWN_HOURS; }
 });
 
 test('写操作回路：关注新增 → 已读 → 删除；评分后 /review 出现该条', async () => {

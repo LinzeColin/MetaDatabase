@@ -56,6 +56,19 @@ export async function createApp({ dbPath, media = mediaDir(), commit = readCommi
       return new Response(JSON.stringify({ disabled: true, feature: 'raw-evidence-r2-dualwrite', reason: '自托管版不使用 Cloudflare R2；原始证据双写已停用（不是故障）' }), { status: 410, headers: JSON_HEADERS });
     }
     if (p === '/api/run' && request.method === 'POST') {
+      // 公开站任何人都能点「立即运行」：每次都要抓 arXiv，连点会让服务器被 arXiv 限流、拖垮每日任务。
+      // 最近一次已完成的运行在冷却时间内就拒绝（每日定时任务不走这里，不受影响）。
+      const cooldownH = Number(process.env.ADP_MANUAL_RUN_COOLDOWN_HOURS ?? 6);
+      const last = await db.prepare(
+        "SELECT at FROM cn_run_log WHERE result IN ('正常','降级','弃权') ORDER BY at DESC LIMIT 1").first();
+      const ageH = last ? (Date.now() - Date.parse(last.at)) / 3.6e6 : Infinity;
+      if (ageH < cooldownH) {
+        return new Response(JSON.stringify({
+          error: 'cooldown',
+          message: `今天的论文 ${ageH.toFixed(1)} 小时前刚更新过，${cooldownH} 小时内不重复抓取；每日定时任务会照常运行。`,
+          last_run_at: last.at, retry_after_hours: Number((cooldownH - ageH).toFixed(1)),
+        }), { status: 429, headers: JSON_HEADERS });
+      }
       const prev = runLock;
       let release; runLock = new Promise((r) => { release = r; });
       await prev;
