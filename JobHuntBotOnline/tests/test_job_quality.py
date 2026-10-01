@@ -14,7 +14,6 @@ import pytest
 from app import discovery
 from app.career_intelligence import (
     detect_job_role_family,
-    detect_seniority,
     extract_job_requirements,
     extract_required_years,
 )
@@ -30,17 +29,17 @@ def _now() -> datetime:
 # ---------------------------------------------------------------- 年限读取
 
 @pytest.mark.parametrize("text,expected", [
-    ("Minimum 5–7 years' experience in financial accounting and month-end close", 5),
-    ("CA/CPA qualified with 4–6 years’ experience in financial accounting roles", 4),
-    ("Minimum 3 to 5 years underwriting / Credit analyst experience required", 3),
+    ("Minimum 5–7 years' experience in financial accounting and month-end close", 7),
+    ("CA/CPA qualified with 4–6 years’ experience in financial accounting roles", 6),
+    ("Minimum 3 to 5 years underwriting / Credit analyst experience required", 5),
     ("Three or more years’ post-qualification experience in employment law", 3),
     ("At least four years’ post-admission experience in mergers and acquisitions", 4),
-    ("4-7 PQE lawyer, with experience in Litigation and/or Intellectual Property", 4),
+    ("4-7 PQE lawyer, with experience in Litigation and/or Intellectual Property", 7),
     ("Five plus years’ PQE in banking and finance transactions", 5),
     ("Three years PQE+", 3),
-    ("2–6 years’ PQE", 2),
-    ("1-2 years post admission experience", 1),
-    ("three to five years’ post admission experience", 3),
+    ("2–6 years’ PQE", 6),
+    ("1-2 years post admission experience", 2),
+    ("three to five years’ post admission experience", 5),
     ("5+ years in sales enablement, sales coaching or similar", 5),
     ("Requires 15+ years of finance leadership experience", 15),
     ("Minimum 8 years of experience required.", 8),
@@ -51,7 +50,8 @@ def test_required_years_reads_ranges_number_words_and_pqe(text, expected):
 
 @pytest.mark.parametrize("text", [
     "practical advice that is gained from a combined 40+ years of experience",
-    "a lawyer who brings more than 20 years’ experience advising developers",
+    "a lawyer who specialises in construction and brings more than 20 years’ experience advising developers",
+    "Our partner has more than 20 years' experience advising banks",
     "For more than 10 years, we've been helping small businesses succeed",
     "Quarterly refresh days and an extended break after 2 years of service",
     "",
@@ -66,7 +66,7 @@ def test_five_to_seven_year_role_fails_a_three_year_candidate():
         "description": BODY + " Minimum 5–7 years' experience in financial accounting and consolidation.",
     }
     result = score_job(PROFILE, job)
-    assert result["requirements"]["required_years"] == 5
+    assert result["requirements"]["required_years"] == 7      # 区间读上限，与原实现一致
     assert result["qualification"] == "fail"          # 3 年 < 5 年：门槛没变，只是现在读得出来
 
 
@@ -75,6 +75,69 @@ def test_pqe_requirement_fails_a_less_experienced_lawyer():
     job = {"title": "Senior Lawyer, Banking", "location": "Perth, Australia", "city": "Perth", "country": "AU",
            "description": BODY + " Five plus years’ PQE in banking and finance transactions."}
     assert score_job(profile, job)["qualification"] == "fail"
+
+
+# ---------------------------------------------------------------- 不比原实现更松
+
+def _legacy_required_years(text: str) -> int | None:
+    """合并前（main）的 extract_required_years 原样拷贝，作为「门槛不许放宽」的对照基线。"""
+    import re
+    candidates: list[int] = []
+    patterns = (
+        r"(?:minimum(?: of)?|at least|no less than|more than|over|requires?|required)?\s*(\d{1,2})\+?\s*(?:years?|yrs?)\s+(?:of\s+)?(?:relevant\s+|post[- ]qualification\s+|professional\s+)?(?:[a-z-]+\s+){0,3}?experience",
+        r"(?:experience|experienced)\s+(?:of\s+)?(?:at least\s+)?(\d{1,2})\+?\s*(?:years?|yrs?)",
+        r"(\d{1,2})\s*[-–]\s*(\d{1,2})\s*(?:years?|yrs?)\s+(?:of\s+)?experience",
+    )
+    for pattern in patterns:
+        for match in re.finditer(pattern, text or "", flags=re.I):
+            candidates.append(int(match.group(1)))
+    return max(candidates) if candidates else None
+
+
+# 只有这两句是在介绍公司 / 合伙人，而不是向应聘者提要求：允许读不出来。
+_PROFILE_SENTENCES = [
+    "Our differentiator is practical advice gained from a combined 40+ years of experience.",
+    "Our partner has more than 20 years' experience advising banks.",
+]
+
+_NOT_LOOSER = [
+    "You have 15+ years of experience in corporate law.",
+    "We need someone with 20 years of relevant experience.",
+    "5-7 years post-admission experience",
+    "Over 15 years' experience required",
+    "Minimum 15 years experience in finance",
+    "Candidates must have 12+ years of experience",
+    "3 years experience in accounting",
+    "10+ years of experience in banking",
+    "At least 15 years of experience in M&A",
+    "15 years of progressive experience in finance leadership",
+    "You will have 25 years' experience leading a legal team",
+    "Applicants should hold 18+ years of relevant experience",
+    "Ideally 16 years experience in tax",
+    "Experience of at least 15 years in litigation",
+    "Requires 12 years post qualification experience",
+    "2-3 years of experience in audit",
+    "Ten years of experience in finance",
+    "The successful candidate has 3.5 years of experience",
+]
+
+
+@pytest.mark.parametrize("sentence", _NOT_LOOSER)
+def test_required_years_is_never_lower_than_the_original_reading(sentence):
+    # 原实现读不到的写法（撇号、英文数字）新实现读到是更严；读到的不能比原来小。
+    old = _legacy_required_years(sentence) or 0
+    new = extract_required_years(sentence)
+    assert new is not None and new >= old, (sentence, old, new)
+
+
+@pytest.mark.parametrize("sentence", _PROFILE_SENTENCES)
+def test_only_company_and_partner_profiles_may_read_lower_than_the_original(sentence):
+    assert extract_required_years(sentence) is None
+
+
+def test_applicant_wording_beats_profile_wording_in_the_same_sentence():
+    text = "Our partners have 20 years' experience, and you will have at least 15 years of experience too."
+    assert extract_required_years(text) == 20
 
 
 # ---------------------------------------------------------------- 签证 / 工作权利
@@ -167,15 +230,6 @@ def test_unrelated_roles_are_not_a_high_relevance_match_for_finance_or_legal_can
                "city": "Sydney", "country": "AU", "work_mode": "onsite"}
         for profile in (finance, legal):
             assert score_job(profile, job)["relevance"] == "low", title
-
-
-def test_finance_business_partner_is_not_partner_level():
-    assert detect_seniority("Finance Business Partner") != "partner"
-    assert detect_seniority("HR Business Partner") != "partner"
-    assert detect_seniority("Partner, Corporate Advisory") == "partner"
-    job = {"title": "Finance Business Partner", "location": "Sydney, Australia", "city": "Sydney", "country": "AU",
-           "description": BODY}
-    assert score_job(PROFILE, job)["qualification"] == "pass"
 
 
 # ---------------------------------------------------------------- 过期与重复

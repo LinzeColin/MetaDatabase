@@ -355,7 +355,7 @@ def detect_seniority(title: str, description: str = "") -> str:
     text = f"{title} {description[:1200]}".casefold()
     title_lower = (title or "").casefold()
     ordered = (
-        ("partner", ("partner",)),  # 见下：business / finance partner 是职能名，不是合伙人
+        ("partner", ("partner",)),
         ("executive", ("chief ", "general counsel", "vice president", " vp ", "cfo", "coo")),
         ("director", ("director", "head of")),
         ("manager", ("manager", "managing counsel")),
@@ -365,14 +365,8 @@ def detect_seniority(title: str, description: str = "") -> str:
         ("junior", ("junior", "entry level", "assistant", "paralegal")),
         ("associate", ("associate",)),
     )
-    # "Finance Business Partner"、"HR Partner" 是职能名称，不是律所／事务所的合伙人级别。
-    functional_title = re.sub(
-        r"\b(?:business|finance|financial|people|hr|talent|product|strategic|sales|channel|account|client|"
-        r"commercial|technology|engineering|data|legal|risk|compliance)\s+partners?\b", "", title_lower,
-    )
     for level, terms in ordered:
-        haystack = functional_title if level == "partner" else title_lower
-        if any(term in haystack for term in terms):
+        if any(term in title_lower for term in terms):
             return level
     if re.search(r"\b[3-5]\+?\s*years?\b", text):
         return "mid"
@@ -385,7 +379,7 @@ _NUMBER_WORDS = {
 }
 _NUM = r"(?:\d{1,2}|" + "|".join(_NUMBER_WORDS) + r")"
 _YEARS_MENTION = re.compile(
-    rf"(?<![\w.])(?:(?P<lo>{_NUM})\s*(?:[-–—]|to)\s*)?(?P<n>{_NUM})(?P<plus>\s*\+)?"
+    rf"(?<![A-Za-z])(?:(?P<lo>{_NUM})\s*(?:[-–—]|to)\s*)?(?P<n>{_NUM})(?P<plus>\s*\+)?"
     r"(?:\s*(?:or more|plus))?\s*(?P<unit>years?['’]?s?|yrs?['’]?s?|PQE)\b",
     re.I,
 )
@@ -394,6 +388,18 @@ _EXPERIENCE_CONTEXT = re.compile(
 )
 _GENERIC_YEARS_CONTEXT = re.compile(r"^\W*(?:of\s+)?(?:in|as|working)\b", re.I)
 _REQUIREMENT_LEAD = re.compile(r"(?:minimum|at least|no less than|requir\w*|must have|needs?)\W*(?:of\W*)?$", re.I)
+# 句子明显在介绍公司、团队或合伙人（而不是在向应聘者提要求）。
+_PROFILE_CUE = re.compile(
+    r"\b(?:combined|collective(?:ly)?|our (?:partners?|team|lawyers|people|firm|leadership|founders?)|"
+    r"the firm(?:['’]s)?|(?:brings|boasts)\s+(?:more than|over|nearly|almost|in excess of))\b",
+    re.I,
+)
+# 只要句子里出现第二人称或求职者语境，就按岗位要求计入，不管数字多大。
+_APPLICANT_CUE = re.compile(
+    r"\b(?:you|your|you['’]ll|we need|we['’]re looking|looking for|seeking|candidates?|applicants?|someone|"
+    r"ideally|preferably|must|requir\w*|minimum|at least|essential|successful|desirable)\b",
+    re.I,
+)
 
 
 def _number(token: str) -> int:
@@ -401,18 +407,27 @@ def _number(token: str) -> int:
     return _NUMBER_WORDS[token] if token in _NUMBER_WORDS else int(token)
 
 
-def extract_required_years(text: str) -> int | None:
-    """Smallest number of years the posting asks for, or None.
+def _sentence_around(text: str, start: int, end: int) -> str:
+    left = max(text.rfind(".", 0, start), text.rfind(";", 0, start), text.rfind("\n", 0, start)) + 1
+    ends = [pos for pos in (text.find(".", end), text.find(";", end), text.find("\n", end)) if pos != -1]
+    return text[left: min(ends) if ends else len(text)]
 
-    Handles digits and number words, ranges ("5-7 years", "three to five years"
-    -> the lower bound), apostrophes ("years' experience") and the legal
-    shorthand PQE / post-admission / post-qualification."""
+
+def extract_required_years(text: str) -> int | None:
+    """Largest number of years the posting asks for, or None.
+
+    Never reads less than the original implementation did: ranges still give the
+    upper bound ("5-7 years" -> 7), several numbers give the maximum.  On top of
+    that it understands number words ("three years"), apostrophes ("years'
+    experience") and PQE / post-admission / post-qualification.  Only a sentence
+    that clearly describes the firm, a team or a partner (and says nothing to or
+    about the applicant) is ignored."""
     text = text or ""
     candidates: list[int] = []
     for match in _YEARS_MENTION.finditer(text):
         after = re.split(r"[.;\n]", text[match.end(): match.end() + 100], maxsplit=1)[0]
         before = text[max(0, match.start() - 40): match.start()]
-        value = _number(match.group("lo") or match.group("n"))
+        value = _number(match.group("n"))
         unit = match.group("unit").casefold()
         experience_nearby = unit == "pqe" or bool(_EXPERIENCE_CONTEXT.search(after)) or bool(
             re.search(r"experience\W*(?:of|with)?\W*(?:at least\W*)?$", before, re.I)
@@ -422,10 +437,8 @@ def extract_required_years(text: str) -> int | None:
         )
         if not (experience_nearby or generic):
             continue
-        # "a combined 40+ years of experience" / "with more than 20 years' experience
-        # advising ..." describe the firm or a partner, not what the applicant must
-        # bring.  A very large number only counts when the text asks for it outright.
-        if value >= 15 and not _REQUIREMENT_LEAD.search(before):
+        sentence = _sentence_around(text, match.start(), match.end())
+        if _PROFILE_CUE.search(sentence) and not _APPLICANT_CUE.search(sentence):
             continue
         candidates.append(value)
     return max(candidates) if candidates else None
