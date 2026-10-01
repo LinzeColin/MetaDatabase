@@ -70,7 +70,8 @@ ROLE_RULES: dict[str, tuple[str, ...]] = {
     "Finance": (
         "financial analyst", "finance analyst", "fp&a", "commercial analyst", "treasury analyst",
         "finance business partner", "financial planning", "financial modelling", "financial modeling",
-        "corporate finance", "credit analyst", "finance graduate", "财务", "金融分析",
+        "corporate finance", "credit analyst", "finance graduate", "finance manager", "finance lead",
+        "financial controller", "财务", "金融分析",
     ),
     "Accounting": (
         "accountant", "accounting", "management accounting", "financial accounting", "audit",
@@ -82,11 +83,12 @@ ROLE_RULES: dict[str, tuple[str, ...]] = {
     ),
     "Legal": (
         "lawyer", "solicitor", "legal counsel", "legal assistant", "paralegal", "law clerk",
-        "graduate lawyer", "litigation", "legal research", "律师", "法律", "法务",
+        "graduate lawyer", "litigation", "legal research", "general counsel", "律师", "法律", "法务",
     ),
     "Compliance": (
         "compliance analyst", "regulatory compliance", "aml", "kyc", "financial crime",
-        "risk and compliance", "合规", "反洗钱",
+        "risk and compliance", "compliance specialist", "compliance officer", "compliance manager",
+        "compliance lead", "合规", "反洗钱",
     ),
     "Contracts": (
         "contract administrator", "contracts manager", "contract specialist", "commercial contracts",
@@ -94,7 +96,8 @@ ROLE_RULES: dict[str, tuple[str, ...]] = {
     ),
     "Risk": (
         "risk analyst", "operational risk", "credit risk", "market risk", "internal controls",
-        "governance risk", "风险", "内控",
+        "governance risk", "risk & control", "risk and control", "risk manager", "risk lead", "risk officer",
+        "风险", "内控",
     ),
     "Data": (
         "data analyst", "analytics", "business intelligence", "sql", "python", "power bi",
@@ -254,6 +257,40 @@ def detect_role_family(text: str) -> str:
     return max(scores, key=lambda key: (scores[key], key))
 
 
+# 这些角色族里的岗位必须由「职位标题」自己说明，不能靠正文里出现的词推断：
+# 雇主介绍、福利、产品描述里到处是 accounting / audit / compliance / KYC，
+# 工程师、销售、客服的正文也会命中，标题却与金融、法律方向无关。
+_PROFESSIONAL_ROLES = frozenset(DOMAIN_ROLES["finance"] | DOMAIN_ROLES["legal"])
+_COUNSEL_TITLE = re.compile(r"\b(?:counsel|attorney)\b", re.I)
+# 标题里出现这些职能词时，即使同时带有 accounting / legal 等字样，也不是金融／法律岗位
+# （例如 “Accounting Professional? … Sales”、“Legal Engineer”）。
+_NON_PROFESSIONAL_FUNCTION = re.compile(
+    r"\b(?:software|engineer(?:ing)?|developers?|devops|sre|designer|design|marketing|marketer|"
+    r"sales(?! tax)|business development|account executive|account manager|customer (?:success|support|service|experience)|"
+    r"support specialist|recruit\w*|talent|relationship manager|onboarding|solutions? (?:consultant|engineer|architect)|"
+    r"architect(?:ure)?|scientist|product manager|product owner|collections|verifications?)\b",
+    re.I,
+)
+
+
+def detect_job_role_family(title: str, description: str = "") -> str:
+    """Role family of a job posting, decided by the title first.
+
+    Finance / legal / compliance / risk families are only assigned when the title
+    itself says so; the body alone may still place a job in the general families
+    (data, operations, consulting, business analysis)."""
+    title = title or ""
+    role = detect_role_family(title)
+    if role == "Other" and _COUNSEL_TITLE.search(title):
+        role = "Legal"
+    if role != "Other":
+        if role in _PROFESSIONAL_ROLES and _NON_PROFESSIONAL_FUNCTION.search(title):
+            return "Other"
+        return role
+    role = detect_role_family(f"{title} {description}")
+    return "Other" if role in _PROFESSIONAL_ROLES else role
+
+
 def detect_skills(text: str) -> list[str]:
     hay = (text or "").casefold()
     return [term for term in SKILL_TERMS if term.casefold() in hay]
@@ -336,19 +373,74 @@ def detect_seniority(title: str, description: str = "") -> str:
     return "unknown"
 
 
+_NUMBER_WORDS = {
+    "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8,
+    "nine": 9, "ten": 10, "eleven": 11, "twelve": 12,
+}
+_NUM = r"(?:\d{1,2}|" + "|".join(_NUMBER_WORDS) + r")"
+_YEARS_MENTION = re.compile(
+    rf"(?<![A-Za-z])(?:(?P<lo>{_NUM})\s*(?:[-–—]|to)\s*)?(?P<n>{_NUM})(?P<plus>\s*\+)?"
+    r"(?:\s*(?:or more|plus))?\s*(?P<unit>years?['’]?s?|yrs?['’]?s?|PQE)\b",
+    re.I,
+)
+_EXPERIENCE_CONTEXT = re.compile(
+    r"experience|experienced|\bpqe\b|post[- ]?(?:qualif\w*|admission|admitted)|track record", re.I,
+)
+_GENERIC_YEARS_CONTEXT = re.compile(r"^\W*(?:of\s+)?(?:in|as|working)\b", re.I)
+_REQUIREMENT_LEAD = re.compile(r"(?:minimum|at least|no less than|requir\w*|must have|needs?)\W*(?:of\W*)?$", re.I)
+# 句子明显在介绍公司、团队或合伙人（而不是在向应聘者提要求）。
+_PROFILE_CUE = re.compile(
+    r"\b(?:combined|collective(?:ly)?|our (?:partners?|team|lawyers|people|firm|leadership|founders?)|"
+    r"the firm(?:['’]s)?|(?:brings|boasts)\s+(?:more than|over|nearly|almost|in excess of))\b",
+    re.I,
+)
+# 只要句子里出现第二人称或求职者语境，就按岗位要求计入，不管数字多大。
+_APPLICANT_CUE = re.compile(
+    r"\b(?:you|your|you['’]ll|we need|we['’]re looking|looking for|seeking|candidates?|applicants?|someone|"
+    r"ideally|preferably|must|requir\w*|minimum|at least|essential|successful|desirable)\b",
+    re.I,
+)
+
+
+def _number(token: str) -> int:
+    token = token.casefold()
+    return _NUMBER_WORDS[token] if token in _NUMBER_WORDS else int(token)
+
+
+def _sentence_around(text: str, start: int, end: int) -> str:
+    left = max(text.rfind(".", 0, start), text.rfind(";", 0, start), text.rfind("\n", 0, start)) + 1
+    ends = [pos for pos in (text.find(".", end), text.find(";", end), text.find("\n", end)) if pos != -1]
+    return text[left: min(ends) if ends else len(text)]
+
+
 def extract_required_years(text: str) -> int | None:
+    """Largest number of years the posting asks for, or None.
+
+    Never reads less than the original implementation did: ranges still give the
+    upper bound ("5-7 years" -> 7), several numbers give the maximum.  On top of
+    that it understands number words ("three years"), apostrophes ("years'
+    experience") and PQE / post-admission / post-qualification.  Only a sentence
+    that clearly describes the firm, a team or a partner (and says nothing to or
+    about the applicant) is ignored."""
+    text = text or ""
     candidates: list[int] = []
-    patterns = (
-        r"(?:minimum(?: of)?|at least|no less than|more than|over|requires?|required)?\s*(\d{1,2})\+?\s*(?:years?|yrs?)\s+(?:of\s+)?(?:relevant\s+|post[- ]qualification\s+|professional\s+)?(?:[a-z-]+\s+){0,3}?experience",
-        r"(?:experience|experienced)\s+(?:of\s+)?(?:at least\s+)?(\d{1,2})\+?\s*(?:years?|yrs?)",
-        r"(\d{1,2})\s*[-–]\s*(\d{1,2})\s*(?:years?|yrs?)\s+(?:of\s+)?experience",
-    )
-    for match in re.finditer(patterns[0], text or "", flags=re.I):
-        candidates.append(int(match.group(1)))
-    for match in re.finditer(patterns[1], text or "", flags=re.I):
-        candidates.append(int(match.group(1)))
-    for match in re.finditer(patterns[2], text or "", flags=re.I):
-        candidates.append(int(match.group(1)))
+    for match in _YEARS_MENTION.finditer(text):
+        after = re.split(r"[.;\n]", text[match.end(): match.end() + 100], maxsplit=1)[0]
+        before = text[max(0, match.start() - 40): match.start()]
+        value = _number(match.group("n"))
+        unit = match.group("unit").casefold()
+        experience_nearby = unit == "pqe" or bool(_EXPERIENCE_CONTEXT.search(after)) or bool(
+            re.search(r"experience\W*(?:of|with)?\W*(?:at least\W*)?$", before, re.I)
+        )
+        generic = bool(_GENERIC_YEARS_CONTEXT.match(after)) and (
+            bool(match.group("plus")) or bool(_REQUIREMENT_LEAD.search(before))
+        )
+        if not (experience_nearby or generic):
+            continue
+        sentence = _sentence_around(text, match.start(), match.end())
+        if _PROFILE_CUE.search(sentence) and not _APPLICANT_CUE.search(sentence):
+            continue
+        candidates.append(value)
     return max(candidates) if candidates else None
 
 
@@ -367,11 +459,24 @@ def _credential_is_mandatory(text: str, credential: str) -> bool:
     return False
 
 
+_NO_SPONSORSHIP = re.compile(
+    r"(?:\b(?:no|not|cannot|can['’]t|unable to|without|unavailable)\b|n['’]t\b)[^.\n]{0,50}"
+    r"(?:(?:visa|employer|work)\s+)?sponsorship\b|"
+    r"\bsponsorship\b[^.\n]{0,30}(?:\bnot\b|n['’]t\b|unavailable)",
+    re.I,
+)
+_WORK_RIGHTS_REQUIRED = re.compile(
+    r"\b(?:valid|full|full-time|unrestricted|current|existing|eligible)\s+(?:[a-z-]+\s+){0,2}"
+    r"(?:work(?:ing)? rights|right to work)\b|\bright to work in australia\b|\bwork(?:ing)? rights in australia\b",
+    re.I,
+)
+
+
 def extract_job_requirements(job: dict[str, Any]) -> dict[str, Any]:
     title = str(job.get("title") or "")
     description = str(job.get("description") or "")
     text = f"{title}\n{description}"
-    role = normalize_role(str(job.get("role_family") or "")) or detect_role_family(text)
+    role = normalize_role(str(job.get("role_family") or "")) or detect_job_role_family(title, description)
     domain = domain_for_role(role, text)
     required_credentials = [
         credential for credential in CREDENTIAL_PATTERNS
@@ -386,11 +491,11 @@ def extract_job_requirements(job: dict[str, Any]) -> dict[str, Any]:
     sponsorship_unavailable = any(phrase in lower for phrase in (
         "no sponsorship", "will not sponsor", "not able to sponsor", "unable to sponsor",
         "sponsorship is not available", "must have unrestricted work rights",
-    ))
+    )) or bool(_NO_SPONSORSHIP.search(text))
     full_work_rights_required = any(phrase in lower for phrase in (
         "full working rights", "unrestricted work rights", "citizen or permanent resident",
         "australian citizenship", "permanent residency required",
-    ))
+    )) or bool(_WORK_RIGHTS_REQUIRED.search(text))
     credential_any_groups: list[list[str]] = []
     if re.search(r"\bCPA\b\s*(?:or|/)\s*\bCA(?:\s*ANZ)?\b|\bCA(?:\s*ANZ)?\b\s*(?:or|/)\s*\bCPA\b", text, flags=re.I):
         credential_any_groups.append(["CPA", "CA"])
