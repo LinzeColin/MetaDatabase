@@ -9,7 +9,7 @@ SA-507 的历史与环境证据，复验冻结任务包和结构合同，合入�
 
 ## 冻结边界
 
-- 当前工作树：`/Users/linzezhang/.codex/worktrees/acc9/MetaDatabase`；本 run
+- 当前工作树：`~/.codex/worktrees/acc9/MetaDatabase`；本 run
   不创建第二个 worktree。
 - 工作分支和起始 HEAD：`codex/sa-507-compat-tomllib-fix` /
   `9fdf6de319d9d20be22c298c44bbef6b0f4d8320`。

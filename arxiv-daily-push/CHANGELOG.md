@@ -1428,7 +1428,7 @@
 ## 0.12.2 - 2026-06-22
 
 - Added a default-branch-only manual GitHub Actions workflow for one controlled GitHub Release plus Gmail SMTP delivery test.
-- The manual workflow scans all arXiv primary archive buckets, selects one ROI-ranked daily paper, renders a lightweight MP4, creates a Release with the MP4 and JSON artifacts, then sends one email to `linzezhang35@gmail.com` containing Chinese lesson text, Release link, video link, and candidate queue summary.
+- The manual workflow scans all arXiv primary archive buckets, selects one ROI-ranked daily paper, renders a lightweight MP4, creates a Release with the MP4 and JSON artifacts, then sends one email to `LinzeColin@users.noreply.github.com` containing Chinese lesson text, Release link, video link, and candidate queue summary.
 - Kept scheduled production disabled: the workflow has no `schedule:` trigger, does not read repository production enablement variables, and requires the exact `SEND_TEST_EMAIL_TO_LINZEZHANG35_GMAIL_COM` confirmation string before side effects.
 
 ## 0.12.1 - 2026-06-22
@@ -1682,7 +1682,7 @@
 
 - Created Phase 1 repository foundation for `arXiv Daily Push`.
 - Added CLI skeleton with `version`, `doctor`, and `render-email`.
-- Added dry-run notification contract for `linzezhang35@gmail.com`.
+- Added dry-run notification contract for `LinzeColin@users.noreply.github.com`.
 - Added local resource and storage pressure guardrails.
 - Added CodexProject governance records for Phase 1.
 

@@ -1,7 +1,7 @@
 {
   "commands": [
     {
-      "command": "source /Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_xhs_connector.py tests/focused/test_extension_account_mirror_core.py tests/focused/test_account_mirror_batch_protocol.py",
+      "command": "source ~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_xhs_connector.py tests/focused/test_extension_account_mirror_core.py tests/focused/test_account_mirror_batch_protocol.py",
       "command_sha256": "89a562efb950a222115c36b2410914085344d1e6b15a198a53f0ca9b4754b6c3",
       "executed": true,
       "exit_code": 0,
@@ -9,7 +9,7 @@
       "summary": "13 passed. The task-pack target was run after activating the existing project Python 3.12.13 venv."
     },
     {
-      "command": "source /Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_account_mirror_sync.py tests/focused/test_extension_account_sync_bridge.py tests/focused/test_extension_e2n_contract.py tests/stage/test_stage2_domestic.py",
+      "command": "source ~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_account_mirror_sync.py tests/focused/test_extension_account_sync_bridge.py tests/focused/test_extension_e2n_contract.py tests/stage/test_stage2_domestic.py",
       "command_sha256": "89102f00d68e72aa1cc50501672cc07245f5d7e504a43ec85f96e14f883ebe7e",
       "executed": true,
       "exit_code": 0,
@@ -41,7 +41,7 @@
       "summary": "Config-only Compose structure validation passed; it did not read .env, build an image, or start a service."
     },
     {
-      "command": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/python scripts/platform_canary.py xiaohongshu --read-only --limit 1",
+      "command": "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/python scripts/platform_canary.py xiaohongshu --read-only --limit 1",
       "command_sha256": "3b9ad77392b09745b0037ea7039b850cd07fbdb115d033a546e893031606dee2",
       "executed": true,
       "exit_code": 0,

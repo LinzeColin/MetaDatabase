@@ -5,7 +5,7 @@ the worker, proving the ingest endpoint validates/sanitizes/samples correctly be
 import pathlib
 import re
 
-V01 = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/"
+V01 = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/"
                    "arxiv-daily-push/docs/pursuing_goal/v0_1")
 OUT = V01 / "evidence" / "ADP-S7-P03-T081" / "test-results" / "rum_ingest_test.js"
 src = (V01.parents[3] / "arxiv-daily-push/deploy/cloudflare/worker_cloud.js").read_text(encoding="utf-8")

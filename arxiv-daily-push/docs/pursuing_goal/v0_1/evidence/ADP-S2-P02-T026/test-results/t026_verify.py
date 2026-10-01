@@ -5,7 +5,7 @@ Acceptance (TASK_INDEX): 正文/附件/状态实质变化增版本；页脚/导�
 Deterministic; no network/clock/random. Imports the tool under test (version_engine.py).
 """
 import sys, json, pathlib
-TOOLS = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1/tools")
+TOOLS = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1/tools")
 sys.path.insert(0, str(TOOLS))
 import version_engine as ve  # noqa: E402
 

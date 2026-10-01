@@ -53,7 +53,7 @@
 | production_preflight | Production Gate | pass | info | production_ready=True; blockers=[] | `outputs/preflight/preflight_latest.json` |
 | readiness_report_preflight_consistency | Deliverables | pass | info | report production-ready language matches preflight production_ready=True | `outputs/preflight/PRODUCTION_READINESS_REPORT.md` |
 | shadow_ready_gate | Production Gate | warn | warn | shadow_ready=True, production_ready=True | `outputs/preflight/preflight_latest.json` |
-| mail_send_config_gate | Notification | pass | info | {'mail_send_enabled': True, 'recipient_email': 'linzezhang35@gmail.com', 'env_var': 'SERENITY_MAIL_SEND_ENABLED'} | `outputs/preflight/preflight_latest.json` |
+| mail_send_config_gate | Notification | pass | info | {'mail_send_enabled': True, 'recipient_email': 'LinzeColin@users.noreply.github.com', 'env_var': 'SERENITY_MAIL_SEND_ENABLED'} | `outputs/preflight/preflight_latest.json` |
 | moomoo_opend_gate | Data Source | pass | info | OpenD socket reachable at 127.0.0.1:11111; Python import `moomoo` is available; installed distribution version=10.6.6608 | `outputs/preflight/preflight_latest.json` |
 | benchmark_gate | Benchmark | pass | info | {'production_ready_by_benchmark': {'S&P 500': True, 'Shanghai Composite': True}, 'proxy_available': {'S&P 500': True, 'Shanghai Composite': False}, 'json_path': 'outputs/preflight/benchmark_smoke_latest.json', 'markdown_path': 'outputs/preflight/benchmark_smoke_latest.md'} | `outputs/preflight/preflight_latest.json` |
 | intake_pack_user_facing_path_redaction | Safety | pass | info | no intake-pack user-facing local path markers found | `outputs/intake_pack` |

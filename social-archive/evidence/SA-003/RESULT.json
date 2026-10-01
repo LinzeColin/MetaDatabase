@@ -50,7 +50,7 @@
       "behavioral_delta": "none",
       "reason": "Restored git diff --check cleanliness."
     },
-    "rollback_command": "python3 /private/tmp/social-archive-sa000.Xi6Qzf/Social_Archive_v0.0.0.6_FINAL_TASKPACK_20260802/07_IMPLEMENTATION/apply/rollback_taskpack.py --repo /Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-sa001 --stamp 20260802T213736Z"
+    "rollback_command": "python3 /private/tmp/social-archive-sa000.Xi6Qzf/Social_Archive_v0.0.0.6_FINAL_TASKPACK_20260802/07_IMPLEMENTATION/apply/rollback_taskpack.py --repo ~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-sa001 --stamp 20260802T213736Z"
   },
   "core_preservation": {
     "src/social_archive/db.py_sha256": "1c4a580bde272b06fd6238196606f15e5cf44cacf66a84e522a58366975e0d5d",

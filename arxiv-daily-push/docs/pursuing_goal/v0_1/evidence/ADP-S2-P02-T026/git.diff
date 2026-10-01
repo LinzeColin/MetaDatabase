@@ -378,7 +378,7 @@ index 000000000..bab079e7f
 +Deterministic; no network/clock/random. Imports the tool under test (version_engine.py).
 +"""
 +import sys, json, pathlib
-+TOOLS = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1/tools")
++TOOLS = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1/tools")
 +sys.path.insert(0, str(TOOLS))
 +import version_engine as ve  # noqa: E402
 +

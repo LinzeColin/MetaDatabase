@@ -14,7 +14,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "configured_slots={'R1': '08:30', 'R2': '09:30', 'R3': '10:30', 'R4': '11:30', 'R5': '12:30', 'R6': '13:30', 'R7': '14:30', 'R8': '15:30', 'R9': '16:30', 'R10': '17:30'}",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/app/scheduler.py",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/app/scheduler.py",
       "next_action": "None"
     },
     {
@@ -24,7 +24,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "saturday_default=none, saturday_override=R1",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/app/scheduler.py",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/app/scheduler.py",
       "next_action": "None"
     },
     {
@@ -34,7 +34,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "max_drawdown_block=40.00%, recovery_time_block_days=365",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/app/config.py",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/app/config.py",
       "next_action": "None"
     },
     {
@@ -44,7 +44,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "no forbidden trade execution patterns found in app/",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/app",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/app",
       "next_action": "None"
     },
     {
@@ -54,7 +54,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "default window is latest Beijing weekday plus 103-day lookback",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/app/core/benchmark_smoke.py",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/app/core/benchmark_smoke.py",
       "next_action": "None"
     },
     {
@@ -64,7 +64,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "exists=True, size=171499",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/PRODUCTION_READINESS_REPORT.pdf",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/PRODUCTION_READINESS_REPORT.pdf",
       "next_action": "None"
     },
     {
@@ -74,7 +74,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "exists=True, size=1560",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/task_pack/13_CODEX_PROMPT.md",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/task_pack/13_CODEX_PROMPT.md",
       "next_action": "None"
     },
     {
@@ -84,7 +84,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "exists=True, size=1247",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/implementation/com.serenity.daily-analysis.plist",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/implementation/com.serenity.daily-analysis.plist",
       "next_action": "None"
     },
     {
@@ -94,7 +94,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "exists=True, size=1592",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/implementation/CODEX_AUTOMATION_PROPOSALS.md",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/implementation/CODEX_AUTOMATION_PROPOSALS.md",
       "next_action": "None"
     },
     {
@@ -104,7 +104,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "exists=True, size=87196",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/application/index.html",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/application/index.html",
       "next_action": "None"
     },
     {
@@ -114,7 +114,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "exists=True, size=6167",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/intake_pack/README_PRODUCTION_DATA_INTAKE.md",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/intake_pack/README_PRODUCTION_DATA_INTAKE.md",
       "next_action": "None"
     },
     {
@@ -124,7 +124,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "exists=True, size=1628",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/intake_pack/EVIDENCE_INTAKE_GUIDE.md",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/intake_pack/EVIDENCE_INTAKE_GUIDE.md",
       "next_action": "None"
     },
     {
@@ -134,7 +134,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "exists=True, size=17095",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/tests/VALIDATION_SUMMARY.md",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/tests/VALIDATION_SUMMARY.md",
       "next_action": "None"
     },
     {
@@ -144,7 +144,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "portal links report index, readiness report, package, and no-trading boundary",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/application/index.html",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/application/index.html",
       "next_action": "None"
     },
     {
@@ -154,7 +154,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "Downloads root app bundle opens the current workspace application portal; exists=True, info=True, pkginfo=True, executable=True, icon=True, icon_size=604959, bundle_id_scoped=True, chinese_name=True, points_to_workspace=True, starts_server=True, has_health_check=True, icon_plist=True",
-      "evidence_path": "/Users/linzezhang/Downloads/Serenity 每日分析.app",
+      "evidence_path": "~/Downloads/Serenity 每日分析.app",
       "next_action": "None"
     },
     {
@@ -174,7 +174,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "legacy Serenity entries removed from ~/Downloads/application",
-      "evidence_path": "/Users/linzezhang/Downloads/application",
+      "evidence_path": "~/Downloads/application",
       "next_action": "None"
     },
     {
@@ -184,7 +184,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "serenity-daily-analysis-beijing-hour-slots=PAUSED; serenity-daily-analysis-beijing-half-hour-slots=ACTIVE",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/implementation/CODEX_AUTOMATION_READY.md",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/implementation/CODEX_AUTOMATION_READY.md",
       "next_action": "None"
     },
     {
@@ -194,7 +194,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "StartInterval=180, command=automation-tick, dry_run_env=true, mail_send_enabled=false",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/implementation/com.serenity.daily-analysis.plist",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/implementation/com.serenity.daily-analysis.plist",
       "next_action": "None"
     },
     {
@@ -204,7 +204,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "install_state=loaded, latest_tick_action=non_business_day, dry_run=True, stderr_bytes=0, mail_send_enabled=False",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/implementation/LAUNCHD_STATUS.json",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/implementation/LAUNCHD_STATUS.json",
       "next_action": "None"
     },
     {
@@ -214,7 +214,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "draft_ready=True, app_scriptable=True, production_send_ready=True, send_status=not_requested",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/apple_mail_smoke_latest.json",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/apple_mail_smoke_latest.json",
       "next_action": "None"
     },
     {
@@ -224,7 +224,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "workflow_ready=True, production_send_ready_now=False, mail_sent=False, launchd_modified=False",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/mail_unlock_check_latest.md",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/mail_unlock_check_latest.md",
       "next_action": "None"
     },
     {
@@ -234,7 +234,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "md_exists=True, json_exists=True, has_15_cutoff=True, has_t_plus_1=True, has_exceptions=True",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/ALIPAY_FUND_EXECUTION_WINDOW_EVIDENCE.md",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/ALIPAY_FUND_EXECUTION_WINDOW_EVIDENCE.md",
       "next_action": "None"
     },
     {
@@ -244,7 +244,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "validator blocks unverifiable fund-rule url_or_path and candidate source_url references",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/app/core/intake_validator.py",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/app/core/intake_validator.py",
       "next_action": "None"
     },
     {
@@ -254,7 +254,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "md_exists=True, csv_exists=True, json_exists=True, rows=17, status=pass, invalid_count=0, local_hashed_count=3",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/source_evidence_audit_latest.md",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/source_evidence_audit_latest.md",
       "next_action": "None"
     },
     {
@@ -264,7 +264,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "md_exists=True, csv_exists=True, json_exists=True, rows=6, production_ready=True, has_locked_language=False",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/PRODUCTION_UNBLOCK_EVIDENCE_MATRIX.md",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/PRODUCTION_UNBLOCK_EVIDENCE_MATRIX.md",
       "next_action": "None"
     },
     {
@@ -274,7 +274,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "status=blocked, stages=['source_evidence_audit_pack', 'promote_intake_pack_dry_run', 'preflight', 'completion_audit'], production_ready=False, stop_reason=pack source evidence audit failed",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/production_unlock_check_latest.md",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/production_unlock_check_latest.md",
       "next_action": "None"
     },
     {
@@ -284,7 +284,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "rows=4, blockers={'benchmark_source_priority': 2, 'benchmark_history': 2}, priority_counts={'P2': 4}",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/production_action_queue_latest.md",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/production_action_queue_latest.md",
       "next_action": "None"
     },
     {
@@ -294,7 +294,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "input contract ready",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/PRODUCTION_DATA_REQUEST.md",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/PRODUCTION_DATA_REQUEST.md",
       "next_action": "None"
     },
     {
@@ -304,7 +304,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "CLI `normalize-alipay-positions` is available with candidate-output default and explicit `--write-pack` option",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/app/core/alipay_position_normalizer.py",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/app/core/alipay_position_normalizer.py",
       "next_action": "None"
     },
     {
@@ -314,7 +314,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "CLI `normalize-fund-rules` is available with candidate-output default and explicit `--write-pack` option",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/app/core/fund_rule_normalizer.py",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/app/core/fund_rule_normalizer.py",
       "next_action": "None"
     },
     {
@@ -324,7 +324,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "CLI `normalize-candidates` is available with candidate-output default and explicit `--write-pack` option",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/app/core/candidate_normalizer.py",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/app/core/candidate_normalizer.py",
       "next_action": "None"
     },
     {
@@ -334,7 +334,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "CLI `normalize-intake-bundle` is available with staged pack write, source-evidence audit, promotion dry-run, and no production copy",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/app/core/intake_bundle_normalizer.py",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/app/core/intake_bundle_normalizer.py",
       "next_action": "None"
     },
     {
@@ -344,7 +344,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "364 members",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/package/serenity_daily_analysis_delivery.zip",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/package/serenity_daily_analysis_delivery.zip",
       "next_action": "None"
     },
     {
@@ -354,7 +354,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "no private evidence members found",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/package/serenity_daily_analysis_delivery.zip",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/package/serenity_daily_analysis_delivery.zip",
       "next_action": "None"
     },
     {
@@ -364,7 +364,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "report matches package member_count=364, private_members=0",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/PRODUCTION_READINESS_REPORT.md",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/PRODUCTION_READINESS_REPORT.md",
       "next_action": "None"
     },
     {
@@ -374,7 +374,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "000001.SH: rows=71, latest=2026-06-12; SPX: rows=73, latest=2026-06-12",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/PRODUCTION_READINESS_REPORT.md",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/PRODUCTION_READINESS_REPORT.md",
       "next_action": "None"
     },
     {
@@ -384,7 +384,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "production_ready=True; blockers=[]",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/preflight_latest.json",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/preflight_latest.json",
       "next_action": "None"
     },
     {
@@ -394,7 +394,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "report production-ready language matches preflight production_ready=True",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/PRODUCTION_READINESS_REPORT.md",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/PRODUCTION_READINESS_REPORT.md",
       "next_action": "None"
     },
     {
@@ -404,7 +404,7 @@
       "status": "warn",
       "severity": "warn",
       "proof": "shadow_ready=True, production_ready=True",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/preflight_latest.json",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/preflight_latest.json",
       "next_action": "None"
     },
     {
@@ -413,8 +413,8 @@
       "requirement": "Production alert delivery must have real Apple Mail sending enabled before rebalance or urgent risk alerts can claim readiness.",
       "status": "pass",
       "severity": "info",
-      "proof": "{'mail_send_enabled': True, 'recipient_email': 'linzezhang35@gmail.com', 'env_var': 'SERENITY_MAIL_SEND_ENABLED'}",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/preflight_latest.json",
+      "proof": "{'mail_send_enabled': True, 'recipient_email': 'LinzeColin@users.noreply.github.com', 'env_var': 'SERENITY_MAIL_SEND_ENABLED'}",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/preflight_latest.json",
       "next_action": "None"
     },
     {
@@ -424,7 +424,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "OpenD socket reachable at 127.0.0.1:11111; Python import `moomoo` is available; installed distribution version=10.6.6608",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/preflight_latest.json",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/preflight_latest.json",
       "next_action": "None"
     },
     {
@@ -433,8 +433,8 @@
       "requirement": "Shanghai Composite and S&P 500 must have 1m, 3m, and recent 10 trading day comparison data.",
       "status": "pass",
       "severity": "info",
-      "proof": "{'production_ready_by_benchmark': {'S&P 500': True, 'Shanghai Composite': True}, 'proxy_available': {'S&P 500': True, 'Shanghai Composite': False}, 'json_path': '/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/benchmark_smoke_latest.json', 'markdown_path': '/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/benchmark_smoke_latest.md'}",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/preflight_latest.json",
+      "proof": "{'production_ready_by_benchmark': {'S&P 500': True, 'Shanghai Composite': True}, 'proxy_available': {'S&P 500': True, 'Shanghai Composite': False}, 'json_path': '~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/benchmark_smoke_latest.json', 'markdown_path': '~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/benchmark_smoke_latest.md'}",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/preflight_latest.json",
       "next_action": "None"
     },
     {
@@ -444,7 +444,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "no intake-pack user-facing local path markers found",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/intake_pack",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/intake_pack",
       "next_action": "None"
     },
     {
@@ -454,7 +454,7 @@
       "status": "pass",
       "severity": "warn",
       "proof": "block_count=0, warn_count=6, block_areas=[]",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/intake_validation_latest.json",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/intake_validation_latest.json",
       "next_action": "None"
     },
     {
@@ -464,7 +464,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "applied=False, placeholder_blocked=True, production_ready=False",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/intake_pack/promotion_latest.json",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/intake_pack/promotion_latest.json",
       "next_action": "None"
     },
     {
@@ -474,7 +474,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "review_rows=28, matrix_exists=True, row_production_candidate_count=0, stale_or_missing_date_count=28, special_rule_count=12",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/holdings_discovery_latest.json",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/holdings_discovery_latest.json",
       "next_action": "None"
     },
     {
@@ -484,7 +484,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "no absolute local path markers found",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/holdings_discovery_latest.md",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/holdings_discovery_latest.md",
       "next_action": "None"
     },
     {
@@ -494,7 +494,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "review_prefill_rows=28, special_checklist_rows=12, helper_ready=True",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/intake_pack",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/intake_pack",
       "next_action": "None"
     },
     {
@@ -504,7 +504,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "fund_rule_helper_rows=28, helper_ready=True",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/intake_pack/08_fund_rules_from_review_checklist.csv",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/intake_pack/08_fund_rules_from_review_checklist.csv",
       "next_action": "None"
     },
     {
@@ -514,7 +514,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "candidate_helper_rows=28, helper_ready=True",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/intake_pack/09_candidate_source_review_prefill.csv",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/intake_pack/09_candidate_source_review_prefill.csv",
       "next_action": "None"
     },
     {
@@ -524,7 +524,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "missing_tables=[]",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/serenity_daily.sqlite",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/serenity_daily.sqlite",
       "next_action": "None"
     },
     {
@@ -533,8 +533,8 @@
       "requirement": "Previously observed historical rows and artifacts must remain append-only: no edits, deletes, overwrites, or rerendered past facts.",
       "status": "pass",
       "severity": "info",
-      "proof": "baseline=/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/audit/history_integrity_baseline.json, violations=0, latest_manifest=/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/audit/history_integrity_latest.json",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/audit/history_integrity_latest.json",
+      "proof": "baseline=~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/audit/history_integrity_baseline.json, violations=0, latest_manifest=~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/audit/history_integrity_latest.json",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/audit/history_integrity_latest.json",
       "next_action": "None"
     },
     {
@@ -544,7 +544,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "run_id=sda_20260613T094539Z_r7_31fb1cc3, status=success, data_quality_status=pass, markdown=True, html=True",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/reports/sda_20260613T094539Z_r7_31fb1cc3_report.md",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/reports/sda_20260613T094539Z_r7_31fb1cc3_report.md",
       "next_action": "None"
     },
     {
@@ -554,7 +554,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "run_id=sda_20260613T094539Z_r7_31fb1cc3, run_time_bj=2026-06-15T14:30:00+08:00, verification_kind=future_controlled_backfill, tick_action=ran, dry_run=0, sent_notifications=1",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/serenity_daily.sqlite",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/serenity_daily.sqlite",
       "next_action": "None"
     },
     {
@@ -563,8 +563,8 @@
       "requirement": "Offline web report index must update to include the latest production verification run.",
       "status": "pass",
       "severity": "info",
-      "proof": "index=/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/reports/index.html, latest_html=sda_20260613T094539Z_r7_31fb1cc3_report.html, linked=True",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/reports/index.html",
+      "proof": "index=~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/reports/index.html, latest_html=sda_20260613T094539Z_r7_31fb1cc3_report.html, linked=True",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/reports/index.html",
       "next_action": "None"
     },
     {
@@ -574,7 +574,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "run_id=sda_20260613T094539Z_r7_31fb1cc3, source_log_rows=16",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/serenity_daily.sqlite",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/serenity_daily.sqlite",
       "next_action": "None"
     },
     {
@@ -584,7 +584,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "run_id=sda_20260613T094539Z_r7_31fb1cc3, top5_weight_rows=5",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/serenity_daily.sqlite",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/serenity_daily.sqlite",
       "next_action": "None"
     },
     {
@@ -594,7 +594,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "run_id=sda_20260613T094539Z_r7_31fb1cc3, distinct_grade_count=3",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/serenity_daily.sqlite",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/serenity_daily.sqlite",
       "next_action": "None"
     },
     {
@@ -604,7 +604,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "excluded_bond_like_assets=1",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/serenity_daily.sqlite",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/serenity_daily.sqlite",
       "next_action": "None"
     },
     {
@@ -614,7 +614,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "run_id=sda_20260613T094539Z_r7_31fb1cc3, hard_gate_review_rows=0, regression_status=pass, passed_cases=['max_drawdown_block', 'recovery_time_block']",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/tests/risk_gate_regression_latest.json",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/tests/risk_gate_regression_latest.json",
       "next_action": "None"
     },
     {
@@ -624,7 +624,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "run_id=sda_20260613T094539Z_r7_31fb1cc3, comparison_types=['previous_day', 'previous_month', 'previous_week', 'same_day_previous']",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/serenity_daily.sqlite",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/serenity_daily.sqlite",
       "next_action": "None"
     },
     {
@@ -634,7 +634,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "run_id=sda_20260613T094539Z_r7_31fb1cc3, decision_rows=5, rebalance_events=1",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/serenity_daily.sqlite",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/serenity_daily.sqlite",
       "next_action": "None"
     },
     {
@@ -644,7 +644,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "run_id=sda_20260613T094539Z_r7_31fb1cc3, notification_rows=3",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/serenity_daily.sqlite",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/serenity_daily.sqlite",
       "next_action": "None"
     },
     {
@@ -654,7 +654,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "data_quality_status=pass, report_locked=False, notification_locked=False",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/reports/sda_20260613T094539Z_r7_31fb1cc3_report.md",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/reports/sda_20260613T094539Z_r7_31fb1cc3_report.md",
       "next_action": "None"
     },
     {
@@ -664,7 +664,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "moomoo_kline_rows=253",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/serenity_daily.sqlite",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/serenity_daily.sqlite",
       "next_action": "None"
     },
     {
@@ -674,7 +674,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "source_evidence_rows=316, audit_runs=16",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/serenity_daily.sqlite",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/serenity_daily.sqlite",
       "next_action": "None"
     },
     {
@@ -684,7 +684,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "found `101 passed`",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/tests/VALIDATION_SUMMARY.md",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/tests/VALIDATION_SUMMARY.md",
       "next_action": "None"
     },
     {
@@ -694,7 +694,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "readiness report includes no-guarantee language",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/PRODUCTION_READINESS_REPORT.md",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/PRODUCTION_READINESS_REPORT.md",
       "next_action": "None"
     },
     {
@@ -704,7 +704,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "no absolute local path markers found",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/PRODUCTION_READINESS_REPORT.md",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/PRODUCTION_READINESS_REPORT.md",
       "next_action": "None"
     },
     {
@@ -714,7 +714,7 @@
       "status": "pass",
       "severity": "info",
       "proof": "no auxiliary Markdown local path markers found",
-      "evidence_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight",
+      "evidence_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight",
       "next_action": "None"
     }
   ]

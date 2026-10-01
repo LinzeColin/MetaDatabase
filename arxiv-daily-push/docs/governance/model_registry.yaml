@@ -45,7 +45,7 @@ assumptions:
     status: "active"
   -
     assumption_id: "ASM-ADP-002"
-    statement: "Email is the system notification channel and linzezhang35@gmail.com is the recipient."
+    statement: "Email is the system notification channel and LinzeColin@users.noreply.github.com is the recipient."
     fact_level: "EXTRACTED"
     evidence_refs:
       - "arxiv-daily-push/src/arxiv_daily_push/config.py"

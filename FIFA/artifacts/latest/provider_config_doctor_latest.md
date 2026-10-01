@@ -22,6 +22,6 @@ Next safe action: 配置可用；下一步执行 matches 主盘口刷新或 Team
 ## Recommended Commands
 - 安全配置检查: `python3 scripts/build_provider_config_doctor.py`
 - Matches 主盘口刷新: `python3 refresh_odds_provider_raw.py --provider the_odds_api --scope matches --event-market-probe-limit 0`
-- Team Total 人工下一批: `open '/Users/linzezhang/Downloads/FIFA Report/app_assets/provider_manual_next_batch_pair_template_latest.csv'`
+- Team Total 人工下一批: `open '~/Downloads/FIFA Report/app_assets/provider_manual_next_batch_pair_template_latest.csv'`
 
 Safety boundary: 该诊断只检查 provider 配置和 credit-safe 参数；不请求 odds、不登录 TAB、不点击赔率、不下注。

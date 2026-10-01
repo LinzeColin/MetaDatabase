@@ -1,7 +1,7 @@
 {
   "generated_at": "2026-06-13T06:47:18+08:00",
   "status": "blocked",
-  "pack_dir": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/intake_pack",
+  "pack_dir": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/intake_pack",
   "apply_requested": false,
   "apply_performed": false,
   "package_requested": false,
@@ -20,11 +20,11 @@
         "invalid_count": 15,
         "local_hashed_count": 0,
         "url_count": 2,
-        "pack_dir": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/intake_pack",
+        "pack_dir": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/intake_pack",
         "files": {
-          "markdown": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/source_evidence_audit_latest.md",
-          "csv": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/source_evidence_audit_latest.csv",
-          "json": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/source_evidence_audit_latest.json"
+          "markdown": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/source_evidence_audit_latest.md",
+          "csv": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/source_evidence_audit_latest.csv",
+          "json": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/source_evidence_audit_latest.json"
         }
       },
       "skipped_reason": ""
@@ -42,8 +42,8 @@
         "validation_warn_count": null,
         "backup_dir": null,
         "evidence_copied_count": 0,
-        "json_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/intake_pack/promotion_latest.json",
-        "markdown_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/intake_pack/promotion_latest.md"
+        "json_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/intake_pack/promotion_latest.json",
+        "markdown_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/intake_pack/promotion_latest.md"
       },
       "skipped_reason": ""
     },
@@ -58,8 +58,8 @@
         "warnings": [
           "alipay_positions"
         ],
-        "json_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/preflight_latest.json",
-        "markdown_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/preflight_latest.md"
+        "json_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/preflight_latest.json",
+        "markdown_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/preflight_latest.md"
       },
       "skipped_reason": ""
     },
@@ -73,13 +73,13 @@
         "warn_count": 4,
         "block_count": 1,
         "total_count": 62,
-        "json_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/completion_audit/completion_audit_latest.json",
-        "markdown_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/completion_audit/completion_audit_latest.md",
-        "csv_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/completion_audit/completion_audit_latest.csv"
+        "json_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/completion_audit/completion_audit_latest.json",
+        "markdown_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/completion_audit/completion_audit_latest.md",
+        "csv_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/completion_audit/completion_audit_latest.csv"
       },
       "skipped_reason": ""
     }
   ],
-  "json_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/production_unlock_check_latest.json",
-  "markdown_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/production_unlock_check_latest.md"
+  "json_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/production_unlock_check_latest.json",
+  "markdown_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/production_unlock_check_latest.md"
 }

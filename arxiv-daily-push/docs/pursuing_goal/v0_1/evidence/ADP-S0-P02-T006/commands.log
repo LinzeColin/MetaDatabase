@@ -5,7 +5,7 @@
 
 ## account
 $ npx wrangler@4 whoami
-# account: Linzezhang35@gmail.com's Account  id a8e86fa4be62ee3f9b5873b2aa934256
+# account: LinzeColin@users.noreply.github.com's Account  id a8e86fa4be62ee3f9b5873b2aa934256
 
 ## D1 info
 $ npx wrangler@4 d1 info adp-mirror

@@ -5,7 +5,7 @@
 
 使用 A+C 架构：本地 Codex 负责开发、证据约束的内容理解与复核；GitHub Actions + private self-hosted runner 负责定时、串行编排、日志、人工补跑和 GitHub Release。GitHub 仓库为 LinzeColin/CodexProject，项目路径为 arxiv-daily-push。仓库只保存源码、schema、配置示例、小 fixture、文本报告、Claim Ledger、RunRecord、日志索引和 SHA256；MP4、音频、模型权重、声音样本、渲染缓存、Codex auth、GitHub token、SMTP 密钥不得进入 Git。正式二进制产物通过 private GitHub Release 发布或等效的私有发布通道发布。
 
-本系统通知方式为邮件，收件人为 linzezhang35@gmail.com。所有正式 daily/weekly/monthly 成功、降级、失败、证据门禁阻断、Release 上传失败和 04:45 health check 失败都必须生成邮件通知或通知恢复任务。邮件发送器必须支持 dry-run；SMTP 密钥和 OAuth token 不得写入仓库或日志。
+本系统通知方式为邮件，收件人为 LinzeColin@users.noreply.github.com。所有正式 daily/weekly/monthly 成功、降级、失败、证据门禁阻断、Release 上传失败和 04:45 health check 失败都必须生成邮件通知或通知恢复任务。邮件发送器必须支持 dry-run；SMTP 密钥和 OAuth token 不得写入仓库或日志。
 
 本地资源必须低占用运行：Phase 1-6 不下载 TTS 模型，不生成视频，不保留大媒体。任何正式运行前必须检查磁盘、内存、缓存、staging、Git untracked 大文件和 secrets。若磁盘不足、内存压力过高、模型缓存不可控或 Git 中出现大媒体/权重/声音样本，必须 fail closed，并邮件通知，不得继续生成。当前机器 Phase 0 审计显示 Node/npm/gh/ffmpeg/docker 不可用、磁盘约 25 GiB、8 GiB RAM，因此在后续明确授权前不得假设视频/TTS/GitHub automation 已可用。
 

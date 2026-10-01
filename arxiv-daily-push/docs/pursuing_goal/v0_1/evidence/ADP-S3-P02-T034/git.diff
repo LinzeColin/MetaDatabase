@@ -515,7 +515,7 @@ index 000000000..39b99a77d
 +成文 2020-12-07 vs 发布 2020-12-21).
 +"""
 +import sys, json, pathlib
-+V01 = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
++V01 = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
 +T034 = V01 / "evidence" / "ADP-S3-P02-T034"
 +FX, EXP = T034 / "fixtures", T034 / "expected"
 +sys.path.insert(0, str(V01 / "tools"))

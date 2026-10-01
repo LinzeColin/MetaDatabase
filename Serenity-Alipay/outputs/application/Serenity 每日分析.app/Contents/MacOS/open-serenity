@@ -1,7 +1,7 @@
 #!/bin/sh
-ROOT="/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5"
+ROOT="$HOME/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5"
 PYTHON="/opt/anaconda3/bin/python"
-BOOTSTRAP="/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/application/downloads-entry.html"
+BOOTSTRAP="$HOME/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/application/downloads-entry.html"
 PORT="${SERENITY_APP_PORT:-8765}"
 URL="http://127.0.0.1:$PORT/"
 HEALTH="http://127.0.0.1:$PORT/api/health"

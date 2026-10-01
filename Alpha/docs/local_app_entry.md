@@ -3,8 +3,8 @@
 Primary app-format entrypoints:
 
 ```text
-/Users/linzezhang/Downloads/Alpha.app
-/Users/linzezhang/Applications/Alpha.app
+~/Downloads/Alpha.app
+~/Applications/Alpha.app
 /Applications/Alpha.app
 ```
 
@@ -44,5 +44,5 @@ Verified app installation:
 
 ```text
 plutil -lint passed for repo, Downloads, user Applications, and system Applications copies.
-open -n /Users/linzezhang/Downloads/Alpha.app launched the dashboard and app-managed paper loop.
+open -n ~/Downloads/Alpha.app launched the dashboard and app-managed paper loop.
 ```

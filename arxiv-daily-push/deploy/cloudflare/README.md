@@ -3,7 +3,7 @@
 
 # R6 · Cloudflare 部署（完整系统直连 + 镜像兜底）运维一页
 
-部署日期：2026-07-15 · Worker：`adp-mirror` · Tunnel：`adp`（3bc9d50e） · 账户：linzezhang35@gmail.com（本机 wrangler 会话）
+部署日期：2026-07-15 · Worker：`adp-mirror` · Tunnel：`adp`（3bc9d50e） · 账户：LinzeColin@users.noreply.github.com（本机 wrangler 会话）
 
 ## 你怎么用（手机）
 

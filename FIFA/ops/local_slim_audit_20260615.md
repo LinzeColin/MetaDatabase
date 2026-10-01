@@ -39,12 +39,12 @@
 
 | 路径 | 当前大小 | 保留原因 |
 | --- | ---: | --- |
-| `/Users/linzezhang/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/github_sync/FIFA` | 约 96MB | Git 工作区、源码、docs、artifacts 备份、handoff |
-| `/Users/linzezhang/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/outputs` | 约 31MB | 本地网页 runtime API 读取的最新输出 |
-| `/Users/linzezhang/Downloads/FIFA Report` | 约 29MB | 用户打开的 HTML 入口与 `app_assets` |
-| `/Users/linzezhang/Downloads/TAB FIFA盘口研究系统.app` | 约 632KB | 用户双击入口 |
-| `/Users/linzezhang/Downloads/2026 FIFA.xlsx` | 约 20KB | 用户可继续手动查看/维护的 Excel 账本 |
-| `/Users/linzezhang/Downloads/fifa_world_cup_team_tables_1930_2022.xlsx` | 约 152KB | 小型参考资料，保留本地不影响存储 |
+| `~/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/github_sync/FIFA` | 约 96MB | Git 工作区、源码、docs、artifacts 备份、handoff |
+| `~/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/outputs` | 约 31MB | 本地网页 runtime API 读取的最新输出 |
+| `~/Downloads/FIFA Report` | 约 29MB | 用户打开的 HTML 入口与 `app_assets` |
+| `~/Downloads/TAB FIFA盘口研究系统.app` | 约 632KB | 用户双击入口 |
+| `~/Downloads/2026 FIFA.xlsx` | 约 20KB | 用户可继续手动查看/维护的 Excel 账本 |
+| `~/Downloads/fifa_world_cup_team_tables_1930_2022.xlsx` | 约 152KB | 小型参考资料，保留本地不影响存储 |
 | `tab-research-pipeline/config/odds_providers.local.env` | ignored | 本机真实 provider env；不进入 Git |
 
 ## 验证

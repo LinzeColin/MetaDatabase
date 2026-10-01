@@ -31,7 +31,7 @@ git diff --check
 
 - `adp version` is implemented.
 - `adp doctor` is implemented and fail-closed for missing Phase 1 required commands.
-- `adp render-email` renders a dry-run email for `linzezhang35@gmail.com`.
+- `adp render-email` renders a dry-run email for `LinzeColin@users.noreply.github.com`.
 - Governance validator passes for `arxiv-daily-push`.
 - No media, model, voice, auth, or secret files are added.
 

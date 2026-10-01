@@ -17,13 +17,13 @@
 - 执行方式：前台一次性本地 runner，临时允许发送门；不启动后台 LaunchAgent，不安装 scheduler。
 - 服务日期：`2026-07-01`
 - 输出证据：`/tmp/adp_controlled_real_run_20260701T034650Z.json`
-- 状态备份：`/Users/linzezhang/.adp/arxiv-daily-push/runs/20260701_before_controlled_real_send_20260701T034650Z`
+- 状态备份：`~/.adp/arxiv-daily-push/runs/20260701_before_controlled_real_send_20260701T034650Z`
 - 运行结果：`status=pass`、`real_smtp_sent=true`、`production_evidence_ready=true`、`user_center_sync_ready=true`
 - 邮件结果：计划 `M1/M2/M3/M4` 共 4 封，已发送证据为历史发送记录复用，`newly_sent_mail_products=[]`，未产生重复发送。
 
 ## 发送后关闭证据
 
-- `/Users/linzezhang/.config/arxiv-daily-push/local-runner.env` 中 `ADP_ALLOW_SMTP_SEND=false`
+- `~/.config/arxiv-daily-push/local-runner.env` 中 `ADP_ALLOW_SMTP_SEND=false`
 - `com.linze.adp.local.daily`、`com.linze.adp.local.health`、`com.linze.adp.local.watchdog` 均为 launchd disabled
 - `release_upload_enabled=false`
 - `github_cloud_schedule_enabled=false`

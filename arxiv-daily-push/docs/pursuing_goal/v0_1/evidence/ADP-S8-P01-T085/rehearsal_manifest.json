@@ -2,7 +2,7 @@
   "iteration": "ITER-20260716-ADP-V01-FINAL-EXECUTION",
   "task": "ADP-S8-P01-T085",
   "input_fixture": {
-    "items": "/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1/evidence/ADP-S8-P01-T085/data-samples/items_500.json",
+    "items": "~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1/evidence/ADP-S8-P01-T085/data-samples/items_500.json",
     "items_count": 500,
     "items_sha16": "b4211b720dae325e",
     "fs_sha16": "909a07fd74f3d4e6"
