@@ -5681,7 +5681,7 @@ export default function Home() {
                 <th scope="col">关系</th>
                 <th scope="col">环节</th>
                 <th scope="col">证据</th>
-                <th scope="col">时间</th>
+                <th scope="col">{CLOUD_MODE ? "数据版本" : "时间"}</th>
               </tr>
             </thead>
             <tbody>

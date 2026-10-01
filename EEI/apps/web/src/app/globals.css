@@ -5615,4 +5615,4 @@ dd {
 :root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel td:nth-child(5)::before { content: "关系"; }
 :root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel td:nth-child(6)::before { content: "环节"; }
 :root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel td:nth-child(7)::before { content: "证据"; }
-:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel td:nth-child(8)::before { content: "时间"; }
+:root[data-theme="deep-space"] .workspace[data-cloud-surface="true"] .graphTablePanel td:nth-child(8)::before { content: "数据版本"; }
