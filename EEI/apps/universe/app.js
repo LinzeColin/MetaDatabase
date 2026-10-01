@@ -565,6 +565,7 @@ function applyInsets() {
       // 横屏手机：面板在左边一列，详情卡在右边
       left = Math.max(...[brand, search, legend, dir].map((r) => (r ? r.right + 8 : 0)));
       if (det) right = W - det.left + 8;
+      if (bar) bottom = H - bar.top + 24;
     } else {
       top = Math.max(search ? search.bottom : 0, brand ? brand.bottom : 0) + 8;
       bottom = Math.max(legend ? H - legend.top : 0, bar ? H - bar.top : 0) + 72; // 恒星名字挂在星点下方，多留一行
