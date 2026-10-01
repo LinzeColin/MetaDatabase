@@ -1637,7 +1637,9 @@ function writeWorkspaceStateParams(params: URLSearchParams, state: WorkspaceStat
   params.set("selected", state.selectedKey);
   params.set("lens", state.activeLens);
   params.set("zoom", state.semanticZoom);
-  params.set("asOf", state.asOf);
+  // 云发布面查询用当前数据（as_of: null），网址不写样例时间轴键，免得看的人以为图是样例日期的。
+  if (CLOUD_MODE) params.delete("asOf");
+  else params.set("asOf", state.asOf);
   params.set("filters", state.activeLens);
   params.set("path", state.path.join("."));
 }
@@ -1867,6 +1869,9 @@ export default function Home() {
   const [semanticZoom, setSemanticZoom] = useState<SemanticZoom>("L1");
   // P2-11 响应式：窄屏（<1280px）右栏证据/详情收成可滑出抽屉，由此开关驱动。
   const [inspectorDrawerOpen, setInspectorDrawerOpen] = useState(false);
+  // 云发布面手机宽度：图谱 svg 按节点包围盒取景、桌面 HUD 避让都只在云模式生效。
+  const [cloudCompact, setCloudCompact] = useState(false);
+  const workspaceRef = useRef<HTMLElement | null>(null);
   // 「证据栏」按钮点开后给证据面板一圈短暂的高亮（桌面右栏常驻，点了要让人看到落在哪）。
   const [evidenceBarFocus, setEvidenceBarFocus] = useState(false);
   // P2-12 图谱骨架：探索回退栈（Undo/Redo，§C.2）。与面包屑（path）正交——
@@ -2139,6 +2144,41 @@ export default function Home() {
     () => layoutEmpireOrbits(baseGraphViewNodes),
     [baseGraphViewNodes]
   );
+  // 云发布面手机：svg 只有 280px 宽，按固定 760x480 取景时节点只占中间一小块、标签几乎看不清。
+  // 改成按节点包围盒（加标签余量）取景，并按这个比例给 svg 留高度，不再留一大片空白。
+  const cloudFit = useMemo(() => {
+    const base = { viewBox: "0 0 760 480", height: null as number | null };
+    if (!CLOUD_MODE || !cloudCompact || graphViewNodes.length < 2) return base;
+    const xs = graphViewNodes.map((node) => node.x);
+    const ys = graphViewNodes.map((node) => node.y);
+    const padX = 64;
+    const padY = 52;
+    let minX = Math.min(...xs) - padX;
+    let maxX = Math.max(...xs) + padX;
+    let minY = Math.min(...ys) - padY;
+    let maxY = Math.max(...ys) + padY;
+    const minW = 260;
+    const minH = 200;
+    if (maxX - minX < minW) {
+      const mid = (minX + maxX) / 2;
+      minX = mid - minW / 2;
+      maxX = mid + minW / 2;
+    }
+    if (maxY - minY < minH) {
+      const mid = (minY + maxY) / 2;
+      minY = mid - minH / 2;
+      maxY = mid + minH / 2;
+    }
+    const width = maxX - minX;
+    const height = maxY - minY;
+    // svg 实际宽约 (视口宽 - 96)px；高度按比例取，夹在 220–420px 之间。
+    const svgWidth = Math.max(220, (typeof window === "undefined" ? 375 : window.innerWidth) - 96);
+    const px = Math.round(Math.min(420, Math.max(220, (svgWidth * height) / width)));
+    return {
+      viewBox: `${minX.toFixed(1)} ${minY.toFixed(1)} ${width.toFixed(1)} ${height.toFixed(1)}`,
+      height: px
+    };
+  }, [cloudCompact, graphViewNodes]);
   const orbitRingRadii = useMemo(
     () =>
       Array.from(
@@ -3514,10 +3554,71 @@ export default function Home() {
     return () => window.removeEventListener("eei:request-center", handleExternalCenterRequest);
   });
 
+  // 云发布面：手机宽度标记（图谱取景用）。
+  useEffect(() => {
+    if (!CLOUD_MODE) return;
+    const query = window.matchMedia("(max-width: 767px)");
+    const sync = () => setCloudCompact(query.matches);
+    sync();
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
+
+  // 云发布面：手机图谱 svg 高度随取景比例变化（CSS 变量 --cloud-map-h）。
+  useEffect(() => {
+    const workspace = workspaceRef.current;
+    if (!CLOUD_MODE || !workspace) return;
+    if (cloudFit.height) workspace.style.setProperty("--cloud-map-h", `${cloudFit.height}px`);
+    else workspace.style.removeProperty("--cloud-map-h");
+  }, [cloudFit.height]);
+
+  // 云发布面桌面：图谱 svg 是 position:fixed 且层级高于画布顶部的控制条，
+  // 节点球会盖住阶段胶囊 / L0–L3 / 面包屑。量出控制条底边，让图谱从它下面开始（--cloud-hud-bottom）。
+  useEffect(() => {
+    const workspace = workspaceRef.current;
+    const canvas = workspace?.querySelector<HTMLElement>(":scope > .canvas");
+    if (!CLOUD_MODE || !workspace || !canvas) return;
+    const hudSelector =
+      ":scope > .canvasTopbar, :scope > .zoomBar, :scope > .timelineBar, :scope > .stageRail, :scope > .historyControls, :scope > .breadcrumb, :scope > .crossIndustryReroot";
+    const resizeObserver = new ResizeObserver(() => measure());
+    const observe = () => {
+      resizeObserver.disconnect();
+      resizeObserver.observe(canvas);
+      canvas.querySelectorAll<HTMLElement>(hudSelector).forEach((node) => resizeObserver.observe(node));
+    };
+    function measure() {
+      if (!workspace || !canvas) return;
+      if (window.innerWidth <= 767) {
+        workspace.style.removeProperty("--cloud-hud-bottom");
+        return;
+      }
+      let bottom = 0;
+      canvas.querySelectorAll<HTMLElement>(hudSelector).forEach((node) => {
+        const rect = node.getBoundingClientRect();
+        if (rect.height > 0) bottom = Math.max(bottom, rect.bottom + window.scrollY);
+      });
+      if (bottom > 0) workspace.style.setProperty("--cloud-hud-bottom", `${Math.ceil(bottom + 10)}px`);
+    }
+    const mutationObserver = new MutationObserver(() => {
+      observe();
+      measure();
+    });
+    mutationObserver.observe(canvas, { childList: true });
+    observe();
+    measure();
+    window.addEventListener("resize", measure);
+    return () => {
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, []);
+
   return (
     <WorkspaceContextProvider value={workspaceContextValue}>
     <main
       className="workspace"
+      ref={workspaceRef}
       data-cloud-surface={CLOUD_MODE}
       data-inspector-open={inspectorDrawerOpen}
       data-active-data-snapshot={analysisContext.dataSnapshot}
@@ -3543,6 +3644,22 @@ export default function Home() {
       data-workspace-model="recursive-enterprise-map"
     >
       <WorkspaceContextContractMarker />
+      {CLOUD_MODE ? (
+        // 手机首屏：主体名与规模放在图谱上方（桌面隐藏，左栏已有同样内容，故对读屏隐藏避免重复朗读）。
+        <div aria-hidden="true" className="cloudMobileSubject" data-testid="cloud-mobile-subject">
+          <span>关注 · 当前主体</span>
+          <strong>
+            {isServerGraphRendered
+              ? serverFocusLabel
+              : productionGraphStatus === "server-error"
+                ? "云端数据暂不可用"
+                : serverFocusLabel}
+          </strong>
+          <small>
+            {graphViewNodes.length} 家实体 · {graphViewEdges.length} 条关系 · 数据截至 {publishedDataVersion}
+          </small>
+        </div>
+      ) : null}
       <WorkspaceNavigationRail activeModuleId="business_map" />
 
       <section className="focusPanel" aria-label="当前主体">
@@ -4828,7 +4945,7 @@ export default function Home() {
             data-server-rendered-edge-count={graphViewMode === "server" ? graphViewEdges.length : 0}
             data-server-rendered-node-count={graphViewMode === "server" ? graphViewNodes.length : 0}
             data-testid="ecosystem-map-svg"
-            viewBox="0 0 760 480"
+            viewBox={cloudFit.viewBox}
             role={CLOUD_MODE ? "group" : "img"}
             aria-label={
               graphViewMode === "server"
@@ -5311,7 +5428,7 @@ export default function Home() {
             <div>
               <dt>透镜 / 时间</dt>
               <dd>
-                {savedView.activeLens} / {savedView.asOf}
+                {savedView.activeLens} / {CLOUD_MODE ? publishedDataVersion : savedView.asOf}
               </dd>
             </div>
             <div>
@@ -5324,7 +5441,11 @@ export default function Home() {
             </div>
             <div>
               <dt>备注</dt>
-              <dd>{savedView.notes}</dd>
+              <dd>
+                {CLOUD_MODE
+                  ? savedView.notes.split(savedView.asOf).join(publishedDataVersion)
+                  : savedView.notes}
+              </dd>
             </div>
           </dl>
           <div className="savedViewActions">
@@ -5560,7 +5681,7 @@ export default function Home() {
                 <th scope="col">关系</th>
                 <th scope="col">环节</th>
                 <th scope="col">证据</th>
-                <th scope="col">时间</th>
+                <th scope="col">{CLOUD_MODE ? "数据版本" : "时间"}</th>
               </tr>
             </thead>
             <tbody>
@@ -5569,7 +5690,7 @@ export default function Home() {
                   data-direction={`${edge.from}->${edge.to}`}
                   data-evidence-status={edge.source === "server" ? "server-evidence" : "fixture-evidence"}
                   data-lens={edge.lens}
-                  data-observed-at={edge.observedAt}
+                  data-observed-at={edge.source === "server" && CLOUD_MODE ? publishedDataVersion : edge.observedAt}
                   data-render-source={edge.source}
                   data-relationship-type={edge.lens}
                   data-testid={`graph-table-row-${edge.from}-${edge.to}`}
@@ -5597,7 +5718,8 @@ export default function Home() {
                         : "样例证据"}
                     </span>
                   </td>
-                  <td>{edge.observedAt}</td>
+                  {/* 云模式的边没有逐条观测时间，observedAt 只是样例时间轴键；这里显示数据版本日期，免得误导成 6 月。 */}
+                  <td>{edge.source === "server" && CLOUD_MODE ? publishedDataVersion : edge.observedAt}</td>
                 </tr>
               ))}
             </tbody>
@@ -5837,7 +5959,7 @@ export default function Home() {
             </span>
             <span data-testid="active-context-state">
               数据 {analysisContext.dataSnapshot} / 评分 {analysisContext.scoreSnapshot} / 快照{" "}
-              {asOf}
+              {CLOUD_MODE ? publishedDataVersion : asOf}
             </span>
             <span data-testid="lens-state">透镜：{activeLens}</span>
             <span data-testid="zoom-state">缩放：{semanticZoom}</span>
