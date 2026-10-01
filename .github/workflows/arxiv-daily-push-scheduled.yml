@@ -1,13 +1,9 @@
 name: arXiv Daily Push scheduled Stage 1 text gate
 
+# 2026-10-01：定时已停。ADP 的每日抓取改由服务器 adp-daily.timer / adp-backfill.timer 负责
+# （见 arxiv-daily-push/deploy/selfhost/）。文件与手动触发保留；原定时为悉尼时区
+# 04:45 / 05:00 / 05:10 各一次，要恢复就把这三条 cron 加回 on 下面。
 on:
-  schedule:
-    - cron: "45 4 * * *"
-      timezone: "Australia/Sydney"
-    - cron: "0 5 * * *"
-      timezone: "Australia/Sydney"
-    - cron: "10 5 * * *"
-      timezone: "Australia/Sydney"
   workflow_dispatch:
     inputs:
       mode:
