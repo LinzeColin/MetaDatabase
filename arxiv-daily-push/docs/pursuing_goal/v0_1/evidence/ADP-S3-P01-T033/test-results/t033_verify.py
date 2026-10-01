@@ -5,7 +5,7 @@ Acceptance (TASK_INDEX): 未验证 source 不能 enabled；搜索/媒体只能�
 Deterministic; no network (the live gov.cn extraction is a separate smoke). Uses fixture footers.
 """
 import sys, pathlib
-V01 = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
+V01 = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
 sys.path.insert(0, str(V01 / "tools"))
 import official_identity as OI  # noqa: E402
 

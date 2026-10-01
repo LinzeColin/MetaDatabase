@@ -16,7 +16,9 @@ export function fastTimers() {
   const orig = globalThis.setTimeout;
   // 只压缩 50ms~10s 的退避（worker 页内退避最长 8s）；任务级 20 分钟的看门狗计时器保持真实。
   globalThis.setTimeout = (fn, ms, ...a) => orig(fn, ms > 50 && ms <= 10000 ? 0 : ms, ...a);
-  return () => { globalThis.setTimeout = orig; };
+  // arXiv 请求间隔（≥3s，见 app/polite_fetch.mjs）在压缩计时器下会按「预约槽位」累加到真等；重试逻辑的测试不关心它，关掉
+  const prevGap = process.env.ADP_ARXIV_MIN_INTERVAL_MS; process.env.ADP_ARXIV_MIN_INTERVAL_MS = '0';
+  return () => { globalThis.setTimeout = orig; if (prevGap === undefined) delete process.env.ADP_ARXIV_MIN_INTERVAL_MS; else process.env.ADP_ARXIV_MIN_INTERVAL_MS = prevGap; };
 }
 
 export function oaiXml(n, { token = null, prefix = '2609' } = {}) {

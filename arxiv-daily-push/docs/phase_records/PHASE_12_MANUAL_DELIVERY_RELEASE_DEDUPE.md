@@ -22,4 +22,4 @@ Status: prepared
 - No production schedule is enabled by this patch.
 - No secret values are logged.
 - No video attachment is sent by email.
-- The next required evidence is a new default-branch manual workflow dispatch that creates the Release and sends one Gmail SMTP test email to `linzezhang35@gmail.com`.
+- The next required evidence is a new default-branch manual workflow dispatch that creates the Release and sends one Gmail SMTP test email to `LinzeColin@users.noreply.github.com`.

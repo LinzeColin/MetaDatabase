@@ -6,7 +6,7 @@ Uses the REAL 500-item D1 sample. Deterministic (no clock/random). Anchors repro
 format-independent logical_hash; also checks physical parquet bytes are stable within this engine.
 """
 import sys, json, pathlib, hashlib
-TOOLS = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1/tools")
+TOOLS = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1/tools")
 SAMPLE = pathlib.Path("/private/tmp/claude-501/-Users-linzezhang-Documents-Codex-main-worktree-CodexProject-adp/6c611ddc-f264-4d55-9b19-b0f39a03415d/scratchpad/t020")
 OUT = pathlib.Path("/private/tmp/claude-501/-Users-linzezhang-Documents-Codex-main-worktree-CodexProject-adp/6c611ddc-f264-4d55-9b19-b0f39a03415d/scratchpad/t027_snap")
 sys.path.insert(0, str(TOOLS))

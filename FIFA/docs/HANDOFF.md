@@ -22,9 +22,9 @@
 - 本地保留：
   - Git 工作区、源码、docs、artifacts 备份。
   - `outputs/` 约 31MB，供本地网页 runtime API 使用。
-  - `/Users/linzezhang/Downloads/FIFA Report` 约 29MB，保留 HTML 入口和 `app_assets`。
-  - `/Users/linzezhang/Downloads/TAB FIFA盘口研究系统.app`。
-  - `/Users/linzezhang/Downloads/2026 FIFA.xlsx` 和 `fifa_world_cup_team_tables_1930_2022.xlsx`。
+  - `~/Downloads/FIFA Report` 约 29MB，保留 HTML 入口和 `app_assets`。
+  - `~/Downloads/TAB FIFA盘口研究系统.app`。
+  - `~/Downloads/2026 FIFA.xlsx` 和 `fifa_world_cup_team_tables_1930_2022.xlsx`。
   - ignored 本地 env：`tab-research-pipeline/config/odds_providers.local.env`，不进入 Git。
 - 验证：
   - 旧 report zip 剩余 `0`。
@@ -237,7 +237,7 @@
   - 集中显示 API 小批量补齐、Team Total 人工路径、credit 风控、formal/full automation gate、推荐命令、停止条件、覆盖进度条和下一批队列。
   - 新增复制推荐命令按钮；当浏览器拒绝剪贴板写入时降级为明确“手动复制下方命令”，不误报成功。
 - API 新增 `/api/status.provider_command_center`，暴露同一控制台摘要，便于后续前端动态刷新和 agent 交接验证。
-- 现有 LaunchAgent `/Users/linzezhang/Library/LaunchAgents/com.linzezhang.tab-fifa-research.plist` 已从 `KeepAlive=false` 改为 `KeepAlive=true` 并重新加载；当前服务由 `launchctl` 运行在 `http://127.0.0.1:8767/`，PID `80606`，`/api/health` OK。
+- 现有 LaunchAgent `~/Library/LaunchAgents/com.linzezhang.tab-fifa-research.plist` 已从 `KeepAlive=false` 改为 `KeepAlive=true` 并重新加载；当前服务由 `launchctl` 运行在 `http://127.0.0.1:8767/`，PID `80606`，`/api/health` OK。
 - 已重建 Downloads app，并同步 25 个 latest artifacts 到 `artifacts/latest/`。
 - 本轮验证：
   - `py_compile` OK。
@@ -1000,7 +1000,7 @@ python3 refresh_odds_provider_raw.py --provider the_odds_api --scope matches --e
 - 已修复 GitHub worktree 输出目录问题：新增 `tab_research.paths`，统一解析 workspace/output/private 目录，避免 fixed parent-depth 指到 `github_sync/outputs`。
 - 已修复主动测试文案和交互：点击后先显示缓存快照，再返回实时结果；research-only 日报未 ready 时明确写 `未达到 ready`，不再错误声称“已补写”。
 - 已修复后台 runner 竞态：关键启动路径加锁，父进程写 PID。
-- 已重建真实入口：`/Users/linzezhang/Downloads/FIFA Report/TAB FIFA盘口研究系统.html`、`/Users/linzezhang/Downloads/TAB FIFA盘口研究系统.app`。
+- 已重建真实入口：`~/Downloads/FIFA Report/TAB FIFA盘口研究系统.html`、`~/Downloads/TAB FIFA盘口研究系统.app`。
 - 已重启本地服务：当前 `http://127.0.0.1:8767/` PID `3984`，cwd 为 `github_sync/FIFA/tab-research-pipeline`。
 - 浏览器实测通过：首页推荐下注、市场资金、主动测试、导航、只读边界和 action token 存在；主动测试返回 `fresh_timeline_direct_api`，无空白失败。
 - 验证通过：
@@ -1021,7 +1021,7 @@ python3 refresh_odds_provider_raw.py --provider the_odds_api --scope matches --e
   - `work/tab-research-pipeline/assets/app_icon/generate_app_icon.py`
   - `work/tab-research-pipeline/assets/app_icon/design_notes.md`
 - 已更新 `work/tab-research-pipeline/scripts/build_downloads_app_entry.py`，每次重建 app 会自动复制 `TABFIFAResearch.icns` 到 `Contents/Resources/`，并写入 `CFBundleIconFile=TABFIFAResearch`。
-- 已重建并刷新 `/Users/linzezhang/Downloads/TAB FIFA盘口研究系统.app`；当前 app bundle 已包含 `Contents/Resources/TABFIFAResearch.icns`。
+- 已重建并刷新 `~/Downloads/TAB FIFA盘口研究系统.app`；当前 app bundle 已包含 `Contents/Resources/TABFIFAResearch.icns`。
 - `generate_app_icon.py` 默认清理 `.iconset` 中间目录；当前源目录只保留正式 PNG、ICNS、脚本和设计说明，无 `__pycache__`/`.iconset` 缓存。
 - 已验证：`CFBundleIconFile=TABFIFAResearch`、ICNS 文件有效、`py_compile` 通过、app 入口 contract 单测通过。
 
@@ -1069,7 +1069,7 @@ python3 refresh_odds_provider_raw.py --provider the_odds_api --scope matches --e
 - 已保留必要例外：`TAB_FIFA_HEADLESS=0` 仅用于私有 My Bets 用户授权只读 bootstrap，不用于公开 raw 或 Live discovery。私有链仍禁止下注、赔率点击、Bet Slip 修改，并且不保存密码/OTP。
 - 已更新运行态 API：`/api/public-raw-refresh` 返回 `started=false`、`blocked=true`、`mode=public_raw_access_policy_blocked`；`/api/live-board-discovery` 返回 `mode=live_board_discovery_access_policy_blocked`；`/api/status.raw_refresh` 现在强制包含 `access_policy.status=blocked_by_access_policy`、`blocker_code=ai_controlled_access_rejected`、`automated_public_raw_refresh_allowed=false` 和授权/导入 next action，即使旧 raw health artifact 仍带 route mismatch 文案也不会误导用户去重试抓取。
 - 已更新 Downloads/Web 文案：按钮从“刷新/重试”改为“检查Raw合规状态”“检查Live合规状态”；Live 区块改为 `TAB Live 访问合规状态`；`active_timeline_report_latest.*` 已重新生成，旧提示“先刷新公开盘口 raw”已替换为“先接入授权 raw 或导入用户导出快照”。
-- 已重建真实产物：`/Users/linzezhang/Downloads/FIFA Report/TAB FIFA盘口研究系统.html`、`/Users/linzezhang/Downloads/FIFA Report/app_assets/*`、`/Users/linzezhang/Downloads/TAB FIFA盘口研究系统.app`、工作区 `outputs/tab_fifa_app_entry_runtime.html`。
+- 已重建真实产物：`~/Downloads/FIFA Report/TAB FIFA盘口研究系统.html`、`~/Downloads/FIFA Report/app_assets/*`、`~/Downloads/TAB FIFA盘口研究系统.app`、工作区 `outputs/tab_fifa_app_entry_runtime.html`。
 - 已重启本地 app server：当前 `http://127.0.0.1:8767/` 监听进程为 PID `75915`，已验证 `/api/status`、`/api/public-raw-refresh`、`/api/live-board-discovery` 均加载新逻辑。
 - 验证通过：`python3 -m py_compile ...`；`bash -n scripts/run_tab_fifa_daily_automation.sh scripts/tab_real_refresh_smoke.sh`；`node --check scripts/refresh_tab_readonly.mjs`；`node --check scripts/discover_tab_live_boards.mjs`；`python3 -m unittest tests.test_pipeline` -> `Ran 152 tests in 95.243s OK`。Downloads HTML/assets 关键文案命中，旧 `Headed fallback`、`重试 Live 板块发现`、`先刷新公开盘口 raw` 等文案未命中。
 - 当前仍不能进入完整正式 automation：正式 raw 仍未 5/5 ready，Australia Markets 仍缺失/route mismatch，私有 My Bets 仍需用户本机授权登录。新增可执行下注金额继续为 `AUD 0`。
@@ -1086,8 +1086,8 @@ python3 refresh_odds_provider_raw.py --provider the_odds_api --scope matches --e
 ## 当前状态
 
 - 本地网页主入口：`http://127.0.0.1:8767/`
-- Downloads HTML：`/Users/linzezhang/Downloads/FIFA Report/TAB FIFA盘口研究系统.html`
-- Downloads App：`/Users/linzezhang/Downloads/TAB FIFA盘口研究系统.app`
+- Downloads HTML：`~/Downloads/FIFA Report/TAB FIFA盘口研究系统.html`
+- Downloads App：`~/Downloads/TAB FIFA盘口研究系统.app`
 - 工作区入口副本：`work/tab-research-pipeline/outputs/tab_fifa_app_entry_runtime.html`
 - 当前页面首屏优先展示“推荐下注板块”，包含时间、板块、盘口、下注、赔率、金额、分析一致性、盘口价值、EV、Edge、套利率、Risk of ruin、概率赔率编辑、置信度、市场资金倾向分等字段。
 - 当前有效研究范围为 `4/5`：Matches、Futures、Group Betting、Team Futures Multi 可进入 research-only 诊断；Australia Markets 仍不可用。

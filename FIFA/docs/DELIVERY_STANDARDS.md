@@ -27,7 +27,7 @@
 ## 运行方式
 
 ```bash
-cd /Users/linzezhang/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/github_sync/FIFA/tab-research-pipeline
+cd ~/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/github_sync/FIFA/tab-research-pipeline
 python3 scripts/tab_fifa_app_server.py --port 8767
 ```
 

@@ -2281,7 +2281,7 @@ formulas:
     status: "active"
     fact_level: "EXTRACTED"
     semantic_status: "MACHINE_VERIFIED"
-    expression: "A trial evidence report passes only when either calendar-day mode has at least 30 unique daily dates or accelerated_real_data_replay mode has at least 30 unique replay slots backed by real arXiv source IDs; source_id and publication_id values are unique; every daily run is succeeded or degraded; every P0 claim is traceable; no duplicate or unsupported publication is recorded; no misleading failure output is published; every daily run has RunRecord, Stage 1 text artifact, SMTP, and resource refs; the scheduler records 05:00 target and 04:45 health check with manual rerun evidence through either an enabled scheduler or a verified cloud schedule contract that keeps scheduled production disabled; weekly and monthly replay evidence exists; recovery drill evidence exists; real SMTP targets linzezhang35@gmail.com; and resource pressure evidence covers disk, memory, cache, Git artifacts, and secrets."
+    expression: "A trial evidence report passes only when either calendar-day mode has at least 30 unique daily dates or accelerated_real_data_replay mode has at least 30 unique replay slots backed by real arXiv source IDs; source_id and publication_id values are unique; every daily run is succeeded or degraded; every P0 claim is traceable; no duplicate or unsupported publication is recorded; no misleading failure output is published; every daily run has RunRecord, Stage 1 text artifact, SMTP, and resource refs; the scheduler records 05:00 target and 04:45 health check with manual rerun evidence through either an enabled scheduler or a verified cloud schedule contract that keeps scheduled production disabled; weekly and monthly replay evidence exists; recovery drill evidence exists; real SMTP targets LinzeColin@users.noreply.github.com; and resource pressure evidence covers disk, memory, cache, Git artifacts, and secrets."
     code_refs:
       - "arxiv-daily-push/src/arxiv_daily_push/trial.py"
       - "arxiv-daily-push/src/arxiv_daily_push/cli.py"
@@ -3083,7 +3083,7 @@ parameters:
     formula_id: "FORM-ADP-002"
     symbol: "EMAIL_RECIPIENT"
     name: "Notification recipient"
-    value: "linzezhang35@gmail.com"
+    value: "LinzeColin@users.noreply.github.com"
     source: "EXTRACTED from user requirement and config.py"
     status: "active"
     fact_level: "EXTRACTED"

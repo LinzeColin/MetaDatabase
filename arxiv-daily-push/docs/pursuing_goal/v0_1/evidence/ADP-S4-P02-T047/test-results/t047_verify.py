@@ -6,7 +6,7 @@ Deterministic re-check of the SHADOW Wave-2 backfill (dev-env; production untouc
 the SCALE-approved cohort to the remaining A0 sources only after the Wave 1 value-cost gate passed.
 """
 import sys, json, pathlib, hashlib
-V01 = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
+V01 = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
 T047 = V01 / "evidence" / "ADP-S4-P02-T047"
 T046 = V01 / "evidence" / "ADP-S4-P02-T046"
 fails = []

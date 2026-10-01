@@ -8,7 +8,7 @@ discover_attachments.py into evidence/.../attachment_readback.json). Verifies th
 history is real, readable, versioned, and point-in-time-resolvable; production is untouched.
 """
 import sys, json, pathlib
-V01 = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/"
+V01 = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/"
                    "arxiv-daily-push/docs/pursuing_goal/v0_1")
 sys.path.insert(0, str(V01 / "tools"))
 import a0_qa_gate as Q

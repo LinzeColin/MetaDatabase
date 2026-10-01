@@ -5,7 +5,7 @@ Acceptance (TASK_INDEX): 压力测试时 realtime freshness P95 <=基线+20%；�
 Deterministic. Backfill (2016+ history) must never starve the live front-line data.
 """
 import sys, pathlib
-V01 = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
+V01 = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
 sys.path.insert(0, str(V01 / "tools"))
 import three_lane_scheduler as S  # noqa: E402
 

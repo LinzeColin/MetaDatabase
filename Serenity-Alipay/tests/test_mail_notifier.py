@@ -21,7 +21,7 @@ def test_send_with_apple_mail_prefers_html_content(monkeypatch):
     result = send_with_apple_mail(
         "标题",
         "纯文本兜底",
-        "linzezhang35@gmail.com",
+        "owner@example.com",
         html_body="<!doctype html><html><body><h1>标题</h1><table></table></body></html>",
     )
 
@@ -47,7 +47,7 @@ def test_send_with_apple_mail_falls_back_to_plain_text_when_html_script_fails(mo
     result = send_with_apple_mail(
         "标题",
         "纯文本兜底",
-        "linzezhang35@gmail.com",
+        "owner@example.com",
         html_body="<!doctype html><html><body><h1>标题</h1></body></html>",
     )
 
@@ -64,7 +64,7 @@ def test_send_with_apple_mail_reports_subprocess_timeout(monkeypatch):
 
     monkeypatch.setattr("app.adapters.mail_notifier.subprocess.run", fake_run)
 
-    result = send_with_apple_mail("标题", "纯文本兜底", "linzezhang35@gmail.com")
+    result = send_with_apple_mail("标题", "纯文本兜底", "owner@example.com")
 
     assert result["status"] == "failed"
     assert "timed out" in result["error"]

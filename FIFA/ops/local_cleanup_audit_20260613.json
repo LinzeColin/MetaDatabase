@@ -1,7 +1,7 @@
 {
   "generated_at": "2026-06-13T16:55:40+1000",
   "started_at": "2026-06-13T16:55:38+1000",
-  "root": "/Users/linzezhang/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa",
+  "root": "~/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa",
   "github_repo": "https://github.com/LinzeColin/FIFA",
   "backup_commit_before_cleanup": "a94ec0b",
   "policy": "Deletion executed only after GitHub push to origin/main succeeded.",

@@ -9,7 +9,7 @@
       "summary": "/usr/bin/python3 is Python 3.9.6 and cannot import tomllib; no package or interpreter was changed."
     },
     {
-      "command": "\"/Users/linzezhang/.local/bin/python3.12\" START_HERE.py verify",
+      "command": "\"~/.local/bin/python3.12\" START_HERE.py verify",
       "command_sha256": "0bc7056854af97e86acd7ec74d64003a59d268297bdc589345193c383b2742f7",
       "executed": true,
       "exit_code": 1,

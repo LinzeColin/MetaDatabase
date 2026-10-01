@@ -7,7 +7,7 @@ time (SHADOW). Verifies the media-vs-A0 comparison AND the shadow discipline (ne
 continue if thresholds unmet; SHADOW never switches).
 """
 import sys, json, pathlib
-V01 = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
+V01 = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
 T039 = V01 / "evidence" / "ADP-S3-P03-T039"
 sys.path.insert(0, str(V01 / "tools"))
 import a0_shadow as SH  # noqa: E402

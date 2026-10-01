@@ -8,7 +8,7 @@ from the pyarrow writer) and cross-checks against the committed T027 manifest. N
 Deterministic (no clock/random).
 """
 import sys, json, pathlib, collections
-V01 = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
+V01 = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
 T027 = V01 / "evidence" / "ADP-S2-P03-T027"
 OUT = pathlib.Path("/private/tmp/claude-501/-Users-linzezhang-Documents-Codex-main-worktree-CodexProject-adp/6c611ddc-f264-4d55-9b19-b0f39a03415d/scratchpad/t028_snap")
 sys.path.insert(0, str(V01 / "tools"))

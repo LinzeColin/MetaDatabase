@@ -3,7 +3,7 @@
 - 服务日期: `2026-06-28`
 - 执行时间: `2026-06-28 11:26:41 Australia/Sydney`
 - 运行入口: `local-runner daily --daily-input-report`
-- 输入来源: 复用同日 `/Users/linzezhang/.adp/arxiv-daily-push/runs/20260628/adp-daily-input-report.json`
+- 输入来源: 复用同日 `~/.adp/arxiv-daily-push/runs/20260628/adp-daily-input-report.json`
 - 运行结果: `pass`
 - 今日已发送 / 总应发送: `4 / 4`
 

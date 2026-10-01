@@ -6,6 +6,7 @@
 //   /healthz?strict=1      同上，且数据必须新鲜（见 status.mjs），否则 503 —— 给外部监控用，部署器不用它
 //   /version.txt           构建时写入的提交号
 //   /api/selfhost/status   只读 JSON：最新一次运行、数据新鲜度、最近一次每日任务记录
+//   POST /api/raw-selftest 回 410「已停用」（自托管没有 R2，见下方处理）
 //   /media/*               首屏视频（Cloudflare 上原本由静态资产层提供），支持 Range
 import http from 'node:http';
 import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
@@ -13,6 +14,7 @@ import { join, resolve, sep } from 'node:path';
 import { loadWorker, mediaDir, schemaPath } from './load_worker.mjs';
 import { openDatabase } from './d1_sqlite.mjs';
 import { statusReport } from './status.mjs';
+import { installPoliteFetch } from './polite_fetch.mjs';
 
 const MAX_BODY = 1024 * 1024;
 
@@ -47,6 +49,12 @@ export async function createApp({ dbPath, media = mediaDir(), commit = readCommi
     if (p === '/version.txt') return new Response(commit + '\n', { headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' } });
     if (p === '/api/selfhost/status') return new Response(JSON.stringify(await statusReport(db, { commit, failuresFile }), null, 1), { headers: JSON_HEADERS });
     if (p.startsWith('/media/')) return serveMedia(request, p.slice('/media/'.length), media);
+    // 原始证据 R2 双写的管理端自检：自托管没有 R2（零 Cloudflare 依赖），功能明确停用。
+    // worker 里同一路由在没有 RAW 绑定时会回 503「R2 binding RAW missing」——那像是故障，这里改成明说「已停用」。
+    // 抓取时的 R2 双写旁路本身由 worker 的 `env.RAW` 守卫跳过，不需要在这里处理。
+    if (p === '/api/raw-selftest' && request.method === 'POST') {
+      return new Response(JSON.stringify({ disabled: true, feature: 'raw-evidence-r2-dualwrite', reason: '自托管版不使用 Cloudflare R2；原始证据双写已停用（不是故障）' }), { status: 410, headers: JSON_HEADERS });
+    }
     if (p === '/api/run' && request.method === 'POST') {
       const prev = runLock;
       let release; runLock = new Promise((r) => { release = r; });
@@ -91,8 +99,10 @@ async function toRequest(req) {
   return new Request(`${proto}://${host}${req.url}`, { method: req.method, headers, body });
 }
 
-export async function startServer({ port = Number(process.env.PORT || 8080), host = '0.0.0.0', dbPath = process.env.ADP_DB || join(process.env.ADP_DATA_DIR || '/data', 'adp.sqlite'), ...rest } = {}) {
+export async function startServer({ arxivMinIntervalMs, port = Number(process.env.PORT || 8080), host = '0.0.0.0', dbPath = process.env.ADP_DB || join(process.env.ADP_DATA_DIR || '/data', 'adp.sqlite'), ...rest } = {}) {
   const dataDir = process.env.ADP_DATA_DIR || '/data';
+  // 网页里的「立即运行」(POST /api/run) 也会抓 arXiv：与每日任务一样守 ≥3 秒间隔（见 polite_fetch.mjs）
+  const restoreFetch = installPoliteFetch({ minIntervalMs: arxivMinIntervalMs });
   const app = await createApp({ dbPath, failuresFile: join(dataDir, 'logs', 'failures.log'), ...rest });
   const server = http.createServer(async (req, res) => {
     try {
@@ -108,6 +118,7 @@ export async function startServer({ port = Number(process.env.PORT || 8080), hos
     }
   });
   server.keepAliveTimeout = 65000;
+  server.on('close', restoreFetch);
   await new Promise((ok) => server.listen(port, host, ok));
   const shutdown = () => { server.close(() => { try { app.db.close(); } catch { /* 已关 */ } process.exit(0); }); setTimeout(() => process.exit(0), 5000).unref(); };
   return { server, app, shutdown, port: server.address().port };

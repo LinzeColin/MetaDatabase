@@ -290,7 +290,7 @@ def build_recommended_commands(*, event_probe_limit: int) -> list[dict[str, str]
         },
         {
             "title": "Team Total 人工下一批",
-            "command": "open '/Users/linzezhang/Downloads/FIFA Report/app_assets/provider_manual_next_batch_pair_template_latest.csv'",
+            "command": "open \"$HOME/Downloads/FIFA Report/app_assets/provider_manual_next_batch_pair_template_latest.csv\"",
             "why": "Team Total 当前走人工最终校验或官方白名单路径，不用 The Odds API 盲扫。",
         },
     ]

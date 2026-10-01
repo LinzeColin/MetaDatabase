@@ -2,13 +2,14 @@
 
 import fs from "node:fs/promises";
 import fsSync from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
 const NODE_MODULE_HINT =
   process.env.TAB_FIFA_NODE_MODULES ||
-  "/Users/linzezhang/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules";
+  path.join(os.homedir(), ".cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules");
 const require = createRequire(import.meta.url);
 let chromiumModule = null;
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));

@@ -8,7 +8,7 @@ assertion is explicitly marked (inferred_unsaved) and NOT in the saved graph, an
 (off-vocabulary relations and unknown board kinds are refused, so no boundless edges).
 """
 import sys, json, pathlib, importlib.util
-V01 = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/"
+V01 = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/"
                    "arxiv-daily-push/docs/pursuing_goal/v0_1")
 sys.path.insert(0, str(V01 / "tools"))
 import evidence_relation as R

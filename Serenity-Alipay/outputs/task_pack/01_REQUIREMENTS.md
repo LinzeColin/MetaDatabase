@@ -42,7 +42,7 @@ All primary runs use Beijing time first. Australia/Sydney time is display-only a
    - Key field change > 1 sigma.
    - 7-day drawdown worsens > 5.00%.
    - Single position over-expansion occurs > 2 consecutive runs.
-13. Generate Mail-ready notification content for `linzezhang35@gmail.com`.
+13. Generate Mail-ready notification content for `LinzeColin@users.noreply.github.com`.
 14. Support dry-run mode by default.
 
 ## Non-Functional Requirements

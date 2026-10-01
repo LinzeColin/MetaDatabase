@@ -4,7 +4,7 @@
   "status": "blocked_not_ready_for_owner_gate",
   "status_zh": "阻塞，尚不可进入 OWNER-GATE-01",
   "mode": "research_paper_order_intent_review",
-  "canonical_root": "/Users/linzezhang/Documents/Codex/2026-06-19/current-phase-phase-0-goal-scope/work/CodexProject/Alpha",
+  "canonical_root": "~/Documents/Codex/2026-06-19/current-phase-phase-0-goal-scope/work/CodexProject/Alpha",
   "github_source_of_truth": "LinzeColin/CodexProject/Alpha",
   "safety_boundary": {
     "live_trading_enabled": false,

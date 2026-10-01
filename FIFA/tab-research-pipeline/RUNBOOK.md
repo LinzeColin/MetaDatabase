@@ -49,7 +49,7 @@ scope = "report_generation_only"
 | recurring automation entry ready | false | 用户尚未授权 recurring automation |
 | 自动下注 | 禁止 | 系统只生成报告和建议，不执行下注 |
 | 公共输出安全 | ready | 成功指针引用的公开产物通过 public safety |
-| 报告主路径 | ready | `/Users/linzezhang/Downloads/FIFA Report/DDMMYYYY.pdf` |
+| 报告主路径 | ready | `~/Downloads/FIFA Report/DDMMYYYY.pdf` |
 | PDF QA | 已接入 | 检查页数、文本长度、文件大小、关键中文术语，并用 PyMuPDF 渲染抽样页做视觉 smoke QA |
 | latest artifact consistency | 已接入 | verifier 会拒绝 run-scoped key 指向 `*_latest` 文件 |
 | 可视化覆盖 | ready | `outputs/report_visual_inventory_latest.json` 当前 13 个报告族均有图表/表格/Dashboard；average_score=0.9904 |
@@ -81,7 +81,7 @@ public_artifact_safety_ready: true
 正式 PDF：
 
 ```text
-/Users/linzezhang/Downloads/FIFA Report/04062026.pdf
+~/Downloads/FIFA Report/04062026.pdf
 ```
 
 报告索引：
@@ -367,7 +367,7 @@ https://socceraction.readthedocs.io/en/latest/documentation/faq.html
 进入项目目录：
 
 ```bash
-cd /Users/linzezhang/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/work/tab-research-pipeline
+cd ~/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/work/tab-research-pipeline
 ```
 
 运行完整单测：
@@ -500,7 +500,7 @@ python3 refresh_odds_provider_raw.py \
 
 | 类型 | 路径 |
 |---|---|
-| PDF 报告 | `/Users/linzezhang/Downloads/FIFA Report/DDMMYYYY.pdf` |
+| PDF 报告 | `~/Downloads/FIFA Report/DDMMYYYY.pdf` |
 | 最新 dashboard | `outputs/tab_fifa_dashboard_latest.html` |
 | 最新 SQLite | `outputs/tab_fifa_reports.sqlite3` |
 | 最新报告索引 | `outputs/report_index_latest.json` |
@@ -526,7 +526,7 @@ python3 refresh_odds_provider_raw.py \
 当 `automation_readiness_latest.status=current_run_preflight_blocked` 且原因是 `current-day private position snapshot missing` 时，使用私有只读链生成当日快照：
 
 ```bash
-cd /Users/linzezhang/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/work/tab-research-pipeline
+cd ~/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/work/tab-research-pipeline
 TAB_FIFA_HEADLESS=0 \
 node scripts/capture_tab_my_bets_readonly.mjs --report-date DDMMYYYY --wait-for-login-ms 600000
 python3 import_my_bets_snapshot.py --source ../../work/private/tab_fifa/tab_my_bets_raw_DDMMYYYY.txt --report-date DDMMYYYY

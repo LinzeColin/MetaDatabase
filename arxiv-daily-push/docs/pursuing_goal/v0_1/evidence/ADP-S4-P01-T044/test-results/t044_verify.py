@@ -5,7 +5,7 @@ Acceptance (TASK_INDEX): 未知成本不得用 0；可计算每千 artifact 和�
 Deterministic. Real 500-item throughput; costs measured for a couple source-years, UNKNOWN for the rest.
 """
 import sys, json, pathlib
-V01 = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
+V01 = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
 T044 = V01 / "evidence" / "ADP-S4-P01-T044"
 sys.path.insert(0, str(V01 / "tools"))
 import cost_dashboard as C  # noqa: E402

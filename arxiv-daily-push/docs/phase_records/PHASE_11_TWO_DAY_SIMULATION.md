@@ -48,7 +48,7 @@ python3 -m arxiv_daily_push run-two-day-simulation \
 Saved report:
 
 ```text
-/Users/linzezhang/Documents/Codex/2026-06-21/readme-first-md-01-execution-contract/outputs/arxiv_daily_push_two_day_simulation_20260622.json
+~/Documents/Codex/2026-06-21/readme-first-md-01-execution-contract/outputs/arxiv_daily_push_two_day_simulation_20260622.json
 ```
 
 Observed result:

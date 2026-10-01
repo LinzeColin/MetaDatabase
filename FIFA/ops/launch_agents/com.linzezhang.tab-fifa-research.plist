@@ -7,13 +7,13 @@
   <string>com.linzezhang.tab-fifa-research</string>
   <key>ProgramArguments</key>
   <array>
-    <string>/Users/linzezhang/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3</string>
-    <string>/Users/linzezhang/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/github_sync/FIFA/tab-research-pipeline/scripts/tab_fifa_app_server.py</string>
+    <string>/Users/USERNAME/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3</string>
+    <string>/Users/USERNAME/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/github_sync/FIFA/tab-research-pipeline/scripts/tab_fifa_app_server.py</string>
     <string>--port</string>
     <string>8767</string>
   </array>
   <key>WorkingDirectory</key>
-  <string>/Users/linzezhang/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/github_sync/FIFA/tab-research-pipeline</string>
+  <string>/Users/USERNAME/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/github_sync/FIFA/tab-research-pipeline</string>
   <key>StandardOutPath</key>
   <string>/tmp/tab_fifa_app_server.log</string>
   <key>StandardErrorPath</key>

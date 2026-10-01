@@ -17,7 +17,7 @@
     "head_equals_origin_main": true,
     "social_archive_file_count": 446,
     "social_archive_VERSION": "0.0.0.6",
-    "worktree": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007",
+    "worktree": "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007",
     "branch": "claude/social-archive-v0007",
     "sparse_checkout": [
       ".github",

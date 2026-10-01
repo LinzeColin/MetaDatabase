@@ -46,7 +46,7 @@ This run does not enable SMTP, scheduler, Release, production restore, DAILY_OPE
 
 - TDD red: `test_stage2_final_gate.py` first failed because `build_s2plt02_dry_run_second_day_audit_state` did not exist.
 - Focused green: `arxiv-daily-push/tests/test_stage2_final_gate.py arxiv-daily-push/tests/test_cli.py` passed with 116 tests.
-- CLI probe: `audit-s2plt02-dry-run-second-day --state-dir /Users/linzezhang/.adp/arxiv-daily-push --service-date 2026-06-29 --json` returned blocked / exit 2 with `dry_run_mail_count=4`, `real_sent_mail_count=0`, and `counts_toward_s2plt02_terminal_proof=false`.
+- CLI probe: `audit-s2plt02-dry-run-second-day --state-dir ~/.adp/arxiv-daily-push --service-date 2026-06-29 --json` returned blocked / exit 2 with `dry_run_mail_count=4`, `real_sent_mail_count=0`, and `counts_toward_s2plt02_terminal_proof=false`.
 
 ## Next Required Evidence
 

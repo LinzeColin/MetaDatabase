@@ -12,3 +12,6 @@ build/
 dist/
 *.egg-info/
 .pytest_cache/
+
+# Cloudflare wrangler 本机缓存（含账号 id 与账号名），禁止提交
+.wrangler/
