@@ -80,10 +80,16 @@ def table_exists(conn: sqlite3.Connection, table: str) -> bool:
     return conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,)).fetchone() is not None
 
 
+def _norm(row) -> str:
+    """一行的比较用文本。整数值的浮点数按整数写：REAL 列会把 JSON 里的 8808 存成 8808.0，值相同，不算不一致。"""
+    vals = [int(v) if isinstance(v, float) and v.is_integer() else v for v in row]
+    return json.dumps(vals, ensure_ascii=False, default=repr)
+
+
 def digest(rows: list[tuple]) -> str:
-    """行集合的顺序无关摘要：每行按 repr 归一后排序再 sha256。"""
+    """行集合的顺序无关摘要：每行按 _norm 归一后排序再 sha256。"""
     h = hashlib.sha256()
-    for line in sorted(json.dumps(list(r), ensure_ascii=False, default=repr) for r in rows):
+    for line in sorted(_norm(r) for r in rows):
         h.update(line.encode("utf-8"))
         h.update(b"\n")
     return h.hexdigest()
@@ -240,6 +246,9 @@ def migrate(db_path: Path, source: Source, schema: Path = DEFAULT_SCHEMA, force:
                     report["tables"][t] = {"source_rows": 0, "note": "来源里没有这张表"}
                     continue
                 scols, tcols = source.columns(t), table_cols(conn, t)
+                if not scols:                      # JSON 来源里的空表：没有行，也就推不出列，没有要搬的
+                    report["tables"][t] = {"source_rows": 0, "note": "来源里是空表"}
+                    continue
                 common = [c for c in scols if c in tcols]
                 dropped = [c for c in scols if c not in tcols]
                 if dropped:
@@ -271,8 +280,8 @@ def migrate(db_path: Path, source: Source, schema: Path = DEFAULT_SCHEMA, force:
                         mismatches.append(t)
                 else:
                     # --force 时目标里可能本就有别的行：只要求来源每一行都在目标里
-                    gotset = {json.dumps(list(r), default=repr) for r in got}
-                    missing = [1 for r in proj if json.dumps(list(r), default=repr) not in gotset]
+                    gotset = {_norm(r) for r in got}
+                    missing = [1 for r in proj if _norm(r) not in gotset]
                     if missing:
                         mismatches.append(t)
             if mismatches:

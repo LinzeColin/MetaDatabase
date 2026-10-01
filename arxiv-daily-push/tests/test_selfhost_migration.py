@@ -153,6 +153,29 @@ class MigrationTests(unittest.TestCase):
         self.assertEqual(self.run_cli("--db", str(target), "--json", str(one)).returncode, 0)
         self.assertEqual(table_counts(target), self.counts)
 
+    def test_json_with_empty_tables_and_integers_in_real_columns(self) -> None:
+        # 2026-10-01 真实导入遇到的两种情况：D1 查询 API 读出的空表是 []（推不出列）；REAL 列的整数值在 JSON 里是 8808。
+        d = self.tmp / "j"; dump_json(self.fake, d, wrangler_shape=False)
+        data = {p.stem: json.loads(p.read_text(encoding="utf-8")) for p in d.glob("*.json")}
+        data["cn_watch_seen"] = []
+        self.assertTrue(data["cn_rum"], "夹具里 cn_rum 要有行")
+        for r in data["cn_rum"]:
+            r["value"] = 8808
+        one = self.tmp / "all.json"
+        one.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+        target = self.tmp / "adp.sqlite"
+        p = self.run_cli("--db", str(target), "--json", str(one))
+        self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
+        rep = json.loads(p.stdout)
+        self.assertTrue(rep["ok"])
+        self.assertEqual(rep["tables"]["cn_watch_seen"]["source_rows"], 0)
+        c = sqlite3.connect(target)
+        self.assertEqual({v for (v,) in c.execute("SELECT value FROM cn_rum")}, {8808.0})
+        c.close()
+        # 负控：值真的不同仍要报不一致
+        self.assertNotEqual(mig.digest([(8808,)]), mig.digest([(8808.5,)]))
+        self.assertEqual(mig.digest([(8808,)]), mig.digest([(8808.0,)]))
+
     # ---- 安全性
     def test_refuses_nonempty_target_without_force_and_leaves_it_untouched(self) -> None:
         target = self.tmp / "adp.sqlite"
