@@ -454,7 +454,7 @@ _NO_SPONSORSHIP = re.compile(
 )
 _WORK_RIGHTS_REQUIRED = re.compile(
     r"\b(?:valid|full|full-time|unrestricted|current|existing|eligible)\s+(?:[a-z-]+\s+){0,2}"
-    r"(?:work(?:ing)? rights|right to work)\b|\bright to work in australia\b",
+    r"(?:work(?:ing)? rights|right to work)\b|\bright to work in australia\b|\bwork(?:ing)? rights in australia\b",
     re.I,
 )
 

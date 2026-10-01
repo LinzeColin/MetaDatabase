@@ -94,6 +94,7 @@ def test_sponsorship_refusals_are_recognised(text):
     "Only those with eligible right to work will be considered",
     "candidates must have full-time Australian work rights",
     "You must have the right to work in Australia",
+    "Applications will only be considered from candidates who hold working rights in Australia",
 ])
 def test_work_rights_requirements_are_recognised(text):
     assert extract_job_requirements({"title": "Analyst", "description": text})["full_work_rights_required"]
