@@ -5,7 +5,7 @@ journeys:
   - name: 打开首页了解怎么用
     steps:
       - goto: ""
-      - expect_text: ["上传简历", "登录"]
+      - expect_text: ["上传简历", "已有账户"]   # 手机端顶栏「登录」收起，登录入口是「已有账户」（同样指向 /login），三个视口都可见
       - screenshot: 首屏
   - name: 服务就绪
     steps:
