@@ -1,0 +1,79 @@
+schema: "signal-lattice-evidence-card/1"
+id: "grid-equipment"
+bottleneck: "电网设备与建设产能：大型电力变压器交期被官方报告称为 36 个月起、最长 60 个月，美国 80% 以上新增大型变压器依赖进口，输配电线路审批可长达 10 年；设备和施工能力是电网扩容的限速环节。"
+retrieved: "2026-09-30"
+valid_until: "2027-09-30"
+factors:
+  current_tightness:
+    rating: 2
+    valid_until: "2027-03-31"
+    basis: "能源部输配电办公室页面（2025 年更新内容）称配电变压器仍面临供应链约束、交期长与部件短缺，但没有给出数字；带数字的 36 个月交期出自 2024-07 的国会报告，已超过 18 个月，因此最多 2 分。"
+    sources:
+      - url: "https://www.energy.gov/oe/distribution-transformers"
+        kind: "regulator"
+        publisher: "U.S. Department of Energy, Office of Electricity"
+        title: "Distribution Transformers"
+        excerpt: "Distribution transformers are the building blocks of the electric grid, yet they are facing supply chain constraints resulting in long lead times and component shortages."
+      - url: "https://www.energy.gov/sites/default/files/2024-10/EXEC-2022-001242%20-%20Large%20Power%20Transformer%20Resilience%20Report%20signed%20by%20Secretary%20Granholm%20on%207-10-24.pdf"
+        kind: "regulator"
+        publisher: "U.S. Department of Energy"
+        title: "Large Power Transformer Resilience Report to Congress (July 2024)"
+        excerpt: "In addition, another obstacle has recently emerged: lead times for acquisition of an LPT have become exceptionally long, with 36-month lead times being commonly quoted and maximum lead times reaching as much as 60 months [2, 3, 4]."
+  supplier_concentration:
+    rating: 3
+    basis: "能源部报告引用商务部 2019 年估计：大型变压器 82% 靠进口、国内仅 18%。数字直接但已是 2019 年数据，且只覆盖大型变压器，不覆盖整个电网设备，因此给 3。"
+    sources:
+      - url: "https://www.energy.gov/sites/default/files/2024-10/EXEC-2022-001242%20-%20Large%20Power%20Transformer%20Resilience%20Report%20signed%20by%20Secretary%20Granholm%20on%207-10-24.pdf"
+        kind: "regulator"
+        publisher: "U.S. Department of Energy"
+        title: "Large Power Transformer Resilience Report to Congress (July 2024)"
+        excerpt: "The U.S. Department of Commerce (DOC) estimated in 2019 that 137 LPTs (18 percent) were produced domestically for domestic use while 617 units (82 percent) were imported for domestic use, and only 4 units were exported."
+  expansion_lead_time:
+    rating: 3
+    basis: "DOE 报告的订货到交付 36-60 个月是官方数字；AMSC 10-K 称新建输配电线路的审批可能要 10 年以上（公司自述）。两者指向同一方向，但一个是交期、一个是审批，都不是「新产能建设周期」本身，所以 3 分。"
+    sources:
+      - url: "https://www.energy.gov/sites/default/files/2024-10/EXEC-2022-001242%20-%20Large%20Power%20Transformer%20Resilience%20Report%20signed%20by%20Secretary%20Granholm%20on%207-10-24.pdf"
+        kind: "regulator"
+        publisher: "U.S. Department of Energy"
+        title: "Large Power Transformer Resilience Report to Congress (July 2024)"
+        excerpt: "In addition, another obstacle has recently emerged: lead times for acquisition of an LPT have become exceptionally long, with 36-month lead times being commonly quoted and maximum lead times reaching as much as 60 months [2, 3, 4]."
+      - url: "https://www.sec.gov/Archives/edgar/data/880807/000143774926018542/amsc20260331_10k.htm"
+        kind: "company_filing"
+        publisher: "U.S. SEC (company filing)"
+        title: "American Superconductor Corp Form 10-K FY2025"
+        excerpt: "However, permitting new transmission and distribution lines can take 10 years or more due to various public policy issues, such as environmental, aesthetic, and health concerns."
+companies:
+  - cik: 880807
+    symbol: "AMSC"
+    name: "American Superconductor Corp"
+    market_cap_usd: 1410151000
+    market_cap_as_of: "2026-09-30"
+    exposure: "电网设备供应商：通过 Comtrafo 提供最高 245 kV、250 MVA 的电力变压器及配电变压器。"
+    source:
+      url: "https://www.sec.gov/Archives/edgar/data/880807/000143774926018542/amsc20260331_10k.htm"
+      kind: "company_filing"
+      publisher: "U.S. SEC (company filing)"
+      title: "American Superconductor Corp Form 10-K FY2025"
+      excerpt: "This includes oil-filled transformers up to 36 kV, dry-type transformers for indoor and safety-critical applications, and power transformers up to 245 kV and 250 MVA for transmission and large industrial uses."
+  - cik: 80035
+    symbol: "PLPC"
+    name: "Preformed Line Products Co"
+    market_cap_usd: 1990679000
+    market_cap_as_of: "2026-09-30"
+    exposure: "输配电线路金具与变电站连接件制造商，属于电网硬件供给侧。"
+    source:
+      url: "https://www.sec.gov/Archives/edgar/data/80035/000008003526000007/plpc-20251231.htm"
+      kind: "company_filing"
+      publisher: "U.S. SEC (company filing)"
+      title: "Preformed Line Products Co Form 10-K FY2025"
+      excerpt: "Energy Products are used for supporting, protecting, terminating and splicing transmission and distribution lines as well as bolted, welded, and compressed connectors for substations."
+contradictions:
+  - searched: "USITC 对大型电力变压器的反倾销案件报告（Publication 5531）里的交期数据，看 36 个月的说法是否被其他官方数据推翻。"
+    found: "该报告在原始调查中记录的交期是国内厂商平均 8-11 个月、进口商 9-14 个月，明显短于 DOE 引述的 36 个月；但这是旧调查期（疫情与需求激增之前）的数据。"
+    effect: "说明长交期是近几年才出现的，可能随产能扩张而缓解，因此 current_tightness 与 expansion_lead_time 没有给更高分。"
+  - searched: "DOE 大型变压器报告中关于国内产能利用率的数字。"
+    found: "商务部 2019 年估计国内制造商产能利用率约 40%、最大产能约 343 台/年；当时国内有闲置产能，进口占比高更多与成本和交期有关。"
+    effect: "因此 supplier_concentration 只给 3，没有把进口占比等同于「无法国产替代」。"
+  - searched: "DOE 配电变压器工作组页面上是否有供需缓解的进展。"
+    found: "页面称工作组 2025 年已制作三项资源用于减少变压器型号数量、促进部件互换，以缩短生产时间；属于缓解措施，没有给出缓解后的交期数字。"
+    effect: "无数字可用，仅作为 current_tightness 保持 2 分的理由。"

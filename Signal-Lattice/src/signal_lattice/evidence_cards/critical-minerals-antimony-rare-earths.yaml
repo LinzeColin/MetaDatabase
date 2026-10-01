@@ -1,0 +1,117 @@
+schema: "signal-lattice-evidence-card/1"
+id: "critical-minerals-antimony-rare-earths"
+bottleneck: "关键矿产（锑与稀土）：美国净进口依赖锑 91%、稀土化合物与金属 71% 来自中国；中国 2024-2025 年对锑和稀土出口的管制让价格与供应出现剧烈波动，国内新矿刚开工。"
+retrieved: "2026-09-30"
+valid_until: "2027-09-30"
+factors:
+  funded_demand:
+    rating: 2
+    valid_until: "2027-03-31"
+    basis: "USGS 记载美国国防部（文中称 Department of War）有条件授予一家爱达荷锑矿 8000 万美元资金，用于重建国内锑来源；这是政府对供给侧的出资，不是终端采购合同，也只有一条来源，所以 2 分。"
+    sources:
+      - url: "https://pubs.usgs.gov/periodicals/mcs2026/mcs2026-antimony.pdf"
+        kind: "government_statistics"
+        publisher: "U.S. Geological Survey"
+        title: "Mineral Commodity Summaries 2026: Antimony"
+        excerpt: "The company was conditionally awarded $80 million of funding from the U.S. Department of War to reestablish a domestic source of antimony."
+  current_tightness:
+    rating: 3
+    valid_until: "2027-03-31"
+    basis: "USGS：2025 年锑均价每磅 25 美元，是 2024 年的两倍多，中国 2024-12 起禁止向美国出口锑；但价格在 2025-06 达到 27.5 美元后回落到 11 月的 20.3 美元，所以给 3 而不是 4。"
+    sources:
+      - url: "https://pubs.usgs.gov/periodicals/mcs2026/mcs2026-antimony.pdf"
+        kind: "government_statistics"
+        publisher: "U.S. Geological Survey"
+        title: "Mineral Commodity Summaries 2026: Antimony"
+        excerpt: "The average antimony price in 2025 was $25 per pound, more than double of that in 2024. In 2024, the average monthly antimony price nearly doubled from $9.8 per pound in August to $18.10 per pound in December after China announced export restrictions on antimony in August and then banned all exports of antimony to the United States in December."
+  supplier_concentration:
+    rating: 4
+    basis: "USGS 2021-2024 年进口来源：锑金属与氧化物合计 55% 来自中国，稀土化合物与金属 71% 来自中国；锑净进口依赖度估计 2025 年为 91%。数字直接、来自政府统计，但只有 USGS 一个发布方，所以不给 5。"
+    sources:
+      - url: "https://pubs.usgs.gov/periodicals/mcs2026/mcs2026-antimony.pdf"
+        kind: "government_statistics"
+        publisher: "U.S. Geological Survey"
+        title: "Mineral Commodity Summaries 2026: Antimony"
+        excerpt: "Total metal and oxide: China, 55%; Belgium, 12%; Thailand, 8%; India, 6%; and other, 19%."
+      - url: "https://pubs.usgs.gov/periodicals/mcs2026/mcs2026-rare-earths.pdf"
+        kind: "government_statistics"
+        publisher: "U.S. Geological Survey"
+        title: "Mineral Commodity Summaries 2026: Rare Earths"
+        excerpt: "Rare-earth compounds and metals: China,8 71%; Malaysia, 13%; Japan, 5%; Estonia, 5%; and other, 6%."
+  substitution_difficulty:
+    rating: 2
+    basis: "USGS 稀土章节称许多用途有替代品但效果通常较差；锑章节也列出多种阻燃剂等替代品。说明替代有一定代价但并非不可能，所以只给 2。"
+    sources:
+      - url: "https://pubs.usgs.gov/periodicals/mcs2026/mcs2026-rare-earths.pdf"
+        kind: "government_statistics"
+        publisher: "U.S. Geological Survey"
+        title: "Mineral Commodity Summaries 2026: Rare Earths"
+        excerpt: "Substitutes are available for many applications but generally are less effective."
+  policy_resilience:
+    rating: 2
+    basis: "USGS 记载中国 2025-11 暂停 10 月的出口管制 1 年，4 月的管制仍有效但开始发放通用许可；约束由政策制造，但目前处于部分放松状态，所以只给 2。"
+    sources:
+      - url: "https://pubs.usgs.gov/periodicals/mcs2026/mcs2026-rare-earths.pdf"
+        kind: "government_statistics"
+        publisher: "U.S. Geological Survey"
+        title: "Mineral Commodity Summaries 2026: Rare Earths"
+        excerpt: "In November, China suspended the October export controls for 1 year. The April export controls remained in effect, although China began to issue general export licenses to selected exporters."
+companies:
+  - cik: 101538
+    symbol: "UAMY"
+    name: "United States Antimony Corp"
+    market_cap_usd: 624121000
+    market_cap_as_of: "2026-09-30"
+    exposure: "美国锑冶炼与产品商（三硫化锑、氧化锑、锑锭），并向国防后勤局供货锑锭，属于锑供给侧。"
+    source:
+      url: "https://www.sec.gov/Archives/edgar/data/101538/000110465926032049/uamy-20251231x10k.htm"
+      kind: "company_filing"
+      publisher: "U.S. SEC (company filing)"
+      title: "United States Antimony Corp Form 10-K FY2025"
+      excerpt: "Antimony trisulfide, trioxide, and metal ingots can be sold as finished products to companies in many industries as well as government agencies."
+  - cik: 1526243
+    symbol: "PPTA"
+    name: "Perpetua Resources Corp"
+    market_cap_usd: 2698316000
+    market_cap_as_of: "2026-09-30"
+    exposure: "开发爱达荷州 Stibnite 金锑项目，矿床含金、银与锑，属于国内锑新增供给的开发方（尚未投产）。"
+    source:
+      url: "https://www.sec.gov/Archives/edgar/data/1526243/000110465926037403/ppta-20251231x10k.htm"
+      kind: "company_filing"
+      publisher: "U.S. SEC (company filing)"
+      title: "Perpetua Resources Corp Form 10-K FY2025"
+      excerpt: "The Corporation’s principal mineral project is the Stibnite Gold Project (the “Project”) in Idaho, USA, which contains several gold, silver and antimony mineral deposits."
+  - cik: 1030192
+    symbol: "IDR"
+    name: "Idaho Strategic Resources, Inc."
+    market_cap_usd: 443133000
+    market_cap_as_of: "2026-09-30"
+    exposure: "爱达荷州金矿生产商，同时持有稀土勘探项目（Mineral Hill、Lemhi Pass、Diamond Creek），稀土部分处于勘探阶段。"
+    source:
+      url: "https://www.sec.gov/Archives/edgar/data/1030192/000165495426002560/idr_10k.htm"
+      kind: "company_filing"
+      publisher: "U.S. SEC (company filing)"
+      title: "Idaho Strategic Resources, Inc. Form 10-K FY2025"
+      excerpt: "The Company’s Mineral Hill, Lemhi Pass, and Diamond Creek properties are included the U.S. national REE inventory as listed in United States Geologic Survey (“USGS”), Idaho Geologic Survey (“IGS”) and Department of Energy (“DOE”) publications."
+  - cik: 1512228
+    symbol: "NB"
+    name: "NioCorp Developments Ltd."
+    market_cap_usd: 525059000
+    market_cap_as_of: "2026-09-30"
+    exposure: "开发内布拉斯加州 Elk Creek 关键矿产项目，预期产出铌、钪、钛和多种稀土产品（尚未投产）。"
+    source:
+      url: "https://www.sec.gov/Archives/edgar/data/1512228/000119312526402806/nb-20260630.htm"
+      kind: "company_filing"
+      publisher: "U.S. SEC (company filing)"
+      title: "NioCorp Developments Ltd. Form 10-K FY2026"
+      excerpt: "The Company’s critical minerals project located near Elk Creek, Nebraska that is expected to produce niobium, scandium, titanium, and several rare earth products, including neodymium-praseodymium oxide, dysprosium oxide, terbium oxide, SEG carbonate, and heavy rare earth carbonate"
+contradictions:
+  - searched: "USGS 锑章节里价格是否已经回落、国内是否已有新增供给。"
+    found: "价格 2025-06 达到每磅 27.5 美元后，11 月回落到 20.3 美元；2025 年蒙大拿一家公司已开始采锑，爱达荷另一家刚动工。"
+    effect: "current_tightness 从 4 降为 3；国内新增供给尚未达到规模，不影响 supplier_concentration。"
+  - searched: "USGS 稀土章节里美国国内是否有稀土开采与加工。"
+    found: "2025 年国内在加州 Mountain Pass 等地开采稀土，精矿产量估计 5.1 万吨氧化物当量；稀土精矿是净出口，瓶颈集中在化合物与金属的分离加工环节。"
+    effect: "本卡的稀土部分只针对化合物与金属，不针对精矿；没有给稀土单独评分，仅在 supplier_concentration 里引用化合物与金属的进口来源。"
+  - searched: "中国出口管制是否在 2025 年底前放松。"
+    found: "USGS 记载 2025-11 中国暂停 10 月扩大的管制 1 年，4 月的管制仍然有效但开始发通用许可。"
+    effect: "policy_resilience 只给 2。"

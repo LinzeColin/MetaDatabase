@@ -27,10 +27,11 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 
+from ..evidence.cards import CARD_FACTORS, CardBook
 from ..evidence.factstore import FactStore
 from .fundamentals import (CHINA_HK_CODES, US_STATE_CODES, Fundamentals, MarketInput, PeerContext,
                            compute_fundamentals)
-from .scoring_support import (KIND_MARKET, NO_EVIDENCE, DimensionResult, EvidenceRef, FactorResult, ParamsError,
+from .scoring_support import (KIND_CARD, KIND_MARKET, NO_EVIDENCE, DimensionResult, EvidenceRef, FactorResult, ParamsError,
                               Receipt, aggregate_dimension, check_table, check_unit_interval, dedupe_refs,
                               geometric_mean, load_params, no_evidence, table_rating, clamp, _check_weights)
 from .structure_factors import StructureEvidence
@@ -149,14 +150,14 @@ DEFAULT_PARAMS: Dict[str, Any] = {
 }
 
 FACTOR_SOURCES: Dict[str, str] = {
-    "funded_demand": "XBRL us-gaap:RevenueRemainingPerformanceObligation 同比（最高 5）；无 RPO 时用正文积压订单金额（覆盖月数最高 3，带对比期同比最高 4）；否则 TTM 营收同比（最高 3，间接证据）",
-    "architectural_necessity": "NO_EVIDENCE：需要系统架构/客户设计资料，申报 XBRL 没有",
-    "current_tightness": "XBRL 毛利率 TTM 同比变化（需营收未下滑）；原文标记（产能受限/交期/配给）只作佐证，单独最高 2",
-    "supplier_concentration": "10-K/10-Q 正文抽取：公司自称唯一/少数供应商（OWNER，最高 3）；依赖上游单一来源是风险，进 technology_resilience 不加分；判不出方向=AMBIGUOUS 不计分；没抽到=NO_EVIDENCE",
-    "qualification_barrier": "10-K/10-Q 正文抽取：客户换供应商要认证 N 个月（OWNER 且带数字，≥12 个月 3 分、≥24 个月 4 分）；没抽到=NO_EVIDENCE",
-    "substitution_difficulty": "NO_EVIDENCE：需要技术替代路线资料",
-    "expansion_lead_time": "10-K/10-Q 正文抽取：自家产品交期 N 周/月（OWNER 且带数字，≥6 个月 3 分、≥12 个月 4 分，PROXY）；上游交期进风险；没抽到=NO_EVIDENCE",
-    "policy_resilience": "NO_EVIDENCE：需要政策/地理集中度资料",
+    "funded_demand": "XBRL us-gaap:RevenueRemainingPerformanceObligation 同比（最高 5）；无 RPO 时用正文积压订单金额（覆盖月数最高 3，带对比期同比最高 4）；否则 TTM 营收同比（最高 3，间接证据）；公司层面拿不到时可由有效的产业瓶颈证据卡补（行业层面，PROXY，不覆盖公司自述证据）",
+    "architectural_necessity": "产业瓶颈证据卡（一手来源、在有效期内）；没有有效卡片=NO_EVIDENCE（申报 XBRL 没有系统架构/客户设计资料）",
+    "current_tightness": "XBRL 毛利率 TTM 同比变化（需营收未下滑）；原文标记（产能受限/交期/配给）只作佐证，单独最高 2；公司层面拿不到时可由有效的产业瓶颈证据卡补（行业层面，PROXY，不覆盖公司自述证据）",
+    "supplier_concentration": "10-K/10-Q 正文抽取：公司自称唯一/少数供应商（OWNER，最高 3）；依赖上游单一来源是风险，进 technology_resilience 不加分；判不出方向=AMBIGUOUS 不计分；没抽到=NO_EVIDENCE；公司层面拿不到时可由有效的产业瓶颈证据卡补（行业层面，PROXY，不覆盖公司自述证据）",
+    "qualification_barrier": "10-K/10-Q 正文抽取：客户换供应商要认证 N 个月（OWNER 且带数字，≥12 个月 3 分、≥24 个月 4 分）；没抽到=NO_EVIDENCE；公司层面拿不到时可由有效的产业瓶颈证据卡补（行业层面，PROXY，不覆盖公司自述证据）",
+    "substitution_difficulty": "产业瓶颈证据卡（一手来源、在有效期内）；没有有效卡片=NO_EVIDENCE（需要技术替代路线资料）",
+    "expansion_lead_time": "10-K/10-Q 正文抽取：自家产品交期 N 周/月（OWNER 且带数字，≥6 个月 3 分、≥12 个月 4 分，PROXY）；上游交期进风险；没抽到=NO_EVIDENCE；公司层面拿不到时可由有效的产业瓶颈证据卡补（行业层面，PROXY，不覆盖公司自述证据）",
+    "policy_resilience": "产业瓶颈证据卡（一手来源、在有效期内）；没有有效卡片=NO_EVIDENCE（需要政策/地理集中度资料）",
     "exposure_materiality": "NO_EVIDENCE：companyfacts 无 segment 维度，无法证明约束业务占营收比",
     "pricing_power": "XBRL 毛利率 TTM 同比变化（营收下滑则封顶 2）",
     "capacity_to_ship": "XBRL PaymentsToAcquirePropertyPlantAndEquipment/营收、PP&E 净额同比、营收同比（最高 4）",
@@ -733,10 +734,41 @@ def _gate_summary(dims: Dict[str, DimensionResult], runway: dict, g: dict, p: di
             "evidence_min": gate("evidence", g["evidence_min"]), "investability_min": gate("investability", g["investability_min"])}
 
 
+def apply_cards(constraint: Dict[str, FactorResult], cik: int, cards: Optional[CardBook], as_of: str) -> Tuple[Dict[str, FactorResult], dict]:
+    """产业瓶颈证据卡只补「公司层面没有证据」的结构性约束因子：
+    - 公司自己的证据（XBRL / 10-K 正文抽取）已经给出评分的因子不动，卡片只在报告里记一笔（评分相差 ≥2 时标「分歧」）；
+    - 没有有效卡片（过期、缺核验印章、来源不足、卡片本身不合格）= 保持 NO_EVIDENCE，不填中值、不记 0；
+    - 填入的因子状态是 PROXY（行业层面证据套到这家公司），不计入「有数因子」的可追溯性分母；来源链接进 refs，
+      kind=card 不计入「SEC 原文链接」，所以不改变 no_primary_evidence / primary_source_coverage 的判定。
+    本函数不碰门槛与覆盖率。"""
+    report: dict = {"used": [], "kept_company_evidence": [], "rejected": [], "cards_loaded": 0 if cards is None else len(cards.cards)}
+    if cards is None:
+        return constraint, report
+    active, rejected = cards.for_company(cik, as_of)
+    report["rejected"] = rejected
+    out = dict(constraint)
+    for name in CARD_FACTORS:
+        card = active.get(name)
+        if card is None:
+            continue
+        current = out[name]
+        entry = {"factor": name, "rating": card.rating, "cards": list(card.card_ids), "valid_until": card.valid_until}
+        if current.observed:
+            entry["company_rating"] = current.rating
+            entry["conflict"] = abs(float(current.rating) - card.rating) >= 2
+            report["kept_company_evidence"].append(entry)
+            continue
+        refs = tuple(EvidenceRef(kind=KIND_CARD, label="证据卡 %s [%s] %s：%s" % (",".join(card.card_ids), src.kind, src.publisher, src.excerpt[:200]),
+                                 url=src.url) for src in card.sources)
+        out[name] = FactorResult(name, float(card.rating), card.basis, refs, "PROXY", None)
+        report["used"].append(entry)
+    return out, report
+
+
 def score_bottleneck(store: FactStore, market: MarketInput, as_of: str, params: Optional[dict] = None,
                      findings: Optional[List[dict]] = None, peers: Optional[PeerContext] = None,
                      text: Optional[TextMarkers] = None, fundamentals: Optional[Fundamentals] = None,
-                     structure: Optional[StructureEvidence] = None) -> Receipt:
+                     structure: Optional[StructureEvidence] = None, cards: Optional[CardBook] = None) -> Receipt:
     """对一只股票、在 as_of 这一天的可见事实上打分。fundamentals 若传入必须是同一个 as_of 算出来的。"""
     if params is None:
         params, findings = load_bottleneck_params()
@@ -757,6 +789,7 @@ def score_bottleneck(store: FactStore, market: MarketInput, as_of: str, params: 
         "mispricing": mispricing_factors(f, peers, p),
         "investability": investability_factors(f, p, structure),
     }
+    factors["constraint"], card_report = apply_cards(factors["constraint"], f.cik, cards, as_of)
     factors["evidence"] = evidence_factors(f, factors, p)
 
     dims: Dict[str, DimensionResult] = {}
@@ -802,6 +835,7 @@ def score_bottleneck(store: FactStore, market: MarketInput, as_of: str, params: 
         "equity_bridge": bridge,
         "text_markers": None if text is None else text.to_dict(),
         "structure_text": None if structure is None else SF.summary(structure),
+        "evidence_cards": card_report,
         "primary_links": links,
         "no_evidence_ratio": _ne_ratio(factors),
         "params_version": p["params_version"],

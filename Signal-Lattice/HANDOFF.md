@@ -1,5 +1,24 @@
 # Signal Lattice V2 重建交接
 
+## 2026-10-01 0.0.0.4.2：合并上线瓶颈证据卡（#393）与 Lazy Prices / 缓存上限（#396）
+
+- 版本统一升到 `0.0.0.4.2`（`pyproject.toml`、`openapi.yaml`、`config/default.json`、`machine/facts/*.json`），两个改动一起部署。
+- **主线裁定：证据卡只登记瓶颈的供给方**。去掉燃料使用方 NNE、IMSR（反应堆开发商）与施工承包商 MYRG、CTRI、PRIM：卡上的证据（铀与浓缩供给集中度、大型变压器交期与进口依赖）说的是供给方被约束，套给使用方会在门 A 给它们不属于自己的结构性因子。第一批变为 5 张卡、16 家公司；测试改为「≥15 家且不含这 5 家」，补足到 20 家供给方另开任务。
+- 下面两条是两个分支各自的原始记录。
+
+## 2026-09-30 瓶颈分支一手证据卡（待升版本号后上线；分支 cloud/sl-bottleneck-cards-261001）
+
+- **做了什么**：给瓶颈分支「结构性约束」里申报拿不到的八个因子建立证据卡机制：`src/signal_lattice/evidence_cards/*.yaml` + `verification.json`（核验印章），
+  运行期只读卡片、零联网、零模型；卡片过期 / 缺印章 / 来源不足 → 该因子 NO_EVIDENCE（不填中值、不记 0）。**`gates`、`coverage` 一个数字没动**（测试钉死）。
+- **第一批 5 张卡、21 家公司、43 个来源（逐个请求 200 且摘录在原文里找到）**：`nuclear-fuel-cycle`（6 家）、`grid-equipment`（5）、
+  `critical-minerals-antimony-rare-earths`（4）、`sterile-injectables`（3）、`munitions-solid-rocket-motors`（3）。
+- **怎么续期、怎么补卡**：`重建/06_证据卡怎么做怎么续期.md`。**最早到期的是 `current_tightness` / `funded_demand`（2027-03-31）**，整卡 2027-09-30。
+- **前后对比（部分）**：云端被拦新浪行情、没跑完整 `signal-lattice research`；只对 21 家公司用 SEC companyfacts + 腾讯行情做了「无卡片 vs 有卡片」的瓶颈打分
+  （没有 10-K 正文抽取、没有同业对照）：**PASS 0 → 0**；21 家都拿到了若干结构性因子，约束维度覆盖率 0.25 提升到 0.35–0.6，
+  卡在其他门（资本获取能力缺 `pricing_power`、估值不对称缺 `valuation_asymmetry`、覆盖率下限 0.40 等）。完整对比要在服务器上跑，命令见 PR 描述。
+- **风险与边界**：卡片把行业证据以 `PROXY` 套给公司，使用方公司（NNE、IMSR 这类反应堆开发商）也会在门 A 拿到结构性因子；是否只登记供给方，需主线拍板。
+  上线前需按 `deploy_v2.sh` 要求升版本号（`pyproject.toml` 等处同步），本分支没升，避免与并行分支冲突。
+
 ## 2026-10-01 补丁（未合并/未部署）：Lazy Prices 接进研究层 + 缓存总量上限
 
 - **Lazy Prices 根因**：`evidence/text_similarity.py` 只有独立 CLI，研究层从未调用；`--text-similarity` 只读"已算好的文件"，systemd 单元没传也没有步骤生成，所以恒为 `no records file`。现在 `LiveHooks.collect` 每轮调 `text_similarity.collect_records`：用事实库 filings（filed ≤ as_of）选最新 10-K/10-Q 与上期同类，结果落 `work/text-similarity/text-similarity-<as_of>.json` 并进证据快照；单轮请求上限 `--text-sim-max-requests`（默认 1500）、SEC ≤4 次/秒沿用全局限速、已算过的不重下。测试 `tests/test_text_similarity_collect.py`。

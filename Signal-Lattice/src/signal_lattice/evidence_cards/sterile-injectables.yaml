@@ -1,0 +1,77 @@
+schema: "signal-lattice-evidence-card/1"
+id: "sterile-injectables"
+bottleneck: "无菌注射剂：美国药品短缺里注射剂占一半，且持续时间约为口服药的两倍；通用名注射剂利润薄、每个分子的厂家更少，市场偏「薄」，抗风险能力弱。"
+retrieved: "2026-09-30"
+valid_until: "2027-09-30"
+factors:
+  current_tightness:
+    rating: 2
+    valid_until: "2027-03-31"
+    basis: "HHS/ASPE 数据简报（2025-01，数据到 2023 年）显示注射剂短缺持续时间中位数 4.6 年、约为口服药的 3 倍（口服 1.6 年）；GAO 2024 年报告确认短缺最常见于医院和肿瘤治疗用的无菌注射剂。两者都已超过 18 个月，而 GAO 统计的活跃短缺数 2021 年 115 项、2024 年 102 项，没有继续恶化的证据，所以 2 分。"
+    sources:
+      - url: "https://aspe.hhs.gov/sites/default/files/documents/efa332939da2064fa2c132bb8e842bb5/Drug%20Shortages_Data%20Brief_Final_2025.01.10.pdf"
+        kind: "regulator"
+        publisher: "HHS Office of the Assistant Secretary for Planning and Evaluation"
+        title: "Drug Shortages Data Brief (2025-01)"
+        excerpt: "Using the data from 2018 to 2023, we find that drug shortages last roughly twice as long for injectable products (median = 4.6 years) as for oral products (median = 1.6 years) or topical products (median = 2.2 years)."
+      - url: "https://www.gao.gov/assets/gao-25-107110.pdf"
+        kind: "government_statistics"
+        publisher: "U.S. Government Accountability Office"
+        title: "GAO-25-107110 Drug Shortages: HHS Should Implement a Mechanism to Coordinate its Activities"
+        excerpt: "For example, shortages most commonly affect sterile injectable drugs that are critical to hospital care and cancer treatment."
+  supplier_concentration:
+    rating: 2
+    basis: "ASPE 报告称通用名注射剂每个分子的厂家数比通用名口服药更少，并指出 70% 的新上市通用名注射剂三年内不盈利；这说明市场偏薄，但没有给出具体的厂家数量或份额，所以只给 2。"
+    sources:
+      - url: "https://aspe.hhs.gov/reports/roi-generic-injectable-prescription-drugs"
+        kind: "regulator"
+        publisher: "HHS Office of the Assistant Secretary for Planning and Evaluation"
+        title: "An Examination of the Return on Investment of Generic Injectable Prescription Drugs"
+        excerpt: "The generic injectable market is also composed of fewer manufacturers per molecule than the generic oral market."
+companies:
+  - cik: 1297184
+    symbol: "AMPH"
+    name: "Amphastar Pharmaceuticals, Inc."
+    market_cap_usd: 1097904000
+    market_cap_as_of: "2026-09-30"
+    exposure: "通用名与自有品牌注射剂、吸入剂、鼻喷剂及原料药的制造商，属于注射剂供给侧。"
+    source:
+      url: "https://www.sec.gov/Archives/edgar/data/1297184/000129718426000009/amph-20251231x10k.htm"
+      kind: "company_filing"
+      publisher: "U.S. SEC (company filing)"
+      title: "Amphastar Pharmaceuticals, Inc. Form 10-K FY2025"
+      excerpt: "developing, manufacturing, and commercializing technically challenging generic and proprietary injectable, inhalation, and intranasal products, as well as active pharmaceutical ingredient, or API products."
+  - cik: 1023024
+    symbol: "ANIP"
+    name: "ANI Pharmaceuticals Inc"
+    market_cap_usd: 1668796000
+    market_cap_as_of: "2026-09-30"
+    exposure: "通用名药与品牌药公司，注射剂是其关键产品之一，但由第三方代工、部分为单一来源，属于注射剂市场的参与者（非主要制造方）。"
+    source:
+      url: "https://www.sec.gov/Archives/edgar/data/1023024/000102302426000014/anip-20251231.htm"
+      kind: "company_filing"
+      publisher: "U.S. SEC (company filing)"
+      title: "ANI Pharmaceuticals Inc Form 10-K FY2025"
+      excerpt: "Several of our key products, including injectables, softgel capsules, Cortrophin Gel, and ILUVIEN, are currently manufactured and supplied by third parties, in some cases as a single source."
+  - cik: 1367644
+    symbol: "EBS"
+    name: "Emergent BioSolutions Inc."
+    market_cap_usd: 338404000
+    market_cap_as_of: "2026-09-30"
+    exposure: "提供注射剂及其他无菌产品的原液与制剂代工、无菌灌装与冻干等合同制造服务，属于无菌灌装产能提供方。"
+    source:
+      url: "https://www.sec.gov/Archives/edgar/data/1367644/000136764426000015/ebs-20251231.htm"
+      kind: "company_filing"
+      publisher: "U.S. SEC (company filing)"
+      title: "Emergent BioSolutions Inc. Form 10-K FY2025"
+      excerpt: "drug substance and drug product manufacturing services for injectable and other sterile products, and development services such as pharmaceutical product process development, process design, technology transfer, manufacturing validations, laboratory analytical development support, aseptic filling, lyophilization, final packaging, stability studies, and suite-reservations."
+contradictions:
+  - searched: "GAO-25-107110 里活跃短缺的数量是否在下降。"
+    found: "GAO 引用 FDA 数据：活跃短缺在 2019 年约 109 项、2021 年 115 项、2024 年 102 项，2024 年并未继续恶化。"
+    effect: "current_tightness 只给 2。"
+  - searched: "ASPE 报告对短缺原因的判断：是产能不足还是经济激励不足。"
+    found: "ASPE 认为低预期利润导致市场偏薄、缺乏抗风险能力；这更像经济激励问题而不是物理产能的绝对上限，未找到官方对无菌灌装产能总量的数字。"
+    effect: "本卡没有给 expansion_lead_time、qualification_barrier 评分；只写有证据的两个因子。"
+  - searched: "在 ANIP 最新 10-K 中核对其注射剂是否自产。"
+    found: "10-K 称其注射剂由第三方生产、部分为单一来源，说明该公司不是主要的无菌注射剂制造方。"
+    effect: "exposure 里如实写为「参与者」，不把它当作供给方。"

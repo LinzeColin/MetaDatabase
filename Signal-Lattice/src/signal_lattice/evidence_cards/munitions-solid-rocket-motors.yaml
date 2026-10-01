@@ -1,0 +1,77 @@
+schema: "signal-lattice-evidence-card/1"
+id: "munitions-solid-rocket-motors"
+bottleneck: "弹药与导弹动力工业基础：固体火箭发动机制造商从 1995 年的六家合并为两家，下游分供应商二十年间从约 5000 家降到约 1000 家；国防部近年用《国防生产法》第三章等资金扩产。"
+retrieved: "2026-09-30"
+valid_until: "2027-09-30"
+factors:
+  funded_demand:
+    rating: 3
+    valid_until: "2027-03-31"
+    basis: "国防部（现称战争部）2025-09 宣布两笔《国防生产法》第三章奖励共 3350 万美元用于扩大固体火箭发动机工业基础；GAO 统计国防部 2020-2024 财年在 828 个工业基础项目上承诺约 65 亿美元。这是政府对供给侧的真金白银，但不是订单合同，也无法从中拆出弹药部分，所以 3 分。"
+    sources:
+      - url: "https://www.war.gov/News/Releases/Release/Article/4316035/department-of-war-awards-335-million-to-increase-solid-rocket-motor-capacity-an/"
+        kind: "regulator"
+        publisher: "U.S. Department of War"
+        title: "Department of War Awards $33.5 Million to Increase Solid Rocket Motor Capacity and Capability"
+        excerpt: "Today, the Department of War announced two Defense Production Act (DPA) Title III awards totaling $33.5 million to expand the solid rocket motor (SRM) industrial base."
+      - url: "https://www.gao.gov/assets/gao-25-107283.pdf"
+        kind: "government_statistics"
+        publisher: "U.S. Government Accountability Office"
+        title: "GAO-25-107283 Defense Industrial Base: Actions Needed to Address Risks Posed by Dependence on Foreign Suppliers"
+        excerpt: "Together, DOD obligated about $6.5 billion for 828 projects from fiscal years 2020 through 2024."
+  supplier_concentration:
+    rating: 3
+    basis: "GAO-18-45 记载固体火箭发动机下游有一家制造商估计其供应商从约 5000 家降到约 1000 家，单一来源部件风险上升。数字直接，但报告是 2017 年的，且之后有新进入者（见反证），所以最多 3 分。"
+    sources:
+      - url: "https://www.gao.gov/assets/gao-18-45.pdf"
+        kind: "government_statistics"
+        publisher: "U.S. Government Accountability Office"
+        title: "GAO-18-45 Solid Rocket Motors: DOD and Industry Are Addressing Challenges to Minimize Supply Concerns"
+        excerpt: "For example, one SRM manufacturer estimated a decrease in suppliers, from approximately 5,000 to 1,000, over the last 20 years."
+companies:
+  - cik: 2040127
+    symbol: "KRMN"
+    name: "Karman Holdings Inc."
+    market_cap_usd: 4296743000
+    market_cap_as_of: "2026-09-30"
+    exposure: "导弹与太空系统子系统供应商，业务含集成固体火箭发动机及配套子系统，属于固体火箭发动机供应链。"
+    source:
+      url: "https://www.sec.gov/Archives/edgar/data/2040127/000204012726000014/krmn-20251231.htm"
+      kind: "company_filing"
+      publisher: "U.S. SEC (company filing)"
+      title: "Karman Holdings Inc. Form 10-K FY2025"
+      excerpt: "Propulsion Systems : integrated solid rocket motors and supporting subsystems, critical subsystems for liquid fueled rocket motors, launch systems, and ablative composites"
+  - cik: 74303
+    symbol: "OLN"
+    name: "Olin Corp"
+    market_cap_usd: 1766729000
+    market_cap_as_of: "2026-09-30"
+    exposure: "旗下 Winchester 板块生产军用小口径弹药与零部件，属于弹药供给侧（公司另有氯碱、环氧业务，弹药只是其中一块）。"
+    source:
+      url: "https://www.sec.gov/Archives/edgar/data/74303/000007430326000027/oln-20251231.htm"
+      kind: "company_filing"
+      publisher: "U.S. SEC (company filing)"
+      title: "Olin Corp Form 10-K FY2025"
+      excerpt: "The Winchester segment produces and sells sporting ammunition, reloading components, small caliber military ammunition and components, industrial cartridges and clay targets, along with contracted U.S. military project revenue, which represented 26% of 2025 sales."
+  - cik: 80172
+    symbol: "NPK"
+    name: "National Presto Industries, Inc."
+    market_cap_usd: 1057280000
+    market_cap_as_of: "2026-09-30"
+    exposure: "国防板块制造 40mm 弹药、中口径弹壳与金属件，属于弹药供给侧。"
+    source:
+      url: "https://www.sec.gov/Archives/edgar/data/80172/000143774926008214/npk20251231_10k.htm"
+      kind: "company_filing"
+      publisher: "U.S. SEC (company filing)"
+      title: "National Presto Industries Inc Form 10-K FY2025"
+      excerpt: "It manufactures 40mm ammunition, precision mechanical and electro-mechanical assemblies, medium caliber cartridge cases and metal parts"
+contradictions:
+  - searched: "GAO-18-45 里固体火箭发动机行业是否有新进入者。"
+    found: "报告写明自 1995 年行业从六家合并为两家，但 2012 年一家外国供应商进入市场，2017 年一家由外资控股的美国公司设立。"
+    effect: "supplier_concentration 只给 3，不给 4。"
+  - searched: "国防部是否在扩大产能，国防部 2025-09 的公告是否显示新增产能。"
+    found: "战争部 2025-09-26 公告两笔共 3350 万美元的第三章奖励，受奖方为 Americarb 与 General Dynamics OTS，用于扩大固体火箭发动机工业基础，说明新增产能正在资助中。"
+    effect: "funded_demand 给 3；同时说明瓶颈正在被缓解，没有给 current_tightness 与 expansion_lead_time 评分。"
+  - searched: "近一年的陆军 155mm 弹药月产量等官方产能数字（army.mil、congress.gov CRS 页面）。"
+    found: "army.mil 文章与 congress.gov 的 CRS 报告页面用自动请求返回 403，没能打开任何一份；CRS 的 IF12772 文件能打开但内容是自行火炮，不是产能数字。"
+    effect: "没打开的来源不写进卡片，所以本卡没有 current_tightness，该因子保持 NO_EVIDENCE。"

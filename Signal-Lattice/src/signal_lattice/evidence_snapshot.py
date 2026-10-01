@@ -101,10 +101,13 @@ def bars_to_rows(bars: Sequence[Bar]) -> List[list]:
 
 def build_body(*, as_of: str, universe: Mapping, facts_db: Path, events_db: Path, bar_store: BarStore,
                structure: Mapping[str, Any], text_similarity: Mapping, market_environment: Mapping[str, Sequence[Bar]],
-               params: Mapping, collection: Mapping, verify_hashes: bool = True) -> dict:
+               params: Mapping, collection: Mapping, verify_hashes: bool = True,
+               evidence_cards: Optional[Mapping] = None) -> dict:
+    """evidence_cards：产业瓶颈证据卡载荷（evidence/cards.load_payload）。随快照一起钉住并进 hash：
+    同一份快照无论何时重跑，分支看到的证据卡都一样；不传则快照里没有这一项（旧快照同样读不到卡片）。"""
     checkpoint_sqlite(Path(events_db))
     symbols = [e["symbol"] for e in universe["entries"]] + [BENCHMARK_SYMBOL]
-    return {
+    body = {
         "schema": SCHEMA,
         "as_of_date": as_of,
         "universe": {"source_sha256": universe["content_sha256"], "count": len(universe["entries"]),
@@ -117,6 +120,9 @@ def build_body(*, as_of: str, universe: Mapping, facts_db: Path, events_db: Path
         "params": dict(params),
         "collection": dict(collection),
     }
+    if evidence_cards is not None:
+        body["evidence_cards"] = dict(evidence_cards)
+    return body
 
 
 def write_snapshot(body: Mapping, out_dir: Path, generated_at: Optional[datetime] = None,
@@ -193,6 +199,10 @@ class EvidenceSnapshot:
         info = self.data("structure")
         raw = json.loads(gzip.decompress(Path(info["path"]).read_bytes()).decode("utf-8"))
         return {int(cik): [FilingExtraction.from_dict(f) for f in filings] for cik, filings in raw.items()}
+
+    def evidence_cards(self) -> Optional[Mapping[str, Any]]:
+        """产业瓶颈证据卡载荷；快照里没有这一项（旧快照）返回 None，等同没有任何卡片。"""
+        return self.document.get("evidence_cards")
 
     def text_similarity_by_symbol(self) -> Dict[str, dict]:
         return {r["symbol"]: r for r in self.document["text_similarity"].get("records", [])}
