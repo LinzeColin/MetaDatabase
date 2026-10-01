@@ -1,31 +1,35 @@
 # Social Archive v0.0.0.109
 
-> **接手或运维先读 [`HANDOFF.md`](HANDOFF.md)**：现状、只有你能做的那一件、坏了怎么办。
-> 日常使用见 [`docs/使用说明.md`](docs/使用说明.md)。
+免费、私有、跨平台的收藏、点赞与网页归档系统：把你在各平台（B站、抖音、小红书、Reddit、Instagram、Chrome 书签）收藏的内容，聚到一个自己的资料库里，一键保存、可搜索、多处备份。规格见 [SPEC.md](SPEC.md)；接手或运维先读 [HANDOFF.md](HANDOFF.md)；日常使用见 [docs/使用说明.md](docs/使用说明.md)。
 
-免费、私有、跨平台的收藏、点赞与网页归档系统。日常操作采用 E2N 式一键保存；来源授权和 Notion/Obsidian/GitHub/Markdown 目的地连接状态可见；配置存在不等于已连接。默认归档 L0/L1/L3，L2 关闭。
+## 线上地址与是否真在跑
 
-本实现是新的 Social Archive 产品树。旧项目中的 SQLite/Outbox/幂等、数据语义、原子投影、解析器和 Fixture 只是候选资产，必须通过行为、许可证、迁移、恢复与回滚证明后才可吸收；否则使用本树预制实现。外部下载器、网页归档器和阅读器通过隔离 Sidecar/HTTP/CLI/本地文件复用。结构化长期事实同步到 Private-Database，对象字节进入 R2 并异地备份至 OCI；GitHub 私有 Markdown/Release 提供可验证副本。
+- 资料库：`https://social-archive-api.linzezhang.com/`（VPS-3 上的 Docker 容器，经 Cloudflare Tunnel 对外；`deploy/cloudflare/tunnel-config.example.yml`）。2026-09-30 实测 `curl -sI` 返回 405（该路径只接受 GET），GET 返回 200。
+- 健康检查：`curl -s https://social-archive-api.linzezhang.com/health`，看 `version`、`worker.alive`、`backup.stale`、`replication.stale`（后两个要是 `false`）。2026-09-30 实测 200，`version` 为 0.0.0.109，`worker.alive` 为 true，两个 `stale` 均为 false。
+- 数据最迟多久该更新一次：对象复制与运行库快照每 **15 分钟**，私有库事实同步每 **10 分钟**，状态投影每 **5 分钟**，完整备份每天一次（服务器本地时间 03:20）；`/health` 在复制超过 **2 小时**、备份超过 **30 小时**没新的就报 `stale`（`src/social_archive/api.py`、`deploy/systemd/*.timer`）。
 
-开发、部署和验收以任务包 `09_ROADMAP/TASK_GRAPH.json` 与 `10_ACCEPTANCE/FROZEN_ACCEPTANCE_CONTRACT.json` 为准。
+## 数据放哪
 
-## 零技术门槛使用
+- 运行库：服务器 `/var/lib/social-archive/runtime/`（SQLite）。
+- 制品与备份：Cloudflare R2 与 GitHub Release 两份密文（`SOCIAL_ARCHIVE_REPLICA_STORES=r2,github`，OCI 已于 2026-09-30 退役）。
+- 结构化事实：私有仓 `Private-Database` 的 `Private-MetaDatabase`（`domain=SocialArchive`）。本仓只放代码，路牌见仓根 `WHERE_IS_PROJECT_DATA.md`。
 
-**步骤不写在这里** —— 安装页 `https://social-archive-api.linzezhang.com/extension-install`
-会自己带着你走，并且**自己检测装好没有**；完整的日常用法见
-[`docs/使用说明.md`](docs/使用说明.md)（那一份有判据逐条核对过它写的每个按钮真的存在）。
+## 怎么部署 / 回滚
 
-> **这里原来抄了一份五步流程，而它已经和产品对不上了**（2026-08-14 查出来的）：
-> 写着「返回网站并刷新」——现在装好会**自动**把你送回资料库；
-> 写着点「保存到我的档案馆」——而使用说明里那颗叫「保存当前页面」；
-> 最要紧的那一条（**解压出来的文件夹要放进「文稿」**，留在「下载」里哪天清理就坏）
-> 这里一个字没提。**抄一份会漂的流程，不如指向那份有判据管着的。**
+- 部署：在开发机上 `bash scripts/deploy_to_production.sh`（rsync 源码、重建镜像、重建容器、逐道门检查并从公开域名回读）。不要用 `systemctl restart` 代替，它不会重建镜像。需要 SSH，由主线执行。
+- 回滚：先确认回滚点还在 `docker image inspect social-archive/core:rollback`，再按 `docs/06_运维手册.md`回滚一节那一行命令执行；没有回滚点时看同一节末尾。
 
-Chrome Web Store 上架前，网站内的中文安装向导和受 Cloudflare Access 保护的官方 ZIP
-是唯一安装入口。插件不托管密码、Cookie 或浏览器登录状态。
+## 需登录 / 需凭据而停掉的功能
 
-> **删掉了一句空头承诺**：这里原来写「插件暂时不可用时，首页『粘贴链接，立即保存』仍可使用」。
-> 实测 `apps/` 下**没有任何**「粘贴链接」或「立即保存」的入口，`apps/pwa/index.html`
-> 里也没有贴 URL 的地方——**那条退路不存在**。而它承诺的正是「插件坏了的时候」，
-> 也就是最需要退路的那一刻。插件暂时不可用时，真实可用的是
-> 使用说明第四节那几条（换插件版本／重新授权）。
+- B站、抖音、小红书自动同步：需要 Owner 在浏览器里授权连接账号（最后一下必须真实用户手势，Cookie 不出浏览器），目前三者均为断开，已停（`HANDOFF.md` 第四节）。
+- 服务器上不得有国内平台的 Cookie；部署第 0.9 步专门查这件事。
+
+## 本地测试
+
+```bash
+cd social-archive
+python3.12 -m venv /tmp/venv-sa && /tmp/venv-sa/bin/pip install -e ".[test]"
+python -m pytest -q tests                # 需要 Python 3.12
+```
+
+2026-09-30 沙箱实测：2151 passed，18 failed，8 skipped（18 项失败在没有改动时就存在，见 SPEC 的已知坑一节）。规则见 `AGENTS.md`；旧版 README、PURSUING_GOAL 在 [文档/归档/](文档/归档/)。

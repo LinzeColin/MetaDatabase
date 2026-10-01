@@ -1,5 +1,11 @@
 # Signal Lattice V2 重建交接
 
+## 2026-10-01 0.0.0.4.2：合并上线瓶颈证据卡（#393）与 Lazy Prices / 缓存上限（#396）
+
+- 版本统一升到 `0.0.0.4.2`（`pyproject.toml`、`openapi.yaml`、`config/default.json`、`machine/facts/*.json`），两个改动一起部署。
+- **主线裁定：证据卡只登记瓶颈的供给方**。去掉燃料使用方 NNE、IMSR（反应堆开发商）与施工承包商 MYRG、CTRI、PRIM：卡上的证据（铀与浓缩供给集中度、大型变压器交期与进口依赖）说的是供给方被约束，套给使用方会在门 A 给它们不属于自己的结构性因子。第一批变为 5 张卡、16 家公司；测试改为「≥15 家且不含这 5 家」，补足到 20 家供给方另开任务。
+- 下面两条是两个分支各自的原始记录。
+
 ## 2026-09-30 瓶颈分支一手证据卡（待升版本号后上线；分支 cloud/sl-bottleneck-cards-261001）
 
 - **做了什么**：给瓶颈分支「结构性约束」里申报拿不到的八个因子建立证据卡机制：`src/signal_lattice/evidence_cards/*.yaml` + `verification.json`（核验印章），
@@ -13,6 +19,13 @@
 - **风险与边界**：卡片把行业证据以 `PROXY` 套给公司，使用方公司（NNE、IMSR 这类反应堆开发商）也会在门 A 拿到结构性因子；是否只登记供给方，需主线拍板。
   上线前需按 `deploy_v2.sh` 要求升版本号（`pyproject.toml` 等处同步），本分支没升，避免与并行分支冲突。
 
+## 2026-10-01 补丁（未合并/未部署）：Lazy Prices 接进研究层 + 缓存总量上限
+
+- **Lazy Prices 根因**：`evidence/text_similarity.py` 只有独立 CLI，研究层从未调用；`--text-similarity` 只读"已算好的文件"，systemd 单元没传也没有步骤生成，所以恒为 `no records file`。现在 `LiveHooks.collect` 每轮调 `text_similarity.collect_records`：用事实库 filings（filed ≤ as_of）选最新 10-K/10-Q 与上期同类，结果落 `work/text-similarity/text-similarity-<as_of>.json` 并进证据快照；单轮请求上限 `--text-sim-max-requests`（默认 1500）、SEC ≤4 次/秒沿用全局限速、已算过的不重下。测试 `tests/test_text_similarity_collect.py`。
+- **未做（需 Owner 定规则）**：商业机会分支（`branches/commercial.py`）的 8 项风险扣分里没有措辞项，任务书说的"按原有规则扣分"在代码与 Skill 里找不到对应规则；评分规则一个数字都不许动，所以没有加。现在只有股势前瞻读 `lazy_prices_pct`（且因为历史日期没有时点相似度，训练覆盖率不足时会被自动剔除）。
+- **缓存总量上限**：新增 `db_cap.py`：`universe-cache` 默认 256 MiB（LRU）、`facts.sqlite` 默认 2 GiB（超限才清 `keep_from` 之前的旧期事实 + VACUUM，读取窗口内数据不动）；`DiskCache` 命中会 touch，`FactStore.min_period_end` 防止清掉的旧期被重新装回。规则与验证见 `文档/06_运维手册.md` 第 4 节，测试 `tests/test_db_cap.py`。
+- 版本号未改（避免与并行 PR 冲突）；部署前主线需要按 `pyproject.toml` 等同步升版本。
+
 ## 2026-10-01 0.0.0.4.0 / 0.0.0.4.1：推翻重建上线（最新）
 
 Owner 原话（2026-09-30）：「Signal-Lattice不合格 因为你们和初始目标严重偏离 且长期推荐大盘股 根本不可信」。
@@ -23,6 +36,8 @@ Owner 原话（2026-09-30）：「Signal-Lattice不合格 因为你们和初始�
 - **部署件（本次新增）**：`signal-lattice-v2-research.{service,timer}`（美东工作日 12:00 与 16:40；休市日 `--skip-if-market-closed` 由程序按 NYSE 日历自判退出；MemoryMax 2G、CPUQuota 150%、超时 90 分钟、`OnFailure` 写 journal）、`signal-lattice-v2-backtest.{service,timer}`（每月 3 日刷新回测，报告 35 天过期）、`/etc/signal-lattice-v2/research.env`（root 0600，只放 `SIGNAL_LATTICE_SEC_UA`）。研究层数据在 `/var/lib/signal-lattice-v2/research`；SEC 响应缓存 + 正文缓存合计 ≤ 1 GiB，研究层结束时按最近使用淘汰（`cache_cap.py`）。
 - **部署顺序**：`deploy_v2.sh` 支持两段式（`SIGNAL_LATTICE_STAGE_ONLY=1` 只装 release 与单元；先在新 release 上 `systemd-run` 跑一次研究层；成功后再跑一遍 `deploy_v2.sh` 切 current）。命令与回滚见 `文档/06_运维手册.md` 第 6 节。
 - **0.0.0.4.1（上线时发现的两处生产路径缺陷）**：① 研究层增量采集没装 SEC 官方内部人季度数据集（DERA），把窗口内全部 Form 4（候选池两年约 9.5 万份）逐份取原文，首跑要 6 个多小时——现在先装 DERA，只对它筛出的买入取原文，数据集不可用且库里从没装过时直接失败、不退化成全量原文；② 事件航图参数只认源码树里的 `Stock_Skill`，已安装的 release 里没有这个目录——改为读 Registry 校验后落在 `work/params/active` 的那一份。测试：`tests/test_research_incremental_collect.py`。0.0.0.4.0 只装到 `releases/` 没有切 current，未对外生效。
+- **上线结果（2026-10-01 VPS-3）**：`current` → `releases/0.0.0.4.1`，`previous` → `0.0.0.3.5`（回滚目标）。先在新 release 上跑研究层成功（首跑累计约 2 小时 40 分（含中途换版本重启一次）；5 个分支 PASS/PASS/PASS/ABSTAIN/PASS，`snapshot_hash` 相同，shortlist 60 只，SEC 原文缓存 + 正文缓存 495 MB < 1 GiB 上限），再切实时层；每月回测首跑 32 分钟（21 个月末，唯一建议 20 日相对 IWM 净超额 −3.9%，安慰剂 +4.9%），规则自证门关，公网决策 `NO_ACTION`。E2E 旅程 `Signal-Lattice.yaml` 桌面/手机/暗色全过。
+- **已知缺口**：① Lazy Prices（年报措辞相似度）特征线上缺席——研究层没有生成 text-similarity 记录文件（日志 `text similarity: no records file`），商业机会分支的这项风险扣分没参与；② `facts.sqlite`（约 1.5 GB）、`universe-cache`（约 190 MB）不在 1 GiB 缓存上限内，需要时另行加上限；③ 候选池新加入的公司，DERA 数据集只装一次，不回填这些公司的更早内部人交易（只影响事件航图的历史基准，不影响新申报）；④ 记分簿首次写入要等新浪/腾讯发布当日日线后（实时层每 15 分钟重试）。
 - **E2E 旅程**：`tools/e2e/旅程/Signal-Lattice.yaml`（Owner 验收旅程，主 agent 编写，不要改）。
 - **阻塞项**：`B-OVH-RELAUNCH-VERIFY`（核实/重上线 v2）已关闭——2026-09-30 已核实 VPS-3 上 v2 在跑，本次按 06 第 6 节两段式上线并复验；不再需要 Owner 动作。
 - **已知边界**：自证门 (a)/(b) 两条开门路径只在合成数据的单元测试里走通，真实数据上尚未开过门；前向已结算独立样本 < 8 之前，页面写「样本不足」是正常状态；第一次记分簿写入要等上线后的下一个美股收盘；A 股/港股中小盘是第二期。

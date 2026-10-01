@@ -33,7 +33,7 @@
 ## 本 run 立即执行清单（复用复制执行）
 
 1. 准备任务包与项目路径：
-   - `export TASKPACK_ROOT=/Users/linzezhang/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8`
+   - `export TASKPACK_ROOT=~/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8`
 2. 登录 Cloudflare/Pages 控制面（若 `whoami` 返回 400/Not logged in，先清理并重登）：
    - `npx wrangler whoami`
    - `npx wrangler logout`
@@ -96,7 +96,7 @@
 ### 本地验收结果
 
 - 已执行：
-- `TASKPACK_ROOT=/Users/linzezhang/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8` 环境下运行 `npm run verify:assets -- --record`
+- `TASKPACK_ROOT=~/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8` 环境下运行 `npm run verify:assets -- --record`
   - `npm run verify:assets`
   - `TASKPACK_ROOT=... APP_ORIGIN=https://example.com npm run verify:owner-activation`
 - `npm run verify:assets` 已通过：
@@ -136,7 +136,7 @@
 ### 本地验收结果
 
 - 已执行：
-  - `TASKPACK_ROOT=/Users/linzezhang/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8 npm run verify:owner-activation`
+  - `TASKPACK_ROOT=~/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8 npm run verify:owner-activation`
 - `13_evidence/owner_activation.json` 更新为：
   - `status: BLOCKED_LOCAL_OWNER_ACTIVATION_PRECHECK`
   - `risks: 17`

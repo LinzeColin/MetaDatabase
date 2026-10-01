@@ -8,8 +8,8 @@ from .model_compare import MODEL_COMPARISON_JSON
 
 
 LOCAL_REFERENCE_FILES = [
-    Path("/Users/linzezhang/Downloads/2026 FIFA.xlsx"),
-    Path("/Users/linzezhang/Downloads/fifa_world_cup_team_tables_1930_2022.xlsx"),
+    Path.home() / "Downloads" / "2026 FIFA.xlsx",
+    Path.home() / "Downloads" / "fifa_world_cup_team_tables_1930_2022.xlsx",
 ]
 
 

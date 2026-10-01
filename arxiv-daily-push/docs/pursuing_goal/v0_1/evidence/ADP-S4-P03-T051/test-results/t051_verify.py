@@ -8,7 +8,7 @@ Deterministic. Verifies every admitted city has (1) a clear value (score + tier 
 is value-gated not volume-padded -- a low-value city and a media aggregator are provably REJECTED.
 """
 import sys, json, pathlib
-V01 = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/"
+V01 = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/"
                    "arxiv-daily-push/docs/pursuing_goal/v0_1")
 sys.path.insert(0, str(V01 / "tools"))
 import city_cohort as C

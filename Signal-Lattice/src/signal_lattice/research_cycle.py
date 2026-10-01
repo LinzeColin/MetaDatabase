@@ -28,7 +28,7 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 
-from . import branch_entries, cache_cap, hub_inputs, nyse_calendar
+from . import branch_entries, cache_cap, db_cap, hub_inputs, nyse_calendar
 from .branch_runner import BranchReceipt, BranchSpec, run_branches
 from .evidence import cards as evidence_cards
 from .evidence.eventstore import EventStore
@@ -49,6 +49,8 @@ MARKET_ENV_SYMBOLS = ("usSPY", "sh000300", "hk02800")
 UNIVERSE_MIN_COUNT = 600                    # 线上候选池约 1200 只；低于这个绝对值一定是取数不全
 UNIVERSE_MIN_RATIO_OF_RECENT_MEDIAN = 0.7
 UNIVERSE_HISTORY_RUNS = 5
+TEXT_SIM_MAX_REQUESTS_PER_RUN = 1500    # Lazy Prices 首次生成：单轮请求上限，没做完的下一轮接着做
+BACKFILL_MAX_PER_RUN = 2000               # 概念集合变更后的 companyfacts 补取：单轮请求上限
 EXIT_UNIVERSE_INCOMPLETE = 3
 EXIT_SEC_USER_AGENT_MISSING = 4
 
@@ -88,6 +90,9 @@ class CycleConfig:
     python: Optional[str] = None
     universe_min_count: int = UNIVERSE_MIN_COUNT
     evidence_cards_dir: Optional[Path] = None      # 产业瓶颈证据卡目录；None = 随安装包发布的那一份（evidence/cards.CARDS_DIR）
+    text_sim_max_requests: int = TEXT_SIM_MAX_REQUESTS_PER_RUN   # Lazy Prices 单轮最多下载的申报正文份数；0 = 只用已算好的记录
+    facts_max_bytes: int = db_cap.FACTS_DEFAULT_MAX_BYTES       # facts.sqlite 总量上限，0 = 不清理
+    facts_retention_years: int = db_cap.FACT_RETENTION_YEARS
 
 
 @dataclass
@@ -158,6 +163,8 @@ class LiveHooks(Hooks):
         client = None if cfg.offline else SecClient(cfg.sec_cache_dir, limiter=RateLimiter(min_interval=cfg.sec_interval), compress_cache=True)
         stats: Dict[str, Any] = {"as_of": as_of.isoformat(), "pool": len(pool)}
         facts, events = FactStore(cfg.facts_db), EventStore(cfg.events_db)
+        if cfg.facts_max_bytes > 0:                            # 总量上限清掉的旧期不再装回
+            facts.min_period_end = db_cap.keep_from(as_of, cfg.event_start, cfg.facts_retention_years)
         bar_store = BarStore(cfg.bars_dir)
         try:
             if not cfg.skip_collect and not cfg.offline:
@@ -173,12 +180,30 @@ class LiveHooks(Hooks):
                 by_cik, structure_stats = result["by_cik"], result["stats"]
             stats["structure"] = structure_stats
             market_env = self._market_environment(cfg, log)
+            text_similarity = self._text_similarity(cfg, client, facts, events, text_cache, entries, as_of, log)
+            stats["text_similarity"] = text_similarity["coverage"]
         finally:
             facts.close()
             events.close()
         stats["sec_requests_total"] = client.requests_sent if client is not None else 0
         stats["sec_max_requests_per_second"] = SEC_MAX_REQUESTS_PER_SECOND
-        return Collected(universe_path, universe, by_cik, _load_text_similarity(cfg, log), market_env, stats)
+        return Collected(universe_path, universe, by_cik, text_similarity, market_env, stats)
+
+    def _text_similarity(self, cfg, client, facts, events, text_cache, entries, as_of: date, log) -> Dict[str, Any]:
+        """Lazy Prices：每轮增量生成。--text-similarity 显式指定了记录文件就读文件（旧用法）；否则从库里按 as_of 算。"""
+        if cfg.text_similarity_path is not None:
+            return _load_text_similarity(cfg, log)
+        from .evidence import text_similarity as TS
+        result = TS.collect_records(client, events, facts, text_cache, entries, as_of,
+                                    max_requests=cfg.text_sim_max_requests, log=log)
+        directory = Path(cfg.work_dir) / "text-similarity"
+        directory.mkdir(parents=True, exist_ok=True)
+        path = directory / ("text-similarity-%s.json" % as_of.isoformat())
+        _write_json(path, {"as_of": as_of.isoformat(), "coverage": result["coverage"], "thresholds": result["thresholds"],
+                           "records": result["records"]})
+        log("text similarity: %d records -> %s" % (len(result["records"]), path))
+        return {"coverage": result["coverage"], "thresholds": result["thresholds"], "source_file": path.name,
+                "records": [{k: v for k, v in r.items() if k != "sections"} for r in result["records"]]}
 
     def _incremental_sec(self, cfg, client, facts, events, pool, as_of, prune, EC, log) -> Dict[str, Any]:
         out: Dict[str, Any] = {}
@@ -195,8 +220,18 @@ class LiveHooks(Hooks):
         else:
             out["index_new_by_form"] = {}
         out["companies_with_new_filings"] = len(new_ciks)
-        for cik in sorted(new_periodic):                       # 只有出了新 10-K/10-Q 的公司才重取 companyfacts
+        from .branches import sec_inputs
+        marker = sec_inputs.concept_set_marker()
+        for cik in sorted(new_periodic):                       # 出了新 10-K/10-Q 的公司重取 companyfacts
             facts.ingest_companyfacts(cik, prune(client.companyfacts(cik)), as_of)
+            sec_inputs.mark_concept_set(facts, cik, marker, as_of.isoformat())
+        # 入库概念集合变了（新增营收/债务标签）：其余公司也按新集合重取一次，之后不再重复（每家一条标记）。
+        # 单轮上限 BACKFILL_MAX_PER_RUN 次请求，超出的下一轮接着补；SEC 请求仍走全局 <= 4 次/秒限速。
+        backfill = sec_inputs.ciks_missing_concept_set(facts, pool, marker)[:BACKFILL_MAX_PER_RUN]
+        for cik in backfill:
+            facts.ingest_companyfacts(cik, prune(client.companyfacts(cik)), as_of)
+            sec_inputs.mark_concept_set(facts, cik, marker, as_of.isoformat())
+        out["companyfacts_concept_backfill"] = len(backfill)
         for cik in sorted(new_ciks):                           # 任何新申报都刷新 submissions（主文档名、8-K 事项）
             payload = client.submissions(cik)
             facts.ingest_submissions(cik, payload, as_of)
@@ -602,6 +637,13 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
                         help="产业瓶颈证据卡目录（默认：随安装包发布的 evidence_cards；只读，钉进证据快照）")
     parser.add_argument("--cache-max-bytes", type=int, default=cache_cap.DEFAULT_MAX_BYTES,
                         help="SEC 原文缓存 + 正文缓存合计上限（字节，默认 1 GiB）；研究层结束时按最近使用淘汰，0 = 不清理")
+    parser.add_argument("--universe-cache-max-bytes", type=int, default=db_cap.UNIVERSE_CACHE_DEFAULT_MAX_BYTES,
+                        help="universe-cache（候选池的 SEC 响应与日线）上限（字节，默认 256 MiB）；按最近使用淘汰，0 = 不清理")
+    parser.add_argument("--facts-max-bytes", type=int, default=db_cap.FACTS_DEFAULT_MAX_BYTES,
+                        help="facts.sqlite 上限（字节，默认 2 GiB）；超过才清 keep_from 之前的旧期事实并 VACUUM，0 = 不清理")
+    parser.add_argument("--facts-retention-years", type=int, default=db_cap.FACT_RETENTION_YEARS)
+    parser.add_argument("--text-sim-max-requests", type=int, default=TEXT_SIM_MAX_REQUESTS_PER_RUN,
+                        help="Lazy Prices 单轮最多下载的申报正文份数（默认 1500，SEC 限速仍 <= 4 次/秒）；没做完的下一轮接着做，0 = 只用已有记录")
 
 
 def config_from_args(args: argparse.Namespace, project_root: Path) -> CycleConfig:
@@ -613,7 +655,9 @@ def config_from_args(args: argparse.Namespace, project_root: Path) -> CycleConfi
         structure_cache_dir=args.structure_cache or work / "structure-cache", sec_cache_dir=args.sec_cache or work / "sec-cache",
         text_similarity_path=args.text_similarity, universe_snapshot=args.universe_snapshot,
         universe_max_age_hours=args.universe_max_age_hours, ref=args.ref, offline=args.offline, event_start=args.event_start,
-        max_parallel=args.max_parallel, force=args.force, skip_collect=args.skip_collect, evidence_cards_dir=args.evidence_cards)
+        max_parallel=args.max_parallel, force=args.force, skip_collect=args.skip_collect, evidence_cards_dir=args.evidence_cards,
+        text_sim_max_requests=args.text_sim_max_requests, facts_max_bytes=args.facts_max_bytes,
+        facts_retention_years=args.facts_retention_years)
 
 
 def _prune_caches(cfg: CycleConfig, max_bytes: int) -> None:
@@ -626,6 +670,23 @@ def _prune_caches(cfg: CycleConfig, max_bytes: int) -> None:
         print("cache-cap: 清理失败 %s" % exc, file=sys.stderr)
         return
     print("cache-cap: 上限 %d 字节；清理前 %d，清理后 %d，删除 %d 个文件" % (max_bytes, stats["before"], stats["after"], stats["removed_files"]))
+
+
+def _prune_databases(cfg: CycleConfig, universe_cache_max_bytes: int, *, facts: bool) -> None:
+    """universe-cache 按最近使用淘汰；facts.sqlite 超上限时清 keep_from 之前的旧期事实并 VACUUM（规则与安全性见 db_cap.py）。
+    facts 只在本轮成功后清：失败的轮次不动事实库。清理失败不影响研究结果。"""
+    try:
+        stats = db_cap.prune_universe_cache(cfg.work_dir / "universe-cache", universe_cache_max_bytes)
+        print("universe-cache-cap: 上限 %d 字节；清理前 %d，清理后 %d，删除 %d 个文件" % (
+            universe_cache_max_bytes, stats["before"], stats["after"], stats["removed_files"]))
+        if facts:
+            cutoff = db_cap.keep_from(datetime.now(timezone.utc).date(), cfg.event_start, cfg.facts_retention_years)
+            result = db_cap.prune_facts(cfg.facts_db, cfg.facts_max_bytes, cutoff)
+            print("facts-cap: %s" % json.dumps(result, ensure_ascii=False, sort_keys=True))
+            if result.get("still_over_cap") or result.get("skipped", "").startswith(("磁盘", "sqlite")):
+                print("facts-cap: WARNING 未能压到上限以内，见上；已保护的读取窗口不会被破坏", file=sys.stderr)
+    except (OSError, ValueError) as exc:
+        print("db-cap: 清理失败 %s" % exc, file=sys.stderr)
 
 
 def cli_main(args: argparse.Namespace, project_root: Path) -> int:
@@ -651,6 +712,7 @@ def cli_main(args: argparse.Namespace, project_root: Path) -> int:
         return EXIT_UNIVERSE_INCOMPLETE
     finally:
         _prune_caches(cfg, args.cache_max_bytes)
+    _prune_databases(cfg, args.universe_cache_max_bytes, facts=True)
     print(render_report(summary, top=args.top))
     failed = [r["branch_id"] for r in summary["receipts"] if r["status"] == "FAILED"]
     return 2 if failed else 0

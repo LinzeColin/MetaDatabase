@@ -26,15 +26,15 @@ BINARY_SUFFIXES = {".gif", ".gz", ".ico", ".jpg", ".jpeg", ".pdf", ".png", ".web
 
 REQUIRED_MARKDOWN = {
     "README.md",
-    "GOVERNANCE_INDEX.md",
-    "DEVELOPMENT_STATUS.md",
-    "RISK_AND_ACCEPTANCE.md",
-    "REVIEW_AND_ITERATION_INDEX.md",
-    "TEST_STRATEGY.md",
-    "CONTINUITY_PLAN.md",
-    "MODEL_MANAGEMENT.md",
-    "FUNCTION_CATALOG.md",
-    "DOMAIN_DATA_CATALOG.md",
+    "文档/归档/GOVERNANCE_INDEX.md",
+    "文档/归档/DEVELOPMENT_STATUS.md",
+    "文档/归档/RISK_AND_ACCEPTANCE.md",
+    "文档/归档/REVIEW_AND_ITERATION_INDEX.md",
+    "文档/归档/TEST_STRATEGY.md",
+    "文档/归档/CONTINUITY_PLAN.md",
+    "文档/归档/MODEL_MANAGEMENT.md",
+    "文档/归档/FUNCTION_CATALOG.md",
+    "文档/归档/DOMAIN_DATA_CATALOG.md",
     "docs/phase/MVP_DEVELOPMENT_RECORD.md",
     "docs/phase/V5_TASK_PACK_SYNCHRONIZATION.md",
     "brand/BRAND_AND_COMPETITIVE_LANDSCAPE_RESEARCH.md",
@@ -75,7 +75,7 @@ REQUIRED_PROTOTYPE = {
     "prototype/styles.css",
 }
 
-REQUIRED_PDF = {"US_Corporate_Power_Map_Governance_Blueprint_v4.2.pdf"}
+REQUIRED_PDF = {"文档/归档/US_Corporate_Power_Map_Governance_Blueprint_v4.2.pdf"}
 
 REQUIRED_SUPPORTING = {
     "scripts/manage_clean_room_release.py",
@@ -252,7 +252,7 @@ def validate_source_files() -> dict[str, Any]:
     if index != standalone:
         raise AssertionError("prototype/index.html and prototype/standalone.html differ")
 
-    pdf_path = ROOT / "US_Corporate_Power_Map_Governance_Blueprint_v4.2.pdf"
+    pdf_path = ROOT / "文档/归档/US_Corporate_Power_Map_Governance_Blueprint_v4.2.pdf"
     pdf_pages = len(PdfReader(str(pdf_path)).pages)
     if pdf_pages != 16:
         raise AssertionError(f"governance PDF expected 16 pages, got {pdf_pages}")

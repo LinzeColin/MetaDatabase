@@ -9,7 +9,8 @@ import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 
-const API = (new URLSearchParams(location.search).get("api") || "https://eei.linzezhang.com").replace(/\/$/, "");
+// 数据接口默认就是页面自己的域名（同源 /v1/*，由 nginx 转给上游或本机接口）；?api= 只在调试时覆盖
+const API = (new URLSearchParams(location.search).get("api") || location.origin).replace(/\/$/, "");
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const MOBILE = matchMedia("(max-width: 900px)").matches;
 
@@ -82,7 +83,7 @@ try {
 } catch (err) {
   const box = document.getElementById("state");
   box.querySelector(".state-core").style.animation = "none";
-  document.getElementById("state-text").innerHTML = '这个浏览器没有开启 3D 图形（WebGL），宇宙视图画不出来。<br>换用最新版 Chrome、Safari 或 Edge，或在浏览器设置里打开「硬件加速」后刷新。<br><a href="https://eei.linzezhang.com/" style="color:#3fd6e0">先去看平面版完整图谱 ↗</a>';
+  document.getElementById("state-text").innerHTML = '这个浏览器没有开启 3D 图形（WebGL），宇宙视图画不出来。<br>换用最新版 Chrome、Safari 或 Edge，或在浏览器设置里打开「硬件加速」后刷新。<br><a href="/?subject=00000000-0000-4000-8000-000000000006" style="color:#3fd6e0">先去看平面版完整图谱 ↗</a>';
   throw err;
 }
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, MOBILE ? 1.5 : 2));
@@ -104,7 +105,7 @@ controls.dampingFactor = 0.06;
 controls.rotateSpeed = 0.55;
 controls.zoomSpeed = 0.9;
 controls.minDistance = 40;
-controls.maxDistance = 2600;
+controls.maxDistance = MOBILE ? 4600 : 2600; // 窄屏要拉得更远才装得下整个星图
 controls.maxPolarAngle = Math.PI * 0.86;
 controls.autoRotate = !REDUCED;
 controls.autoRotateSpeed = 0.22;
@@ -266,7 +267,7 @@ function layoutSystem(sys) {
 
 // ---------- 天体对象 ----------
 const pickables = [];
-const labelsLayer = document.body;
+const labelsLayer = document.getElementById("labels");
 function makeLabel(node) {
   const el = document.createElement("div");
   el.className = "label" + (node.isSun ? " sun" : "");
@@ -488,6 +489,7 @@ async function loadUniverse() {
   for (const e of edges.values()) buildArc(e);
   buildFlyers();
   buildLegend();
+  announce(`宇宙已点亮：${fmt(ok.length)} 颗恒星、${fmt(nodes.size)} 个天体、${fmt(edges.size)} 条关系。用「星表」按钮可用键盘浏览。`);
   return ok.length;
 }
 
@@ -544,6 +546,54 @@ async function loadPulse() {
 }
 
 
+// ---------- 避开面板：窄屏上面板会盖住画面，把星图挪进没被盖住的那块 ----------
+const insets = { fw: 1, fh: 1, dx: 0, dy: 0, cx: 0, cy: 0 };
+const NARROW = matchMedia("(max-width: 900px)"), SHORT = matchMedia("(max-height: 520px)");
+function panelRect(sel) {
+  const el = document.querySelector(sel);
+  if (!el || el.hidden) return null;
+  const b = el.getBoundingClientRect();
+  return b.width > 0 && b.height > 0 ? b : null;
+}
+function applyInsets() {
+  const W = innerWidth, H = innerHeight;
+  let top = 0, bottom = 0, left = 0, right = 0;
+  if (NARROW.matches) {
+    const brand = panelRect(".brand"), search = panelRect(".search"), legend = panelRect(".legend"), bar = panelRect(".toolbar");
+    const det = panelRect("#detail"), dir = panelRect("#directory");
+    if (SHORT.matches) {
+      // 横屏手机：面板在左边一列，详情卡在右边
+      left = Math.max(...[brand, search, legend, dir].map((r) => (r ? r.right + 8 : 0)));
+      if (det) right = W - det.left + 8;
+      if (bar) bottom = H - bar.top + 24;
+    } else {
+      top = Math.max(search ? search.bottom : 0, brand ? brand.bottom : 0) + 8;
+      bottom = Math.max(legend ? H - legend.top : 0, bar ? H - bar.top : 0) + 72; // 恒星名字挂在星点下方，多留一行
+      if (det) bottom = Math.max(bottom, H - det.top + 8);
+      if (dir) bottom = Math.max(bottom, H - dir.top + 8);
+    }
+  }
+  // 别把画面压得太小：可用区域至少保留 40%
+  const fw = Math.max(0.4, (W - left - right) / W), fh = Math.max(0.4, (H - top - bottom) / H);
+  insets.fw = fw; insets.fh = fh;
+  insets.dx = (left - right) / 2; insets.dy = (top - bottom) / 2;
+}
+// 每帧把当前偏移朝目标挪一点，面板开合时画面平滑让位
+function stepViewOffset() {
+  const k = REDUCED ? 1 : 0.14;
+  insets.cx += (insets.dx - insets.cx) * k;
+  insets.cy += (insets.dy - insets.cy) * k;
+  if (Math.abs(insets.dx - insets.cx) < 0.3) insets.cx = insets.dx;
+  if (Math.abs(insets.dy - insets.cy) < 0.3) insets.cy = insets.dy;
+  const W = innerWidth, H = innerHeight;
+  const key = `${W}|${H}|${insets.cx}|${insets.cy}`;
+  if (key === lastViewKey) return;
+  lastViewKey = key;
+  if (insets.cx === 0 && insets.cy === 0) { if (camera.view && camera.view.enabled) camera.clearViewOffset(); return; }
+  camera.setViewOffset(W, H, -insets.cx, -insets.cy, W, H);
+}
+let lastViewKey = "";
+
 // 按屏幕尺寸自动取景：把所有恒星装进画面
 function universeFrame() {
   const c = new THREE.Vector3();
@@ -551,10 +601,11 @@ function universeFrame() {
   c.divideScalar(Math.max(systems.length, 1));
   let r = 0;
   systems.forEach((s) => { r = Math.max(r, s.sun.pos.distanceTo(c) + 90); });
-  const vfov = (camera.fov * Math.PI) / 180;
-  const hfov = 2 * Math.atan(Math.tan(vfov / 2) * camera.aspect);
+  // 手机/窄屏上面板会盖住一部分画面：只用没被盖住的那块区域来取景（insets.fw/fh 是可用比例）
+  const vfov = 2 * Math.atan(Math.tan((camera.fov * Math.PI) / 360) * insets.fh);
+  const hfov = 2 * Math.atan(Math.tan(vfov / 2) * camera.aspect * insets.fw / insets.fh);
   const fit = Math.min(vfov, hfov);
-  return { center: c, distance: (r / Math.sin(fit / 2)) * 0.82 };
+  return { center: c, distance: (r / Math.sin(fit / 2)) * (NARROW.matches ? 0.62 : 0.82) };
 }
 // ---------- 相机飞行 ----------
 let flight = null;
@@ -585,13 +636,18 @@ function focusSystem(sys) {
   document.getElementById("btn-home").hidden = false;
   flyTo(sys.sun.pos, 150 + Math.sqrt(sys.planets.length) * 18);
   refreshEmphasis();
+  announce(`已进入 ${sys.sun.zh || sys.sun.short} 星系，共 ${fmt(sys.planets.length + sys.moons.length)} 颗行星与卫星。按 Esc 返回全宇宙。`);
+  renderDirectory();
+  applyInsets();
 }
 function goHome() {
   focusSys = null; selected = null;
-  closeDetail();
+  closeDetail(true);
   document.getElementById("btn-home").hidden = true;
   { const f = universeFrame(); flyTo(f.center, f.distance, 2.4); }
   refreshEmphasis();
+  announce(`已返回全宇宙，共 ${fmt(systems.length)} 颗恒星。`);
+  renderDirectory();
 }
 function refreshEmphasis() {
   const lit = new Set();
@@ -614,8 +670,14 @@ function refreshEmphasis() {
 
 // ---------- 详情卡：关系 + 官方原文 ----------
 const detail = document.getElementById("detail"), detailBody = document.getElementById("detail-body");
-function closeDetail() { detail.hidden = true; selected = null; refreshEmphasis(); }
-document.getElementById("detail-close").addEventListener("click", closeDetail);
+function closeDetail(quiet) {
+  const hadFocus = detail.contains(document.activeElement);
+  detail.hidden = true; selected = null; refreshEmphasis();
+  applyInsets();
+  if (!quiet) { announce("已关闭天体详情。"); renderDirectory(); }
+  if (hadFocus) (dirOpen ? dirList.querySelector("button") : document.getElementById("btn-dir"))?.focus();
+}
+document.getElementById("detail-close").addEventListener("click", () => closeDetail());
 async function selectNode(n) {
   selected = n;
   refreshEmphasis();
@@ -637,11 +699,77 @@ async function selectNode(n) {
   }).join("");
   const more = rels.length > shown.length ? `<p class="legal">另有 ${rels.length - shown.length} 条关系，在完整图谱里查看</p>` : "";
   detailBody.innerHTML = `${head}<h4>${n.isSun ? "关系样本（点行星看全部）" : "它的关系与官方原文"}</h4>${relHTML}${more}
-    <div class="actions">${n.isSun && focusSys !== sys ? `<button id="act-enter">进入这个星系</button>` : ""}<a href="https://eei.linzezhang.com/?subject=${encodeURIComponent(n.id)}" target="_blank" rel="noopener">在完整图谱中打开 ↗</a></div>`;
+    <div class="actions">${n.isSun && focusSys !== sys ? `<button id="act-enter">进入这个星系</button>` : ""}<a href="/?subject=${encodeURIComponent(n.id)}" target="_blank" rel="noopener">在完整图谱中打开 ↗</a></div>`;
   detail.hidden = false;
+  applyInsets();
   document.getElementById("act-enter")?.addEventListener("click", () => focusSystem(sys));
   for (const e of shown) loadEvidence(e);
+  announce(`已选中${n.isSun ? "恒星" : n.type === "person" ? "人物" : "公司"} ${n.isSun ? n.zh : n.short}，${fmt(rels.length)} 条已核实关系${crossCount ? `，其中 ${fmt(crossCount)} 条跨公司关联` : ""}。详情在「天体详情」面板。`);
+  renderDirectory();
 }
+
+// ---------- 星表：给键盘与读屏用户的天体列表，以及「当前在哪」的语音说明 ----------
+const statusEl = document.getElementById("focus-status");
+let announceTimer = null;
+function announce(text) {
+  // 先清空再写入，连续两次相同内容也会被读屏重新播报
+  statusEl.textContent = "";
+  clearTimeout(announceTimer);
+  announceTimer = setTimeout(() => { statusEl.textContent = text; }, 60);
+}
+const dirPanel = document.getElementById("directory"), dirList = document.getElementById("dir-list"), dirSub = document.getElementById("dir-sub"), dirBtn = document.getElementById("btn-dir");
+let dirOpen = false;
+const DIR_CAP = 60;
+function dirItems() {
+  if (focusSys) {
+    const rest = [...focusSys.planets, ...focusSys.moons].sort((a, b) => b.edges.size - a.edges.size);
+    return { title: `${focusSys.sun.zh || focusSys.sun.short} 星系`, nodes: [focusSys.sun, ...rest.slice(0, DIR_CAP)], more: Math.max(0, rest.length - DIR_CAP) };
+  }
+  return { title: `全宇宙 · ${fmt(systems.length)} 颗恒星`, nodes: systems.map((s) => s.sun), more: 0 };
+}
+function renderDirectory() {
+  if (!dirOpen) return;
+  const hadFocus = dirPanel.contains(document.activeElement);
+  const keep = hadFocus ? document.activeElement.dataset?.id : null;
+  const { title, nodes: list, more } = dirItems();
+  dirSub.textContent = title;
+  dirList.innerHTML = "";
+  for (const n of list) {
+    const li = document.createElement("li");
+    const b = document.createElement("button");
+    b.dataset.id = n.id;
+    if (n === selected) b.setAttribute("aria-current", "true");
+    const fam = n.isSun ? null : FAMILY[legendKey(n.fam)];
+    const name = document.createElement("span");
+    name.textContent = n.isSun ? (n.zh && n.zh.toLowerCase() !== n.short.toLowerCase() ? `${n.zh} · ${n.short}` : n.short) : n.short;
+    const tag = document.createElement("span");
+    tag.className = "tag";
+    tag.textContent = n.isSun ? "恒星" : `${n.type === "person" ? "人物" : "公司"} · ${fam.zh}`;
+    b.append(name, tag);
+    li.appendChild(b);
+    dirList.appendChild(li);
+  }
+  if (more) { const li = document.createElement("li"); li.className = "more"; li.textContent = `另有 ${fmt(more)} 个天体，请用搜索框查找`; dirList.appendChild(li); }
+  if (hadFocus) (dirList.querySelector(`button[data-id="${CSS.escape(keep || "")}"]`) || dirList.querySelector("button"))?.focus();
+  applyInsets();
+}
+function setDirectory(on, focusFirst) {
+  dirOpen = on;
+  dirPanel.hidden = !on;
+  dirBtn.setAttribute("aria-expanded", on ? "true" : "false");
+  if (on) { renderDirectory(); if (focusFirst) dirList.querySelector("button")?.focus(); }
+  applyInsets();
+}
+dirBtn.addEventListener("click", (ev) => setDirectory(!dirOpen, ev.detail === 0));
+dirList.addEventListener("click", (ev) => {
+  const b = ev.target.closest("button[data-id]");
+  const n = b && nodes.get(b.dataset.id);
+  if (!n) return;
+  if (focusSys !== n.system) focusSystem(n.system);
+  selectNode(n);
+  // 窄屏上星表和详情卡抢同一块地方：选中后收起星表，焦点留在星表按钮上，Tab 一下就到详情
+  if (NARROW.matches) { setDirectory(false); dirBtn.focus(); }
+});
 const evidenceCache = new Map();
 async function loadEvidence(e) {
   const box = () => detailBody.querySelector(`[data-rel="${e.id}"] .evidence`);
@@ -717,9 +845,22 @@ searchInput.addEventListener("input", () => {
       ...local.map((n) => ({ id: n.id, name: n.isSun ? `${n.zh} · ${n.short}` : n.name, tag: "在星图里" })),
       ...remote.filter((e) => !seen.has(e.id)).map((e) => ({ id: e.id, name: prettyName(e.canonical_name), tag: nodes.has(e.id) ? "在星图里" : "点亮它" })),
     ].slice(0, 9);
-    results.innerHTML = rows.length ? rows.map((r) => `<li data-id="${r.id}"><span>${escapeHTML(r.name)}</span><span class="tag">${r.tag}</span></li>`).join("") : `<li class="empty">没找到「${escapeHTML(q)}」，换个英文名试试</li>`;
+    results.innerHTML = rows.length ? rows.map((r) => `<li data-id="${r.id}"><button type="button"><span>${escapeHTML(r.name)}</span><span class="tag">${r.tag}</span></button></li>`).join("") : `<li class="empty">没找到「${escapeHTML(q)}」，换个英文名试试</li>`;
     results.hidden = false;
+    announce(rows.length ? `找到 ${rows.length} 个结果，按向下键选择，回车确认。` : `没找到「${q}」。`);
   }, 250);
+});
+// 键盘：回车选第一个结果，上下键在结果里移动
+searchInput.addEventListener("keydown", (ev) => {
+  const first = results.querySelector("button");
+  if (ev.key === "Enter" && first && !results.hidden) { ev.preventDefault(); first.click(); }
+  else if (ev.key === "ArrowDown" && first && !results.hidden) { ev.preventDefault(); first.focus(); }
+});
+results.addEventListener("keydown", (ev) => {
+  const btns = [...results.querySelectorAll("button")], i = btns.indexOf(document.activeElement);
+  if (i < 0) return;
+  if (ev.key === "ArrowDown") { ev.preventDefault(); btns[Math.min(i + 1, btns.length - 1)].focus(); }
+  else if (ev.key === "ArrowUp") { ev.preventDefault(); (i ? btns[i - 1] : searchInput).focus(); }
 });
 results.addEventListener("click", async (ev) => {
   const li = ev.target.closest("li[data-id]");
@@ -727,11 +868,13 @@ results.addEventListener("click", async (ev) => {
   results.hidden = true;
   searchInput.value = "";
   const id = li.dataset.id;
-  if (nodes.has(id)) { const n = nodes.get(id); focusSystem(n.system); selectNode(n); return; }
+  const byKey = ev.detail === 0; // 键盘触发：把焦点交给详情卡，方便继续读
+  if (nodes.has(id)) { const n = nodes.get(id); focusSystem(n.system); selectNode(n); if (byKey) detail.focus({ preventScroll: true }); return; }
   await igniteNewStar(id);
+  if (byKey && !detail.hidden) detail.focus({ preventScroll: true });
 });
 document.addEventListener("keydown", (ev) => {
-  if (ev.key === "Escape") { results.hidden = true; if (selected) closeDetail(); else if (focusSys) goHome(); }
+  if (ev.key === "Escape") { results.hidden = true; if (selected) closeDetail(); else if (focusSys) goHome(); else if (dirOpen) { setDirectory(false); dirBtn.focus(); } }
   if (ev.key === "/" && document.activeElement !== searchInput) { ev.preventDefault(); searchInput.focus(); }
 });
 
@@ -797,7 +940,7 @@ function updateLabels() {
   const placed = [];
   const hit = (r) => placed.some((p) => !(r.r < p.l || r.l > p.r || r.b < p.t || r.t > p.b));
   for (const c of cands) {
-    const w = c.n.isSun ? Math.max(70, Math.min(12 + c.n.short.length * 6.6, 230)) : Math.min(9 + c.n.short.length * 7, 240), h = c.n.isSun ? 36 : 18;
+    const w = c.n.isSun ? Math.max(76, Math.min(26 + c.n.short.length * 6.6, 240)) : Math.min(23 + c.n.short.length * 7, 250), h = c.n.isSun ? 36 : 18;
     const tries = c.n.isSun ? [[0, 0], [0, -h - 34], [w / 2 + 26, -h / 2 - 8], [-w / 2 - 26, -h / 2 - 8], [0, 22]] : [[0, 0]];
     let ok = null;
     for (const [dx, dy] of tries) {
@@ -824,6 +967,7 @@ function animate() {
   const t = clock.elapsedTime;
   uTime.value = REDUCED ? 0 : t;
   updateFlight(t);
+  stepViewOffset();
   controls.update();
   nebulae.rotation.y += dt * 0.004;
   dust.rotation.y -= dt * 0.006;
@@ -882,6 +1026,8 @@ addEventListener("resize", () => {
   renderer.setSize(innerWidth, innerHeight);
   composer.setSize(innerWidth, innerHeight);
   bloom.setSize(innerWidth, innerHeight);
+  lastViewKey = "";
+  applyInsets();
 });
 
 // ---------- 状态层 ----------
@@ -896,12 +1042,14 @@ async function boot() {
   while (true) {
     try {
       const n = await loadUniverse();
+      applyInsets();
+      lastViewKey = ""; insets.cx = insets.dx; insets.cy = insets.dy;
       setState(false);
       revealStart = clock.elapsedTime + 0.3;
       { const f = universeFrame(); flyTo(f.center, f.distance, REDUCED ? 0.01 : 4.2); }
       setTimeout(() => { if (!selected) setTour(!REDUCED); }, 4600);
       setTimeout(() => { document.getElementById("hint").style.opacity = "0"; }, 14000);
-      window.__universe = { suns: n, nodes: nodes.size, edges: edges.size, cross: arcs.filter((a) => a.cross).length, systems: systems.map((s) => [s.sun.zh, s.planets.length, s.moons.length, s.nodeCount, s.edgeCount]) };
+      window.__universe = { insets, suns: n, nodes: nodes.size, edges: edges.size, cross: arcs.filter((a) => a.cross).length, systems: systems.map((s) => [s.sun.zh, s.planets.length, s.moons.length, s.nodeCount, s.edgeCount]) };
       return;
     } catch (e) {
       attempt++;

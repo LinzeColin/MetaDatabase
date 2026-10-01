@@ -484,7 +484,7 @@ Serenity Daily Analysis 是一个本地优先的投资研究与纪律提醒 auto
 
 - Mac OS Mail notification。
 - 期望方式：Apple Mail 发送邮件或生成草稿，同时触发本地 macOS notification。
-- 收件人：linzezhang35@gmail.com。
+- 收件人：LinzeColin@users.noreply.github.com。
 
 通知模板：
 
@@ -578,7 +578,7 @@ Serenity Daily Analysis 是一个本地优先的投资研究与纪律提醒 auto
 
 1. 初始基金候选全集从哪里来：支付宝自选/持仓、moomoo 基金列表、还是指定主题基金名单？
 2. 支付宝持仓导入格式：CSV、截图 OCR、手工表格，还是先给模板？
-3. Mac OS Mail 是否已经配置可发送 `linzezhang35@gmail.com`？
+3. Mac OS Mail 是否已经配置可发送 `LinzeColin@users.noreply.github.com`？
 4. 是否允许 automation 读取 Apple Mail / local notification 权限？
 5. 是否需要把报告同时生成 PDF，还是 MVP 先 Markdown + SQLite + 邮件正文？
 6. 是否需要单独输出“股票观察池”，用于解释基金持仓和主题，不参与 Top5？

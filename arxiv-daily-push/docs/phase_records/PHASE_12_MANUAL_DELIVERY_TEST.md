@@ -9,7 +9,7 @@ Status: workflow prepared; real manual test not yet run
 - Add a default-branch-only GitHub Actions workflow for one controlled manual delivery test.
 - Build all-arXiv daily input, candidate queue, and lightweight MP4 before any delivery side effect.
 - Create a GitHub Release containing the MP4 and JSON evidence artifacts.
-- Send one Gmail SMTP email to `linzezhang35@gmail.com` with Chinese lesson text, Release link, video link, and candidate queue summary.
+- Send one Gmail SMTP email to `LinzeColin@users.noreply.github.com` with Chinese lesson text, Release link, video link, and candidate queue summary.
 
 ## Implemented
 
@@ -31,7 +31,7 @@ Status: workflow prepared; real manual test not yet run
 
 - Required: `ADP_SMTP_PASSWORD`.
 - Optional overrides: `ADP_SMTP_HOST`, `ADP_SMTP_PORT`, `ADP_SMTP_USERNAME`.
-- Defaults: Gmail SMTP host `smtp.gmail.com`, port `587`, username `linzezhang35@gmail.com`.
+- Defaults: Gmail SMTP host `smtp.gmail.com`, port `587`, username `LinzeColin@users.noreply.github.com`.
 
 ## Evidence
 

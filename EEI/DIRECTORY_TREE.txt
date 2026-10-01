@@ -31,6 +31,17 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │   │   ├── sec_normalizer.py
 │   │   │   │   ├── sec_smoke.py
 │   │   │   │   └── transactional_pipeline.py
+│   │   │   ├── public
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── app.py
+│   │   │   │   ├── db.py
+│   │   │   │   ├── events.py
+│   │   │   │   ├── gate.py
+│   │   │   │   ├── graph.py
+│   │   │   │   ├── modules.py
+│   │   │   │   ├── routes.py
+│   │   │   │   ├── settings.py
+│   │   │   │   └── stats.py
 │   │   │   ├── __init__.py
 │   │   │   ├── amount_semantics.py
 │   │   │   ├── db_health.py
@@ -39,8 +50,20 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │   ├── health.py
 │   │   │   ├── healthcheck.py
 │   │   │   ├── main.py
+│   │   │   ├── public_main.py
 │   │   │   ├── scoring.py
 │   │   │   └── settings.py
+│   │   ├── deploy
+│   │   │   ├── Dockerfile
+│   │   │   ├── README.md
+│   │   │   ├── bench_explore.py
+│   │   │   ├── eei-api-pull-deploy.sh
+│   │   │   ├── eei-api-pull.service
+│   │   │   ├── eei-api-pull.timer
+│   │   │   ├── eei-api.env
+│   │   │   ├── indexes.sql
+│   │   │   ├── install.sh
+│   │   │   └── readonly_role.sql
 │   │   └── __init__.py
 │   ├── cloudflare-public
 │   │   ├── public
@@ -100,6 +123,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   │   │       │   └── page.tsx
 │   │   │       ├── analysis-context-badge.tsx
 │   │   │       ├── analysis-contract.ts
+│   │   │       ├── api-base.ts
 │   │   │       ├── capital-events-client.ts
 │   │   │       ├── cloud-data-client.ts
 │   │   │       ├── explore-api-client.ts
@@ -347,6 +371,8 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── ui_copy_lexicon.csv
 │   ├── uiux_benchmark_sources.csv
 │   └── upstream_downstream_role_catalog.csv
+├── dev-notes
+│   └── eei-selfhost-api-交接.md
 ├── diagrams
 │   ├── domain_model.mmd
 │   ├── live_refresh_flow.mmd
@@ -710,6 +736,7 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── integration
 │   │   ├── README.md
 │   │   ├── test_database_migrations.py
+│   │   ├── test_public_api_db.py
 │   │   └── test_relationship_publication_gate_db.py
 │   └── unit
 │       ├── test_a202_signed_intake_preflight.py
@@ -730,6 +757,7 @@ Enterprise_Ecosystem_Intelligence_release
 │       ├── test_postgres_compose_clean_environment.py
 │       ├── test_private_db_client.py
 │       ├── test_production_api_release_preflight.py
+│       ├── test_public_api_surface.py
 │       ├── test_relationship_publication_gate.py
 │       ├── test_release_decision_bundle.py
 │       ├── test_release_manager_activation.py
@@ -755,6 +783,37 @@ Enterprise_Ecosystem_Intelligence_release
 │   ├── visual_first_workspace.svg
 │   └── visual_first_workspace_screenshot.png
 ├── 文档
+│   ├── 归档
+│   │   ├── AGENTS_旧版.md
+│   │   ├── CHANGELOG.md
+│   │   ├── CODEX_MASTER_TASK.md
+│   │   ├── CONTINUITY_PLAN.md
+│   │   ├── CONTRIBUTING.md
+│   │   ├── CURRENT_PHASE.md
+│   │   ├── DELIVERY_INDEX.md
+│   │   ├── DEVELOPMENT_STATUS.md
+│   │   ├── DOMAIN_DATA_CATALOG.md
+│   │   ├── FUNCTION_CATALOG.md
+│   │   ├── GITHUB_REPOSITORY_BACKUP_INDEX.md
+│   │   ├── GOVERNANCE_INDEX.md
+│   │   ├── HANDOFF_EEI.md
+│   │   ├── HANDOFF_旧版.md
+│   │   ├── MODEL_MANAGEMENT.md
+│   │   ├── PLANS.md
+│   │   ├── PURSUING_GOAL.md
+│   │   ├── README.md
+│   │   ├── README_旧版.md
+│   │   ├── REPORT.md
+│   │   ├── REVIEW_AND_ITERATION_INDEX.md
+│   │   ├── RISK_AND_ACCEPTANCE.md
+│   │   ├── RUN_CODEX.md
+│   │   ├── SOURCES.md
+│   │   ├── TEST_STRATEGY.md
+│   │   ├── US_Corporate_Power_Map_Governance_Blueprint_v4.2.pdf
+│   │   ├── US_Corporate_Power_Map_System_Model_Parameter_Architecture_v4.2.md
+│   │   ├── US_Corporate_Power_Map_UIUX_Redesign_v4.2.md
+│   │   ├── VALIDATION_REPORT.md
+│   │   └── WHERE_IS_THE_DATA.md
 │   ├── 00_我在哪.md
 │   ├── 01_产品需求.md
 │   ├── 02_系统架构.md
@@ -765,38 +824,12 @@ Enterprise_Ecosystem_Intelligence_release
 ├── .env.example
 ├── .gitignore
 ├── AGENTS.md
-├── CHANGELOG.md
 ├── CHECKSUMS.sha256
-├── CODEX_MASTER_TASK.md
-├── CONTINUITY_PLAN.md
-├── CONTRIBUTING.md
-├── CURRENT_PHASE.md
-├── DELIVERY_INDEX.md
-├── DEVELOPMENT_STATUS.md
 ├── DIRECTORY_TREE.txt
-├── DOMAIN_DATA_CATALOG.md
-├── FUNCTION_CATALOG.md
-├── GITHUB_REPOSITORY_BACKUP_INDEX.md
-├── GOVERNANCE_INDEX.md
 ├── HANDOFF.md
-├── HANDOFF_EEI.md
-├── MODEL_MANAGEMENT.md
 ├── Makefile
-├── PLANS.md
-├── PURSUING_GOAL.md
 ├── README.md
-├── REPORT.md
-├── REVIEW_AND_ITERATION_INDEX.md
-├── RISK_AND_ACCEPTANCE.md
-├── RUN_CODEX.md
-├── SOURCES.md
-├── TEST_STRATEGY.md
-├── US_Corporate_Power_Map_Governance_Blueprint_v4.2.pdf
-├── US_Corporate_Power_Map_System_Model_Parameter_Architecture_v4.2.md
-├── US_Corporate_Power_Map_UIUX_Redesign_v4.2.md
-├── VALIDATION_REPORT.md
 ├── VERSION
-├── WHERE_IS_THE_DATA.md
 ├── docker-compose.ovh.yml
 ├── docker-compose.yml
 ├── manifest.txt

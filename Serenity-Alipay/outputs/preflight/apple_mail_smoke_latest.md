@@ -2,7 +2,7 @@
 
 - Generated at: 2026-06-13T06:43:43+08:00
 - Status: pass
-- Recipient: `linzezhang35@gmail.com`
+- Recipient: `LinzeColin@users.noreply.github.com`
 - Draft ready: `True`
 - Apple Mail scriptable: `True`
 - Mail send enabled: `True`

@@ -6,7 +6,7 @@ Deterministic. Also checks: selection is by user value (not Registry order), a p
 cohort manifest + expected benefit exist, and a live-blocked source is deferred (not in Wave 1).
 """
 import sys, pathlib
-V01 = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
+V01 = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
 sys.path.insert(0, str(V01 / "tools"))
 import cohort_selector as C  # noqa: E402
 

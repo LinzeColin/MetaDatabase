@@ -7,7 +7,7 @@ A0 adapters) is exercised against a LOCAL loopback HTTP server -- no external ne
 gov.cn fetch (Owner: real fetch at the kernel stage) is a separate evidence smoke, not this test.
 """
 import sys, pathlib, hashlib, threading, http.server, dataclasses
-V01 = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
+V01 = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
 sys.path.insert(0, str(V01 / "tools"))
 import official_connector as OC  # noqa: E402
 

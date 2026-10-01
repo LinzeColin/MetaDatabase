@@ -5,8 +5,8 @@
 
 ## 1. 账户与部署
 
-- 账户：`Linzezhang35@gmail.com's Account`（account_id `a8e86fa4be62ee3f9b5873b2aa934256`，已在公开 wrangler 配置中；**OAuth token 未记录**）。
-- Worker：`adp-cloud`。**当前线上版本** `455afd98-027a-4ace-9619-736a464f9bd3`（2026-07-15T09:39:45Z，author linzezhang35@gmail.com）；2026-07-15 有多次部署，此为最新 100% 版本。
+- 账户：`LinzeColin@users.noreply.github.com's Account`（account_id `a8e86fa4be62ee3f9b5873b2aa934256`，已在公开 wrangler 配置中；**OAuth token 未记录**）。
+- Worker：`adp-cloud`。**当前线上版本** `455afd98-027a-4ace-9619-736a464f9bd3`（2026-07-15T09:39:45Z，author LinzeColin@users.noreply.github.com）；2026-07-15 有多次部署，此为最新 100% 版本。
 - Cron：`30 20 * * *`（每日 UTC 20:30，定义于 wrangler_cloud.jsonc，已部署）。
 
 ## 2. D1 数据库 `adp-mirror`（时间范围与单位齐全）

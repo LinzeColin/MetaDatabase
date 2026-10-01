@@ -376,16 +376,16 @@ def validate_parameters_and_docs() -> dict[str, Any]:
     require(not missing_parameters, f"missing parameters: {missing_parameters}")
 
     required_docs = {
-        "REVIEW_AND_ITERATION_INDEX.md",
-        "TEST_STRATEGY.md",
-        "CONTINUITY_PLAN.md",
+        "文档/归档/REVIEW_AND_ITERATION_INDEX.md",
+        "文档/归档/TEST_STRATEGY.md",
+        "文档/归档/CONTINUITY_PLAN.md",
         "docs/phase/V5_TASK_PACK_SYNCHRONIZATION.md",
         "brand/BRAND_AND_COMPETITIVE_LANDSCAPE_RESEARCH.md",
     }
     missing_docs = sorted(path for path in required_docs if not (ROOT / path).is_file())
     require(not missing_docs, f"missing v5 sync docs: {missing_docs}")
 
-    pursuing_goal = read_text("PURSUING_GOAL.md")
+    pursuing_goal = read_text("文档/归档/PURSUING_GOAL.md")
     require("Target product version: v0.1" in pursuing_goal, "v0.1 target wording missing")
     require("PostgreSQL production database" in pursuing_goal, "MVP blocker wording missing")
     return {"parameters": len(EXPECTED_PARAMETERS), "docs": len(required_docs)}

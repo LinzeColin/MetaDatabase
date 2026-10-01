@@ -14,7 +14,7 @@ from .branches import commercial as C
 from .branches import event_atlas as EA
 from .branches import foresight as F
 from .branches import lead_lag as LL
-from .branches.fundamentals import Fundamentals, MarketInput, PeerContext, compute_fundamentals
+from .branches.fundamentals import COMMERCIAL_PROFILE, Fundamentals, MarketInput, PeerContext, compute_fundamentals
 from .branches.structure_factors import StructureEvidence
 from .evidence.cards import CardBook
 
@@ -29,13 +29,16 @@ def _links(detail_links: Sequence[Mapping], limit: int = 6) -> List[dict]:
 
 
 def fundamentals_for_entries(facts: Any, bar_store: Any, entries: Sequence[Mapping], as_of: str,
-                             log: Callable[[str], None] = lambda message: None) -> Dict[str, Fundamentals]:
+                             log: Callable[[str], None] = lambda message: None,
+                             profile: Any = None) -> Dict[str, Fundamentals]:
     """逐只算 as_of 那一天可见的基本面。实盘（as_of = 快照日）与回测（as_of = 历史月末）走同一个函数。"""
     funds: Dict[str, Fundamentals] = {}
     for index, entry in enumerate(entries, 1):
         rows = bar_store.load(entry["symbol"]) or []
         history = [(row[0], float(row[1])) for row in rows if row[0] <= as_of]
-        funds[entry["symbol"]] = compute_fundamentals(facts, MarketInput.from_entry(entry, history), as_of)
+        market = MarketInput.from_entry(entry, history)
+        funds[entry["symbol"]] = (compute_fundamentals(facts, market, as_of) if profile is None
+                                   else compute_fundamentals(facts, market, as_of, profile))
         if index % 300 == 0:
             log("fundamentals %d/%d" % (index, len(entries)))
     return funds
@@ -144,6 +147,10 @@ def _factor_no_evidence(receipts: Mapping[str, Any]) -> dict:
 
 def commercial_receipts(facts: Any, funds: Mapping[str, Fundamentals], params: Mapping, findings: Sequence[Mapping],
                         as_of: str) -> Dict[str, Any]:
+    # 商业机会分支用自己的取数口径（金融业营收、新债务标签、营收断更检查、独立的现金流）；
+    # 调用方传来的是默认口径的基本面时在这里重算，保证实盘与回测口径一致，且不影响其它分支。
+    funds = {symbol: (f if f.profile_name == COMMERCIAL_PROFILE.name
+                      else compute_fundamentals(facts, f.market, as_of, COMMERCIAL_PROFILE)) for symbol, f in funds.items()}
     peers = PeerContext.build(funds.values(), params["peers"]["min_group"])
     return {symbol: C.score_commercial(facts, f.market, as_of, params, findings, peers, f) for symbol, f in funds.items()}
 
@@ -162,14 +169,27 @@ def commercial_records(receipts: Mapping[str, Any]) -> List[dict]:
 def run_commercial(snapshot: Any, log: Callable[[str], None]) -> dict:
     params_path = snapshot.params_file(COMMERCIAL)
     params, findings = C.load_commercial_params(params_path)
-    funds = compute_pool_fundamentals(snapshot, log)
     facts = snapshot.facts()
+    funds = fundamentals_for_entries(facts, snapshot.bar_store(), snapshot.entries, snapshot.as_of, log, COMMERCIAL_PROFILE)
     receipts = commercial_receipts(facts, funds, params, findings, snapshot.as_of)
     facts.close()
     verdicts = commercial_records(receipts)
     _attach_full_detail(verdicts, receipts)
-    meta = {"params_version": params["params_version"], "params_findings": findings, "universe": len(funds)}
+    meta = {"params_version": params["params_version"], "params_findings": findings, "universe": len(funds),
+            "fundamentals_profile": COMMERCIAL_PROFILE.name, "factor_no_evidence": commercial_factor_no_evidence(receipts)}
     return _branch_envelope(verdicts, meta, findings)
+
+
+def commercial_factor_no_evidence(receipts: Mapping[str, Any]) -> dict:
+    """商业机会 18 个因子各自的 NO_EVIDENCE 占比（分母 = 全池）；研究层每轮写进分支 meta，覆盖率审计直接读它。"""
+    n = len(receipts)
+    out: Dict[str, Dict[str, float]] = {"base": {}, "risk": {}}
+    for group, key in (("base", "base_dimensions"), ("risk", "risk_factors")):
+        for r in receipts.values():
+            for name, fr in r.detail[key].items():
+                out[group][name] = out[group].get(name, 0) + (fr["rating"] == "NO_EVIDENCE")
+        out[group] = {name: round(count / n, 4) for name, count in out[group].items()} if n else {}
+    return out
 
 
 def event_atlas_records(company_verdicts: Sequence[Mapping]) -> List[dict]:

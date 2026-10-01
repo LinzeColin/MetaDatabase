@@ -3,7 +3,7 @@
   "captured_at_utc": "2026-07-16T00:31Z",
   "method": "wrangler 4.111.0 read-only (whoami, d1 info, d1 execute SELECT --remote, deployments list, r2 bucket list); changed_db=false on all D1 reads; no resource created, no setting changed, no secret recorded",
   "account": {
-    "name": "Linzezhang35@gmail.com's Account",
+    "name": "LinzeColin@users.noreply.github.com's Account",
     "account_id": "a8e86fa4be62ee3f9b5873b2aa934256",
     "note": "account_id and database_id are identifiers already present in the committed wrangler config; OAuth token NOT recorded"
   },
@@ -11,7 +11,7 @@
     "worker": "adp-cloud",
     "current_live_version_id": "455afd98-027a-4ace-9619-736a464f9bd3",
     "current_version_created_utc": "2026-07-15T09:39:45.247Z",
-    "author": "linzezhang35@gmail.com",
+    "author": "LinzeColin@users.noreply.github.com",
     "cron": "30 20 * * * (daily 20:30 UTC; defined in wrangler_cloud.jsonc, deployed)",
     "note": "multiple deployments on 2026-07-15; 455afd98 is the latest (100%) version"
   },

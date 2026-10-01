@@ -58,6 +58,44 @@ DILUTED_SHARES_CONCEPTS = ("us-gaap:WeightedAverageNumberOfDilutedSharesOutstand
 BASIC_SHARES_CONCEPTS = ("us-gaap:WeightedAverageNumberOfSharesOutstandingBasic",)
 ANTIDILUTIVE_CONCEPTS = ("us-gaap:AntidilutiveSecuritiesExcludedFromComputationOfEarningsPerShareAmount",)
 
+# ---- 商业机会分支专用的口径扩展（默认口径不变，瓶颈/前瞻等其它分支不受影响）-----------------
+# 金融业（银行/储贷）没有「营收」标签：按行业通行口径，总营收 = 净利息收入 + 非利息收入。
+# "sum:" 开头的伪概念表示「同一期、同一份申报里两个概念相加」，见 FactView.merged。
+BANK_NET_REVENUE = "sum:us-gaap:InterestIncomeExpenseNet+us-gaap:NoninterestIncome"
+COMMERCIAL_REVENUE_CONCEPTS = REVENUE_CONCEPTS + ("us-gaap:RevenuesNetOfInterestExpense", BANK_NET_REVENUE)
+# 债务：多数公司已改用「长期债务及融资租赁」标签，旧标签停在几年前，原口径因此读不到债务。
+COMMERCIAL_DEBT_TOTAL_CONCEPTS = DEBT_TOTAL_CONCEPTS + ("us-gaap:DebtAndCapitalLeaseObligations",
+                                                        "us-gaap:DebtLongtermAndShorttermCombinedAmount")
+COMMERCIAL_DEBT_NONCURRENT_CONCEPTS = DEBT_NONCURRENT_CONCEPTS + ("us-gaap:LongTermDebtAndCapitalLeaseObligations",)
+COMMERCIAL_DEBT_CURRENT_CONCEPTS = DEBT_CURRENT_CONCEPTS + ("us-gaap:LongTermDebtAndCapitalLeaseObligationsCurrent",)
+
+
+def concept_parts(concept: str) -> Tuple[str, ...]:
+    """普通概念返回自己；"sum:a+b" 返回 (a, b)。入库裁剪要把组成项都留下。"""
+    return tuple(concept[4:].split("+")) if concept.startswith("sum:") else (concept,)
+
+
+@dataclass(frozen=True)
+class ConceptProfile:
+    """一组取数口径。DEFAULT_PROFILE 与历史行为完全一致；COMMERCIAL_PROFILE 只给商业机会分支用。"""
+    name: str = "default"
+    revenue: Tuple[str, ...] = REVENUE_CONCEPTS
+    debt_total: Tuple[str, ...] = DEBT_TOTAL_CONCEPTS
+    debt_noncurrent: Tuple[str, ...] = DEBT_NONCURRENT_CONCEPTS
+    debt_current: Tuple[str, ...] = DEBT_CURRENT_CONCEPTS
+    # 营收 TTM 截止日比最近一份 10-K/10-Q 的报告期早超过这么多天，视为「营收已不再披露」而不是「营收很新」。None = 不检查。
+    max_revenue_lag_days: Optional[int] = None
+    # 经营现金流 TTM 独立于营收取数（营收标签断更的公司也能看现金流），但必须新鲜；营收率仍要求两者同一截止日。
+    ocf_standalone: bool = False
+    ocf_max_lag_days: int = 100
+
+
+DEFAULT_PROFILE = ConceptProfile()
+COMMERCIAL_PROFILE = ConceptProfile(
+    name="commercial", revenue=COMMERCIAL_REVENUE_CONCEPTS, debt_total=COMMERCIAL_DEBT_TOTAL_CONCEPTS,
+    debt_noncurrent=COMMERCIAL_DEBT_NONCURRENT_CONCEPTS, debt_current=COMMERCIAL_DEBT_CURRENT_CONCEPTS,
+    max_revenue_lag_days=100, ocf_standalone=True, ocf_max_lag_days=100)
+
 # 事实库里只入这些概念（sec_inputs 用它裁剪 companyfacts，避免把每家上万行都存下来）
 NEEDED_CONCEPTS: Tuple[str, ...] = tuple(sorted(set(
     REVENUE_CONCEPTS + GROSS_PROFIT_CONCEPTS + COST_OF_REVENUE_CONCEPTS + OPERATING_INCOME_CONCEPTS
@@ -67,6 +105,8 @@ NEEDED_CONCEPTS: Tuple[str, ...] = tuple(sorted(set(
     + CURRENT_ASSETS_CONCEPTS + CURRENT_LIABILITIES_CONCEPTS + PPE_CONCEPTS + INVENTORY_CONCEPTS
     + COVER_SHARES_CONCEPTS + BS_SHARES_CONCEPTS + DILUTED_SHARES_CONCEPTS + BASIC_SHARES_CONCEPTS
     + ANTIDILUTIVE_CONCEPTS + ("dei:EntityPublicFloat",)
+    + tuple(part for c in COMMERCIAL_REVENUE_CONCEPTS for part in concept_parts(c))
+    + COMMERCIAL_DEBT_TOTAL_CONCEPTS + COMMERCIAL_DEBT_NONCURRENT_CONCEPTS + COMMERCIAL_DEBT_CURRENT_CONCEPTS
 )))
 
 PERIODIC_FORMS = ("10-K", "10-KT", "10-Q", "10-QT")
@@ -140,6 +180,23 @@ class FactView:
         )
 
     # ---- 序列 -------------------------------------------------------------
+    def _facts_for(self, concept: str, unit: str) -> List[Fact]:
+        """一个概念在 as_of 时可见的事实。"sum:a+b"：同一期、同一份申报（accession）里 a 与 b 都有才相加，
+        申报日/原文取自该份申报；缺一项或两项来自不同申报的期间直接不产出（宁缺勿拼）。"""
+        parts = concept_parts(concept)
+        if len(parts) == 1:
+            return self.store.facts_as_of(self.cik, concept, self.as_of, unit)
+        by_part = [{(f.period_start, f.period_end, f.accession): f
+                    for f in self.store.facts_as_of(self.cik, part, self.as_of, unit) if f.period_start} for part in parts]
+        out: List[Fact] = []
+        for key in set.intersection(*(set(d) for d in by_part)):
+            members = [d[key] for d in by_part]
+            head = members[0]
+            out.append(Fact(cik=head.cik, concept=concept, unit=head.unit, value=sum(m.value for m in members),
+                            period_start=head.period_start, period_end=head.period_end, form=head.form,
+                            accession=head.accession, filed=head.filed, source_url=head.source_url))
+        return sorted(out, key=lambda f: (f.period_end, f.period_start or ""))
+
     def merged(self, concepts: Sequence[str], unit: str = "USD") -> List[Fact]:
         """按优先级合并同义概念：同一期（start,end）取排在前面的概念，跨年代换标签的公司也能接上。"""
         key = (tuple(concepts), unit)
@@ -147,7 +204,7 @@ class FactView:
             return self._series[key]
         chosen: Dict[Tuple[Optional[str], str], Fact] = {}
         for concept in concepts:
-            for fact in self.store.facts_as_of(self.cik, concept, self.as_of, unit):
+            for fact in self._facts_for(concept, unit):
                 chosen.setdefault((fact.period_start, fact.period_end), fact)
         out = sorted(chosen.values(), key=lambda f: (f.period_end, f.period_start or ""))
         self._series[key] = out
@@ -390,6 +447,7 @@ class Fundamentals:
     below_52w_high: Optional[float] = None
     next_report: Optional[ReportEstimate] = None
     notes: List[str] = field(default_factory=list)
+    profile_name: str = "default"          # 取数口径（ConceptProfile.name）；商业机会分支只接受 "commercial"
 
     @property
     def sic2(self) -> Optional[str]:
@@ -483,14 +541,26 @@ def _share_change(view: FactView, notes: List[str]) -> Tuple[M, M]:
     return ws_change, diluted
 
 
-def compute_fundamentals(store: FactStore, market: MarketInput, as_of: str) -> Fundamentals:
+def compute_fundamentals(store: FactStore, market: MarketInput, as_of: str,
+                         profile: ConceptProfile = DEFAULT_PROFILE) -> Fundamentals:
     view = FactView(store, market.cik, as_of)
-    f = Fundamentals(cik=market.cik, symbol=market.symbol, name=market.name, as_of=as_of, market=market)
+    f = Fundamentals(cik=market.cik, symbol=market.symbol, name=market.name, as_of=as_of, market=market,
+                     profile_name=profile.name)
 
     # 营收：优先取能拼出最新 TTM 的概念序列
-    f.revenue_ttm, f.revenue_ttm_prior, f.ttm_end = view.ttm(REVENUE_CONCEPTS)
+    f.revenue_ttm, f.revenue_ttm_prior, f.ttm_end = view.ttm(profile.revenue)
+    revenue_stale = False
+    if profile.max_revenue_lag_days is not None and f.revenue_ttm.ok and f.ttm_end:
+        reported = [r["report_date"] for r in store.filings_as_of(market.cik, as_of, PERIODIC_FORMS) if r.get("report_date")]
+        if reported:
+            lag = (_d(max(reported)) - _d(f.ttm_end)).days
+            if lag > profile.max_revenue_lag_days:
+                # 营收标签在最近一份定期报告里已经不出现：这是旧数，不能当成当前敞口证据
+                f.notes.append("REVENUE_TTM_STALE:ttm_end=%s,latest_report=%s,lag=%dd" % (f.ttm_end, max(reported), lag))
+                f.revenue_ttm, f.revenue_ttm_prior, f.ttm_end = MISSING, MISSING, None
+                revenue_stale = True
     f.revenue_yoy = _fraction_change(f.revenue_ttm, f.revenue_ttm_prior)
-    f.revenue_q_yoy = view.latest_quarter_yoy(REVENUE_CONCEPTS)
+    f.revenue_q_yoy = MISSING if revenue_stale else view.latest_quarter_yoy(profile.revenue)
     f.gross_profit_ttm, gp_prior = _gross_profit(view, f.revenue_ttm, f.revenue_ttm_prior, f.ttm_end)
     f.gross_margin = _margin(f.gross_profit_ttm, f.revenue_ttm)
     f.gross_margin_prior = _margin(gp_prior, f.revenue_ttm_prior)
@@ -502,14 +572,20 @@ def compute_fundamentals(store: FactStore, market: MarketInput, as_of: str) -> F
     f.op_margin = _margin(f.op_income_ttm, f.revenue_ttm)
 
     ocf_cur, _, ocf_end = view.ttm(OCF_CONCEPTS)
-    f.ocf_ttm = ocf_cur if ocf_cur.ok and ocf_end == f.ttm_end else MISSING
+    if profile.ocf_standalone:
+        reported = [r["report_date"] for r in store.filings_as_of(market.cik, as_of, PERIODIC_FORMS) if r.get("report_date")]
+        fresh = bool(ocf_cur.ok and ocf_end and reported and (_d(max(reported)) - _d(ocf_end)).days <= profile.ocf_max_lag_days)
+        f.ocf_ttm = ocf_cur if fresh else MISSING
+    else:
+        f.ocf_ttm = ocf_cur if ocf_cur.ok and ocf_end == f.ttm_end else MISSING
+    ocf_aligned = f.ocf_ttm.ok and ocf_end == f.ttm_end      # 营收率/自由现金流要求与营收同一截止日
     capex_cur, capex_prior, capex_end = view.ttm(CAPEX_CONCEPTS)
     f.capex_ttm = capex_cur if capex_cur.ok and capex_end == f.ttm_end else MISSING
     f.capex_ttm_prior = capex_prior if f.capex_ttm.ok else MISSING
-    if f.ocf_ttm.ok and f.capex_ttm.ok:
+    if ocf_aligned and f.capex_ttm.ok:
         f.fcf_ttm = M(f.ocf_ttm.value - abs(f.capex_ttm.value), dedupe_refs(f.ocf_ttm.refs + f.capex_ttm.refs), "OCF - capex")
     f.fcf_margin = _margin(f.fcf_ttm, f.revenue_ttm)
-    f.ocf_margin = _margin(f.ocf_ttm, f.revenue_ttm)
+    f.ocf_margin = _margin(f.ocf_ttm, f.revenue_ttm) if ocf_aligned else MISSING
     if f.capex_ttm.ok and f.revenue_ttm.ok and f.revenue_ttm.value > 0:
         f.capex_intensity = M(abs(f.capex_ttm.value) / f.revenue_ttm.value, dedupe_refs(f.capex_ttm.refs + f.revenue_ttm.refs))
     sbc, _, sbc_end = view.ttm(SBC_CONCEPTS)
@@ -536,16 +612,16 @@ def compute_fundamentals(store: FactStore, market: MarketInput, as_of: str) -> F
     sti = view.latest_instant(STI_CONCEPTS)
     if sti is not None and cash is not None and abs((_d(sti.period_end) - _d(cash.period_end)).days) <= 10:
         f.sti = M(sti.value, (view.ref(sti),), "short-term investments@" + sti.period_end)
-    debt_total = view.latest_instant(DEBT_TOTAL_CONCEPTS)
-    debt_nc = view.latest_instant(DEBT_NONCURRENT_CONCEPTS)
-    debt_c = view.latest_instant(DEBT_CURRENT_CONCEPTS)
+    debt_total = view.latest_instant(profile.debt_total)
+    debt_nc = view.latest_instant(profile.debt_noncurrent)
+    debt_c = view.latest_instant(profile.debt_current)
     if debt_total is not None and cash is not None and abs((_d(debt_total.period_end) - _d(cash.period_end)).days) <= 10:
         f.debt = M(debt_total.value, (view.ref(debt_total),), "total debt@" + debt_total.period_end)
     elif debt_nc is not None and cash is not None and abs((_d(debt_nc.period_end) - _d(cash.period_end)).days) <= 10:
         extra = debt_c.value if debt_c is not None and debt_c.period_end == debt_nc.period_end else 0.0
         f.debt = M(debt_nc.value + extra, tuple(view.ref(x) for x in (debt_nc, debt_c) if x is not None), "noncurrent+current debt")
-    any_debt_tag = bool(view.instants(DEBT_TOTAL_CONCEPTS) or view.instants(DEBT_NONCURRENT_CONCEPTS)
-                        or view.instants(DEBT_CURRENT_CONCEPTS))
+    any_debt_tag = bool(view.instants(profile.debt_total) or view.instants(profile.debt_noncurrent)
+                        or view.instants(profile.debt_current))
     if cash is not None and f.debt.ok:
         liquid = cash.value + (f.sti.value if f.sti.ok else 0.0)
         f.net_cash = M(liquid - f.debt.value, dedupe_refs(f.cash.refs + f.sti.refs + f.debt.refs), "cash+STI-debt")
@@ -577,7 +653,7 @@ def compute_fundamentals(store: FactStore, market: MarketInput, as_of: str) -> F
     f.share_change_yoy, f.diluted_shares = _share_change(view, f.notes)
 
     # 年度营收增速序列（周期性）
-    annual = view.annual_series(REVENUE_CONCEPTS)
+    annual = [] if revenue_stale else view.annual_series(profile.revenue)
     growth = []
     for prev, cur in zip(annual, annual[1:]):
         if prev.value > 0 and 300 <= (_d(cur.period_end) - _d(prev.period_end)).days <= 430:
@@ -606,7 +682,7 @@ def compute_fundamentals(store: FactStore, market: MarketInput, as_of: str) -> F
             f.nonreliance_8k_24m += 1
         if row["form"] == "8-K" and "4.01" in items:
             f.auditor_change_8k_24m += 1
-    f.restatement = _restatement(view, REVENUE_CONCEPTS)
+    f.restatement = _restatement(view, profile.revenue)
     f.next_report = estimate_next_report(view)
 
     # 估值（现价 × 现有股数 / TTM 营收等）与自身历史分位
@@ -619,7 +695,7 @@ def compute_fundamentals(store: FactStore, market: MarketInput, as_of: str) -> F
         f.ev_sales = M((cap - f.net_cash.value) / f.revenue_ttm.value, dedupe_refs(f.cap_sales.refs + f.net_cash.refs), "EV / TTM revenue")
     if f.fcf_ttm.ok and cap > 0:
         f.fcf_yield = M(f.fcf_ttm.value / cap, dedupe_refs((market.market_ref(as_of),) + f.fcf_ttm.refs), "FCF / cap")
-    _history_metrics(store, f, market, as_of)
+    _history_metrics(store, f, market, as_of, profile.revenue)
     return f
 
 
@@ -628,8 +704,8 @@ def _percentile(value: float, sample: Sequence[float]) -> float:
     return bisect_right(ordered, value) / len(ordered)
 
 
-def _history_metrics(store: FactStore, f: Fundamentals, market: MarketInput, as_of: str, samples: int = 12,
-                     min_samples: int = 6) -> None:
+def _history_metrics(store: FactStore, f: Fundamentals, market: MarketInput, as_of: str,
+                     revenue_concepts: Sequence[str] = REVENUE_CONCEPTS, samples: int = 12, min_samples: int = 6) -> None:
     """自身历史分位：过去 12 个季度末，用「当时的收盘价 × 现有股数 / 当时已申报的 TTM 营收」（恒定股数近似）。
 
     这里的每个采样点都用 as_of=采样日 重新读事实库，所以历史点也是时点正确的。
@@ -656,7 +732,7 @@ def _history_metrics(store: FactStore, f: Fundamentals, market: MarketInput, as_
             continue
         price = closes[idx]
         sub = FactView(store, market.cik, sample_day.isoformat())
-        rev, _, _ = sub.ttm(REVENUE_CONCEPTS)
+        rev, _, _ = sub.ttm(revenue_concepts)
         if rev.ok and rev.value > 0:
             samples_cs.append(price * market.shares / rev.value)
             gp, _, _ = sub.ttm(GROSS_PROFIT_CONCEPTS)

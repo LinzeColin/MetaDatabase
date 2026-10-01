@@ -67,42 +67,6 @@ companies:
       publisher: "U.S. SEC (company filing)"
       title: "Preformed Line Products Co Form 10-K FY2025"
       excerpt: "Energy Products are used for supporting, protecting, terminating and splicing transmission and distribution lines as well as bolted, welded, and compressed connectors for substations."
-  - cik: 700923
-    symbol: "MYRG"
-    name: "MYR Group Inc."
-    market_cap_usd: 4553383000
-    market_cap_as_of: "2026-09-30"
-    exposure: "输配电与变电站施工承包商，属于电网建设能力的提供方（设备交期的使用方）。"
-    source:
-      url: "https://www.sec.gov/Archives/edgar/data/700923/000070092326000007/myrg-20251231.htm"
-      kind: "company_filing"
-      publisher: "U.S. SEC (company filing)"
-      title: "MYR Group Inc. Form 10-K FY2025"
-      excerpt: "We are one of the largest U.S. contractors servicing the T&D sector of the electric utility industry."
-  - cik: 1981599
-    symbol: "CTRI"
-    name: "Centuri Holdings, Inc."
-    market_cap_usd: 2023300000
-    market_cap_as_of: "2026-09-30"
-    exposure: "北美公用事业与能源基础设施施工服务商，属于电网建设能力的提供方。"
-    source:
-      url: "https://www.sec.gov/Archives/edgar/data/1981599/000198159926000020/ctri-20251228.htm"
-      kind: "company_filing"
-      publisher: "U.S. SEC (company filing)"
-      title: "Centuri Holdings, Inc. Form 10-K FY2025"
-      excerpt: "We are a leading North American utility and energy infrastructure services company with over 115 years of operating history, and we partner with regulated utilities to maintain, upgrade and expand the energy network that powers millions of homes and businesses."
-  - cik: 1361538
-    symbol: "PRIM"
-    name: "Primoris Services Corp"
-    market_cap_usd: 4011585000
-    market_cap_as_of: "2026-09-30"
-    exposure: "电力输配电建设与维护承包商之一（另有管道、通信等业务），属于电网建设能力的提供方。"
-    source:
-      url: "https://www.sec.gov/Archives/edgar/data/1361538/000110465926018677/prim-20251231x10k.htm"
-      kind: "company_filing"
-      publisher: "U.S. SEC (company filing)"
-      title: "Primoris Services Corp Form 10-K FY2025"
-      excerpt: "We are experiencing strong tailwinds in our power delivery business due to increased demand for electricity in the United States."
 contradictions:
   - searched: "USITC 对大型电力变压器的反倾销案件报告（Publication 5531）里的交期数据，看 36 个月的说法是否被其他官方数据推翻。"
     found: "该报告在原始调查中记录的交期是国内厂商平均 8-11 个月、进口商 9-14 个月，明显短于 DOE 引述的 36 个月；但这是旧调查期（疫情与需求激增之前）的数据。"

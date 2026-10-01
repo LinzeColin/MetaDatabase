@@ -15,28 +15,28 @@
 .github/workflows/governance-validation.yml,github-governance,true,governance or workflow change,repository owner,git+release-zip,ACTIVE
 .gitignore,repository-config,false,repository tooling change,repository owner,git+release-zip,ACTIVE
 AGENTS.md,root-governance,true,semantic or release change,repository owner,git+release-zip,ACTIVE
-CHANGELOG.md,root-governance,false,semantic or release change,repository owner,git+release-zip,ACTIVE
+文档/归档/CHANGELOG.md,root-governance,false,semantic or release change,repository owner,git+release-zip,ACTIVE
 CHECKSUMS.sha256,package-integrity-metadata,false,any package file change,release owner,release-zip+git,GENERATED
-CODEX_MASTER_TASK.md,root-governance,true,semantic or release change,repository owner,git+release-zip,ACTIVE
-CONTRIBUTING.md,root-governance,true,semantic or release change,repository owner,git+release-zip,ACTIVE
-DELIVERY_INDEX.md,root-governance,false,semantic or release change,repository owner,git+release-zip,ACTIVE
-DEVELOPMENT_STATUS.md,root-governance,true,semantic or release change,repository owner,git+release-zip,ACTIVE
+文档/归档/CODEX_MASTER_TASK.md,root-governance,true,semantic or release change,repository owner,git+release-zip,ACTIVE
+文档/归档/CONTRIBUTING.md,root-governance,true,semantic or release change,repository owner,git+release-zip,ACTIVE
+文档/归档/DELIVERY_INDEX.md,root-governance,false,semantic or release change,repository owner,git+release-zip,ACTIVE
+文档/归档/DEVELOPMENT_STATUS.md,root-governance,true,semantic or release change,repository owner,git+release-zip,ACTIVE
 DIRECTORY_TREE.txt,package-integrity-metadata,false,any package file change,release owner,release-zip+git,GENERATED
-DOMAIN_DATA_CATALOG.md,root-governance,true,semantic or release change,repository owner,git+release-zip,ACTIVE
-FUNCTION_CATALOG.md,root-governance,true,semantic or release change,repository owner,git+release-zip,ACTIVE
-GITHUB_REPOSITORY_BACKUP_INDEX.md,root-governance,true,semantic or release change,repository owner,git+release-zip,ACTIVE
-GOVERNANCE_INDEX.md,root-governance,true,semantic or release change,repository owner,git+release-zip,ACTIVE
-MODEL_MANAGEMENT.md,root-governance,true,semantic or release change,repository owner,git+release-zip,ACTIVE
-PLANS.md,root-governance,true,semantic or release change,repository owner,git+release-zip,ACTIVE
+文档/归档/DOMAIN_DATA_CATALOG.md,root-governance,true,semantic or release change,repository owner,git+release-zip,ACTIVE
+文档/归档/FUNCTION_CATALOG.md,root-governance,true,semantic or release change,repository owner,git+release-zip,ACTIVE
+文档/归档/GITHUB_REPOSITORY_BACKUP_INDEX.md,root-governance,true,semantic or release change,repository owner,git+release-zip,ACTIVE
+文档/归档/GOVERNANCE_INDEX.md,root-governance,true,semantic or release change,repository owner,git+release-zip,ACTIVE
+文档/归档/MODEL_MANAGEMENT.md,root-governance,true,semantic or release change,repository owner,git+release-zip,ACTIVE
+文档/归档/PLANS.md,root-governance,true,semantic or release change,repository owner,git+release-zip,ACTIVE
 README.md,root-governance,false,semantic or release change,repository owner,git+release-zip,ACTIVE
-REPORT.md,root-governance,false,semantic or release change,repository owner,git+release-zip,ACTIVE
-RISK_AND_ACCEPTANCE.md,root-governance,true,semantic or release change,repository owner,git+release-zip,ACTIVE
-RUN_CODEX.md,root-governance,true,semantic or release change,repository owner,git+release-zip,ACTIVE
-SOURCES.md,root-governance,false,semantic or release change,repository owner,git+release-zip,ACTIVE
-US_Corporate_Power_Map_Governance_Blueprint_v4.2.pdf,published-report,false,governance blueprint release,documentation owner,release-zip+git-lfs,GENERATED
-US_Corporate_Power_Map_System_Model_Parameter_Architecture_v4.2.md,root-governance,false,semantic or release change,repository owner,git+release-zip,ACTIVE
-US_Corporate_Power_Map_UIUX_Redesign_v4.2.md,root-governance,false,semantic or release change,repository owner,git+release-zip,ACTIVE
-VALIDATION_REPORT.md,root-governance,false,semantic or release change,repository owner,git+release-zip,ACTIVE
+文档/归档/REPORT.md,root-governance,false,semantic or release change,repository owner,git+release-zip,ACTIVE
+文档/归档/RISK_AND_ACCEPTANCE.md,root-governance,true,semantic or release change,repository owner,git+release-zip,ACTIVE
+文档/归档/RUN_CODEX.md,root-governance,true,semantic or release change,repository owner,git+release-zip,ACTIVE
+文档/归档/SOURCES.md,root-governance,false,semantic or release change,repository owner,git+release-zip,ACTIVE
+文档/归档/US_Corporate_Power_Map_Governance_Blueprint_v4.2.pdf,published-report,false,governance blueprint release,documentation owner,release-zip+git-lfs,GENERATED
+文档/归档/US_Corporate_Power_Map_System_Model_Parameter_Architecture_v4.2.md,root-governance,false,semantic or release change,repository owner,git+release-zip,ACTIVE
+文档/归档/US_Corporate_Power_Map_UIUX_Redesign_v4.2.md,root-governance,false,semantic or release change,repository owner,git+release-zip,ACTIVE
+文档/归档/VALIDATION_REPORT.md,root-governance,false,semantic or release change,repository owner,git+release-zip,ACTIVE
 VERSION,release-metadata,true,release version change,release owner,git+release-zip,ACTIVE
 artifacts/README.md,reproducible-report-source,false,PDF blueprint change,documentation owner,git+release-zip,ACTIVE
 artifacts/development_status_summary_t1213.json,qa-and-generation-evidence,true,development status artifact change,QA owner,git+release-zip,GENERATED
@@ -212,9 +212,9 @@ wireframes/recursive_focus_explorer.svg,wireframe-source,false,information archi
 wireframes/visual_first_workspace.png,wireframe-render,false,wireframe source change,design owner,git-lfs-or-release-zip,GENERATED
 wireframes/visual_first_workspace.svg,wireframe-source,false,information architecture or workspace change,design owner,git+release-zip,ACTIVE
 wireframes/visual_first_workspace_screenshot.png,wireframe-render,false,wireframe source change,design owner,git-lfs-or-release-zip,GENERATED
-REVIEW_AND_ITERATION_INDEX.md,v5-review-index,true,v5 review or production blocker sync,repository owner,git+release-zip,ACTIVE
-TEST_STRATEGY.md,test-strategy,true,test gate or release readiness change,qa owner,git+release-zip,ACTIVE
-CONTINUITY_PLAN.md,continuity-plan,true,phase or handoff continuity change,repository owner,git+release-zip,ACTIVE
+文档/归档/REVIEW_AND_ITERATION_INDEX.md,v5-review-index,true,v5 review or production blocker sync,repository owner,git+release-zip,ACTIVE
+文档/归档/TEST_STRATEGY.md,test-strategy,true,test gate or release readiness change,qa owner,git+release-zip,ACTIVE
+文档/归档/CONTINUITY_PLAN.md,continuity-plan,true,phase or handoff continuity change,repository owner,git+release-zip,ACTIVE
 docs/phase/V5_TASK_PACK_SYNCHRONIZATION.md,v5-sync,true,v5 review or MVP blocker mapping change,repository owner,git+release-zip,ACTIVE
 brand/BRAND_AND_COMPETITIVE_LANDSCAPE_RESEARCH.md,brand-research,true,brand or competitive landscape change,repository owner,git+release-zip,ACTIVE
 config/brand_policy.yaml,brand-policy,true,brand clearance policy change,repository owner,git+release-zip,ACTIVE

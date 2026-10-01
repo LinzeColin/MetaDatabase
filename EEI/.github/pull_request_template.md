@@ -19,7 +19,7 @@
 - [ ] `data/development_status_ledger.csv` 已同步
 - [ ] `data/acceptance_traceability.csv` 已同步
 - [ ] `data/risk_control_traceability.csv` 已同步
-- [ ] `CHANGELOG.md` 与相关 Markdown 已同步
+- [ ] `文档/归档/CHANGELOG.md` 与相关 Markdown 已同步
 - [ ] `manifest.txt` / `DIRECTORY_TREE.txt` / `CHECKSUMS.sha256` 已重新生成
 
 ## 测试与验收

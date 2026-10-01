@@ -4,8 +4,8 @@
 
 ## 必读顺序
 
-1. `AGENTS.md`、`CODEX_MASTER_TASK.md`、`GOVERNANCE_INDEX.md`。
-2. 六份根目录治理文件：`FUNCTION_CATALOG.md`、`MODEL_MANAGEMENT.md`、`DOMAIN_DATA_CATALOG.md`、`DEVELOPMENT_STATUS.md`、`RISK_AND_ACCEPTANCE.md`、`GITHUB_REPOSITORY_BACKUP_INDEX.md`。
+1. `AGENTS.md`、`文档/归档/CODEX_MASTER_TASK.md`、`文档/归档/GOVERNANCE_INDEX.md`。
+2. 六份治理文件（已归档）：`文档/归档/FUNCTION_CATALOG.md`、`文档/归档/MODEL_MANAGEMENT.md`、`文档/归档/DOMAIN_DATA_CATALOG.md`、`文档/归档/DEVELOPMENT_STATUS.md`、`文档/归档/RISK_AND_ACCEPTANCE.md`、`文档/归档/GITHUB_REPOSITORY_BACKUP_INDEX.md`。
 3. `docs/23_SYSTEM_FUNCTION_MODULE_ARCHITECTURE.md` 至 `docs/36_RELEASE_GATES_AND_DEFINITION_OF_DONE.md`。
 4. 仅按本轮 Issue 读取 `data/content_inventory.csv` 指向的相关机器目录、`specs/` 合同、`config/` 配置及 `prototype/` 参考实现。
 

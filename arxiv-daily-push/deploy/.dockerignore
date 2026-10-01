@@ -1,0 +1,16 @@
+# 构建上下文是 arxiv-daily-push/deploy/：只需要 selfhost/app、cloudflare/worker_cloud.js、schema_cloud.sql、assets/media。
+selfhost/tests
+selfhost/*.py
+selfhost/*.sh
+selfhost/*.service
+selfhost/*.timer
+selfhost/*.env
+selfhost/install.sh
+cloudflare/v1_2
+cloudflare/*.mjs
+cloudflare/deploy.py
+cloudflare/worker.js
+cloudflare/*.jsonc
+cloudflare/README.md
+launchd
+**/__pycache__

@@ -29,7 +29,8 @@ from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 
 from ..evidence.factstore import FactStore
 from .param_floors import enforce_not_looser, floors_from_defaults
-from .fundamentals import CHINA_HK_CODES, US_STATE_CODES, Fundamentals, MarketInput, PeerContext, compute_fundamentals
+from .fundamentals import (CHINA_HK_CODES, COMMERCIAL_PROFILE, US_STATE_CODES, Fundamentals, MarketInput, PeerContext,
+                           compute_fundamentals)
 from .scoring_support import (NO_EVIDENCE, EvidenceRef, FactorResult, ParamsError, Receipt, _check_weights,
                               check_shape, check_table, check_unit_interval, clamp, dedupe_refs, load_params,
                               no_evidence, table_rating)
@@ -534,7 +535,7 @@ def score_commercial(store: FactStore, market: MarketInput, as_of: str, params: 
     if params is None:
         params, findings = load_commercial_params()
     if fundamentals is None:
-        fundamentals = compute_fundamentals(store, market, as_of)
+        fundamentals = compute_fundamentals(store, market, as_of, COMMERCIAL_PROFILE)
     elif fundamentals.as_of != as_of:
         raise ValueError("fundamentals.as_of %s != as_of %s" % (fundamentals.as_of, as_of))
     f, p = fundamentals, params

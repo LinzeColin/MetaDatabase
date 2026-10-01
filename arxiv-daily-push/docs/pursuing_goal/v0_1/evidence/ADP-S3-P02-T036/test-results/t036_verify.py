@@ -6,7 +6,7 @@ Deterministic (fixtures; the live cac.gov.cn classification is a separate smoke)
 data-governance consultation, a formal regulation, an interpretation, and news.
 """
 import sys, pathlib
-V01 = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
+V01 = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
 T036 = V01 / "evidence" / "ADP-S3-P02-T036"
 FX = T036 / "fixtures"
 sys.path.insert(0, str(V01 / "tools"))

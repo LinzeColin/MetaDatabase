@@ -8,7 +8,7 @@ hit rate). (2) structured_filter results are byte-identical to a real SQL baseli
 sqlite3 query with the equivalent WHERE clause) across a battery of facet/date-range queries.
 """
 import sys, json, sqlite3, itertools, pathlib
-V01 = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/"
+V01 = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/"
                    "arxiv-daily-push/docs/pursuing_goal/v0_1")
 sys.path.insert(0, str(V01 / "tools"))
 import exact_search as ES

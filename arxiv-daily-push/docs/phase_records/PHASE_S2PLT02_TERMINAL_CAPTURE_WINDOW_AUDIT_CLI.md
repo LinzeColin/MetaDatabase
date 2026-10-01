@@ -13,9 +13,9 @@ Make the post-authorization S2PLT02 terminal capture-window audit reproducible f
 
 ## Evidence Read
 
-- Local state directory: `/Users/linzezhang/.adp/arxiv-daily-push`
+- Local state directory: `~/.adp/arxiv-daily-push`
 - Candidate service dates: `2026-06-29`, `2026-06-30`
-- CLI: `audit-s2plt02-terminal-capture-window --repo-root . --state-dir /Users/linzezhang/.adp/arxiv-daily-push --candidate-service-dates 2026-06-29,2026-06-30 --json`
+- CLI: `audit-s2plt02-terminal-capture-window --repo-root . --state-dir ~/.adp/arxiv-daily-push --candidate-service-dates 2026-06-29,2026-06-30 --json`
 - CLI exit code: `2` because the current capture window is still blocked.
 
 ## Current Facts

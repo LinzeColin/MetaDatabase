@@ -185,7 +185,7 @@ asset_code,asset_name,platform,current_amount,current_weight,cost_basis,unrealiz
 ```yaml
 timezone_primary: Asia/Shanghai
 timezone_display_secondary: Australia/Sydney
-recipient_email: linzezhang35@gmail.com
+recipient_email: LinzeColin@users.noreply.github.com
 dry_run: true
 max_drawdown_block: 0.40
 recovery_time_block_days: 365

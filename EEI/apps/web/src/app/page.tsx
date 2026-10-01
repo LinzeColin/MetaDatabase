@@ -1637,7 +1637,9 @@ function writeWorkspaceStateParams(params: URLSearchParams, state: WorkspaceStat
   params.set("selected", state.selectedKey);
   params.set("lens", state.activeLens);
   params.set("zoom", state.semanticZoom);
-  params.set("asOf", state.asOf);
+  // 云发布面查询用当前数据（as_of: null），网址不写样例时间轴键，免得看的人以为图是样例日期的。
+  if (CLOUD_MODE) params.delete("asOf");
+  else params.set("asOf", state.asOf);
   params.set("filters", state.activeLens);
   params.set("path", state.path.join("."));
 }
@@ -1867,6 +1869,11 @@ export default function Home() {
   const [semanticZoom, setSemanticZoom] = useState<SemanticZoom>("L1");
   // P2-11 响应式：窄屏（<1280px）右栏证据/详情收成可滑出抽屉，由此开关驱动。
   const [inspectorDrawerOpen, setInspectorDrawerOpen] = useState(false);
+  // 云发布面手机宽度：图谱 svg 按节点包围盒取景、桌面 HUD 避让都只在云模式生效。
+  const [cloudCompact, setCloudCompact] = useState(false);
+  const workspaceRef = useRef<HTMLElement | null>(null);
+  // 「证据栏」按钮点开后给证据面板一圈短暂的高亮（桌面右栏常驻，点了要让人看到落在哪）。
+  const [evidenceBarFocus, setEvidenceBarFocus] = useState(false);
   // P2-12 图谱骨架：探索回退栈（Undo/Redo，§C.2）。与面包屑（path）正交——
   // 面包屑是「到根的路径」，此处是「访问顺序的线性历史 + 游标」（浏览器式）。
   // 焦点每次经 reroot 漏斗（requestCenter/serverReroot/applyPathSubject/reset）
@@ -2137,6 +2144,41 @@ export default function Home() {
     () => layoutEmpireOrbits(baseGraphViewNodes),
     [baseGraphViewNodes]
   );
+  // 云发布面手机：svg 只有 280px 宽，按固定 760x480 取景时节点只占中间一小块、标签几乎看不清。
+  // 改成按节点包围盒（加标签余量）取景，并按这个比例给 svg 留高度，不再留一大片空白。
+  const cloudFit = useMemo(() => {
+    const base = { viewBox: "0 0 760 480", height: null as number | null };
+    if (!CLOUD_MODE || !cloudCompact || graphViewNodes.length < 2) return base;
+    const xs = graphViewNodes.map((node) => node.x);
+    const ys = graphViewNodes.map((node) => node.y);
+    const padX = 64;
+    const padY = 52;
+    let minX = Math.min(...xs) - padX;
+    let maxX = Math.max(...xs) + padX;
+    let minY = Math.min(...ys) - padY;
+    let maxY = Math.max(...ys) + padY;
+    const minW = 260;
+    const minH = 200;
+    if (maxX - minX < minW) {
+      const mid = (minX + maxX) / 2;
+      minX = mid - minW / 2;
+      maxX = mid + minW / 2;
+    }
+    if (maxY - minY < minH) {
+      const mid = (minY + maxY) / 2;
+      minY = mid - minH / 2;
+      maxY = mid + minH / 2;
+    }
+    const width = maxX - minX;
+    const height = maxY - minY;
+    // svg 实际宽约 (视口宽 - 96)px；高度按比例取，夹在 220–420px 之间。
+    const svgWidth = Math.max(220, (typeof window === "undefined" ? 375 : window.innerWidth) - 96);
+    const px = Math.round(Math.min(420, Math.max(220, (svgWidth * height) / width)));
+    return {
+      viewBox: `${minX.toFixed(1)} ${minY.toFixed(1)} ${width.toFixed(1)} ${height.toFixed(1)}`,
+      height: px
+    };
+  }, [cloudCompact, graphViewNodes]);
   const orbitRingRadii = useMemo(
     () =>
       Array.from(
@@ -2651,6 +2693,13 @@ export default function Home() {
   }
 
   async function hydrateProductionData(reason = "manual_refresh", candidateId?: string | null) {
+    // 云发布面没有「候选事实 / 目录清单」这套本地 API：证据、评分、鲜度由 hydrateCloudData
+    // 按活图上的关系号取。这里若继续走本地流程，会在云取数完成后又把证据面板覆盖成
+    // local_fallback / object_id_missing（两个异步取数谁后返回谁赢，证据栏因此常常是空的）。
+    if (CLOUD_MODE) {
+      if (cloudEvidenceTargetId) await hydrateCloudData(reason, cloudEvidenceTargetId);
+      return;
+    }
     setProductionCatalogStatus("loading-production-data");
     setProductionScoreStatus(candidateId ? "loading-production-data" : "local-fixture");
     setProductionEvidenceStatus(candidateId ? "loading-production-data" : "local-fixture");
@@ -2886,6 +2935,9 @@ export default function Home() {
           : "server-current"
     );
 
+    // 云发布面只有只读的 /v1/scoring/active-context，没有评分档案列表（/v1/scoring/profiles 返回 404）；
+    // 模型中心的「在线草稿」是本地工作台能力，云模式不请求它，避免页面每次打开都留一条 404。
+    if (CLOUD_MODE) return;
     const profileResult = await listModelProfiles();
     if (profileResult.mode === "server" && profileResult.status === "listed") {
       const nextCandidate =
@@ -3239,6 +3291,27 @@ export default function Home() {
   // P0-1 §A.3：section 滚动式导航处理器已废除——「滚动到首页某段落」
   // 不配做一级导航；证据/时间轴/关注等能力以画布控件与右栏面板形式常驻。
 
+  // 「证据栏」按钮：窄屏（<1280px）开/关右侧抽屉；宽屏右栏本来就常驻，点它是把
+  // 证据面板（来源、原文链接、摘录）滚到眼前、给键盘焦点并短暂高亮。两种屏宽都走这一个入口。
+  const evidenceBarTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(evidenceBarTimer.current), []);
+  function toggleEvidenceBar() {
+    const narrow = window.matchMedia("(max-width: 1279px)").matches;
+    if (narrow && inspectorDrawerOpen) {
+      setInspectorDrawerOpen(false);
+      return;
+    }
+    if (narrow) setInspectorDrawerOpen(true);
+    setEvidenceBarFocus(true);
+    window.clearTimeout(evidenceBarTimer.current);
+    evidenceBarTimer.current = window.setTimeout(() => setEvidenceBarFocus(false), 2400);
+    window.setTimeout(() => {
+      const panel = document.getElementById("production-evidence-detail");
+      panel?.scrollIntoView({ block: "start" });
+      panel?.focus({ preventScroll: true });
+    }, 60);
+  }
+
   function openSelectedPath() {
     setNodeActionStatus(`path:${selectedNode.key}`);
   }
@@ -3481,10 +3554,72 @@ export default function Home() {
     return () => window.removeEventListener("eei:request-center", handleExternalCenterRequest);
   });
 
+  // 云发布面：手机宽度标记（图谱取景用）。
+  useEffect(() => {
+    if (!CLOUD_MODE) return;
+    const query = window.matchMedia("(max-width: 767px)");
+    const sync = () => setCloudCompact(query.matches);
+    sync();
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
+
+  // 云发布面：手机图谱 svg 高度随取景比例变化（CSS 变量 --cloud-map-h）。
+  useEffect(() => {
+    const workspace = workspaceRef.current;
+    if (!CLOUD_MODE || !workspace) return;
+    if (cloudFit.height) workspace.style.setProperty("--cloud-map-h", `${cloudFit.height}px`);
+    else workspace.style.removeProperty("--cloud-map-h");
+  }, [cloudFit.height]);
+
+  // 云发布面桌面：图谱 svg 是 position:fixed 且层级高于画布顶部的控制条，
+  // 节点球会盖住阶段胶囊 / L0–L3 / 面包屑。量出控制条底边，让图谱从它下面开始（--cloud-hud-bottom）。
+  useEffect(() => {
+    const workspace = workspaceRef.current;
+    const canvas = workspace?.querySelector<HTMLElement>(":scope > .canvas");
+    if (!CLOUD_MODE || !workspace || !canvas) return;
+    const hudSelector =
+      ":scope > .canvasTopbar, :scope > .zoomBar, :scope > .timelineBar, :scope > .stageRail, :scope > .historyControls, :scope > .breadcrumb, :scope > .crossIndustryReroot";
+    const resizeObserver = new ResizeObserver(() => measure());
+    const observe = () => {
+      resizeObserver.disconnect();
+      resizeObserver.observe(canvas);
+      canvas.querySelectorAll<HTMLElement>(hudSelector).forEach((node) => resizeObserver.observe(node));
+    };
+    function measure() {
+      if (!workspace || !canvas) return;
+      if (window.innerWidth <= 767) {
+        workspace.style.removeProperty("--cloud-hud-bottom");
+        return;
+      }
+      let bottom = 0;
+      canvas.querySelectorAll<HTMLElement>(hudSelector).forEach((node) => {
+        const rect = node.getBoundingClientRect();
+        if (rect.height > 0) bottom = Math.max(bottom, rect.bottom + window.scrollY);
+      });
+      if (bottom > 0) workspace.style.setProperty("--cloud-hud-bottom", `${Math.ceil(bottom + 10)}px`);
+    }
+    const mutationObserver = new MutationObserver(() => {
+      observe();
+      measure();
+    });
+    mutationObserver.observe(canvas, { childList: true });
+    observe();
+    measure();
+    window.addEventListener("resize", measure);
+    return () => {
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, []);
+
   return (
     <WorkspaceContextProvider value={workspaceContextValue}>
     <main
       className="workspace"
+      ref={workspaceRef}
+      data-cloud-surface={CLOUD_MODE}
       data-inspector-open={inspectorDrawerOpen}
       data-active-data-snapshot={analysisContext.dataSnapshot}
       data-active-lens={activeLens}
@@ -3509,6 +3644,22 @@ export default function Home() {
       data-workspace-model="recursive-enterprise-map"
     >
       <WorkspaceContextContractMarker />
+      {CLOUD_MODE ? (
+        // 手机首屏：主体名与规模放在图谱上方（桌面隐藏，左栏已有同样内容，故对读屏隐藏避免重复朗读）。
+        <div aria-hidden="true" className="cloudMobileSubject" data-testid="cloud-mobile-subject">
+          <span>关注 · 当前主体</span>
+          <strong>
+            {isServerGraphRendered
+              ? serverFocusLabel
+              : productionGraphStatus === "server-error"
+                ? "云端数据暂不可用"
+                : serverFocusLabel}
+          </strong>
+          <small>
+            {graphViewNodes.length} 家实体 · {graphViewEdges.length} 条关系 · 数据截至 {publishedDataVersion}
+          </small>
+        </div>
+      ) : null}
       <WorkspaceNavigationRail activeModuleId="business_map" />
 
       <section className="focusPanel" aria-label="当前主体">
@@ -3559,7 +3710,8 @@ export default function Home() {
             </dd>
           </div>
           <div>
-            <dt>{CLOUD_MODE ? "数据截至" : "数据版本"}</dt>
+            {/* 云模式这一行也叫「数据版本」：验收旅程 EEI.yaml 的新鲜度检查按「数据版本 · YYYY-MM-DD」取日期。 */}
+            <dt>数据版本</dt>
             <dd>
               {CLOUD_MODE
                 ? publishedDataVersion
@@ -3568,7 +3720,8 @@ export default function Home() {
           </div>
           {CLOUD_MODE ? (
             <div>
-              <dt>更新于</dt>
+              {/* activated_at 是评分模型的启用时间，不是数据更新时间；数据新旧看上一行「数据版本」。 */}
+              <dt>评分模型启用于</dt>
               <dd>
                 {serverModelContext?.activated_at
                   ? serverModelContext.activated_at.slice(5, 16).replace("T", " ")
@@ -4051,6 +4204,7 @@ export default function Home() {
         <section
           aria-label="集团结构与业务板块"
           className="structureMatrix"
+          tabIndex={0}
           data-api-contract="/v1/entities/{entityId}/empire"
           data-commercial-empire-control-claim="false"
           data-separates="legal_group,business_segment,brand,product,facility"
@@ -4560,7 +4714,7 @@ export default function Home() {
         ) : null}
 
 
-        <div className="stageRail" aria-label="供应链阶段覆盖">
+        <div className="stageRail" aria-label="供应链阶段覆盖" role="group" tabIndex={0}>
           {stageRows.map((stage) => (
             <span className={`stagePill ${stage.side}`} key={stage.id}>
               {stage.id} {stage.name}
@@ -4729,8 +4883,8 @@ export default function Home() {
               纵深（诚实空态，不造年份）。原 S9PCT01 契约 testid 全保留。 */}
           <div
             aria-label="历史纵深时间轴（右侧竖轴，滑动选年）"
-            aria-orientation="vertical"
             className="historyScrubber"
+            role="group"
             data-testid="empire-history-scrubber"
             onPointerDown={handleHistoryPointerDown}
             onPointerMove={handleHistoryPointerMove}
@@ -4791,8 +4945,8 @@ export default function Home() {
             data-server-rendered-edge-count={graphViewMode === "server" ? graphViewEdges.length : 0}
             data-server-rendered-node-count={graphViewMode === "server" ? graphViewNodes.length : 0}
             data-testid="ecosystem-map-svg"
-            viewBox="0 0 760 480"
-            role="img"
+            viewBox={cloudFit.viewBox}
+            role={CLOUD_MODE ? "group" : "img"}
             aria-label={
               graphViewMode === "server"
                 ? "EEI 生产关系图（服务端递归展开）"
@@ -5075,7 +5229,7 @@ export default function Home() {
 
         {/* P2-12：minimap 大图定位缩略图（Bloom 骨架）。同 viewBox 等比缩小，
             节点按 zone 着色、焦点金边；点节点即换中心。窄屏 CSS 隐藏。 */}
-        <div aria-label="图谱缩略定位" className="graphMinimap" data-testid="graph-minimap">
+        <div aria-label="图谱缩略定位" className="graphMinimap" data-testid="graph-minimap" role="group">
           <svg
             aria-hidden="true"
             preserveAspectRatio="xMidYMid meet"
@@ -5181,6 +5335,19 @@ export default function Home() {
             <p className="eyebrow">证据中心</p>
             <h2>关系路径</h2>
           </div>
+          {/* 宽屏（≥1280px）右栏常驻，这里是「证据栏」的可见入口：点它把所选关系的证据
+              （来源、原文链接、摘录）滚到眼前。窄屏（<1280px）改由右下浮动的「证据栏」开关承担，此钮 CSS 隐藏。 */}
+          <button
+            aria-controls="production-evidence-detail"
+            className="evidenceBarButton pressable"
+            data-testid="evidence-bar-button"
+            onClick={toggleEvidenceBar}
+            title="查看所选关系的证据：官方来源、原文链接、摘录"
+            type="button"
+          >
+            <FileSearch size={16} aria-hidden="true" />
+            <span>证据栏</span>
+          </button>
           {/* P2-11：窄屏抽屉态才出现的关闭钮（宽屏右栏常驻，此钮 CSS 隐藏）。 */}
           <button
             aria-label="收起证据栏"
@@ -5261,7 +5428,7 @@ export default function Home() {
             <div>
               <dt>透镜 / 时间</dt>
               <dd>
-                {savedView.activeLens} / {savedView.asOf}
+                {savedView.activeLens} / {CLOUD_MODE ? publishedDataVersion : savedView.asOf}
               </dd>
             </div>
             <div>
@@ -5274,7 +5441,11 @@ export default function Home() {
             </div>
             <div>
               <dt>备注</dt>
-              <dd>{savedView.notes}</dd>
+              <dd>
+                {CLOUD_MODE
+                  ? savedView.notes.split(savedView.asOf).join(publishedDataVersion)
+                  : savedView.notes}
+              </dd>
             </div>
           </dl>
           <div className="savedViewActions">
@@ -5337,7 +5508,11 @@ export default function Home() {
         </ol>
 
         <section
+          aria-label="所选关系的证据"
           className="graphPolicyPanel productionEvidencePanel"
+          data-evidence-bar-focus={evidenceBarFocus}
+          id="production-evidence-detail"
+          tabIndex={-1}
           data-evidence-count={productionEvidenceDetail?.evidence_count ?? 0}
           data-evidence-endpoint={productionEvidenceEndpoint || "local"}
           data-evidence-object-id={
@@ -5506,7 +5681,7 @@ export default function Home() {
                 <th scope="col">关系</th>
                 <th scope="col">环节</th>
                 <th scope="col">证据</th>
-                <th scope="col">时间</th>
+                <th scope="col">{CLOUD_MODE ? "数据版本" : "时间"}</th>
               </tr>
             </thead>
             <tbody>
@@ -5515,7 +5690,7 @@ export default function Home() {
                   data-direction={`${edge.from}->${edge.to}`}
                   data-evidence-status={edge.source === "server" ? "server-evidence" : "fixture-evidence"}
                   data-lens={edge.lens}
-                  data-observed-at={edge.observedAt}
+                  data-observed-at={edge.source === "server" && CLOUD_MODE ? publishedDataVersion : edge.observedAt}
                   data-render-source={edge.source}
                   data-relationship-type={edge.lens}
                   data-testid={`graph-table-row-${edge.from}-${edge.to}`}
@@ -5543,7 +5718,8 @@ export default function Home() {
                         : "样例证据"}
                     </span>
                   </td>
-                  <td>{edge.observedAt}</td>
+                  {/* 云模式的边没有逐条观测时间，observedAt 只是样例时间轴键；这里显示数据版本日期，免得误导成 6 月。 */}
+                  <td>{edge.source === "server" && CLOUD_MODE ? publishedDataVersion : edge.observedAt}</td>
                 </tr>
               ))}
             </tbody>
@@ -5783,7 +5959,7 @@ export default function Home() {
             </span>
             <span data-testid="active-context-state">
               数据 {analysisContext.dataSnapshot} / 评分 {analysisContext.scoreSnapshot} / 快照{" "}
-              {asOf}
+              {CLOUD_MODE ? publishedDataVersion : asOf}
             </span>
             <span data-testid="lens-state">透镜：{activeLens}</span>
             <span data-testid="zoom-state">缩放：{semanticZoom}</span>
@@ -5798,10 +5974,12 @@ export default function Home() {
       {/* P2-11：窄屏（<1280px）右栏收成抽屉时的浮动开关；宽屏 CSS 隐藏。
           遮罩点击关闭；打开钮常驻右下（避开底部 dock）。 */}
       <button
+        aria-controls="evidence-center"
         aria-expanded={inspectorDrawerOpen}
         className="inspectorToggle pressable"
         data-testid="inspector-drawer-toggle"
-        onClick={() => setInspectorDrawerOpen((open) => !open)}
+        onClick={toggleEvidenceBar}
+        title="查看所选关系的证据：官方来源、原文链接、摘录"
         type="button"
       >
         <FileSearch size={18} aria-hidden="true" />
@@ -5809,6 +5987,7 @@ export default function Home() {
       </button>
       <button
         aria-hidden={!inspectorDrawerOpen}
+        aria-label="关闭证据栏"
         className="inspectorScrim"
         data-testid="inspector-drawer-scrim"
         onClick={() => setInspectorDrawerOpen(false)}

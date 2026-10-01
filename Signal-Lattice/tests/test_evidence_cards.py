@@ -440,12 +440,15 @@ class ShippedCardsTests(unittest.TestCase):
         cls.payload = C.load_payload(C.CARDS_DIR)
         cls.book = C.CardBook.from_payload(cls.payload)
 
-    def test_there_are_at_least_five_cards_covering_at_least_twenty_distinct_companies(self):
+    def test_there_are_at_least_five_cards_covering_at_least_fifteen_distinct_supplier_companies(self):
+        # 2026-10-01 主线裁定：证据卡只登记瓶颈的供给方（去掉 NNE、IMSR 两家反应堆开发商与 MYRG、CTRI、PRIM 三家施工承包商），
+        # 第一批由 21 家变为 16 家；原「≥20 家」来自任务书，随裁定改为「≥15 家供给方」，补足到 20 家另开任务。
         self.assertGreaterEqual(len(self.book.cards), 5)
         self.assertEqual(self.book.invalid, {})
         self.assertEqual(self.payload["unreadable"], {})
         ciks = {c.cik for card in self.book.cards for c in card.companies}
-        self.assertGreaterEqual(len(ciks), 20)
+        self.assertGreaterEqual(len(ciks), 15)
+        self.assertFalse({"NNE", "IMSR", "MYRG", "CTRI", "PRIM"} & {c.symbol for card in self.book.cards for c in card.companies})
 
     def test_every_source_has_a_passing_stamp(self):
         for card in self.book.cards:

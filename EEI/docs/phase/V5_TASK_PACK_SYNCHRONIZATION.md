@@ -25,8 +25,8 @@ EEI identity is unchanged:
 | `brand/BRAND_AND_COMPETITIVE_LANDSCAPE_RESEARCH.md` | EEI-adapted brand and market clearance summary |
 | `data/competitive_product_landscape.csv` | 49 representative mature products |
 | `data/brand_name_conflict_register.csv` | 7 naming conflict records |
-| `TEST_STRATEGY.md` | layered static/unit/contract/integration/E2E/non-functional test strategy |
-| `CONTINUITY_PLAN.md` | phase chain, issue closure and GitHub anti-drift rules |
+| `文档/归档/TEST_STRATEGY.md` | layered static/unit/contract/integration/E2E/non-functional test strategy |
+| `文档/归档/CONTINUITY_PLAN.md` | phase chain, issue closure and GitHub anti-drift rules |
 
 ## MVP v0.1 Blocking Scope
 

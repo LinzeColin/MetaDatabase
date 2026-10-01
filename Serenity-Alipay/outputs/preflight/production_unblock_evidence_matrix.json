@@ -12,8 +12,8 @@
     "warn": 6
   },
   "files": {
-    "markdown": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/PRODUCTION_UNBLOCK_EVIDENCE_MATRIX.md",
-    "csv": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/production_unblock_evidence_matrix.csv",
-    "json": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/production_unblock_evidence_matrix.json"
+    "markdown": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/PRODUCTION_UNBLOCK_EVIDENCE_MATRIX.md",
+    "csv": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/production_unblock_evidence_matrix.csv",
+    "json": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/outputs/preflight/production_unblock_evidence_matrix.json"
   }
 }

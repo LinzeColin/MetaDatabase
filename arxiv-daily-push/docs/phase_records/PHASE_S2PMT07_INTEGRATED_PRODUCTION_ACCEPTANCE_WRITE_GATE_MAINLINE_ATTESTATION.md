@@ -19,7 +19,7 @@ No new SMTP command was executed for this attestation. The already-recorded cont
 - Mainline attestation manifest: `governance/run_manifests/ADP-S2PMT07-INTEGRATED-PRODUCTION-ACCEPTANCE-WRITE-GATE-MAINLINE-ATTESTATION-20260701.json`
 - Controlled real-run manifest: `governance/run_manifests/ADP-S2PMT07-AUTHORIZED-CONTROLLED-REAL-RUN-ACCEPTANCE-20260701.json`
 - Write-gate manifest: `governance/run_manifests/ADP-S2PMT07-INTEGRATED-PRODUCTION-ACCEPTANCE-WRITE-GATE-20260701.json`
-- Runtime report: `/Users/linzezhang/.adp/arxiv-daily-push/runs/20260701/adp-local-runner-report.json`
+- Runtime report: `~/.adp/arxiv-daily-push/runs/20260701/adp-local-runner-report.json`
 
 ## Safety Boundary
 

@@ -106,6 +106,7 @@ class FactStore:
         self.path = str(path)
         if self.path != ":memory:":
             Path(self.path).parent.mkdir(parents=True, exist_ok=True)
+        self.min_period_end: Optional[str] = None   # 设了就不再入账早于它的事实期（总量上限清理过的旧期不会被重新装回）
         self.db = sqlite3.connect(self.path)
         self.db.row_factory = sqlite3.Row
         self.db.executescript(SCHEMA)
@@ -132,6 +133,8 @@ class FactStore:
                 concept = "%s:%s" % (taxonomy, tag)
                 for unit, entries in (body.get("units") or {}).items():
                     for entry in entries:
+                        if self.min_period_end is not None and str(entry.get("end", "")) < self.min_period_end:
+                            continue
                         try:
                             rows.append((
                                 int(cik), concept, unit, float(entry["val"]), entry.get("start"),

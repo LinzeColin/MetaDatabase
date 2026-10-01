@@ -1,0 +1,12 @@
+[Unit]
+Description=ADP arXiv history backfill at 02:30 and 08:30 UTC (same two slots the Cloudflare cron used)
+Documentation=https://github.com/LinzeColin/MetaDatabase/tree/main/arxiv-daily-push/deploy/selfhost
+
+[Timer]
+OnCalendar=*-*-* 02:30:00 UTC
+OnCalendar=*-*-* 08:30:00 UTC
+RandomizedDelaySec=120
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target

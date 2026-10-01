@@ -304,6 +304,135 @@ def run_batch(client: SecClient, store: EventStore, cache: TextCache, entries: S
     return {"records": records, "skipped": skipped, "thresholds": thresholds}
 
 
+# ---- 研究层每轮增量生成（生产路径）-----------------------------------------------------
+TEXT_SIM_MAX_REQUESTS_PER_RUN = 1500    # 单轮最多下载多少份申报正文（= SEC 请求数）；超出的下一轮接着补，限速仍是全局 <= 4 次/秒
+TEXT_SIM_MAX_TRIES = 3                  # 同一份申报取不到/正文过短，累计尝试这么多次后不再占用请求额度
+PERIODIC_FORMS = ("10-K", "10-Q")
+
+
+def ensure_tables(store: EventStore) -> None:
+    store.db.execute("CREATE TABLE IF NOT EXISTS text_sim (cik INTEGER NOT NULL, accession TEXT NOT NULL, as_of TEXT NOT NULL, "
+                     "payload TEXT NOT NULL, PRIMARY KEY (cik, accession))")
+    store.db.execute("CREATE TABLE IF NOT EXISTS text_sim_attempt (cik INTEGER NOT NULL, accession TEXT NOT NULL, "
+                     "tries INTEGER NOT NULL, last_as_of TEXT NOT NULL, PRIMARY KEY (cik, accession))")
+
+
+def load_stored(store: EventStore) -> Tuple[Dict[Tuple[int, str], dict], Dict[Tuple[int, str], int]]:
+    """已算好的记录 {(cik, accession): 记录}（没有分位）与失败次数。"""
+    ensure_tables(store)
+    records = {(int(r["cik"]), r["accession"]): json.loads(r["payload"]) for r in store.db.execute("SELECT cik, accession, payload FROM text_sim")}
+    tries = {(int(r["cik"]), r["accession"]): int(r["tries"]) for r in store.db.execute("SELECT cik, accession, tries FROM text_sim_attempt")}
+    return records, tries
+
+
+def plan_pairs(facts, entries: Sequence[Mapping], as_of) -> Dict[int, Tuple[Mapping, Mapping]]:
+    """每家公司「截至 as_of 已公开」的最新 10-K/10-Q 及其上期同类。只读 filed <= as_of 的申报（时点正确）。"""
+    plan: Dict[int, Tuple[Mapping, Mapping]] = {}
+    for entry in entries:
+        rows = [r for r in facts.filings_as_of(int(entry["cik"]), as_of, PERIODIC_FORMS)
+                if r.get("primary_document") and "/" not in r["primary_document"]]
+        pair = pick_pair(rows, as_of)
+        if pair is not None:
+            plan[int(entry["cik"])] = pair
+    return plan
+
+
+def _record_for(entry: Mapping, latest: Mapping, previous: Mapping, comparison: dict) -> dict:
+    cik = int(entry["cik"])
+    record = dict(comparison)
+    record.update({
+        "symbol": entry["symbol"], "cik": cik, "name": entry["name"], "market_cap_usd": entry["market_cap_usd"],
+        "form": latest["form"], "filed": latest["filed"], "prior_filed": previous["filed"],
+        "accession": latest["accession"], "prior_accession": previous["accession"],
+        "url": document_url(cik, latest["accession"], latest["primary_document"]),
+        "prior_url": document_url(cik, previous["accession"], previous["primary_document"]),
+    })
+    return record
+
+
+def collect_records(client: Optional[SecClient], store: EventStore, facts, cache: TextCache, entries: Sequence[Mapping], as_of,
+                    max_requests: int = TEXT_SIM_MAX_REQUESTS_PER_RUN, workers: int = 3,
+                    log: Callable[[str], None] = print) -> dict:
+    """候选池每家公司的最新 10-K/10-Q 对上期同类的措辞相似度。
+
+    - 已算过的（同一份最新申报）直接复用，不再下载；新申报出现才重算；
+    - 单轮最多下载 max_requests 份正文（正文缓存命中的不占额度），没有记录的公司优先，剩下的下一轮接着补；
+    - 取不到/正文过短的申报累计尝试 TEXT_SIM_MAX_TRIES 次后不再占额度；
+    - client 为 None（离线）时只用已有记录和已缓存的正文，不发请求。
+    返回 {"records": [...含分位...], "thresholds": {...}, "coverage": {...}}；记录按 symbol 排序，内容只取决于库里的数据。"""
+    as_of_iso = iso(as_of)
+    stored, tries = load_stored(store)
+    plan = plan_pairs(facts, entries, as_of)
+    by_cik = {int(e["cik"]): e for e in entries}
+    have_any = {cik for (cik, _acc) in stored}
+    reused: List[dict] = []
+    todo: List[Tuple[Mapping, Mapping, Mapping, int]] = []        # (entry, latest, previous, 需下载份数)
+    gave_up = 0
+    for cik, (latest, previous) in sorted(plan.items(), key=lambda kv: by_cik[kv[0]]["symbol"]):
+        existing = stored.get((cik, latest["accession"]))
+        if existing is not None:
+            reused.append(_record_for(by_cik[cik], latest, previous, existing))
+            continue
+        if tries.get((cik, latest["accession"]), 0) >= TEXT_SIM_MAX_TRIES:
+            gave_up += 1
+            continue
+        cost = sum(1 for row in (latest, previous) if not cache.path(row["accession"]).is_file())
+        todo.append((by_cik[cik], latest, previous, cost))
+    todo.sort(key=lambda item: (int(item[0]["cik"]) in have_any, item[0]["symbol"]))   # 从没有记录的公司先做
+    budget = 0 if client is None else max(0, int(max_requests))
+    runnable: List[Tuple[Mapping, Mapping, Mapping, int]] = []
+    spent = skipped_by_cap = 0
+    for item in todo:
+        if item[3] == 0 or spent + item[3] <= budget:
+            spent += item[3]
+            runnable.append(item)
+        else:
+            skipped_by_cap += 1
+    requests_before = client.requests_sent if client is not None else 0
+
+    def work(item):
+        entry, latest, previous, _cost = item
+        try:
+            cik = int(entry["cik"])
+            new_text, old_text = fetch_text(client, cache, cik, latest), fetch_text(client, cache, cik, previous)
+            if new_text is None or old_text is None:
+                return item, None
+            return item, compare_documents(new_text, old_text)
+        except Exception as exc:  # 单家失败不拖垮整批；记一次尝试并写日志
+            log("text-sim failed %s: %s" % (entry["symbol"], type(exc).__name__))
+            return item, None
+
+    fresh: List[dict] = []
+    failed = 0
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        for index, (item, comparison) in enumerate(pool.map(work, runnable), 1):
+            entry, latest, previous, _cost = item
+            if comparison is None:
+                failed += 1
+                store.db.execute("INSERT INTO text_sim_attempt (cik, accession, tries, last_as_of) VALUES (?,?,1,?) "
+                                 "ON CONFLICT(cik, accession) DO UPDATE SET tries = tries + 1, last_as_of = excluded.last_as_of",
+                                 (int(entry["cik"]), latest["accession"], as_of_iso))
+            else:
+                record = _record_for(entry, latest, previous, comparison)
+                fresh.append(record)
+                store.db.execute("INSERT OR REPLACE INTO text_sim (cik, accession, as_of, payload) VALUES (?,?,?,?)",
+                                 (record["cik"], record["accession"], as_of_iso, json.dumps(record, ensure_ascii=False)))
+            if index % 100 == 0:
+                log("text-sim %d/%d fresh=%d failed=%d requests=%d" % (
+                    index, len(runnable), len(fresh), failed, (client.requests_sent - requests_before) if client is not None else 0))
+    store.commit()
+    records = sorted(reused + fresh, key=lambda r: r["symbol"])
+    assert all(r["filed"] <= as_of_iso for r in records), "text similarity record newer than as_of"
+    thresholds = add_percentiles(records)
+    requests = (client.requests_sent - requests_before) if client is not None else 0
+    coverage = {"pool": len(entries), "sampled": len(entries), "computed": len(records), "skipped": len(entries) - len(records),
+                "reused": len(reused), "computed_this_run": len(fresh), "failed_this_run": failed, "gave_up": gave_up,
+                "no_comparable_pair": len(entries) - len(plan), "deferred_by_request_cap": skipped_by_cap,
+                "requests_this_run": requests, "max_requests_per_run": budget}
+    log("text-sim: %s" % coverage)
+    return {"records": records, "thresholds": thresholds, "coverage": coverage}
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
     from .event_collect import load_pool, make_client
 

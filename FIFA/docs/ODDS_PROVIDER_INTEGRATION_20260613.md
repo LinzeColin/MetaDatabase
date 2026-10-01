@@ -33,7 +33,7 @@ Until then, executable new stake remains `AUD 0`.
 ## Commands
 
 ```bash
-cd /Users/linzezhang/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/github_sync/FIFA/tab-research-pipeline
+cd ~/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/github_sync/FIFA/tab-research-pipeline
 
 cp config/odds_providers.local.env.example config/odds_providers.local.env
 # Edit config/odds_providers.local.env locally. Do not commit real keys.

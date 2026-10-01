@@ -50,8 +50,8 @@ tasks:
       - "bash -n scripts/run_tab_fifa_daily_automation.sh scripts/tab_real_refresh_smoke.sh -> exit 0"
       - "node --check scripts/refresh_tab_readonly.mjs -> exit 0"
       - "node --check scripts/discover_tab_live_boards.mjs -> exit 0"
-      - "python3 -m unittest tests.test_pipeline -q -> exit 1 on real HOME because /Users/linzezhang/Downloads/FIFA Report/TAB FIFA盘口研究系统.html is missing"
-      - "PYTHONPATH=/Users/linzezhang/Library/Python/3.13/lib/python/site-packages HOME=<temp fixture home> python3 -m unittest tests.test_pipeline -q -> exit 0; Ran 206 tests OK"
+      - "python3 -m unittest tests.test_pipeline -q -> exit 1 on real HOME because ~/Downloads/FIFA Report/TAB FIFA盘口研究系统.html is missing"
+      - "PYTHONPATH=~/Library/Python/3.13/lib/python/site-packages HOME=<temp fixture home> python3 -m unittest tests.test_pipeline -q -> exit 0; Ran 206 tests OK"
     evidence_refs:
       - "FIFA/docs/governance/model_registry.yaml"
       - "FIFA/docs/governance/formula_registry.yaml"

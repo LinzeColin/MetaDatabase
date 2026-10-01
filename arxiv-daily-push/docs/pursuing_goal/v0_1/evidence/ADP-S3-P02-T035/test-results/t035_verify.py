@@ -6,7 +6,7 @@ Deterministic (fixtures; the live stats.gov.cn extraction is a separate smoke). 
 stats narrative form (国内生产总值1349084亿元，同比增长5.0%; revision 初步核算).
 """
 import sys, json, pathlib
-V01 = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
+V01 = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
 T035 = V01 / "evidence" / "ADP-S3-P02-T035"
 FX = T035 / "fixtures"
 sys.path.insert(0, str(V01 / "tools"))

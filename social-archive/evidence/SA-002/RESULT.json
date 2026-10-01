@@ -65,7 +65,7 @@
     "identity_phase_status": "APPLIED",
     "identity_phase_stamp": "20260802T212629Z",
     "backup_path": ".social-archive-migration/backups/20260802T212629Z",
-    "rollback_command": "python3 /private/tmp/social-archive-sa000.Xi6Qzf/Social_Archive_v0.0.0.6_FINAL_TASKPACK_20260802/07_IMPLEMENTATION/apply/rollback_taskpack.py --repo /Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-sa001 --stamp 20260802T212629Z",
+    "rollback_command": "python3 /private/tmp/social-archive-sa000.Xi6Qzf/Social_Archive_v0.0.0.6_FINAL_TASKPACK_20260802/07_IMPLEMENTATION/apply/rollback_taskpack.py --repo ~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-sa001 --stamp 20260802T212629Z",
     "retire_plan_status": "ALREADY_RETIRED",
     "retire_apply_status": "ALREADY_RETIRED",
     "deletion_performed": false
