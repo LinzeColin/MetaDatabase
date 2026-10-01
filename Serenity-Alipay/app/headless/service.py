@@ -1,4 +1,4 @@
-"""无人值守的一次调度：判断时段 -> 刷新公开数据 -> 分析 -> 渲染报告 -> 发布 Release。
+"""无人值守的一次调度：判断时段 -> 刷新公开数据 -> 分析 -> 渲染报告 -> 发布 Release -> 净值日期前进时发邮件。
 
 由 systemd timer 在原设计的 10 个北京时段（工作日 08:30-17:30，每小时半点）触发；
 迟到（重启/补跑）时按“最近一个 3 小时内未跑的时段”补，报告里写的是实际运行时间。
@@ -19,6 +19,7 @@ from zoneinfo import ZoneInfo
 
 from app.config import Settings
 from app.core.pipeline import run_slot
+from app.headless import mail as mailer
 from app.headless import publish as pub
 from app.headless import sources as src
 from app.headless.refresh import DataHealth, refresh_public_data
@@ -123,6 +124,7 @@ def service_tick(
     force_slot: str | None = None,
     catch_up_minutes: int = 180,
     publish: bool = True,
+    send_mail: bool = True,
     allow_duplicate: bool = False,
     client: src.HttpClient | None = None,
     publisher: pub.ReleasePublisher | None = None,
@@ -185,6 +187,12 @@ def service_tick(
             ledger[key] = entry
             _save_ledger(settings, ledger)
             summary["published"] = True
+        if send_mail:
+            out_dir = Path(str(entry["out_dir"]))
+            try:
+                summary.update(mailer.maybe_send(settings.data_dir, result, health_dict, (out_dir / "report.html").read_text(encoding="utf-8"), (out_dir / "report.md").read_text(encoding="utf-8")))
+            except (OSError, ValueError) as exc:  # 邮件失败不挡发布；下个时段净值日期仍未发过，会再试
+                summary["mail"] = f"failed: {type(exc).__name__}: {exc}"
         _write_status(settings, {**summary, "finished_at": datetime.now(CST).isoformat(timespec="seconds")})
         _prune_out_dirs(settings, day)
         return summary
