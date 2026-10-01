@@ -343,7 +343,7 @@ index 000000000..852bee5e2
 +++ b/arxiv-daily-push/docs/pursuing_goal/v0_1/evidence/ADP-S0-P03-T008/test-results/tool_selftest.txt
 @@ -0,0 +1,44 @@
 +### check_dag.py
-+TASK_INDEX: /Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1/TASK_INDEX.csv
++TASK_INDEX: ~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1/TASK_INDEX.csv
 +unique task_ids: 90
 +total dependency edges: 123
 +RESULT: PASS (unique ids, count matches, no dangling deps, acyclic)
@@ -351,16 +351,16 @@ index 000000000..852bee5e2
 +
 +### validate_evidence.py ADP-S0-P02-T007 (complete -> READY)
 +task_id: ADP-S0-P02-T007
-+evidence root: /Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1/evidence
++evidence root: ~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1/evidence
 +STATUS: READY_FOR_INDEPENDENT_VERIFICATION
 +  (validator does NOT issue PASS; PASS/FAIL is an independent reviewer's decision)
 +exit=0
 +
 +### validate_evidence.py ADP-S1-P01-T009 (no bundle -> INCOMPLETE)
 +task_id: ADP-S1-P01-T009
-+evidence root: /Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1/evidence
++evidence root: ~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1/evidence
 +STATUS: INCOMPLETE
-+  - evidence bundle not found: /Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1/evidence/ADP-S1-P01-T009
++  - evidence bundle not found: ~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1/evidence/ADP-S1-P01-T009
 +exit=1
 +
 +### task_runner.py ADP-S0-P02-T007 (deps done -> READY)

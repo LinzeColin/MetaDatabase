@@ -6,7 +6,7 @@ in-memory SQLite copy. Never touches production D1. Acceptance:
 """
 import sqlite3, pathlib, sys
 
-SCHEMA_DIR = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1/schemas")
+SCHEMA_DIR = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1/schemas")
 MIG = (SCHEMA_DIR / "document_version.migration.sql").read_text(encoding="utf-8")
 RBK = (SCHEMA_DIR / "document_version.rollback.sql").read_text(encoding="utf-8")
 

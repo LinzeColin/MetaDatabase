@@ -10,6 +10,7 @@ import time
 from contextlib import contextmanager
 from dataclasses import dataclass, asdict
 from datetime import datetime, timedelta, timezone
+from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Iterable
 from urllib.parse import urlsplit, urlunsplit
@@ -19,7 +20,7 @@ from bs4 import BeautifulSoup
 from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
-from .career_intelligence import detect_role_family, detect_skills
+from .career_intelligence import detect_job_role_family, detect_role_family, detect_skills
 from .config import Settings
 from .regions import location_fit, targets_include_australia
 from .models import (
@@ -200,7 +201,7 @@ def enrich(job: NormalizedJob) -> NormalizedJob:
         job.industry = str(job.industry or "")
     text = f"{job.title} {job.description}".casefold()
     if not job.role_family:
-        job.role_family = detect_role_family(f"{job.title} {job.description}")
+        job.role_family = detect_job_role_family(job.title, job.description)
     if not job.skills:
         job.skills = detect_skills(f"{job.title} {job.description}")
     if not job.keywords:
@@ -230,7 +231,7 @@ def _fixture(settings: Settings) -> list[NormalizedJob]:
 
 
 def _remotive(client: httpx.Client, limit: int) -> list[NormalizedJob]:
-    data = client.get("https://remotive.com/api/remote-jobs", params={"limit": limit}).json()
+    data = _get(client, "https://remotive.com/api/remote-jobs", params={"limit": limit}).json()
     out = []
     for row in data.get("jobs", [])[:limit]:
         out.append(enrich(NormalizedJob(
@@ -250,7 +251,7 @@ def _remotive(client: httpx.Client, limit: int) -> list[NormalizedJob]:
 
 
 def _arbeitnow(client: httpx.Client, limit: int) -> list[NormalizedJob]:
-    data = client.get("https://www.arbeitnow.com/api/job-board-api").json()
+    data = _get(client, "https://www.arbeitnow.com/api/job-board-api").json()
     out = []
     for row in data.get("data", [])[:limit]:
         out.append(enrich(NormalizedJob(
@@ -273,7 +274,7 @@ def _jobicy(client: httpx.Client, limit: int, profile: dict | None = None) -> li
     tag = role_search_tag(profile or {})
     if tag:
         params["tag"] = tag
-    data = client.get("https://jobicy.com/api/v2/remote-jobs", params=params).json()
+    data = _get(client, "https://jobicy.com/api/v2/remote-jobs", params=params).json()
     out = []
     for row in data.get("jobs", [])[:limit]:
         out.append(enrich(NormalizedJob(
@@ -295,7 +296,7 @@ def _jobicy(client: httpx.Client, limit: int, profile: dict | None = None) -> li
 def _adzuna(client: httpx.Client, settings: Settings, profile: dict) -> list[NormalizedJob]:
     query = " OR ".join(profile.get("primary_role_families", [])[:2]) or "analyst"
     location = next((x for x in profile.get("target_locations", []) if "remote" not in x.casefold()), "Australia")
-    data = client.get(
+    data = _get(client,
         "https://api.adzuna.com/v1/api/jobs/au/search/1",
         params={
             "app_id": settings.adzuna_app_id,
@@ -324,7 +325,7 @@ def _adzuna(client: httpx.Client, settings: Settings, profile: dict) -> list[Nor
 def _greenhouse(client: httpx.Client, boards: list[str], limit: int) -> list[NormalizedJob]:
     out = []
     for board in boards:
-        data = client.get(f"https://boards-api.greenhouse.io/v1/boards/{board}/jobs", params={"content": "true"}).json()
+        data = _get(client, f"https://boards-api.greenhouse.io/v1/boards/{board}/jobs", params={"content": "true"}).json()
         for row in data.get("jobs", [])[:limit]:
             out.append(enrich(NormalizedJob(
                 source=f"greenhouse:{board}",
@@ -342,7 +343,7 @@ def _greenhouse(client: httpx.Client, boards: list[str], limit: int) -> list[Nor
 def _lever(client: httpx.Client, companies: list[str], limit: int) -> list[NormalizedJob]:
     out = []
     for company in companies:
-        rows = client.get(f"https://api.lever.co/v0/postings/{company}", params={"mode": "json"}).json()
+        rows = _get(client, f"https://api.lever.co/v0/postings/{company}", params={"mode": "json"}).json()
         for row in rows[:limit]:
             cats = row.get("categories") or {}
             out.append(enrich(NormalizedJob(
@@ -362,7 +363,7 @@ def _lever(client: httpx.Client, companies: list[str], limit: int) -> list[Norma
 def _ashby(client: httpx.Client, boards: list[str], limit: int) -> list[NormalizedJob]:
     out = []
     for board in boards:
-        data = client.get(f"https://api.ashbyhq.com/posting-api/job-board/{board}").json()
+        data = _get(client, f"https://api.ashbyhq.com/posting-api/job-board/{board}").json()
         for row in data.get("jobs", [])[:limit]:
             out.append(enrich(NormalizedJob(
                 source=f"ashby:{board}",
@@ -381,7 +382,7 @@ def _ashby(client: httpx.Client, boards: list[str], limit: int) -> list[Normaliz
 
 def _freehire(client: httpx.Client, base: str, profile: dict, limit: int) -> list[NormalizedJob]:
     query = " ".join(profile.get("primary_role_families", [])[:2])
-    data = client.get(
+    data = _get(client,
         f"{base}/api/v1/agent/jobs/search",
         params={"q": query, "limit": limit, "description_format": "text", "sort": "posted_at", "order": "desc"},
     ).json()
@@ -444,8 +445,14 @@ _FEED_CACHE: dict[str, tuple[float, httpx.Response]] = {}
 
 def _get(client, url: str, params: dict | None = None, ttl: int | None = None):
     if isinstance(client, CachedClient):
-        return client.get(url, params=params, ttl=ttl)
-    return client.get(url, params=params)
+        response = client.get(url, params=params, ttl=ttl)
+    else:
+        response = client.get(url, params=params)
+    if (getattr(response, "status_code", 200) or 200) >= 400:
+        # 限流（429）、下线（404）、服务错误不能当成「这个源没有岗位」，
+        # 也不能落到 .json() 上变成一句看不懂的 "Expecting value"。
+        raise RuntimeError(f"HTTP {response.status_code} {urlsplit(url).netloc}")
+    return response
 
 
 def load_au_boards() -> dict[str, list[str]]:
@@ -592,6 +599,55 @@ def _au_board_providers(client, settings: Settings) -> list[tuple[str, object]]:
     return providers
 
 
+# 发布时间早于这个天数的岗位不再收：实测雇主招聘板接口里仍挂着 2020 年发布的职位，
+# 多半是忘了下线；接口返回 200 也不能证明岗位还在招。
+MAX_POSTING_AGE_DAYS = 365
+
+
+def is_stale(job: NormalizedJob, now: datetime | None = None) -> bool:
+    if not job.posted_at:
+        return False
+    now = now or datetime.now(timezone.utc).replace(tzinfo=None)
+    posted = job.posted_at.replace(tzinfo=None) if job.posted_at.tzinfo else job.posted_at
+    return (now - posted).days > MAX_POSTING_AGE_DAYS
+
+
+def content_key(job: NormalizedJob) -> tuple[str, str, str]:
+    """Same employer + same title + same place = candidate for the same opening.
+
+    The URL is deliberately not part of it: one opening is often reposted under a
+    new id, or listed by both an aggregator and the employer's own board."""
+    def norm(value: str) -> str:
+        text = re.sub(r"[&+]", " and ", (value or "").casefold())
+        text = re.sub(r"[^a-z0-9]+", " ", text)
+        return re.sub(r"\band\b", " ", text).strip()
+    return " ".join(norm(job.company).split()), " ".join(norm(job.title).split()), " ".join(norm(job.city or job.location).split())
+
+
+def _body_prefix(job: NormalizedJob) -> str:
+    return re.sub(r"\s+", " ", (job.description or "").casefold()).strip()[:600]
+
+
+def drop_stale_and_duplicates(jobs: list[NormalizedJob], seen: dict[tuple[str, str, str], list[str]]) -> list[NormalizedJob]:
+    """Filter one provider's jobs; ``seen`` carries across providers within a run.
+
+    Two postings are the same opening only when employer, title and place match
+    AND the bodies are near-identical: one title can cover several requisitions at
+    different levels (a junior and a senior "Disputes" lawyer), which must stay."""
+    kept = []
+    for job in jobs:
+        if is_stale(job):
+            continue
+        key = content_key(job)
+        body = _body_prefix(job)
+        bodies = seen.setdefault(key, [])
+        if any(not body or not other or SequenceMatcher(None, body, other).ratio() >= 0.9 for other in bodies):
+            continue
+        bodies.append(body)
+        kept.append(job)
+    return kept
+
+
 def fetch_sources(settings: Settings, profile: dict) -> Iterable[tuple[str, str, list[NormalizedJob], str]]:
     if settings.discovery_fixture_path:
         try:
@@ -625,6 +681,7 @@ def fetch_sources(settings: Settings, profile: dict) -> Iterable[tuple[str, str,
                 providers.append(("jobicy-au", lambda: _jobicy_geo(client, settings.discovery_max_jobs_per_source, "australia")))
             if settings.enable_au_boards:
                 providers.extend(_au_board_providers(client, settings))
+        seen_openings: dict[tuple[str, str, str], list[str]] = {}
         for name, fn in providers:
             try:
                 deadline = BOARD_DEADLINE_SECONDS if name.startswith("au-") else settings.discovery_source_timeout_seconds
@@ -636,6 +693,7 @@ def fetch_sources(settings: Settings, profile: dict) -> Iterable[tuple[str, str,
                 jobs = [j for j in result if safe_http_url(j.url) and j.title and j.company]
                 for job in jobs:
                     job.url = safe_http_url(job.url)
+                jobs = drop_stale_and_duplicates(jobs, seen_openings)
                 yield name, "ok", jobs, detail
             except Exception as exc:
                 yield name, "failed", [], str(exc)[:1000]

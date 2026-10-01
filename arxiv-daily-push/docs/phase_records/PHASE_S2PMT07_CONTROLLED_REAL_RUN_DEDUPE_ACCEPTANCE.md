@@ -19,7 +19,7 @@
 
 - Run manifest: `governance/run_manifests/ADP-S2PMT07-CONTROLLED-REAL-RUN-DEDUPE-ACCEPTANCE-20260701T043836Z.json`
 - Local runtime evidence: `/tmp/adp_controlled_real_run_20260701T043836Z.json`
-- Runtime state dir: `/Users/linzezhang/.adp/arxiv-daily-push`
+- Runtime state dir: `~/.adp/arxiv-daily-push`
 
 ## Safety Closeout
 

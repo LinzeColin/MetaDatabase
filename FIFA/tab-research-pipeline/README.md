@@ -16,14 +16,14 @@ In this Codex workspace the bundled Node runtime and Playwright cache may alread
 Run the current daily-report flow manually:
 
 ```bash
-cd /Users/linzezhang/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/work/tab-research-pipeline
+cd ~/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/work/tab-research-pipeline
 python3 run_daily_report.py
 ```
 
 Stable one-shot runner for future approved automation wiring:
 
 ```bash
-cd /Users/linzezhang/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/work/tab-research-pipeline
+cd ~/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/work/tab-research-pipeline
 scripts/run_tab_fifa_daily_automation.sh
 ```
 
@@ -33,7 +33,7 @@ Build or refresh the local Downloads app entry:
 python3 scripts/build_downloads_app_entry.py
 ```
 
-This creates `/Users/linzezhang/Downloads/TAB FIFA盘口研究系统.app` and the entry page `/Users/linzezhang/Downloads/FIFA Report/TAB FIFA盘口研究系统.html`. The app opens a local-only server at `127.0.0.1:8767` so the homepage buttons can run active checks. The entry links only to public-safe copied artifacts under `Downloads/FIFA Report/app_assets` and the trusted PDF in `Downloads/FIFA Report`.
+This creates `~/Downloads/TAB FIFA盘口研究系统.app` and the entry page `~/Downloads/FIFA Report/TAB FIFA盘口研究系统.html`. The app opens a local-only server at `127.0.0.1:8767` so the homepage buttons can run active checks. The entry links only to public-safe copied artifacts under `Downloads/FIFA Report/app_assets` and the trusted PDF in `Downloads/FIFA Report`.
 
 The homepage is decision-first:
 
@@ -81,7 +81,7 @@ Build the goal-traceability bundle manually:
 python3 - <<'PY'
 from pathlib import Path
 from tab_research.goal_traceability import write_goal_traceability_bundle
-out = Path("/Users/linzezhang/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/outputs")
+out = Path("~/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/outputs")
 write_goal_traceability_bundle(out, out / "tab_fifa_reports.sqlite3")
 PY
 ```
@@ -129,7 +129,7 @@ This verifier does not open TAB live pages. It checks Python compile, unit/integ
 The canonical output directory is the workspace-root `outputs` folder:
 
 ```text
-/Users/linzezhang/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/outputs
+~/Documents/Codex/2026-06-03/files-mentioned-by-the-user-fifa/outputs
 ```
 
 Run a minimal live TAB smoke check:
@@ -260,7 +260,7 @@ This option is explicit and off by default. It does not log in on the user's beh
 Run a strict one-match refresh diagnostic when debugging match-detail expansion:
 
 ```bash
-/Users/linzezhang/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node scripts/refresh_tab_readonly.mjs --board matches --output-dir /private/tmp/tab-fifa-strict-smoke --limit 1 --refresh-id strict-smoke --timeout-ms 30000
+~/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node scripts/refresh_tab_readonly.mjs --board matches --output-dir /private/tmp/tab-fifa-strict-smoke --limit 1 --refresh-id strict-smoke --timeout-ms 30000
 ```
 
 Inputs:

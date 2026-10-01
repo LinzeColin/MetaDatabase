@@ -7,7 +7,7 @@ Self-contained from committed evidence: T027 logical_snapshot + this task's raw_
 Deterministic; restores into an isolated in-memory SQLite (T025 schema); production untouched.
 """
 import sys, json, pathlib
-V01 = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
+V01 = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
 LOGICAL = V01 / "evidence" / "ADP-S2-P03-T027" / "logical_snapshot"
 RAW = V01 / "evidence" / "ADP-S2-P03-T029" / "raw_evidence_sample.json"
 sys.path.insert(0, str(V01 / "tools"))

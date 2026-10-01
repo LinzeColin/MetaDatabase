@@ -1,7 +1,7 @@
 {
   "automation_name": "Serenity Daily Analysis",
   "status": "launchd_active_codex_app_cron_paused_sidebar_free",
-  "working_directory": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5",
+  "working_directory": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5",
   "default_command": "/opt/anaconda3/bin/python -m app.cli automation-tick --no-dry-run --send-mail --local --require-production --json",
   "codex_app_automation_ids": [
     "serenity-daily-analysis-beijing-hour-slots",

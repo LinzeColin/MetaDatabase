@@ -1,7 +1,7 @@
 {
   "commands": [
     {
-      "command": "source /Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_bilibili_connector.py tests/focused/test_command_connectors.py tests/focused/test_scan_platform_isolation.py",
+      "command": "source ~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_bilibili_connector.py tests/focused/test_command_connectors.py tests/focused/test_scan_platform_isolation.py",
       "command_sha256": "7b0e7313fe1a9981ca68b69cd57675e69ad93dedc5835681d69ea6e19a786b3a",
       "executed": true,
       "exit_code": 0,
@@ -9,7 +9,7 @@
       "summary": "18 passed. The task-pack target was run after activating the existing project Python 3.12.13 venv."
     },
     {
-      "command": "source /Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_extension_account_mirror_core.py tests/focused/test_extension_account_sync_bridge.py tests/focused/test_account_mirror_sync.py tests/focused/test_health_gated_connector.py tests/focused/test_openapi_probe_connector.py tests/stage/test_stage2_domestic.py",
+      "command": "source ~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 PYTEST_ADDOPTS='-p no:cacheprovider' python3 -m pytest -q tests/focused/test_extension_account_mirror_core.py tests/focused/test_extension_account_sync_bridge.py tests/focused/test_account_mirror_sync.py tests/focused/test_health_gated_connector.py tests/focused/test_openapi_probe_connector.py tests/stage/test_stage2_domestic.py",
       "command_sha256": "0c00d0ce8816829db834c435a131a0d9bf2f77e0973ae6d0d53780b62d43471e",
       "executed": true,
       "exit_code": 0,
@@ -25,7 +25,7 @@
       "summary": "The changed browser content script passed syntax validation; whitespace check passed."
     },
     {
-      "command": "source /Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 python3 scripts/check_brand.py && python3 scripts/secret_scan.py . && uv lock --check --offline",
+      "command": "source ~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/activate && PYTHONDONTWRITEBYTECODE=1 python3 scripts/check_brand.py && python3 scripts/secret_scan.py . && uv lock --check --offline",
       "command_sha256": "8671666a3154e8818a618516daab961289058ad9e9af4085e0906f54d6077723",
       "executed": true,
       "exit_code": 0,
@@ -41,7 +41,7 @@
       "summary": "Config-only Compose structure validation passed; it did not read .env, build an image, or start a service."
     },
     {
-      "command": "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/python scripts/platform_canary.py bilibili --read-only --limit 1",
+      "command": "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0006-s0/social-archive/.venv/bin/python scripts/platform_canary.py bilibili --read-only --limit 1",
       "command_sha256": "c3820363b819aac45f4f79edb7d1cab1176ee9a0abf958318a50a486afa1f068",
       "executed": true,
       "exit_code": 0,

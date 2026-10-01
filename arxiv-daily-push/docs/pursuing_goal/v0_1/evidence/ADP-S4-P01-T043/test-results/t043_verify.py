@@ -6,7 +6,7 @@ Deterministic. Uses the real 500-item coverage (20 sources x 127 months). Also p
 ALERTS on an unexplained hole (it does not trivially explain everything away).
 """
 import sys, json, pathlib
-V01 = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
+V01 = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
 T043 = V01 / "evidence" / "ADP-S4-P01-T043"
 sys.path.insert(0, str(V01 / "tools"))
 import gap_detector as G  # noqa: E402

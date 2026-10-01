@@ -15,8 +15,8 @@
 | State hash | `89b033448ce4ef8de096f847658c0a0beb3b02f5115965b10b30c3f5661ae878` |
 | Scheduler proof ready | `false` |
 | Real scheduler proven | `false` |
-| Expected repo root | `/Users/linzezhang/Documents/Codex/2026-06-19/current-phase-phase-0-goal-scope/work/CodexProject` |
-| Actual daily LaunchAgent repo root | `/Users/linzezhang/Documents/Codex/2026-06-19/current-phase-phase-0-goal-scope/work/CodexProject` |
+| Expected repo root | `~/Documents/Codex/2026-06-19/current-phase-phase-0-goal-scope/work/CodexProject` |
+| Actual daily LaunchAgent repo root | `~/Documents/Codex/2026-06-19/current-phase-phase-0-goal-scope/work/CodexProject` |
 | Actual daily LaunchAgent HEAD | `9266a609eed3f8143f939abad29e7295e8d52f53` |
 | Actual daily LaunchAgent `origin/main` | `0e205f71ed29091752cf0964212329f873f7d4ca` |
 

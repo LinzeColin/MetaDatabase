@@ -87,8 +87,8 @@
 ### 本地执行结果（本 run）
 
 - 执行命令：
-  - `TASKPACK_ROOT=/Users/linzezhang/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8 ALLOW_HTTP_SMOKE_ORIGIN=1 APP_ORIGIN=http://localhost:3000 SITES_PRODUCTION_ORIGIN=http://localhost:3000 PRODUCTION_ORIGIN=http://localhost:3000 SITES_SMOKE_GOOGLE_EMAIL=google-smoke@example.com SITES_SMOKE_EMAIL=smoke-test@example.com SITES_SMOKE_PASSWORD=placeholder-password OPS_ADAPTER_TOKEN=unit-test-token npm run verify:production-smoke`
-  - `TASKPACK_ROOT=/Users/linzezhang/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8 ALLOW_HTTP_SMOKE_ORIGIN=1 APP_ORIGIN=http://localhost:3000 SITES_PRODUCTION_ORIGIN=http://localhost:3000 PRODUCTION_ORIGIN=http://localhost:3000 SITES_SMOKE_GOOGLE_EMAIL=google-smoke@example.com SITES_SMOKE_EMAIL=smoke-test@example.com SITES_SMOKE_PASSWORD=placeholder-password OPS_ADAPTER_TOKEN=unit-test-token npm run verify:ops-projection`
+  - `TASKPACK_ROOT=~/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8 ALLOW_HTTP_SMOKE_ORIGIN=1 APP_ORIGIN=http://localhost:3000 SITES_PRODUCTION_ORIGIN=http://localhost:3000 PRODUCTION_ORIGIN=http://localhost:3000 SITES_SMOKE_GOOGLE_EMAIL=google-smoke@example.com SITES_SMOKE_EMAIL=smoke-test@example.com SITES_SMOKE_PASSWORD=placeholder-password OPS_ADAPTER_TOKEN=unit-test-token npm run verify:production-smoke`
+  - `TASKPACK_ROOT=~/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8 ALLOW_HTTP_SMOKE_ORIGIN=1 APP_ORIGIN=http://localhost:3000 SITES_PRODUCTION_ORIGIN=http://localhost:3000 PRODUCTION_ORIGIN=http://localhost:3000 SITES_SMOKE_GOOGLE_EMAIL=google-smoke@example.com SITES_SMOKE_EMAIL=smoke-test@example.com SITES_SMOKE_PASSWORD=placeholder-password OPS_ADAPTER_TOKEN=unit-test-token npm run verify:ops-projection`
 - `13_evidence/production.json`：状态 `BLOCKED_LOCAL_PRODUCTION_SMOKE_PRECHECK`，`profile` 鉴权边界已修复为 401，核心阻断仅剩 `生产真实 OAuth/邮件注册/找回/会话链路未执行`。
 - `13_evidence/production-smoke-run.json`：状态 `BLOCKED_LOCAL_PRODUCTION_SMOKE_PRECHECK`，`risks=1`。
 - `13_evidence/ops_projection-run.json`：`status=BLOCKED_LOCAL_OPS_PROJECTION`，`risks=1`。
@@ -120,8 +120,8 @@
 ### 本地执行结果（本 run）
 
 - 执行命令：
-  - `TASKPACK_ROOT=/Users/linzezhang/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8 APP_ORIGIN=https://example.com SITES_PRODUCTION_ORIGIN=https://example.com SITES_SMOKE_EMAIL=smoke-test@example.com SITES_SMOKE_PASSWORD=placeholder-password SITES_SMOKE_GOOGLE_EMAIL=google-smoke@example.com npm run verify:production-smoke`
-  - `TASKPACK_ROOT=/Users/linzezhang/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8 APP_ORIGIN=https://example.com SITES_PRODUCTION_ORIGIN=https://example.com PRODUCTION_ORIGIN=https://example.com npm run verify:ops-projection`
+  - `TASKPACK_ROOT=~/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8 APP_ORIGIN=https://example.com SITES_PRODUCTION_ORIGIN=https://example.com SITES_SMOKE_EMAIL=smoke-test@example.com SITES_SMOKE_PASSWORD=placeholder-password SITES_SMOKE_GOOGLE_EMAIL=google-smoke@example.com npm run verify:production-smoke`
+  - `TASKPACK_ROOT=~/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8 APP_ORIGIN=https://example.com SITES_PRODUCTION_ORIGIN=https://example.com PRODUCTION_ORIGIN=https://example.com npm run verify:ops-projection`
 - `13_evidence/production-smoke-run.json`：状态 `BLOCKED_LOCAL_PRODUCTION_SMOKE_PRECHECK`，阻断 `2` 项
   1. `/api/workbench/profile` 未返回 401/403 鉴权边界不满足预期（实际 404）
   2. `/api/public-config` 返回 404（未命中客户端配置接口）
@@ -149,8 +149,8 @@
 ### 本地执行结果（本 run）
 
 - 执行命令：
-  - `TASKPACK_ROOT=/Users/linzezhang/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8 APP_ORIGIN=https://example.com SITES_PRODUCTION_ORIGIN=https://example.com SITES_SMOKE_EMAIL=smoke-test@example.com SITES_SMOKE_PASSWORD=placeholder-password SITES_SMOKE_GOOGLE_EMAIL=google-smoke@example.com npm run verify:production-smoke`
-  - `TASKPACK_ROOT=/Users/linzezhang/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8 APP_ORIGIN=https://example.com SITES_PRODUCTION_ORIGIN=https://example.com PRODUCTION_ORIGIN=https://example.com npm run verify:ops-projection`
+  - `TASKPACK_ROOT=~/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8 APP_ORIGIN=https://example.com SITES_PRODUCTION_ORIGIN=https://example.com SITES_SMOKE_EMAIL=smoke-test@example.com SITES_SMOKE_PASSWORD=placeholder-password SITES_SMOKE_GOOGLE_EMAIL=google-smoke@example.com npm run verify:production-smoke`
+  - `TASKPACK_ROOT=~/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8 APP_ORIGIN=https://example.com SITES_PRODUCTION_ORIGIN=https://example.com PRODUCTION_ORIGIN=https://example.com npm run verify:ops-projection`
 - `13_evidence/production-smoke-run.json`：`BLOCKED_LOCAL_PRODUCTION_SMOKE_PRECHECK`（`2` 项）
   1. `/api/workbench/profile` 未返回 401/403（实际 `404`）
   2. `/api/auth/public-config` 未返回 200（实际 `404`）
@@ -203,8 +203,8 @@
 ### 本地执行结果（本 run）
 
 - 执行命令：
-  - `TASKPACK_ROOT=/Users/linzezhang/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8 APP_ORIGIN=https://example.com SITES_PRODUCTION_ORIGIN=https://example.com SITES_SMOKE_EMAIL=smoke-test@example.com SITES_SMOKE_PASSWORD=placeholder-password SITES_SMOKE_GOOGLE_EMAIL=google-smoke@example.com OPS_ADAPTER_TOKEN=unit-test-token npm run verify:production-smoke`
-  - `TASKPACK_ROOT=/Users/linzezhang/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8 APP_ORIGIN=https://example.com SITES_PRODUCTION_ORIGIN=https://example.com PRODUCTION_ORIGIN=https://example.com OPS_ADAPTER_TOKEN=unit-test-token npm run verify:ops-projection`
+  - `TASKPACK_ROOT=~/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8 APP_ORIGIN=https://example.com SITES_PRODUCTION_ORIGIN=https://example.com SITES_SMOKE_EMAIL=smoke-test@example.com SITES_SMOKE_PASSWORD=placeholder-password SITES_SMOKE_GOOGLE_EMAIL=google-smoke@example.com OPS_ADAPTER_TOKEN=unit-test-token npm run verify:production-smoke`
+  - `TASKPACK_ROOT=~/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8 APP_ORIGIN=https://example.com SITES_PRODUCTION_ORIGIN=https://example.com PRODUCTION_ORIGIN=https://example.com OPS_ADAPTER_TOKEN=unit-test-token npm run verify:ops-projection`
 - `13_evidence/production-smoke-run.json`：`BLOCKED_LOCAL_PRODUCTION_SMOKE_PRECHECK`（阻断 `2` 项）
   1. `/auth/*` 与 `/api/auth/public-config` 均访问 404（当前指向 `example.com` 非本项目发布域，属于外部环境阻断）
   2. `/api/workbench/profile` 非 401/403 鉴权边界（在当前外部域下返回 404）
@@ -228,8 +228,8 @@
 - 执行命令：
   - `cd Personal-WorkBench`
   - `npm run dev -- --port 3000`
-  - `TASKPACK_ROOT=/Users/linzezhang/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8 ALLOW_HTTP_SMOKE_ORIGIN=1 APP_ORIGIN=http://localhost:3000 SITES_PRODUCTION_ORIGIN=http://localhost:3000 PRODUCTION_ORIGIN=http://localhost:3000 SITES_SMOKE_EMAIL=smoke-test@example.com SITES_SMOKE_PASSWORD=placeholder-password SITES_SMOKE_GOOGLE_EMAIL=google-smoke@example.com OPS_ADAPTER_TOKEN=unit-test-token npm run verify:production-smoke`
-  - `TASKPACK_ROOT=/Users/linzezhang/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8 ALLOW_HTTP_SMOKE_ORIGIN=1 APP_ORIGIN=http://localhost:3000 SITES_PRODUCTION_ORIGIN=http://localhost:3000 PRODUCTION_ORIGIN=http://localhost:3000 SITES_SMOKE_EMAIL=smoke-test@example.com SITES_SMOKE_PASSWORD=placeholder-password SITES_SMOKE_GOOGLE_EMAIL=google-smoke@example.com OPS_ADAPTER_TOKEN=unit-test-token npm run verify:ops-projection`
+  - `TASKPACK_ROOT=~/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8 ALLOW_HTTP_SMOKE_ORIGIN=1 APP_ORIGIN=http://localhost:3000 SITES_PRODUCTION_ORIGIN=http://localhost:3000 PRODUCTION_ORIGIN=http://localhost:3000 SITES_SMOKE_EMAIL=smoke-test@example.com SITES_SMOKE_PASSWORD=placeholder-password SITES_SMOKE_GOOGLE_EMAIL=google-smoke@example.com OPS_ADAPTER_TOKEN=unit-test-token npm run verify:production-smoke`
+  - `TASKPACK_ROOT=~/Downloads/TaskPack/Personal-WorkBench/胡楚靓工作台_ChatGPT-Sites多用户SaaS最终开发任务包_v0.0.0.8 ALLOW_HTTP_SMOKE_ORIGIN=1 APP_ORIGIN=http://localhost:3000 SITES_PRODUCTION_ORIGIN=http://localhost:3000 PRODUCTION_ORIGIN=http://localhost:3000 SITES_SMOKE_EMAIL=smoke-test@example.com SITES_SMOKE_PASSWORD=placeholder-password SITES_SMOKE_GOOGLE_EMAIL=google-smoke@example.com OPS_ADAPTER_TOKEN=unit-test-token npm run verify:ops-projection`
 - `13_evidence/production-smoke-run.json` 更新为 `BLOCKED_LOCAL_PRODUCTION_SMOKE_PRECHECK`，风险条数 `1`：
   - `生产真实 OAuth/邮件注册/找回/会话链路仍未执行，请由外部 Saved Candidate 与人工/自动化流程完成后回填。`
 - `13_evidence/ops_projection-run.json` 更新为 `BLOCKED_LOCAL_OPS_PROJECTION`，风险条数 `1`：

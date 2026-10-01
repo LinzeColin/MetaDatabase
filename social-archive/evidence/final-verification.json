@@ -21,7 +21,7 @@
   "results": [
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "-B",
         "-m",
         "compileall",
@@ -35,7 +35,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/check_brand.py"
       ],
       "exit_code": 0,
@@ -44,7 +44,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/secret_scan.py",
         "."
       ],
@@ -54,7 +54,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/validate_compose.py",
         "compose.yaml"
       ],
@@ -64,7 +64,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/validate_compose.py",
         "compose.readers.yaml"
       ],
@@ -74,7 +74,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/validate_systemd.py"
       ],
       "exit_code": 0,
@@ -83,16 +83,16 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/preflight_extension.py"
       ],
       "exit_code": 0,
-      "stdout": "可以装载。manifest v3、version 0.0.0.70、17 个脚本全部通过检查。\n路径：/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/apps/browser-extension\n",
+      "stdout": "可以装载。manifest v3、version 0.0.0.70、17 个脚本全部通过检查。\n路径：~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/apps/browser-extension\n",
       "stderr": ""
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/scan_plaintext_credentials.py",
         "--all"
       ],
@@ -102,7 +102,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/find_unwired_code.py"
       ],
       "exit_code": 0,
@@ -111,7 +111,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/check_docs_point_at_things_that_exist.py"
       ],
       "exit_code": 0,
@@ -120,7 +120,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/check_the_stated_version_is_the_real_one.py"
       ],
       "exit_code": 0,
@@ -129,7 +129,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/check_one_version_means_one_package.py"
       ],
       "exit_code": 0,
@@ -138,7 +138,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/check_every_platform_table_is_complete.py"
       ],
       "exit_code": 0,
@@ -147,7 +147,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/check_every_destination_table_is_complete.py"
       ],
       "exit_code": 0,
@@ -156,7 +156,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/check_every_failure_code_is_explainable.py"
       ],
       "exit_code": 0,
@@ -165,7 +165,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/check_evidence_declares_its_limits.py"
       ],
       "exit_code": 0,
@@ -174,7 +174,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/find_endpoints_no_client_calls.py"
       ],
       "exit_code": 0,
@@ -183,7 +183,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/find_client_calls_to_routes_that_do_not_exist.py"
       ],
       "exit_code": 0,
@@ -192,7 +192,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/check_docs_match_the_ui.py"
       ],
       "exit_code": 0,
@@ -201,7 +201,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/find_write_only_storage_keys.py"
       ],
       "exit_code": 0,
@@ -210,7 +210,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/find_write_only_storage_fields.py"
       ],
       "exit_code": 0,
@@ -219,7 +219,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/find_messages_with_only_one_end.py"
       ],
       "exit_code": 0,
@@ -228,7 +228,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/find_settings_with_no_way_to_set_them.py"
       ],
       "exit_code": 0,
@@ -237,7 +237,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/find_extension_settings_with_no_way_to_set_them.py"
       ],
       "exit_code": 0,
@@ -246,7 +246,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/find_calls_to_functions_that_do_not_exist.py"
       ],
       "exit_code": 0,
@@ -255,7 +255,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/find_affordances_the_backend_says_cannot_work.py"
       ],
       "exit_code": 0,
@@ -264,7 +264,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/check_sync_promises_match_reality.py"
       ],
       "exit_code": 0,
@@ -273,7 +273,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/check_shape_read_platforms_have_drills.py"
       ],
       "exit_code": 0,
@@ -282,7 +282,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/check_no_mechanism_is_unreachable.py"
       ],
       "exit_code": 0,
@@ -291,7 +291,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/check_every_drill_has_a_caller.py"
       ],
       "exit_code": 0,
@@ -300,7 +300,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/check_git_calls_cannot_be_hijacked_by_hooks.py"
       ],
       "exit_code": 0,
@@ -309,7 +309,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/check_the_guide_matches_the_product.py"
       ],
       "exit_code": 0,
@@ -318,7 +318,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/check_every_guide_step_has_a_drill.py"
       ],
       "exit_code": 0,
@@ -332,12 +332,12 @@
         "--check"
       ],
       "exit_code": 0,
-      "stdout": "PASS：发布门 hook 已装（/Users/linzezhang/Documents/Codex/GithubProject/MetaDatabase/.git/hooks/pre-commit）\n      并且链着原来那个守卫（/Users/linzezhang/Documents/Codex/GithubProject/MetaDatabase/.git/hooks/pre-commit.chained）\n",
+      "stdout": "PASS：发布门 hook 已装（~/Documents/Codex/GithubProject/MetaDatabase/.git/hooks/pre-commit）\n      并且链着原来那个守卫（~/Documents/Codex/GithubProject/MetaDatabase/.git/hooks/pre-commit.chained）\n",
       "stderr": ""
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/build_guide_page.py",
         "--check"
       ],
@@ -347,7 +347,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/find_hardcoded_platform_claims.py"
       ],
       "exit_code": 0,
@@ -356,7 +356,7 @@
     },
     {
       "argv": [
-        "/Users/linzezhang/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
+        "~/Documents/Codex/GithubProject/_scratch/metadatabase-social-archive-v0007/social-archive/.venv/bin/python",
         "scripts/validate_deployment_contract.py"
       ],
       "exit_code": 0,

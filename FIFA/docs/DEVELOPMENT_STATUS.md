@@ -43,7 +43,7 @@ Develop a TAB FIFA market research system that can eventually produce daily prof
 ## Current Runtime State
 
 - App URL: `http://127.0.0.1:8767/`
-- Current local server: launched by user LaunchAgent `com.linzezhang.tab-fifa-research`, serving `http://127.0.0.1:8767/` from `github_sync/FIFA/tab-research-pipeline`; local plist `/Users/linzezhang/Library/LaunchAgents/com.linzezhang.tab-fifa-research.plist` now has `KeepAlive=true`.
+- Current local server: launched by user LaunchAgent `com.linzezhang.tab-fifa-research`, serving `http://127.0.0.1:8767/` from `github_sync/FIFA/tab-research-pipeline`; local plist `~/Library/LaunchAgents/com.linzezhang.tab-fifa-research.plist` now has `KeepAlive=true`.
 - Latest GitHub main SHA: run `git rev-parse HEAD` in the repository root.
 - App icon source: `tab-research-pipeline/assets/app_icon/TABFIFAResearch.icns`
 - App icon cache policy: keep PNG/ICNS/generator/design notes only; do not keep `*.iconset/` or `__pycache__/`.
@@ -76,7 +76,7 @@ Develop a TAB FIFA market research system that can eventually produce daily prof
 - Australia Markets: unavailable / route mismatch.
 - My Bets private position: profile login required.
 - Current executable new stake: `AUD 0`.
-- Latest external review ZIP naming pattern: `/Users/linzezhang/Downloads/FIFA Report/FIFA_agent_review_package_14062026_<git-short-sha>.zip`.
+- Latest external review ZIP naming pattern: `~/Downloads/FIFA Report/FIFA_agent_review_package_14062026_<git-short-sha>.zip`.
 
 ## 2026-06-13 Parallel Review Fixes
 

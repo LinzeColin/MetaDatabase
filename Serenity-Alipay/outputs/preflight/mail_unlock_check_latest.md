@@ -5,7 +5,7 @@
 - Workflow ready: True
 - Production send ready now: False
 - Mail send enabled now: False
-- Recipient: `linzezhang35@gmail.com`
+- Recipient: `LinzeColin@users.noreply.github.com`
 - Production plist generated: True
 - Production plist path: `outputs/implementation/com.serenity.daily-analysis.production-mail.plist`
 

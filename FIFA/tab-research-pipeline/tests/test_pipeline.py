@@ -5339,7 +5339,7 @@ JPN Reach Final
             unsafe.write_text(
                 json.dumps(
                     {
-                        "path": "/Users/linzezhang/Downloads/FIFA Report/04062026.pdf",
+                        "path": "/Users/owner/Downloads/FIFA Report/04062026.pdf",
                         "private_detail_path": "/work/private/tab_fifa/secret.json",
                         "positions_ready": True,
                         "match_stakes": [],
@@ -9074,7 +9074,7 @@ JPN Reach Final
                 daily.OUT = root
 
                 def fail_discovery():
-                    raise RuntimeError("/Users/linzezhang/private stale discovery failed")
+                    raise RuntimeError("/Users/owner/private stale discovery failed")
 
                 daily.run_live_board_discovery = fail_discovery
                 with self.assertRaises(RuntimeError) as ctx:
@@ -9332,7 +9332,7 @@ JPN Reach Final
         original_refresh_board = daily.refresh_board_to_staging
 
         def interrupted_refresh_board_to_staging(*_args, **_kwargs):
-            raise KeyboardInterrupt("/Users/linzezhang/private/chrome-profile")
+            raise KeyboardInterrupt("/Users/owner/private/chrome-profile")
 
         try:
             with tempfile.TemporaryDirectory() as tmp:
@@ -9734,7 +9734,7 @@ JPN Reach Final
                     {
                         "board_id": "matches",
                         "board": "2026 World Cup Matches",
-                        "output": "/Users/linzezhang/Documents/Codex/secret/tab_fifa_matches_main_markets_raw_v0_9.json",
+                        "output": "/Users/owner/Documents/Codex/secret/tab_fifa_matches_main_markets_raw_v0_9.json",
                     }
                 ],
                 "results": [
@@ -9755,7 +9755,7 @@ JPN Reach Final
         self.assertNotIn("/private/tmp", serialized)
         self.assertEqual(summary["boards"][0]["output"], "tab_fifa_matches_main_markets_raw_v0_9.json")
         self.assertEqual(summary["results"][0]["match_count"], 26)
-        tail = public_tail("Access Denied at /Users/linzezhang/private/path/output.json")
+        tail = public_tail("Access Denied at /Users/owner/private/path/output.json")
         self.assertNotIn("/Users/", tail)
         self.assertIn("Access Denied", tail)
 
@@ -9768,7 +9768,7 @@ JPN Reach Final
             raise subprocess.TimeoutExpired(
                 cmd=["node", "refresh_tab_readonly.mjs"],
                 timeout=12,
-                output=b"stdout path /Users/linzezhang/private/raw.json",
+                output=b"stdout path /Users/owner/private/raw.json",
                 stderr=b"Access Denied at /private/tmp/tab-fifa-refresh-secret/output.json",
             )
 
@@ -9892,7 +9892,7 @@ JPN Reach Final
                         "headed_fallback": False,
                         "exit_code": 1,
                         "access_denied": True,
-                        "stderr_tail": "Access Denied at /Users/linzezhang/private/raw.json",
+                        "stderr_tail": "Access Denied at /Users/owner/private/raw.json",
                     },
                 )
                 payload = json.loads(run_path.read_text(encoding="utf-8"))
@@ -11525,7 +11525,7 @@ JPN Reach Final
         self.assertIn("requires the Chrome profile under a private path", text)
         self.assertNotRegex(text, r"\b(click|tap|press)\b.*(odds|price|bet|selection)", "capture must not interact with betting UI")
 
-        bundled = Path("/Users/linzezhang/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node")
+        bundled = Path("/Users/owner/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node")
         node = Path(os.environ.get("TAB_FIFA_NODE_BIN") or str(bundled if bundled.exists() else (shutil.which("node") or bundled)))
         if not node.exists():
             self.skipTest(f"node runtime not available: {node}")
@@ -11699,7 +11699,7 @@ JPN Reach Final
         self.assertEqual(generate_candidates(raw), [])
 
     def test_raw_refresh_dry_run_contract_does_not_require_playwright(self):
-        bundled = Path("/Users/linzezhang/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node")
+        bundled = Path("/Users/owner/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node")
         node = Path(os.environ.get("TAB_FIFA_NODE_BIN") or str(bundled if bundled.exists() else (shutil.which("node") or bundled)))
         if not node.exists():
             self.skipTest(f"node runtime not available: {node}")
@@ -11731,7 +11731,7 @@ JPN Reach Final
         self.assertIn("tab_fifa_matches_main_markets_raw_v0_9.json", payload["boards"][0]["output"])
 
     def test_live_board_discovery_dry_run_contract_does_not_require_playwright(self):
-        bundled = Path("/Users/linzezhang/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node")
+        bundled = Path("/Users/owner/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node")
         node = Path(os.environ.get("TAB_FIFA_NODE_BIN") or str(bundled if bundled.exists() else (shutil.which("node") or bundled)))
         if not node.exists():
             self.skipTest(f"node runtime not available: {node}")
@@ -11759,7 +11759,7 @@ JPN Reach Final
         self.assertIn("https://www.tab.com.au/sports/betting/Soccer", payload["url"])
 
     def test_live_board_discovery_preserves_visible_match_links(self):
-        bundled = Path("/Users/linzezhang/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node")
+        bundled = Path("/Users/owner/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node")
         node = Path(os.environ.get("TAB_FIFA_NODE_BIN") or str(bundled if bundled.exists() else (shutil.which("node") or bundled)))
         if not node.exists():
             self.skipTest(f"node runtime not available: {node}")
@@ -11786,7 +11786,7 @@ console.log(JSON.stringify({ matched: matches.matched_link_count, retained: matc
         self.assertEqual(payload["retained"], 12)
 
     def test_refresh_script_live_match_targets_env_contract(self):
-        bundled = Path("/Users/linzezhang/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node")
+        bundled = Path("/Users/owner/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node")
         node = Path(os.environ.get("TAB_FIFA_NODE_BIN") or str(bundled if bundled.exists() else (shutil.which("node") or bundled)))
         if not node.exists():
             self.skipTest(f"node runtime not available: {node}")
@@ -11834,7 +11834,7 @@ console.log(JSON.stringify({
         self.assertFalse(payload["boardHref"])
 
     def test_australia_refresh_route_mismatch_contract_is_public_safe(self):
-        bundled = Path("/Users/linzezhang/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node")
+        bundled = Path("/Users/owner/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node")
         node = Path(os.environ.get("TAB_FIFA_NODE_BIN") or str(bundled if bundled.exists() else (shutil.which("node") or bundled)))
         if not node.exists():
             self.skipTest(f"node runtime not available: {node}")
@@ -11917,7 +11917,7 @@ try {
             self.assertEqual(bootstrap["status"], "capture_not_run")
 
     def test_raw_refresh_refuses_canonical_output_dir_before_browser_launch(self):
-        bundled = Path("/Users/linzezhang/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node")
+        bundled = Path("/Users/owner/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node")
         node = Path(os.environ.get("TAB_FIFA_NODE_BIN") or str(bundled if bundled.exists() else (shutil.which("node") or bundled)))
         if not node.exists():
             self.skipTest(f"node runtime not available: {node}")

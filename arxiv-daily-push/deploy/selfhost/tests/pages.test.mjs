@@ -130,7 +130,10 @@ test('首屏视频：200 / Range 206 / 越界 416 / 路径穿越 404', async () 
   assert.equal((await get('/media/nothere.mp4')).r.status, 404);
 });
 
-test('没有 R2 绑定：/api/raw-selftest 明确 503，而不是假装成功（自托管不带对象存储）', async () => {
+test('没有 R2 绑定：/api/raw-selftest 明确回 410「已停用」（自托管不带对象存储，这不是故障）', async () => {
   const r = await fetch(`${base}/api/raw-selftest`, { method: 'POST' });
-  assert.equal(r.status, 503);
+  assert.equal(r.status, 410);
+  const j = await r.json();
+  assert.equal(j.disabled, true);
+  assert.match(j.reason, /已停用/);
 });

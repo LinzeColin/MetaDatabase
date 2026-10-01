@@ -26409,7 +26409,7 @@
       "message": "local manual history present",
       "sample_like": false,
       "production_eligible": false,
-      "path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/manual/benchmark_price_history.csv"
+      "path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/manual/benchmark_price_history.csv"
     },
     {
       "benchmark": "S&P 500",
@@ -26423,7 +26423,7 @@
       "message": "local manual history present",
       "sample_like": false,
       "production_eligible": false,
-      "path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/manual/benchmark_price_history.csv"
+      "path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/manual/benchmark_price_history.csv"
     }
   ],
   "errors": [
@@ -26445,5 +26445,5 @@
     "detail": "moomoo_OpenD was not started because auto_start is disabled"
   },
   "cleanup": null,
-  "benchmark_history_path": "/Users/linzezhang/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/manual/benchmark_price_history.csv"
+  "benchmark_history_path": "~/Documents/Codex/2026-06-12/codex-dev-automation-using-model-5/data/manual/benchmark_price_history.csv"
 }

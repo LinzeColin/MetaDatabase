@@ -2,7 +2,7 @@
 
 交付包目标：让其他 agent 拿到 ZIP 后可以继续开发、审查、运行和验证 TAB FIFA 盘口研究系统。
 
-最新交付包命名：`/Users/linzezhang/Downloads/FIFA Report/FIFA_agent_review_package_14062026_<git-short-sha>.zip`
+最新交付包命名：`~/Downloads/FIFA Report/FIFA_agent_review_package_14062026_<git-short-sha>.zip`
 对应 Git commit：在仓库根目录运行 `git rev-parse HEAD`。
 
 ## 包含内容

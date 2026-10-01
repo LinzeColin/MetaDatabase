@@ -40,7 +40,7 @@ explicitly allowed.
 `pass for code gate`
 
 This phase does not claim real production SMTP delivery. Production acceptance
-still requires archived real SMTP evidence to `linzezhang35@gmail.com` generated
+still requires archived real SMTP evidence to `LinzeColin@users.noreply.github.com` generated
 on the provisioned runner during the 30-day trial.
 
 ## Validation

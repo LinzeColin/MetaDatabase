@@ -6,7 +6,7 @@ Deterministic. The 200-sample is 85 REAL board3 media items (news noise) + 115 s
 policy docs with known 成文/发布/施行/失效 dates. The gate must exclude the news noise before ranking.
 """
 import sys, json, pathlib
-V01 = pathlib.Path("/Users/linzezhang/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
+V01 = pathlib.Path("~/Documents/Codex/main_worktree/CodexProject/adp/arxiv-daily-push/docs/pursuing_goal/v0_1")
 T037 = V01 / "evidence" / "ADP-S3-P03-T037"
 sys.path.insert(0, str(V01 / "tools"))
 import board3_gate as G  # noqa: E402
