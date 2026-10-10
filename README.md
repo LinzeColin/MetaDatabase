@@ -33,6 +33,7 @@
 | Kimi-Code-Desktop | ✅ v0.38.0 | 与 MoonshotAI/Kimi Code `0.38.0` 对齐的跨平台桌面壳；[正式 Release](https://github.com/LinzeColin/MetaDatabase/releases/tag/kimi-code-desktop-v0.38.0) 提供 macOS arm64/x64 与 Windows x64/arm64 资产，子目录采用 MIT License |
 | Harness-UI | ✅ v1.0.0 | SMB 驱动的跨平台皮肤控制器与 Kimi/DSH 适配器；[正式 Release](https://github.com/LinzeColin/MetaDatabase/releases/tag/harness-ui-v1.0.0) 不分发图片或 SMB 凭据，子目录采用 MIT License |
 | DSH Desktop | ✅ v2.0.2 | 与 anywhere-labs DSH Desktop `2.0.2` 对齐的官方安装器镜像与 Harness UI 桥接包；[正式 Release](https://github.com/LinzeColin/MetaDatabase/releases/tag/dsh-desktop-v2.0.2) 保持官方版本线与外置个性化数据 |
+| REA | ✅ 源码接入；6.3.0 | 应用逆向分析 CLI/MCP；`REA/` 为 [LinzeColin/rea](https://github.com/LinzeColin/rea) 子模块，fork 自 morluto/rea，采用 MIT License；[使用与价值说明](dev-notes/REA_使用与价值.md) |
 
 ## 股票 Skill Registry 版本模型
 
