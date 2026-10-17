@@ -8,9 +8,9 @@ import {
   normalizeReviewPage,
   unwrapGatewayData,
 } from "../../src/core/normalize.js";
+import { SOURCE_SKILL_VERSION as SKILL_VERSION } from "../../src/core/constants.js";
 
 const GATEWAY = "https://i.weread.qq.com/api/agent/gateway";
-const SKILL_VERSION = "1.0.4";
 // v4 persists book/author/chapter/type metadata so the account UI can filter
 // true source fields without decrypting every note body on each keystroke.
 export const WEREAD_COLLECTION_FORMAT_VERSION = "4";
@@ -64,7 +64,7 @@ export async function syncWeReadDataset(key, {
     try { return await gatewayCall(key, api, params, options); }
     catch (error) {
       failures.push({ api, code: error.code || "UPSTREAM", message: error.message });
-      if (required) throw error;
+      if (required || error.code === "UPGRADE_REQUIRED") throw error;
       return null;
     }
   };
@@ -373,8 +373,14 @@ export async function gatewayCall(key, apiName, params = {}, { fetchImpl = fetch
     if (bytes.length > MAX_RESPONSE_BYTES) throw Object.assign(new Error("微信读书响应超过安全上限。"), { code: "TOO_LARGE" });
     let payload;
     try { payload = JSON.parse(bytes.toString("utf8") || "{}"); } catch { throw Object.assign(new Error("微信读书返回了无效 JSON。"), { code: "SCHEMA" }); }
-    if (payload?.upgrade_info) throw Object.assign(new Error("微信读书接口协议需要升级，已安全停止。"), { code: "UPGRADE_REQUIRED", upgradeInfo: payload.upgrade_info });
-    if (!response.ok || Number(payload?.errcode || 0) !== 0) throw Object.assign(new Error("微信读书授权或接口调用失败。"), { code: response.status === 401 || response.status === 403 ? "AUTH" : "UPSTREAM", status: response.status });
+    const upgradeInfo = payload?.upgrade_info || payload?.data?.upgrade_info;
+    if (upgradeInfo) throw Object.assign(new Error("微信读书接口协议需要升级，已安全停止。"), { code: "UPGRADE_REQUIRED" });
+    const errcode = Number(payload?.errcode || 0);
+    if (!response.ok || errcode !== 0) {
+      const code = [401, 403].includes(response.status) || [-2012, -2001, 401, 403].includes(errcode) ? "AUTH"
+        : response.status === 429 || [-429, 429].includes(errcode) ? "RATE_LIMIT" : "UPSTREAM";
+      throw Object.assign(new Error("微信读书授权或接口调用失败。"), { code, status: response.status });
+    }
     return payload;
   } catch (error) {
     if (controller.signal.aborted) throw Object.assign(new Error("微信读书接口超时。"), { code: "TIMEOUT" });
@@ -566,7 +572,11 @@ function recommendationBookId(book) {
 }
 
 function officialRecommendationLink(book) {
-  return safeOfficialWeReadLink(book?.deepLink || book?.deeplink || book?.url || book?.bookInfo?.deepLink);
+  for (const value of [book?.readerLink, book?.bookInfo?.readerLink, book?.deepLink, book?.deeplink, book?.url, book?.bookInfo?.deepLink]) {
+    const link = safeOfficialWeReadLink(value);
+    if (link) return link;
+  }
+  return null;
 }
 
 function safeOfficialWeReadLink(value) {

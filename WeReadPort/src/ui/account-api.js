@@ -6,6 +6,19 @@ function newIdempotencyKey() {
   return globalThis.crypto?.randomUUID?.() || `client_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
 }
 
+export function wereadSyncFailureMessage(code) {
+  switch (code) {
+    case "AUTH":
+    case "INVALID_KEY": return "微信读书密钥已失效或无效，请在账户设置中更新密钥后重试。";
+    case "UPGRADE_REQUIRED": return "微信读书接口已更新，网站需适配新版本后才能同步；请联系维护者。";
+    case "TIMEOUT":
+    case "UPSTREAM_TIMEOUT": return "微信读书响应超时，请稍后重新同步。";
+    case "RATE_LIMIT": return "微信读书请求过于频繁，请稍后重新同步。";
+    case "NETWORK": return "暂时无法连接微信读书，请稍后重新同步。";
+    default: return "微信读书同步未完成，请稍后重试。";
+  }
+}
+
 export class AccountApi {
   constructor(base = "/api/platform/v1") { this.base = base; this.csrf = ""; }
   readiness() { return fetch("/readyz", { credentials: "same-origin", headers: { Accept: "application/json" } }).then(async response => ({ ok: response.ok, status: response.status, payload: await response.json().catch(() => ({})) })); }

@@ -67,6 +67,25 @@ test("微信读书按能力发现读取超过 Top 5 的书架、全量笔记、�
   assert.ok(calls.filter(api => api === "/book/info").length > 5, "不得回退为 Top 5");
 });
 
+test("可选接口的升级通知也必须停止同步，不得被降级为部分成功", async () => {
+  const base = gatewayMock([]);
+  const fetchImpl = async (url, init) => JSON.parse(init.body).api_name === "/book/info"
+    ? Response.json({ errcode: 0, upgrade_info: { message: "Review the new skill." } })
+    : base(url, init);
+  await assert.rejects(() => syncWeReadDataset(KEY, { fetchImpl, maxBooks: 100 }), error => error.code === "UPGRADE_REQUIRED");
+});
+
+test("1.0.5 推荐优先使用官方阅读器链接，非法链接仍回退到安全详情链接", () => {
+  const readerLink = "https://weread.qq.com/web/reader/official-reader";
+  const deepLink = "https://weread.qq.com/web/bookDetail/official-detail";
+  const rows = recommendationRows({ recommendations: [
+    { title: "官方阅读入口", readerLink, deepLink },
+    { title: "拒绝站外入口", readerLink: "https://untrusted.example/", deepLink },
+  ] });
+  assert.equal(rows[0].deepLink, readerLink);
+  assert.equal(rows[1].deepLink, deepLink);
+});
+
 test("官方阅读统计仅保留可解释的汇总和偏好，不把笔记时间伪装成阅读记录", () => {
   const profile = normalizeOfficialReadingProfile({
     weekly: { totalReadTime: 900, readDays: 2 },

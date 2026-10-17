@@ -19,6 +19,13 @@
 - 账户服务（OVH）：`sudo python3 service/scripts/platform_preflight.py --env-file /etc/weread-port/platform.env --require-paths --strict`，再 `sudo python3 service/install_platform.py --apply`；安装器用版本化 release 目录加 `/opt/weread-port/current` 软链接，激活失败自动指回上一版（`service/install_platform.py`）。
 - 运维包回滚：`ops/bin/rollback <已安装版本>`。
 
+## 微信读书同步维护
+
+- 当前已审阅上游协议为 **1.0.5**，对应腾讯 [2026-10-10 的官方更新](https://github.com/Tencent/WeChatReading/commit/d98e66ee60a8c7bcd35da549d0643c4470439643)。浏览器代理和 OVH 同步共用 `src/core/constants.js` 的版本，运维监测与生产烟雾检查使用同一审阅版本；产品版本仍为 `v0.0.0.1.9`。
+- 旧部署仍上报 1.0.4；腾讯返回 `upgrade_info` 时同步会停止。升级需要先审阅官方差异，再同步部署前后端；不得忽略升级提示或把失败当成同步成功。
+- 后台同步失败现在按原因说明：密钥失效、协议升级、超时或限流。错误说明不显示上游原文、密钥或笔记；推荐优先使用官方返回的 `readerLink`。
+- 协议回归：`node --test tests/gateway.test.mjs tests/service/weread-wide.test.mjs tests/account-ui-contract.test.mjs`。真实上线仍须执行生产 smoke、核心账户 E2E，以及本人有效密钥的同步与笔记读回，不能用首页 200 代替。
+
 ## 需登录 / 需凭据而停掉的功能
 
 - Google、GitHub、Notion 登录与导入：需各平台 OAuth 凭据，配在服务器环境文件；当前是否已配置：未核实。

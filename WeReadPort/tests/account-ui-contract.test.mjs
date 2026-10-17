@@ -1,6 +1,17 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { wereadSyncFailureMessage } from "../src/ui/account-api.js";
+
+test("同步失败说明区分协议升级、无效密钥和临时故障，未知错误不显示上游原文", () => {
+  assert.match(wereadSyncFailureMessage("UPGRADE_REQUIRED"), /接口已更新/u);
+  assert.match(wereadSyncFailureMessage("AUTH"), /更新密钥/u);
+  assert.match(wereadSyncFailureMessage("TIMEOUT"), /超时/u);
+  assert.match(wereadSyncFailureMessage("RATE_LIMIT"), /过于频繁/u);
+  const unsafe = "wrk-" + "not-a-real-secret".repeat(3);
+  assert.equal(wereadSyncFailureMessage(unsafe).includes(unsafe), false);
+  assert.match(wereadSyncFailureMessage(unsafe), /同步未完成/u);
+});
 
 const files = await Promise.all([
   readFile(new URL("../src/ui/account-platform.js", import.meta.url), "utf8"),
