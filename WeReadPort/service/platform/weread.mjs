@@ -11,9 +11,9 @@ import {
 import { SOURCE_SKILL_VERSION as SKILL_VERSION } from "../../src/core/constants.js";
 
 const GATEWAY = "https://i.weread.qq.com/api/agent/gateway";
-// v4 persists book/author/chapter/type metadata so the account UI can filter
-// true source fields without decrypting every note body on each keystroke.
-export const WEREAD_COLLECTION_FORMAT_VERSION = "4";
+// v5 also retains rating-only reviews, forcing an honest full reconciliation
+// for accounts whose older fingerprints counted those reviews as empty.
+export const WEREAD_COLLECTION_FORMAT_VERSION = "5";
 const MAX_RESPONSE_BYTES = 12 * 1024 * 1024;
 const DEFAULT_TIMEOUT_MS = 20_000;
 const MIN_TRUSTED_SOURCE_TIME = 946_684_800; // 2000-01-01 UTC
@@ -47,6 +47,10 @@ export async function syncWeReadDataset(key, {
   fetchImpl = fetch,
   maxBooks = 2000,
   timeoutMs = DEFAULT_TIMEOUT_MS,
+  retryAttempts = 2,
+  requestIntervalMs = 0,
+  delay = ms => new Promise(resolve => setTimeout(resolve, ms)),
+  clock = Date.now,
   popularBookLimit = 40,
   recommendationPages = 3,
   mode = "full",
@@ -54,17 +58,32 @@ export async function syncWeReadDataset(key, {
 } = {}) {
   validateWeReadKey(key);
   const syncMode = mode === "incremental" ? "incremental" : "full";
-  const options = { fetchImpl, timeoutMs };
+  let halted;
+  const schedule = limitCalls(3);
+  const pace = paceStarts(requestIntervalMs, delay, clock);
+  const options = { fetchImpl: (...args) => pace(() => {
+    if (halted) throw halted;
+    return fetchImpl(...args);
+  }), timeoutMs, retryAttempts, delay };
   const failures = [];
   const capabilityPayload = await gatewayCall(key, "/_list", {}, options);
   const capabilities = extractCapabilities(capabilityPayload);
   const supported = api => capabilities.length === 0 || capabilities.includes(api);
   const call = async (api, params = {}, required = false) => {
     if (!supported(api)) return null;
-    try { return await gatewayCall(key, api, params, options); }
+    if (halted) throw halted;
+    try { return await schedule(async () => {
+      if (halted) throw halted;
+      try { return await gatewayCall(key, api, params, options); }
+      catch (error) {
+        if (["AUTH", "UPGRADE_REQUIRED", "UPSTREAM_DENIED"].includes(error.code)) halted = error;
+        throw error;
+      }
+    }); }
     catch (error) {
       failures.push({ api, code: error.code || "UPSTREAM", message: error.message });
-      if (required || error.code === "UPGRADE_REQUIRED") throw error;
+      if (["AUTH", "UPGRADE_REQUIRED", "UPSTREAM_DENIED"].includes(error.code)) halted = error;
+      if (required || halted) throw error;
       return null;
     }
   };
@@ -174,6 +193,10 @@ export async function syncWeReadDataset(key, {
       skippedUnchangedDocuments: candidates.filter(item => item.skip).reduce((total, item) => total + Number(item.previous?.documentCount || 0), 0),
       recommendationCount: recommendations.length,
       failedCalls: failures.length,
+      failureSummary: [...new Set(failures.map(item => `${item.api}:${item.code}`))].map(key => {
+        const items = failures.filter(item => `${item.api}:${item.code}` === key);
+        return { api: items[0].api, code: items[0].code, count: items.length };
+      }),
       truncatedBySafetyLimit: notebooks.truncated,
       collectionFormatVersion: WEREAD_COLLECTION_FORMAT_VERSION,
       syncMode,
@@ -202,16 +225,19 @@ export function normalizeWeReadDocuments(dataset) {
       });
     }
     for (const review of detailReviews(item)) {
+      const rating = review.star !== undefined ? `评分：${review.star}/5`
+        : review.rawStar !== undefined ? `微信读书评分原值：${review.rawStar}（未换算星级）` : "";
+      const readingState = review.isFinish !== undefined ? `阅读状态：${review.isFinish ? "已读完" : "未读完"}` : "";
       documents.push({
         externalId: `review:${review.id || review.reviewId || `${item.bookId}:${review.createdAt || review.createTime || documents.length}`}`,
         source: "weread",
-        title: wereadNoteTitle(title, review.content || review.abstract, "想法"),
+        title: wereadNoteTitle(title, review.content || review.abstract || rating || readingState, !review.content && rating ? "评分记录" : "想法"),
         category: item.info?.category || item.notebook?.category || "微信读书",
         bookTitle: title,
         author,
         chapterTitle: review.chapterTitle || review.chapterName || "",
         noteKind: review.kind || "review",
-        content: [`# ${title}`, author ? `作者：${author}` : "", review.chapterTitle || review.chapterName ? `章节：${review.chapterTitle || review.chapterName}` : "", review.abstract ? `> ${review.abstract}` : "", review.content || ""].filter(Boolean).join("\n\n"),
+        content: [`# ${title}`, author ? `作者：${author}` : "", review.chapterTitle || review.chapterName ? `章节：${review.chapterTitle || review.chapterName}` : "", review.abstract ? `> ${review.abstract}` : "", review.content || "", rating, readingState].filter(Boolean).join("\n\n"),
         eventAt: sourceEventAt(review.sourceUpdatedAt, review.createdAt, review.updateTime, review.createTime),
       });
     }
@@ -353,7 +379,19 @@ async function collectReviews(call, bookId) {
   return { reviews, totalCount, synckey, complete };
 }
 
-export async function gatewayCall(key, apiName, params = {}, { fetchImpl = fetch, timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
+export async function gatewayCall(key, apiName, params = {}, options = {}) {
+  const attempts = Number.isInteger(options.retryAttempts) ? Math.min(3, Math.max(1, options.retryAttempts)) : 2;
+  const delay = options.delay || (ms => new Promise(resolve => setTimeout(resolve, ms)));
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try { return await gatewayAttempt(key, apiName, params, options); }
+    catch (error) {
+      if (!error.retryable || attempt === attempts) throw error;
+      await delay(250 * 2 ** (attempt - 1));
+    }
+  }
+}
+
+async function gatewayAttempt(key, apiName, params = {}, { fetchImpl = fetch, timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
   validateWeReadKey(key);
   if (!WIDE_SCOPE_APIS.includes(apiName)) throw Object.assign(new Error("接口不在已审阅范围内。"), { code: "UNREVIEWED_API" });
   const controller = new AbortController();
@@ -372,20 +410,64 @@ export async function gatewayCall(key, apiName, params = {}, { fetchImpl = fetch
     const bytes = Buffer.from(await response.arrayBuffer());
     if (bytes.length > MAX_RESPONSE_BYTES) throw Object.assign(new Error("微信读书响应超过安全上限。"), { code: "TOO_LARGE" });
     let payload;
-    try { payload = JSON.parse(bytes.toString("utf8") || "{}"); } catch { throw Object.assign(new Error("微信读书返回了无效 JSON。"), { code: "SCHEMA" }); }
+    try { payload = JSON.parse(bytes.toString("utf8") || "{}"); }
+    catch {
+      if (response.ok) throw Object.assign(new Error("微信读书返回了无效 JSON。"), { code: "SCHEMA" });
+      payload = {};
+    }
     const upgradeInfo = payload?.upgrade_info || payload?.data?.upgrade_info;
     if (upgradeInfo) throw Object.assign(new Error("微信读书接口协议需要升级，已安全停止。"), { code: "UPGRADE_REQUIRED" });
     const errcode = Number(payload?.errcode || 0);
     if (!response.ok || errcode !== 0) {
-      const code = [401, 403].includes(response.status) || [-2012, -2001, 401, 403].includes(errcode) ? "AUTH"
+      const code = response.status === 401 || [-2012, -2001, 401, 403].includes(errcode) ? "AUTH"
+        : response.status === 403 ? "UPSTREAM_DENIED"
         : response.status === 429 || [-429, 429].includes(errcode) ? "RATE_LIMIT" : "UPSTREAM";
-      throw Object.assign(new Error("微信读书授权或接口调用失败。"), { code, status: response.status });
+      throw Object.assign(new Error("微信读书授权或接口调用失败。"), {
+        code, status: response.status,
+        retryable: code !== "AUTH" && ([408, 425, 429, 499, 500, 502, 503, 504].includes(response.status) || [-429, -2014].includes(errcode)),
+      });
     }
     return payload;
   } catch (error) {
-    if (controller.signal.aborted) throw Object.assign(new Error("微信读书接口超时。"), { code: "TIMEOUT" });
+    if (controller.signal.aborted) throw Object.assign(new Error("微信读书接口超时。"), { code: "TIMEOUT", retryable: true });
+    if (error instanceof TypeError && !error.code) throw Object.assign(new Error("无法连接微信读书接口。"), { code: "NETWORK", retryable: true });
     throw error;
   } finally { clearTimeout(timeout); }
+}
+
+function paceStarts(intervalMs, delay, clock) {
+  let nextStart = 0;
+  let starts = Promise.resolve();
+  return async operation => {
+    if (!(intervalMs > 0)) return operation();
+    let result;
+    const start = starts.then(async () => {
+      const wait = Math.max(0, nextStart - clock());
+      if (wait) await delay(wait);
+      nextStart = clock() + intervalMs;
+      result = operation();
+      // The start queue must not wait for the network response.
+      Promise.resolve(result).catch(() => undefined);
+    });
+    starts = start.catch(() => undefined);
+    await start;
+    return result;
+  };
+}
+
+function limitCalls(limit) {
+  let active = 0;
+  const queue = [];
+  return async operation => {
+    if (active < limit) active += 1;
+    else await new Promise(resolve => queue.push(resolve));
+    try { return await operation(); }
+    finally {
+      const next = queue.shift();
+      if (next) next();
+      else active -= 1;
+    }
+  };
 }
 
 export function validateWeReadKey(value) {

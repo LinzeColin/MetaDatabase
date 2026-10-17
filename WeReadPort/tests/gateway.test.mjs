@@ -83,3 +83,32 @@ test("generic business error is not retried while transient HTTP is", async () =
   await transient.call("/user/notebooks", { count: 1 }, { key: userKey() });
   assert.equal(transientCalls, 2);
 });
+
+test("上游空正文或 HTML 403 不冒充密钥失效，也不重复请求", async () => {
+  for (const body of ["", "<html>denied</html>"]) {
+    let calls = 0;
+    await assert.rejects(() => gatewayCall(userKey(), "/_list", {}, {
+      fetchImpl: async () => { calls += 1; return new Response(body, { status: 403 }); },
+    }), error => error.code === "UPSTREAM_DENIED" && error.status === 403);
+    assert.equal(calls, 1);
+  }
+});
+
+test("账户只读 gateway 对 499/-2014 等瞬时失败做有界重试，授权和升级不重试", async () => {
+  for (const [status, errcode] of [[499, -2014], [503, 0], [429, -429]]) {
+    let calls = 0;
+    await gatewayCall(userKey(), "/_list", {}, { retryAttempts: 2, delay: async () => {}, fetchImpl: async () => {
+      calls += 1;
+      return calls === 1 ? Response.json({ errcode }, { status }) : Response.json({ errcode: 0 });
+    } });
+    assert.equal(calls, 2);
+  }
+  for (const payload of [{ errcode: -2012 }, { upgrade_info: { message: "升级" } }]) {
+    let calls = 0;
+    await assert.rejects(() => gatewayCall(userKey(), "/_list", {}, { retryAttempts: 3, delay: async () => {}, fetchImpl: async () => { calls += 1; return Response.json(payload); } }));
+    assert.equal(calls, 1);
+  }
+  let calls = 0;
+  await assert.rejects(() => gatewayCall(userKey(), "/_list", {}, { retryAttempts: 2, delay: async () => {}, fetchImpl: async () => { calls += 1; return Response.json({ errcode: -2014 }, { status: 499 }); } }));
+  assert.equal(calls, 2);
+});

@@ -123,22 +123,25 @@ function normalizeReview(row, bookId, index) {
   if (!isPlainObject(row)) return undefined;
   const review = isPlainObject(row.review) ? row.review : row;
   const content = clean(firstString(review.content, review.text));
-  if (!content) return undefined;
   const abstract = clean(firstString(review.abstract, review.markText));
   const range = firstString(review.range, review.position);
   const chapterUid = firstIdentifier(review.chapterUid, row.chapterUid) || "book";
   const chapterTitle = clean(firstString(review.chapterName, review.chapterTitle, row.chapterName)) || (chapterUid === "book" ? "整本书" : "未分章");
   const chapterIdx = asOptionalInteger(review.chapterIdx ?? row.chapterIdx) ?? (chapterUid === "book" ? Number.MAX_SAFE_INTEGER : Number.MAX_SAFE_INTEGER - 1);
   const createdAt = nonNegativeOptional(review.createTime ?? review.createdAt ?? review.updateTime);
-  const starRaw = asFiniteNumber(review.star, -1);
+  const starRaw = review.star === null || review.star === "" ? -1 : asFiniteNumber(review.star, -1);
   const star = starRaw >= 0 && starRaw <= 5 ? starRaw : undefined;
+  // The live gateway also returns legacy rating values such as 100. Preserve
+  // the source number without inventing a conversion to the documented 0–5 scale.
+  const rawStar = starRaw > 5 ? starRaw : undefined;
   const finish = asOptionalBoolean(review.isFinish);
+  if (!content && !abstract && star === undefined && rawStar === undefined && finish === undefined) return undefined;
   const id = firstString(review.reviewId, review.id) || `r-${fnv1a32Hex(`${bookId}\u0000${chapterUid}\u0000${range}\u0000${content}\u0000${createdAt ?? index}`)}`;
-  const kind = abstract || range ? "highlight-thought" : chapterUid !== "book" || chapterTitle !== "整本书" ? "chapter-comment" : finish !== undefined || star !== undefined ? "book-review" : "unclassified";
+  const kind = abstract || range ? "highlight-thought" : chapterUid !== "book" || chapterTitle !== "整本书" ? "chapter-comment" : finish !== undefined || star !== undefined || rawStar !== undefined ? "book-review" : "unclassified";
   return {
     id, sourceId: id, content, abstract: abstract || undefined, range: range || undefined,
     chapterUid, chapterTitle, chapterIdx, createdAt, createdAtIso: unixSecondsToIsoDate(createdAt),
-    star, isFinish: finish, kind, sourceIndex: index,
+    star, rawStar, isFinish: finish, kind, sourceIndex: index,
   };
 }
 

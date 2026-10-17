@@ -11,6 +11,14 @@ import { testPlatform } from "./helpers.mjs";
 const KEY = `wrk-${"W".repeat(32)}`;
 const EVENT_BASE = 1_700_000_000;
 
+test("空文字的官方评分记录会导入，且不把原值 100 伪装成五星评分", () => {
+  const documents = normalizeWeReadDocuments({ books: [{ bookId: "rating-book", info: { title: "评分示例" }, reviews: { reviews: [{ id: "rating-1", content: "", rawStar: 100, kind: "book-review" }] } }] });
+  assert.equal(documents.length, 1);
+  assert.match(documents[0].title, /^评分记录/u);
+  assert.match(documents[0].content, /微信读书评分原值：100（未换算星级）/u);
+  assert.equal(documents[0].content.includes("100/5"), false);
+});
+
 test("旧账户数据库启动时为笔记补齐事件时间列且不丢数据", async t => {
   const directory = await mkdtemp(path.join(tmpdir(), "weread-event-time-"));
   const databasePath = path.join(directory, "platform.sqlite3");
@@ -67,12 +75,64 @@ test("微信读书按能力发现读取超过 Top 5 的书架、全量笔记、�
   assert.ok(calls.filter(api => api === "/book/info").length > 5, "不得回退为 Top 5");
 });
 
+test("全量同步的并发限制覆盖每本书内部所有接口，避免 3 本书放大成 18 路请求", async () => {
+  const base = gatewayMock([]);
+  let active = 0, maximum = 0;
+  const fetchImpl = async (url, init) => {
+    active += 1; maximum = Math.max(maximum, active);
+    try { await new Promise(resolve => setImmediate(resolve)); return await base(url, init); }
+    finally { active -= 1; }
+  };
+  const dataset = await syncWeReadDataset(KEY, { fetchImpl });
+  assert.equal(dataset.summary.detailedBooks, 8);
+  assert.equal(dataset.summary.failedCalls, 0);
+  assert.ok(maximum <= 3, `观察到 ${maximum} 路并发`);
+});
+
 test("可选接口的升级通知也必须停止同步，不得被降级为部分成功", async () => {
   const base = gatewayMock([]);
   const fetchImpl = async (url, init) => JSON.parse(init.body).api_name === "/book/info"
     ? Response.json({ errcode: 0, upgrade_info: { message: "Review the new skill." } })
     : base(url, init);
   await assert.rejects(() => syncWeReadDataset(KEY, { fetchImpl, maxBooks: 100 }), error => error.code === "UPGRADE_REQUIRED");
+});
+
+test("全量请求和短暂重试共享启动间隔，使用虚拟时钟验证而不真实等待", async () => {
+  let now = 0;
+  const starts = [];
+  const base = gatewayMock([]);
+  let transient = true;
+  const fetchImpl = async (url, init) => {
+    starts.push(now);
+    if (JSON.parse(init.body).api_name === "/book/info" && transient) {
+      transient = false;
+      return Response.json({ errcode: -2014 }, { status: 499 });
+    }
+    return base(url, init);
+  };
+  const dataset = await syncWeReadDataset(KEY, {
+    fetchImpl, requestIntervalMs: 1000, clock: () => now, delay: async ms => { now += ms; },
+  });
+  assert.equal(dataset.summary.failedCalls, 0);
+  assert.equal(transient, false);
+  for (let index = 1; index < starts.length; index += 1) assert.ok(starts[index] - starts[index - 1] >= 1000);
+});
+
+test("可选接口遇到授权或服务器拦截时中止后续排队请求", async () => {
+  for (const response of [() => Response.json({ errcode: -2012 }), () => new Response("", { status: 403 })]) {
+    let detailCalls = 0;
+    const base = gatewayMock([]);
+    const fetchImpl = async (url, init) => {
+      if (JSON.parse(init.body).api_name.startsWith("/book/") || JSON.parse(init.body).api_name === "/review/list/mine") {
+        detailCalls += 1;
+        return response();
+      }
+      return base(url, init);
+    };
+    await assert.rejects(() => syncWeReadDataset(KEY, { fetchImpl }), error => ["AUTH", "UPSTREAM_DENIED"].includes(error.code));
+    await new Promise(resolve => setImmediate(resolve));
+    assert.ok(detailCalls <= 3, `失败后仍调用了 ${detailCalls} 个接口`);
+  }
 });
 
 test("1.0.5 推荐优先使用官方阅读器链接，非法链接仍回退到安全详情链接", () => {
@@ -156,6 +216,30 @@ test("广范围微信读书同步保存到账户并生成官方可解释推荐",
   assert.equal(dashboard.dataFreshness.weread.lastSyncedAt, platform.service.publicAccount(user.account.id).weread.lastSyncAt);
   platform.service.updateConsent(user.account.id, { behaviorAnalytics: false, recommendationPersonalization: true });
   assert.ok(platform.service.analytics(user.account.id).recommendations.some(item => item.source === "weread-official"));
+});
+
+test("只缺来源覆盖的恢复会复用已验证密文；仍有坏对象时继续强制重建", async t => {
+  const platform = testPlatform({ fetchImpl: gatewayMock([]) });
+  t.after(platform.close);
+  const user = await platform.service.registerWeRead({ key: KEY }, {}, { verify: false });
+  await platform.service.syncWeRead(user.account.id);
+  platform.store.markAccountDataRecoveryRequired(user.account.id);
+  platform.store.completeAccountDataRecovery(user.account.id, { status: "PARTIAL", reasonCode: "SOURCE_COVERAGE_UNVERIFIED", unreadableNotes: 0 });
+  platform.service.createWeReadSyncJob(user.account.id, {}, "resume-readable-recovery");
+  const resumed = await platform.service.processNextImportJob("resume-worker");
+  assert.equal(resumed.progress.recovery.status, "HEALTHY");
+  assert.equal(resumed.progress.updatedDocuments, 0);
+  assert.equal(resumed.progress.unchangedDocuments, 16);
+  assert.ok(platform.store.listNotes(user.account.id).every(note => note.version === 1));
+
+  const damaged = platform.store.listNotes(user.account.id)[0];
+  await platform.objectStore.delete(damaged.objectKey);
+  platform.store.completeAccountDataRecovery(user.account.id, { status: "PARTIAL", reasonCode: "UNREADABLE_NOTES_REMAIN", unreadableNotes: 1 });
+  platform.service.createWeReadSyncJob(user.account.id, {}, "repair-unreadable-recovery");
+  const repaired = await platform.service.processNextImportJob("repair-worker");
+  assert.equal(repaired.progress.recovery.status, "HEALTHY");
+  assert.equal(repaired.progress.updatedDocuments, 16);
+  assert.ok((await platform.service.readNote(user.account.id, damaged.id)).content);
 });
 
 test("微信读书同步通过后台任务完成，并公开无正文的可轮询结果", async t => {

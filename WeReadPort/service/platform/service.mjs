@@ -474,6 +474,8 @@ export class PlatformService {
     if (!job) return null;
     const recoveryBefore = job.provider === "weread" ? this.store.getAccountDataRecovery(job.accountId) : null;
     const recoveryRequested = Boolean(recoveryBefore && recoveryBefore.status !== "HEALTHY");
+    const resumeReadableRecovery = recoveryBefore?.status === "PARTIAL"
+      && recoveryBefore.reasonCode === "SOURCE_COVERAGE_UNVERIFIED" && recoveryBefore.unreadableNotes === 0;
     const refreshLease = () => {
       try {
         this.store.renewImportJobLease(job.accountId, job.id, workerId, this.config.importLeaseSeconds);
@@ -496,7 +498,7 @@ export class PlatformService {
       }
       if (job.provider === "weread") {
         if (recoveryRequested) this.store.startAccountDataRecovery(job.accountId, job.id);
-        const result = await this.syncWeRead(job.accountId, recoveryRequested ? { ...selection, mode: "full", recovery: true } : selection);
+        const result = await this.syncWeRead(job.accountId, recoveryRequested ? { ...selection, mode: "full", recovery: true, ...(resumeReadableRecovery ? { rewriteExisting: false } : {}) } : selection);
         let progress = publicWeReadSyncProgress(result);
         if (recoveryRequested) {
           const verification = await this.verifyCurrentAccountNotes(job.accountId);
@@ -701,7 +703,7 @@ export class PlatformService {
     return { results };
   }
 
-  async syncWeRead(accountId, { recommendationPages = 3, mode = "auto", recovery = false } = {}) {
+  async syncWeRead(accountId, { recommendationPages = 3, mode = "auto", recovery = false, rewriteExisting = true } = {}) {
     const credential = this.store.findCredentialByAccount(accountId, "key", "weread");
     if (!credential?.secretEncrypted) throw new PlatformError("WEREAD_NOT_BOUND", "请先绑定微信读书密钥。", 409);
     const key = decryptForAccount(this.accountKey(accountId), credential.secretEncrypted, `credential:weread:${accountId}:v1`).toString("utf8");
@@ -716,6 +718,8 @@ export class PlatformService {
       fetchImpl: this.fetchImpl,
       maxBooks: this.config.maxWereadBooks,
       timeoutMs: this.config.upstreamTimeoutMs,
+      retryAttempts: this.config.upstreamRetryAttempts,
+      requestIntervalMs: this.config.upstreamRequestIntervalMs,
       recommendationPages: Math.min(Math.max(Number(recommendationPages || 3), 1), 10),
       mode: syncMode,
       previousBookState: priorBookState,
@@ -724,7 +728,7 @@ export class PlatformService {
     let updatedDocuments = 0;
     let unchangedDocuments = Number(dataset.summary.skippedUnchangedDocuments || 0);
     for (const document of documents) {
-      const outcome = await this.saveDocument(accountId, document, { reportStatus: true, forceRewrite: Boolean(recovery) });
+      const outcome = await this.saveDocument(accountId, document, { reportStatus: true, forceRewrite: Boolean(recovery && rewriteExisting) });
       if (outcome.unchanged) unchangedDocuments += 1;
       else updatedDocuments += 1;
     }
@@ -1125,7 +1129,7 @@ export class PlatformService {
 
   async verifyWeReadKey(key) {
     const { gatewayCall } = await import("./weread.mjs");
-    await gatewayCall(key, "/_list", {}, { fetchImpl: this.fetchImpl, timeoutMs: this.config.upstreamTimeoutMs });
+    await gatewayCall(key, "/_list", {}, { fetchImpl: this.fetchImpl, timeoutMs: this.config.upstreamTimeoutMs, retryAttempts: this.config.upstreamRetryAttempts });
     return true;
   }
 

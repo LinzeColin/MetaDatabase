@@ -85,6 +85,7 @@ function renderThought(thought, profile) {
   lines.push(normalizeText(String(thought.content)), "");
   const details = [];
   if (thought.star !== undefined) details.push(`评分：${thought.star}/5`);
+  else if (thought.rawStar !== undefined) details.push(`微信读书评分原值：${thought.rawStar}（未换算星级）`);
   if (thought.isFinish !== undefined) details.push(`阅读状态：${thought.isFinish ? "已读完" : "未读完"}`);
   if (thought.range) details.push(`位置：${escapeInline(String(thought.range))}`);
   if (details.length) lines.push(`_${details.join(" · ")}_`, "");

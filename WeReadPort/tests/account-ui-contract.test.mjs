@@ -8,6 +8,7 @@ test("同步失败说明区分协议升级、无效密钥和临时故障，未�
   assert.match(wereadSyncFailureMessage("AUTH"), /更新密钥/u);
   assert.match(wereadSyncFailureMessage("TIMEOUT"), /超时/u);
   assert.match(wereadSyncFailureMessage("RATE_LIMIT"), /过于频繁/u);
+  assert.match(wereadSyncFailureMessage("UPSTREAM_DENIED"), /拒绝服务器请求/u);
   const unsafe = "wrk-" + "not-a-real-secret".repeat(3);
   assert.equal(wereadSyncFailureMessage(unsafe).includes(unsafe), false);
   assert.match(wereadSyncFailureMessage(unsafe), /同步未完成/u);
