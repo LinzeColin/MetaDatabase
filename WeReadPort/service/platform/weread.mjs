@@ -40,6 +40,9 @@ export const WIDE_SCOPE_APIS = Object.freeze([
 export async function verifyWeReadKey(key, options = {}) {
   validateWeReadKey(key);
   const capabilities = await gatewayCall(key, "/_list", {}, options);
+  // The public capability directory can succeed while user-data calls reject
+  // the key or its requests. Verify an actual read-only user scope as well.
+  await gatewayCall(key, "/user/notebooks", { count: 1 }, options);
   return { valid: true, capabilities: extractCapabilities(capabilities) };
 }
 

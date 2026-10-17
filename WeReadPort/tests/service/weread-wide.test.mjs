@@ -232,9 +232,17 @@ test("只缺来源覆盖的恢复会复用已验证密文；仍有坏对象时�
   assert.equal(resumed.progress.unchangedDocuments, 16);
   assert.ok(platform.store.listNotes(user.account.id).every(note => note.version === 1));
 
+  platform.store.failAccountDataRecovery(user.account.id, "UPSTREAM_DENIED");
+  platform.service.createWeReadSyncJob(user.account.id, {}, "resume-after-upstream-denial");
+  const rechecked = await platform.service.processNextImportJob("recheck-worker");
+  assert.equal(rechecked.progress.recovery.status, "HEALTHY");
+  assert.equal(rechecked.progress.updatedDocuments, 0);
+  assert.ok(platform.store.listNotes(user.account.id).every(note => note.version === 1));
+
   const damaged = platform.store.listNotes(user.account.id)[0];
   await platform.objectStore.delete(damaged.objectKey);
-  platform.store.completeAccountDataRecovery(user.account.id, { status: "PARTIAL", reasonCode: "UNREADABLE_NOTES_REMAIN", unreadableNotes: 1 });
+  // Even a stale zero-unreadable counter cannot authorize reuse after failure.
+  platform.store.failAccountDataRecovery(user.account.id, "UPSTREAM_DENIED");
   platform.service.createWeReadSyncJob(user.account.id, {}, "repair-unreadable-recovery");
   const repaired = await platform.service.processNextImportJob("repair-worker");
   assert.equal(repaired.progress.recovery.status, "HEALTHY");

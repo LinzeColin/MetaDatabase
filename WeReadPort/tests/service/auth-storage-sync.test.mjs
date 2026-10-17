@@ -7,6 +7,15 @@ const PASSWORD = "Correct-Horse-2026";
 const KEY_ONE = `wrk-${"A".repeat(32)}`;
 const KEY_TWO = `wrk-${"B".repeat(32)}`;
 
+test("公开目录成功但用户接口拒绝时不创建账户，并返回安全的可操作错误", async t => {
+  for (const [response, code, status] of [[() => Response.json({ errcode: -2012 }), "AUTH", 401], [() => new Response("", { status: 403 }), "UPSTREAM_DENIED", 502]]) {
+    const platform = testPlatform({ fetchImpl: async (_url, init) => JSON.parse(init.body).api_name === "/_list" ? Response.json({ errcode: 0 }) : response() });
+    t.after(platform.close);
+    await assert.rejects(() => platform.service.registerWeRead({ key: KEY_ONE }), error => error.code === code && error.status === status && !error.message.includes(KEY_ONE));
+    assert.equal(platform.store.db.prepare("SELECT COUNT(*) AS count FROM accounts").get().count, 0);
+  }
+});
+
 test("密码注册登录、密钥建账绑定和轮换都保持不可变 account_id", async t => {
   const platform = testPlatform();
   t.after(platform.close);
