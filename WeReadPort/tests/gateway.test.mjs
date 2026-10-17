@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createGatewayClient, inspectBusinessResponse } from "../src/core/gateway.js";
 import { OFFICIAL_WEREAD_GATEWAY, SOURCE_SKILL_VERSION } from "../src/core/constants.js";
 import { userKey } from "./helpers.mjs";
-import { gatewayCall } from "../service/platform/weread.mjs";
+import { gatewayCall, verifyWeReadKey } from "../service/platform/weread.mjs";
 
 test("browser and account sync both satisfy the reviewed Tencent 1.0.5 gateway contract", async () => {
   const calls = [];
@@ -41,6 +41,21 @@ test("direct gateway client pins endpoint, bearer key and source skill version",
 
 test("upgrade instruction always fails closed", () => {
   assert.throws(() => inspectBusinessResponse({ errcode: 0, upgrade_info: { message: "upgrade now" } }), error => error.code === "BLOCKED_UPGRADE");
+});
+
+test("密钥校验必须读取真实用户接口，不能只凭公开目录返回成功", async () => {
+  const calls = [];
+  await verifyWeReadKey(userKey(), { fetchImpl: async (_url, init) => {
+    const body = JSON.parse(init.body); calls.push(body);
+    return Response.json({ errcode: 0, books: [], hasMore: 0 });
+  } });
+  assert.deepEqual(calls.map(item => item.api_name), ["/_list", "/user/notebooks"]);
+  assert.equal(calls[1].count, 1);
+  for (const denied of [() => Response.json({ errcode: -2012 }), () => new Response("", { status: 403 })]) {
+    await assert.rejects(() => verifyWeReadKey(userKey(), { fetchImpl: async (_url, init) =>
+      JSON.parse(init.body).api_name === "/_list" ? Response.json({ errcode: 0, apis: [] }) : denied(),
+    }), error => ["AUTH", "UPSTREAM_DENIED"].includes(error.code));
+  }
 });
 
 test("account gateway stops for top-level and wrapped upgrade instructions without exposing upstream text", async () => {

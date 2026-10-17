@@ -474,8 +474,14 @@ export class PlatformService {
     if (!job) return null;
     const recoveryBefore = job.provider === "weread" ? this.store.getAccountDataRecovery(job.accountId) : null;
     const recoveryRequested = Boolean(recoveryBefore && recoveryBefore.status !== "HEALTHY");
-    const resumeReadableRecovery = recoveryBefore?.status === "PARTIAL"
+    let resumeReadableRecovery = recoveryBefore?.status === "PARTIAL"
       && recoveryBefore.reasonCode === "SOURCE_COVERAGE_UNVERIFIED" && recoveryBefore.unreadableNotes === 0;
+    if (recoveryBefore?.status === "FAILED" && ["UPSTREAM_DENIED", "AUTH", "TIMEOUT", "NETWORK", "UPGRADE_REQUIRED"].includes(recoveryBefore.reasonCode)) {
+      // A failed upstream fetch must not force another rewrite of intact
+      // ciphertext. Obtain fresh proof; a stale zero counter is insufficient.
+      const verified = await this.verifyCurrentAccountNotes(job.accountId);
+      resumeReadableRecovery = verified.complete && verified.unreadableNotes === 0;
+    }
     const refreshLease = () => {
       try {
         this.store.renewImportJobLease(job.accountId, job.id, workerId, this.config.importLeaseSeconds);
@@ -1128,8 +1134,21 @@ export class PlatformService {
   }
 
   async verifyWeReadKey(key) {
-    const { gatewayCall } = await import("./weread.mjs");
-    await gatewayCall(key, "/_list", {}, { fetchImpl: this.fetchImpl, timeoutMs: this.config.upstreamTimeoutMs, retryAttempts: this.config.upstreamRetryAttempts });
+    const { verifyWeReadKey } = await import("./weread.mjs");
+    try {
+      await verifyWeReadKey(key, { fetchImpl: this.fetchImpl, timeoutMs: this.config.upstreamTimeoutMs, retryAttempts: this.config.upstreamRetryAttempts });
+    } catch (error) {
+      const messages = {
+        AUTH: "微信读书密钥无效或已失效，请检查后重试。",
+        UPSTREAM_DENIED: "微信读书暂时拒绝服务器请求，请稍后重试。",
+        UPGRADE_REQUIRED: "微信读书接口已更新，请联系维护者。",
+        RATE_LIMIT: "微信读书请求过于频繁，请稍后重试。",
+        TIMEOUT: "微信读书响应超时，请稍后重试。",
+        NETWORK: "暂时无法连接微信读书，请稍后重试。",
+      };
+      const code = Object.hasOwn(messages, error?.code) ? error.code : "UPSTREAM";
+      throw new PlatformError(code, messages[code] || "微信读书密钥尚未通过验证，请稍后重试。", code === "AUTH" ? 401 : code === "RATE_LIMIT" ? 429 : 502);
+    }
     return true;
   }
 
