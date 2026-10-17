@@ -48,6 +48,9 @@ export async function syncWeReadDataset(key, {
   maxBooks = 2000,
   timeoutMs = DEFAULT_TIMEOUT_MS,
   retryAttempts = 2,
+  requestIntervalMs = 0,
+  delay = ms => new Promise(resolve => setTimeout(resolve, ms)),
+  clock = Date.now,
   popularBookLimit = 40,
   recommendationPages = 3,
   mode = "full",
@@ -55,18 +58,32 @@ export async function syncWeReadDataset(key, {
 } = {}) {
   validateWeReadKey(key);
   const syncMode = mode === "incremental" ? "incremental" : "full";
-  const options = { fetchImpl, timeoutMs, retryAttempts };
+  let halted;
   const schedule = limitCalls(3);
+  const pace = paceStarts(requestIntervalMs, delay, clock);
+  const options = { fetchImpl: (...args) => pace(() => {
+    if (halted) throw halted;
+    return fetchImpl(...args);
+  }), timeoutMs, retryAttempts, delay };
   const failures = [];
   const capabilityPayload = await gatewayCall(key, "/_list", {}, options);
   const capabilities = extractCapabilities(capabilityPayload);
   const supported = api => capabilities.length === 0 || capabilities.includes(api);
   const call = async (api, params = {}, required = false) => {
     if (!supported(api)) return null;
-    try { return await schedule(() => gatewayCall(key, api, params, options)); }
+    if (halted) throw halted;
+    try { return await schedule(async () => {
+      if (halted) throw halted;
+      try { return await gatewayCall(key, api, params, options); }
+      catch (error) {
+        if (["AUTH", "UPGRADE_REQUIRED", "UPSTREAM_DENIED"].includes(error.code)) halted = error;
+        throw error;
+      }
+    }); }
     catch (error) {
       failures.push({ api, code: error.code || "UPSTREAM", message: error.message });
-      if (required || error.code === "UPGRADE_REQUIRED") throw error;
+      if (["AUTH", "UPGRADE_REQUIRED", "UPSTREAM_DENIED"].includes(error.code)) halted = error;
+      if (required || halted) throw error;
       return null;
     }
   };
@@ -393,12 +410,17 @@ async function gatewayAttempt(key, apiName, params = {}, { fetchImpl = fetch, ti
     const bytes = Buffer.from(await response.arrayBuffer());
     if (bytes.length > MAX_RESPONSE_BYTES) throw Object.assign(new Error("微信读书响应超过安全上限。"), { code: "TOO_LARGE" });
     let payload;
-    try { payload = JSON.parse(bytes.toString("utf8") || "{}"); } catch { throw Object.assign(new Error("微信读书返回了无效 JSON。"), { code: "SCHEMA" }); }
+    try { payload = JSON.parse(bytes.toString("utf8") || "{}"); }
+    catch {
+      if (response.ok) throw Object.assign(new Error("微信读书返回了无效 JSON。"), { code: "SCHEMA" });
+      payload = {};
+    }
     const upgradeInfo = payload?.upgrade_info || payload?.data?.upgrade_info;
     if (upgradeInfo) throw Object.assign(new Error("微信读书接口协议需要升级，已安全停止。"), { code: "UPGRADE_REQUIRED" });
     const errcode = Number(payload?.errcode || 0);
     if (!response.ok || errcode !== 0) {
-      const code = [401, 403].includes(response.status) || [-2012, -2001, 401, 403].includes(errcode) ? "AUTH"
+      const code = response.status === 401 || [-2012, -2001, 401, 403].includes(errcode) ? "AUTH"
+        : response.status === 403 ? "UPSTREAM_DENIED"
         : response.status === 429 || [-429, 429].includes(errcode) ? "RATE_LIMIT" : "UPSTREAM";
       throw Object.assign(new Error("微信读书授权或接口调用失败。"), {
         code, status: response.status,
@@ -411,6 +433,26 @@ async function gatewayAttempt(key, apiName, params = {}, { fetchImpl = fetch, ti
     if (error instanceof TypeError && !error.code) throw Object.assign(new Error("无法连接微信读书接口。"), { code: "NETWORK", retryable: true });
     throw error;
   } finally { clearTimeout(timeout); }
+}
+
+function paceStarts(intervalMs, delay, clock) {
+  let nextStart = 0;
+  let starts = Promise.resolve();
+  return async operation => {
+    if (!(intervalMs > 0)) return operation();
+    let result;
+    const start = starts.then(async () => {
+      const wait = Math.max(0, nextStart - clock());
+      if (wait) await delay(wait);
+      nextStart = clock() + intervalMs;
+      result = operation();
+      // The start queue must not wait for the network response.
+      Promise.resolve(result).catch(() => undefined);
+    });
+    starts = start.catch(() => undefined);
+    await start;
+    return result;
+  };
 }
 
 function limitCalls(limit) {

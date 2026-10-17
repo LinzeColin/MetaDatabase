@@ -14,6 +14,7 @@ export function wereadSyncFailureMessage(code) {
     case "TIMEOUT":
     case "UPSTREAM_TIMEOUT": return "微信读书响应超时，请稍后重新同步。";
     case "RATE_LIMIT": return "微信读书请求过于频繁，请稍后重新同步。";
+    case "UPSTREAM_DENIED": return "微信读书暂时拒绝服务器请求，请稍后重新同步。";
     case "NETWORK": return "暂时无法连接微信读书，请稍后重新同步。";
     default: return "微信读书同步未完成，请稍后重试。";
   }

@@ -719,6 +719,7 @@ export class PlatformService {
       maxBooks: this.config.maxWereadBooks,
       timeoutMs: this.config.upstreamTimeoutMs,
       retryAttempts: this.config.upstreamRetryAttempts,
+      requestIntervalMs: this.config.upstreamRequestIntervalMs,
       recommendationPages: Math.min(Math.max(Number(recommendationPages || 3), 1), 10),
       mode: syncMode,
       previousBookState: priorBookState,

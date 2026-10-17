@@ -97,6 +97,44 @@ test("可选接口的升级通知也必须停止同步，不得被降级为部�
   await assert.rejects(() => syncWeReadDataset(KEY, { fetchImpl, maxBooks: 100 }), error => error.code === "UPGRADE_REQUIRED");
 });
 
+test("全量请求和短暂重试共享启动间隔，使用虚拟时钟验证而不真实等待", async () => {
+  let now = 0;
+  const starts = [];
+  const base = gatewayMock([]);
+  let transient = true;
+  const fetchImpl = async (url, init) => {
+    starts.push(now);
+    if (JSON.parse(init.body).api_name === "/book/info" && transient) {
+      transient = false;
+      return Response.json({ errcode: -2014 }, { status: 499 });
+    }
+    return base(url, init);
+  };
+  const dataset = await syncWeReadDataset(KEY, {
+    fetchImpl, requestIntervalMs: 1000, clock: () => now, delay: async ms => { now += ms; },
+  });
+  assert.equal(dataset.summary.failedCalls, 0);
+  assert.equal(transient, false);
+  for (let index = 1; index < starts.length; index += 1) assert.ok(starts[index] - starts[index - 1] >= 1000);
+});
+
+test("可选接口遇到授权或服务器拦截时中止后续排队请求", async () => {
+  for (const response of [() => Response.json({ errcode: -2012 }), () => new Response("", { status: 403 })]) {
+    let detailCalls = 0;
+    const base = gatewayMock([]);
+    const fetchImpl = async (url, init) => {
+      if (JSON.parse(init.body).api_name.startsWith("/book/") || JSON.parse(init.body).api_name === "/review/list/mine") {
+        detailCalls += 1;
+        return response();
+      }
+      return base(url, init);
+    };
+    await assert.rejects(() => syncWeReadDataset(KEY, { fetchImpl }), error => ["AUTH", "UPSTREAM_DENIED"].includes(error.code));
+    await new Promise(resolve => setImmediate(resolve));
+    assert.ok(detailCalls <= 3, `失败后仍调用了 ${detailCalls} 个接口`);
+  }
+});
+
 test("1.0.5 推荐优先使用官方阅读器链接，非法链接仍回退到安全详情链接", () => {
   const readerLink = "https://weread.qq.com/web/reader/official-reader";
   const deepLink = "https://weread.qq.com/web/bookDetail/official-detail";

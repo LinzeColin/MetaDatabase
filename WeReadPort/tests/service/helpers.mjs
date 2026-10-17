@@ -14,6 +14,7 @@ export function testConfig(overrides = {}) {
     WRP_ACTIVE_KEY_ID: "test",
     WRP_INTERNAL_PROXY_SECRET: "test-internal-proxy-secret-not-for-production",
     WRP_OBJECT_STORE_MODE: "memory",
+    WRP_UPSTREAM_REQUEST_INTERVAL_MS: "0",
     WRP_GOOGLE_CLIENT_ID: "google-client",
     WRP_GOOGLE_CLIENT_SECRET: "google-secret",
     WRP_GITHUB_CLIENT_ID: "github-client",

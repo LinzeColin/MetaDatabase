@@ -76,6 +76,7 @@ export function loadConfig(env = process.env, { test = false } = {}) {
     maxWereadBooks: integer(env.WRP_MAX_WEREAD_BOOKS, 2000, 6, 10000),
     upstreamTimeoutMs: integer(env.WRP_UPSTREAM_TIMEOUT_MS, 15_000, 500, 120_000),
     upstreamRetryAttempts: integer(env.WRP_UPSTREAM_RETRY_ATTEMPTS, 2, 1, 3),
+    upstreamRequestIntervalMs: integer(env.WRP_UPSTREAM_REQUEST_INTERVAL_MS, 1000, 0, 10_000),
     readinessCacheSeconds: integer(env.WRP_READINESS_CACHE_SECONDS, 30, 1, 300),
     authFailureLimit: integer(env.WRP_AUTH_FAILURE_LIMIT, 8, 3, 30),
     authFailureWindowSeconds: integer(env.WRP_AUTH_FAILURE_WINDOW_SECONDS, 15 * 60, 60, 24 * 3600),
