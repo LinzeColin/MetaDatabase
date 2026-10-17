@@ -14,6 +14,23 @@ import {
 import { renderBookMarkdown } from "../src/core/render.js";
 import { fixture } from "./helpers.mjs";
 
+test("无文字评分和阅读状态仍是个人书评，历史评分原值不擅自换算为五星", () => {
+  const page = normalizeReviewPage({ reviews: [
+    { review: { reviewId: "legacy-rating", content: "", star: 100 } },
+    { review: { reviewId: "zero-rating", content: "", star: 0 } },
+    { review: { reviewId: "reading-state", content: "", isFinish: false } },
+    { review: { reviewId: "truly-empty", content: "", star: -1 } },
+    { review: { reviewId: "null-rating", content: "", star: null } },
+  ] }, "book-rating");
+  assert.equal(page.reviews.length, 3);
+  const legacy = page.reviews.find(item => item.id === "legacy-rating");
+  assert.equal(legacy.content, "");
+  assert.equal(legacy.rawStar, 100);
+  assert.equal(legacy.star, undefined);
+  assert.equal(legacy.kind, "book-review");
+  assert.equal(page.reviews.find(item => item.id === "zero-rating").star, 0);
+});
+
 async function canonicalBook() {
   const overview = normalizeNotebookPage(await fixture("notebooks-page-1.json")).summaries[0];
   return assembleCanonicalBook({
