@@ -476,12 +476,6 @@ export class PlatformService {
     const recoveryRequested = Boolean(recoveryBefore && recoveryBefore.status !== "HEALTHY");
     let resumeReadableRecovery = recoveryBefore?.status === "PARTIAL"
       && recoveryBefore.reasonCode === "SOURCE_COVERAGE_UNVERIFIED" && recoveryBefore.unreadableNotes === 0;
-    if (recoveryBefore?.status === "FAILED" && ["UPSTREAM_DENIED", "AUTH", "TIMEOUT", "NETWORK", "UPGRADE_REQUIRED"].includes(recoveryBefore.reasonCode)) {
-      // A failed upstream fetch must not force another rewrite of intact
-      // ciphertext. Obtain fresh proof; a stale zero counter is insufficient.
-      const verified = await this.verifyCurrentAccountNotes(job.accountId);
-      resumeReadableRecovery = verified.complete && verified.unreadableNotes === 0;
-    }
     const refreshLease = () => {
       try {
         this.store.renewImportJobLease(job.accountId, job.id, workerId, this.config.importLeaseSeconds);
@@ -503,6 +497,12 @@ export class PlatformService {
         selection = { mode: "full", recommendationPages: 3, recovery: true };
       }
       if (job.provider === "weread") {
+        if (recoveryBefore?.status === "FAILED" && ["UPSTREAM_DENIED", "AUTH", "TIMEOUT", "NETWORK", "UPGRADE_REQUIRED"].includes(recoveryBefore.reasonCode)) {
+          // Keep the lease alive throughout potentially slow object readback,
+          // and handle a failed verification through the normal job cleanup.
+          const verified = await this.verifyCurrentAccountNotes(job.accountId);
+          resumeReadableRecovery = verified.complete && verified.unreadableNotes === 0;
+        }
         if (recoveryRequested) this.store.startAccountDataRecovery(job.accountId, job.id);
         const result = await this.syncWeRead(job.accountId, recoveryRequested ? { ...selection, mode: "full", recovery: true, ...(resumeReadableRecovery ? { rewriteExisting: false } : {}) } : selection);
         let progress = publicWeReadSyncProgress(result);
