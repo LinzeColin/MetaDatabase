@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 MAX_BYTES = 2 * 1024 * 1024
 EXPECTED_APP_VERSION = "v0.0.0.1.9"
-EXPECTED_SKILL_VERSION = "1.0.4"
+EXPECTED_SKILL_VERSION = "1.0.5"
 EXPECTED_BUSINESS_SCHEMA_VERSION = "2.0.0"
 EXPECTED_BUSINESS_LINES = {"public-trust","identity-access","account-storage","cross-device-sync","provider-imports","weread-wide-sync","analytics-recommendations","legacy-migration","release-supply-chain","operations-recovery","facts-backup"}
 SHA40 = re.compile(r"^[0-9a-f]{40}$")

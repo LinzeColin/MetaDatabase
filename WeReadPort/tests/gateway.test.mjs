@@ -3,6 +3,25 @@ import assert from "node:assert/strict";
 import { createGatewayClient, inspectBusinessResponse } from "../src/core/gateway.js";
 import { OFFICIAL_WEREAD_GATEWAY, SOURCE_SKILL_VERSION } from "../src/core/constants.js";
 import { userKey } from "./helpers.mjs";
+import { gatewayCall } from "../service/platform/weread.mjs";
+
+test("browser and account sync both satisfy the reviewed Tencent 1.0.5 gateway contract", async () => {
+  const calls = [];
+  const fetchImpl = async (_url, init) => {
+    const body = JSON.parse(init.body);
+    calls.push(body);
+    if (body.skill_version !== "1.0.5") return Response.json({
+      errcode: 0, upgrade_info: { message: "Upgrade the reviewed skill before continuing." },
+    });
+    return Response.json({ errcode: 0, books: [] });
+  };
+  const browser = createGatewayClient({ mode: "direct", fetchImpl, maxAttempts: 1 });
+  await browser.call("/user/notebooks", { count: 100, lastSort: 1516907353 }, { key: userKey() });
+  await gatewayCall(userKey(), "/user/notebooks", { count: 100, lastSort: 1516907353 }, { fetchImpl });
+  assert.deepEqual(calls, Array.from({ length: 2 }, () => ({
+    api_name: "/user/notebooks", skill_version: "1.0.5", count: 100, lastSort: 1516907353,
+  })));
+});
 
 test("direct gateway client pins endpoint, bearer key and source skill version", async () => {
   let captured;
@@ -22,6 +41,27 @@ test("direct gateway client pins endpoint, bearer key and source skill version",
 
 test("upgrade instruction always fails closed", () => {
   assert.throws(() => inspectBusinessResponse({ errcode: 0, upgrade_info: { message: "upgrade now" } }), error => error.code === "BLOCKED_UPGRADE");
+});
+
+test("account gateway stops for top-level and wrapped upgrade instructions without exposing upstream text", async () => {
+  for (const payload of [
+    { errcode: 0, upgrade_info: { message: userKey() } },
+    { errcode: 0, data: { upgrade_info: { message: userKey() } } },
+  ]) {
+    await assert.rejects(() => gatewayCall(userKey(), "/_list", {}, { fetchImpl: async () => Response.json(payload) }), error => {
+      assert.equal(error.code, "UPGRADE_REQUIRED");
+      assert.equal(JSON.stringify(error).includes(userKey()), false);
+      return true;
+    });
+  }
+});
+
+test("account gateway preserves actionable auth and rate-limit codes for HTTP and business failures", async () => {
+  for (const [status, errcode, expected] of [[401, 0, "AUTH"], [200, -2012, "AUTH"], [200, -2001, "AUTH"], [429, 0, "RATE_LIMIT"], [200, -429, "RATE_LIMIT"]]) {
+    await assert.rejects(() => gatewayCall(userKey(), "/_list", {}, {
+      fetchImpl: async () => Response.json({ errcode, errmsg: userKey() }, { status }),
+    }), error => error.code === expected && !error.message.includes(userKey()));
+  }
 });
 
 test("generic business error is not retried while transient HTTP is", async () => {

@@ -1,4 +1,4 @@
-import { AccountApi } from "./account-api.js";
+import { AccountApi, wereadSyncFailureMessage } from "./account-api.js";
 import { gsap } from "gsap";
 import { readObsidianSelection } from "./obsidian-import.js";
 import {
@@ -400,7 +400,7 @@ async function observeWeReadSync(jobId, { automatic, preserveView }) {
       return;
     }
     if (job.state === "FAILED") {
-      toast("微信读书同步未完成，请稍后重试。", "error");
+      toast(wereadSyncFailureMessage(job.errorCode), "error");
       console.error(JSON.stringify({ event: "weread_background_sync_failed", code: String(job.errorCode || "SYNC_FAILED") }));
       return;
     }

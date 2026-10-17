@@ -64,7 +64,7 @@ def readiness_payload(*, ready: bool = True):
     }
 
 
-def version_payload(*, app_version: str = "v0.0.0.1.9", source_version: str = "1.0.4", governance_version: str = "2.0.0"):
+def version_payload(*, app_version: str = "v0.0.0.1.9", source_version: str = "1.0.5", governance_version: str = "2.0.0"):
     return {
         "appVersion": app_version,
         "sourceSkillVersion": source_version,
@@ -179,7 +179,7 @@ class OpsTests(unittest.TestCase):
 
         def source_fetcher(url: str, timeout: float):
             del url, timeout
-            return 200, "---\nname: weread-skills\nversion: 1.0.4\n---\n", 2.0
+            return 200, "---\nname: weread-skills\nversion: 1.0.5\n---\n", 2.0
 
         at = datetime(2026, 7, 26, 1, 2, 3, tzinfo=timezone.utc)
         site = check_site(self.settings, fetcher=site_fetcher, at=at)
@@ -187,7 +187,7 @@ class OpsTests(unittest.TestCase):
         payload = combine_monitor(site, source)
         self.assertEqual(payload["status"], "operational")
         self.assertEqual(payload["productPlane"]["latencyMs"], 10.0)
-        self.assertEqual(payload["officialSource"]["observedVersion"], "1.0.4")
+        self.assertEqual(payload["officialSource"]["observedVersion"], "1.0.5")
         self.assertTrue(payload["productPlane"]["businessGovernanceOk"])
         self.assertEqual(len(payload["businessLines"]), 11)
         write_atomic_json(self.settings.status_path, payload)
