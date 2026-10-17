@@ -16,6 +16,7 @@
 ## 怎么部署 / 回滚
 
 - 网站（Worker）：只用 `npm run deploy:cloudflare`，不要裸跑 `npx wrangler deploy`（会清空线上变量）。脚本部署前取回线上变量、部署后回读 `/api/version`，任一条不过自动回滚；手动回滚用 `wrangler rollback`。
+- 新发布同时提供 `WRP_RELEASE_COMMIT`（当前干净 HEAD 的完整提交号）、`WRP_OVH_RELEASE_ID`、`WRP_EDGE_DEPLOYMENT_ID` 给上述脚本，OVH 安装使用同一组身份。三个字段缺一或提交号不符即拒绝发布；其它线上变量继续保留。
 - 账户服务（OVH）：`sudo python3 service/scripts/platform_preflight.py --env-file /etc/weread-port/platform.env --require-paths --strict`，再 `sudo python3 service/install_platform.py --apply`；安装器用版本化 release 目录加 `/opt/weread-port/current` 软链接，激活失败自动指回上一版（`service/install_platform.py`）。
 - 运维包回滚：`ops/bin/rollback <已安装版本>`。
 
