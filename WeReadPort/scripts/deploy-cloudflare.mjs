@@ -19,7 +19,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import {
-  REQUIRED_VARS, assertCarryableVars, checkRuntimeIdentity, collectPlainTextVars,
+  REQUIRED_VARS, applyReleaseIdentity, assertCarryableVars, checkRuntimeIdentity, collectPlainTextVars,
   diffDeployedVars, pickCurrentDeployment, redact,
 } from "../src/ops/cloudflare-deploy-contract.js";
 
@@ -85,6 +85,13 @@ try {
   previousVersionId = await currentVersion();
   liveVars = await versionBindings(previousVersionId);
   carry = assertCarryableVars(liveVars);
+  const { stdout: head } = await run("git", ["rev-parse", "HEAD"], { cwd: root });
+  carry = applyReleaseIdentity(carry, {
+    releaseCommit: process.env.WRP_RELEASE_COMMIT,
+    ovhReleaseId: process.env.WRP_OVH_RELEASE_ID,
+    edgeDeploymentId: process.env.WRP_EDGE_DEPLOYMENT_ID,
+  }, head.trim());
+  liveVars = new Map(carry);
 } catch (error) {
   fail(`${error.message}${previousVersionId ? `（读的是线上版本 ${previousVersionId.slice(0, 8)}）` : ""}`);
 }

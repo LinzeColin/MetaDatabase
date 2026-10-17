@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  PRESERVED_SECRETS, REQUIRED_VARS, assertCarryableVars, checkRuntimeIdentity,
+  PRESERVED_SECRETS, REQUIRED_VARS, applyReleaseIdentity, assertCarryableVars, checkRuntimeIdentity,
   collectPlainTextVars, diffDeployedVars, pickCurrentDeployment, redact,
 } from "../src/ops/cloudflare-deploy-contract.js";
 
@@ -19,6 +19,23 @@ const HEALTHY_BINDINGS = [
   { type: "plain_text", name: "WRP_TASKPACK_VERSION", text: "v0.0.0.1.9" },
   { type: "secret_text", name: "WRP_INTERNAL_PROXY_SECRET" },
 ];
+
+test("发布身份只能完整绑定当前 HEAD，其他线上变量继续原样保留", () => {
+  const carry = assertCarryableVars(collectPlainTextVars(HEALTHY_BINDINGS));
+  const sha = "b".repeat(40);
+  const identity = { releaseCommit: sha, ovhReleaseId: "ovh-sync-fix", edgeDeploymentId: "edge-sync-fix" };
+  assert.deepEqual(applyReleaseIdentity(carry, {}, sha), carry);
+  const updated = new Map(applyReleaseIdentity(carry, identity, sha));
+  assert.equal(updated.get("WRP_RELEASE_COMMIT"), sha);
+  assert.equal(updated.get("WRP_OVH_RELEASE_ID"), identity.ovhReleaseId);
+  assert.equal(updated.get("WRP_EDGE_DEPLOYMENT_ID"), identity.edgeDeploymentId);
+  for (const [name, value] of carry) {
+    if (!["WRP_RELEASE_COMMIT", "WRP_OVH_RELEASE_ID", "WRP_EDGE_DEPLOYMENT_ID"].includes(name)) assert.equal(updated.get(name), value);
+  }
+  assert.throws(() => applyReleaseIdentity(carry, { releaseCommit: sha }, sha), /同时指定/u);
+  assert.throws(() => applyReleaseIdentity(carry, identity, "c".repeat(40)), /HEAD/u);
+  assert.throws(() => applyReleaseIdentity(carry, { ...identity, edgeDeploymentId: "bad id" }, sha), /格式无效/u);
+});
 const WIPED_BINDINGS = [
   { type: "assets", name: "ASSETS" },
   { type: "secret_text", name: "WRP_INTERNAL_PROXY_SECRET" },

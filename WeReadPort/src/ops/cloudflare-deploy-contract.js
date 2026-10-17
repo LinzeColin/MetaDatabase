@@ -19,6 +19,21 @@ export const REQUIRED_VARS = Object.freeze([
 /** secret 由 Cloudflare 自己保留，不许也不必重新传；出现在这里就是配错了。 */
 export const PRESERVED_SECRETS = Object.freeze(["WRP_INTERNAL_PROXY_SECRET"]);
 
+/** 仅在显式完整指定且与干净工作树一致时，替换本次发布的三个身份字段。 */
+export function applyReleaseIdentity(carry, identity, headCommit) {
+  const updates = [
+    ["WRP_RELEASE_COMMIT", identity.releaseCommit || ""],
+    ["WRP_OVH_RELEASE_ID", identity.ovhReleaseId || ""],
+    ["WRP_EDGE_DEPLOYMENT_ID", identity.edgeDeploymentId || ""],
+  ];
+  if (!updates.some(([, value]) => value)) return carry;
+  if (updates.some(([, value]) => !value)) throw new Error("必须同时指定 release commit、OVH release ID 和边缘部署 ID。");
+  if (!/^[0-9a-f]{40}$/.test(identity.releaseCommit) || identity.releaseCommit !== headCommit) throw new Error("release commit 必须与当前工作树的完整 HEAD 一致。");
+  if (![identity.ovhReleaseId, identity.edgeDeploymentId].every(value => /^[A-Za-z0-9._:-]{3,160}$/.test(value))) throw new Error("发布 ID 格式无效。");
+  const requested = new Map(updates);
+  return carry.map(([name, value]) => [name, requested.get(name) ?? value]);
+}
+
 /**
  * 从 /deployments 里挑出**当前正在跑的那一版**。
  * 别用 [0] 也别用 .at(-1)：`wrangler deployments list` 打印出来是升序（最老在前），
