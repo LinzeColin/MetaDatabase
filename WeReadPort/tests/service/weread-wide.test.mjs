@@ -6,7 +6,7 @@ import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { normalizeOfficialReadingProfile, normalizeWeReadDocuments, recommendationRows, syncWeReadDataset, WIDE_SCOPE_APIS } from "../../service/platform/weread.mjs";
 import { PlatformStore } from "../../service/platform/store.mjs";
-import { testPlatform } from "./helpers.mjs";
+import { testConfig, testPlatform } from "./helpers.mjs";
 
 const KEY = `wrk-${"W".repeat(32)}`;
 const EVENT_BASE = 1_700_000_000;
@@ -268,6 +268,25 @@ test("微信读书同步通过后台任务完成，并公开无正文的可轮�
   assert.ok(complete.progress.capabilities.includes("/user/notebooks"));
   assert.equal(JSON.stringify(complete.progress).includes(KEY), false, "任务状态不得泄漏微信读书密钥");
   assert.equal(platform.service.getWeReadSyncJob(user.account.id, first.id).state, "COMPLETE");
+});
+
+test("恢复预读期间持续续租，预读异常会正常清退运行任务", async t => {
+  t.mock.timers.enable({ apis: ["setInterval"] });
+  let now = 1_700_000_000_000;
+  const platform = testPlatform({ clock: () => now, config: testConfig({ importLeaseSeconds: 30 }) });
+  t.after(platform.close);
+  const user = await platform.service.registerWeRead({ key: KEY }, {}, { verify: false });
+  platform.store.markAccountDataRecoveryRequired(user.account.id);
+  platform.store.failAccountDataRecovery(user.account.id, "UPSTREAM_DENIED");
+  const job = platform.service.createWeReadSyncJob(user.account.id, {}, "preflight-readback-lease");
+  platform.service.verifyCurrentAccountNotes = async () => {
+    for (let step = 0; step < 2; step += 1) { now += 20_000; t.mock.timers.tick(20_000); }
+    assert.equal(platform.store.claimNextImportJob("other-worker", 30), null);
+    throw Object.assign(new Error("模拟对象校验故障"), { code: "READBACK_UNAVAILABLE" });
+  };
+  await assert.rejects(() => platform.service.processNextImportJob("recovery-worker"), error => error.code === "READBACK_UNAVAILABLE");
+  assert.equal(platform.store.getImportJob(user.account.id, job.id).state, "FAILED");
+  assert.equal(platform.store.getAccountDataRecovery(user.account.id).status, "FAILED");
 });
 
 test("旧版同步指纹中的真实书籍进度会直接补入画像，不等待重新导入", async t => {
