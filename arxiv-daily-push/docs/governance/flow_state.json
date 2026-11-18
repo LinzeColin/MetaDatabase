@@ -7,7 +7,7 @@
       "state": "blocked_by_input"
     },
     "BL-ADP-DAILY.scan": {
-      "at": "2026-11-17T12:23:02.012292+08:00",
+      "at": "2026-11-18T11:24:17.314354+08:00",
       "note": "看门狗有不变量被破坏(非静默归零):FAIL  route / returned HTTP 503",
       "state": "degraded"
     }
